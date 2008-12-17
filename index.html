@@ -41,6 +41,8 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js" type="text/javascript"></script>
     <script type="text/javascript">
       $(function() {
+        var limit = 10 // how many repos to list
+
         var repos = [], list = $('#repos')
 
         $.getJSON('http://github.com/api/v1/json/defunkt?callback=?', function(data) {
@@ -52,8 +54,9 @@
             return b.watchers - a.watchers
           })
 
+          repos = repos.slice(0, limit)
+
           $.each(repos, function(i) {
-            if (i > 9) return
             list.append('<li><a href="' + this.url + '">' + this.name + '</a></li>')
           })
         })        
