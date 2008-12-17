@@ -43,7 +43,7 @@
       $(function() {
         var repos = [], list = $('#repos')
 
-        $.getJSON('http://github.com/api/v1/json/defunkt', function(data) {
+        $.getJSON('http://github.com/api/v1/json/defunkt?callback=?', function(data) {
           $.each(data.user.repositories, function(i) {
             if (!this.fork) repos.push(this)
           })
