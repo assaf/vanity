@@ -55,9 +55,7 @@
             return b.watchers - a.watchers
           })
 
-          repos = repos.slice(0, limit)
-
-          $.each(repos, function() {
+          $.each(repos.slice(0, limit), function() {
             list.append('<li><a href="' + this.url + '">' + this.name + '</a></li>')
           })
         })        
