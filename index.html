@@ -47,7 +47,7 @@
         var repos = [], list = $('#repos')
 
         $.getJSON('http://github.com/api/v1/json/' + login + '?callback=?', function(data) {
-          $.each(data.user.repositories, function(i) {
+          $.each(data.user.repositories, function() {
             if (!this.fork) repos.push(this)
           })
 
@@ -57,7 +57,7 @@
 
           repos = repos.slice(0, limit)
 
-          $.each(repos, function(i) {
+          $.each(repos, function() {
             list.append('<li><a href="' + this.url + '">' + this.name + '</a></li>')
           })
         })        
