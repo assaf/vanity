@@ -5,16 +5,18 @@
   <head>
     <meta http-equiv="content-type" content="text/html;charset=UTF-8"  />
     <title>def unkt</title>
-    <style>
+    <style type="text/css">
       * {
         margin: 0;
         padding: 0;
       }
+
       body {
         /* http://flickr.com/photos/cgstopgo/2199917653/ */
         background: url(defunkt.jpg) no-repeat;
         height: 1024px;
       }
+
       ul {
         position: absolute;
         left: 850px;
@@ -22,18 +24,50 @@
         list-style-type: none;
       }
 
+      #repos {
+        top: 130px;
+      }
+
       a {
         color: #bbb;
         font-family: Lucida Grande;
         line-height: 18px;
       }
+
+      h3 {
+        font-family: Lucida Grande;      
+      }
     </style>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      $(function() {
+        var repos = [], list = $('#repos')
+
+        $.getJSON('http://github.com/api/v1/json/defunkt', function(data) {
+          $.each(data.user.repositories, function(i) {
+            if (!this.fork) repos.push(this)
+          })
+
+          repos.sort(function(a, b) {
+            return b.watchers - a.watchers
+          })
+
+          $.each(repos, function(i) {
+            if (i > 9) return
+            list.append('<li><a href="' + this.url + '">' + this.name + '</a></li>')
+          })
+        })        
+      })
+    </script>
   </head>
   <body>
     <ul>
       <li><a href="http://twitter.com/defunkt">twitter.com/defunkt</a></li>
       <li><a href="http://github.com/defunkt">github.com/defunkt</a></li>
       <li><a href="mailto:chris@ozmm.org">chris</a>@<a href="http://ozmm.org">ozmm.org</a></li>
+    </ul>
+    <ul id="repos">
+      <li><h3>repositories</h3></li>
     </ul>
   </body>
 </html>
