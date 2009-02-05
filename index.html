@@ -12,15 +12,13 @@
       }
 
       body {
-        /* http://flickr.com/photos/cgstopgo/2199917653/ */
-        background: url(defunkt.jpg) no-repeat;
-        height: 1024px;
+        background-color: black;
+        font-family: Courier New;
       }
 
       ul {
-        position: absolute;
-        left: 850px;
-        top: 30px;
+        margin-left: 850px;
+        margin-top: 30px;
         list-style-type: none;
       }
 
@@ -29,13 +27,14 @@
       }
 
       a {
-        color: #bbb;
-        font-family: Lucida Grande;
-        line-height: 18px;
+        color: green;
+        line-height: 1.3em;
+        text-decoration: none;
       }
 
       h3 {
-        font-family: Lucida Grande;      
+        color: white;
+        font-size: 1.0em;
       }
     </style>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js" type="text/javascript"></script>
@@ -47,7 +46,7 @@
         $.getJSON('http://github.com/api/v1/json/' + login + '?callback=?', function(data) {
           var repos = $.grep(data.user.repositories, function() {
             return !this.fork
-          })
+            })
 
           repos.sort(function(a, b) {
             return b.watchers - a.watchers
@@ -62,13 +61,13 @@
   </head>
   <body>
     <ul>
-      <li><h3>git status</h3></li>
+      <li><h3>$ git status</h3></li>
       <li><a href="http://labnotes.org">labnotes.org</a></li>
       <li><a href="http://twitter.com/assaf">twitter.com/assaf</a></li>
       <li><a href="http://github.com/assaf">github.com/assaf</a></li>
     </ul>
     <ul id="repos">
-      <li><h3>git clone</h3></li>
+      <li><h3>$ git clone</h3></li>
     </ul>
   </body>
 </html>
