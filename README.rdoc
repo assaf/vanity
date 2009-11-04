@@ -1,0 +1,16 @@
+Vanity is an Experience Driven-Development framework for Rails.
+
+== The Story So Far
+
+EDD was all Nathaniel Talbott's idea, I had experience tests to finish for
+Apartly, there was coffee involved and out came the idea for Vanity.
+
+First experiment, A/B tests, heavily influenced by Patrick McKenzie's awesome
+A/Bingo (http://www.bingocardcreator.com/abingo)
+
+Pain points courtesy of Google Analytics's stylish graphs and too-many-clicks
+goal tracking process.
+
+== License
+
+Vanity, copyright (C) 2009 Assaf Arkin, released under the "Use for good, not evil" license (www.json.org/license.html)
