@@ -1,7 +1,4 @@
-require "minitest/spec"
-require "mocha"
-require "lib/vanity"
-MiniTest::Unit.autorun
+require "test/test_helper"
 
 class PlaygroundTest < MiniTest::Spec
   before do

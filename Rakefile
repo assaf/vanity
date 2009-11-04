@@ -9,3 +9,8 @@ task :push do
   sh "gem build vanity.gemspec"
   sh "gem push vanity-#{version}.gem"
 end
+
+task :default=>:test
+task :test do
+  require *FileList["test/**_test.rb"]
+end
