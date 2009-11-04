@@ -1,18 +1,18 @@
 module Vanity
   # Helper methods for use in your controllers.
   #
-  # 1. Use vanity from within your controller:
+  # 1) Use Vanity from within your controller:
   #
   #   class ApplicationController < ActionController::Base
   #     include Vanity::Helpers
   #     use_vanity :current_user
   #   end
   #
-  # 2. Present different options for an A/B test:
+  # 2) Present different options for an A/B test:
   #
   #   Get started for only $<%= ab_test :pricing %> a month!
   #
-  # 3. Measure conversion:
+  # 3) Measure conversion:
   #
   #   def signup
   #     ab_goal! :pricing

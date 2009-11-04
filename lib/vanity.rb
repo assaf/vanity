@@ -8,10 +8,14 @@ require "openssl"
 module Vanity
   # Version number.
   module Version
-    STRING = Gem::Specification.load(File.expand_path("../vanity.gemspec", File.dirname(__FILE__))).version.to_s.freeze
-    MAJOR, MINOR, PATCH = STRING.split(".").map { |i| i.to_i }
+    version = Gem::Specification.load(File.expand_path("../vanity.gemspec", File.dirname(__FILE__))).version.to_s.split(".").map { |i| i.to_i }
+    MAJOR = version[0]
+    MINOR = version[1]
+    PATCH = version[2]
+    STRING = "#{MAJOR}.#{MINOR}.#{PATCH}"
   end
 end
+
 
 require File.join(File.dirname(__FILE__), "vanity/playground")
 require File.join(File.dirname(__FILE__), "vanity/experiment/base")

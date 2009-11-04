@@ -1,6 +1,83 @@
 Vanity is an Experience Driven-Development framework for Rails.
 
-== The Story So Far
+Requires Ruby 1.9 and Redis 1.0 or later.
+
+
+== A/B Testing with Rails
+
+1) Use Vanity from within your controller:
+
+  class ApplicationController < ActionController::Base
+    include Vanity::Helpers
+    use_vanity :current_user
+  end
+
+2)  Define an A/B test, here is examples/pricing.rb:
+
+  experiment :pricing do
+    alternatives 25, 29, 35
+  end
+
+3) Present different options for an A/B test:
+
+  <h2>Get started for only $<%= ab_test :pricing %> a month!</h2>
+
+4) Measure conversion:
+
+  class SignupController < ApplicationController
+    def signup
+      @account = Account.new(params[:account])
+      if @account.save
+        ab_goal! :pricing
+        redirect_to @acccount
+      else
+        render action: :offer
+      end
+    end
+  end
+
+When you call use_vanity, it defines the method set_vanity_identity and them
+adds it using before_filter.  As with all filters you can skip it, or set it to
+only work wth specific actions.
+
+The set_vanity_identity filter can work with both registered and anonymous
+users.  Give it the name of a method that returns the current user model and it
+will use the user's identifier.  If the method returns nil instead of a user,
+or there's no method to use (use_vanity nil), it will use a persistent cookie
+to associate a random Vanity identifier.
+
+Each experiment presents several (at least two) alternatives, use ab_test to
+pick and return one of these alternatives.  This method returns a value, you
+can also call it with a block and it will yield with the value.  Here are some
+usage examples:
+
+  def index
+    if ab_test(:new_page) # true/false test
+      render action: "new_page"
+    else
+      render action: "index"
+    end
+  end
+    
+  def index
+    # alternatives are names of templates 
+    render template: ab_test(:new_page)
+  end
+   
+  <%= if ab_test(:banner) %>100% less complexity!<% end %>
+  
+  <%= ab_test(:greeting) %> <%= current_user.name %>
+   
+  <% ab_test :features do |count| %>
+    <%= count %> features to choose from!
+  <% end %>
+
+To measure conversion, simply call ab_goal! with the experiment name.  From the
+Vanity identity set by the filter we know which alternative was presented by
+ab_test, and can correlate conversions to alternative.  It's that simple!
+
+
+== Credits
 
 EDD was all Nathaniel Talbott's idea, I had experience tests to finish for
 Apartly, there was coffee involved and out came the idea for Vanity.
@@ -10,6 +87,8 @@ A/Bingo (http://www.bingocardcreator.com/abingo)
 
 Pain points courtesy of Google Analytics's stylish graphs and too-many-clicks
 goal tracking process.
+
+
 
 == License
 
