@@ -25,14 +25,17 @@ module Vanity
 
     # Defines a new experiment. Generally, do not call this directly,
     # use #experiment instead.
-    def define(name, options = {}, &block)
+    def define(name, options = nil, &block)
       name = name.to_s.downcase.gsub(/\W/, "_")
       raise "Experiment #{name} already defined once" if @experiments[name]
       yaml = redis.get("#{namespace}:experiments:#{name}")
       if yaml
         experiment = YAML.load(yaml)
       else
-        experiment = Experiment::Base.new(name)
+        options ||= {}
+        type = options[:type] || :ab_test
+        klass = Experiment.const_get(type.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase })
+        experiment = klass.new(name)
       end
       experiment.instance_eval &block
       experiment.save

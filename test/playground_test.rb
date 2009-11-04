@@ -1,10 +1,6 @@
 require "test/test_helper"
 
 class PlaygroundTest < MiniTest::Spec
-  before do
-    @namespace = "vanity_0"
-  end
-
   it "has one global instance" do
     assert instance = Vanity.playground
     assert_equal instance, Vanity.playground
@@ -22,19 +18,19 @@ class PlaygroundTest < MiniTest::Spec
   end
 
   it "use vanity-{major} as default namespace" do
-    assert @namespace, Vanity.playground.namespace
+    assert namespace, Vanity.playground.namespace
   end
 
   it "fails if it cannot load named experiment from file" do
     assert_raises MissingSourceFile do
-      Vanity.playground.experiment("Green button")
+      experiment("Green button")
     end
   end
 
   it "loads named experiment from experiments directory" do
     Vanity.playground.expects(:require).with("experiments/green_button")
     begin
-      Vanity.playground.experiment("Green button")
+      experiment("Green button")
     rescue LoadError=>ex
     end
   end
@@ -42,66 +38,74 @@ class PlaygroundTest < MiniTest::Spec
   it "complains if experiment not defined in expected filed" do
     Vanity.playground.expects(:require).with("experiments/green_button")
     assert_raises LoadError do
-      Vanity.playground.experiment("Green button")
+      experiment("Green button")
     end
   end
 
   it "returns experiment defined in file" do
     playground = class << Vanity.playground ; self ; end
     playground.send :define_method, :require do |file|
-      Vanity.playground.define("Green Button") { }
+      Vanity.playground.define "Green Button" do
+        true_false
+      end
     end
-    assert_equal "green_button", Vanity.playground.experiment("Green button").name
+    assert_equal "green_button", experiment("Green button").name
   end
 
   it "can define and access experiment using symbol" do
-    assert green = Vanity.playground.define("Green Button") { }
-    assert_equal green, Vanity.playground.experiment(:green_button)
-    assert red = Vanity.playground.define(:red_button) { }
-    assert_equal red, Vanity.playground.experiment("Red Button")
+    assert green = experiment("Green Button") { true_false }
+    assert_equal green, experiment(:green_button)
+    assert red = experiment(:red_button) { true_false }
+    assert_equal red, experiment("Red Button")
   end
 
   it "detect and fail when defining the same experiment twice" do
-    Vanity.playground.define("Green Button") { }
+    experiment "Green Button" do
+      true_false
+    end
     assert_raises RuntimeError do
-      Vanity.playground.define(:green_button) { }
+      experiment :green_button do
+        true_false
+      end
     end
   end
 
   it "evalutes definition block when creating experiment" do
-    Vanity.playground.define :green_button do
+    experiment :green_button do
+      true_false
       expects(:xmts).returns("x")
     end
-    assert_equal "x", Vanity.playground.experiment(:green_button).xmts
+    assert_equal "x", experiment(:green_button).xmts
   end
 
   it "saves experiments after defining it" do
-    Vanity.playground.define :green_button do
+    experiment :green_button do
+      true_false
       expects(:save)
     end
   end
 
   it "loads experiment if one already exists" do
-    Vanity.playground.define :green_button do
+    experiment :green_button do
+      true_false
       @xmts = "x"
     end
     Vanity.instance_variable_set :@playground, Vanity::Playground.new
-    Vanity.playground.define :green_button do
+    experiment :green_button do
       expects(:xmts).returns(@xmts)
     end
-    assert_equal "x", Vanity.playground.experiment(:green_button).xmts
+    assert_equal "x", experiment(:green_button).xmts
   end
 
   it "uses playground namespace in experiment" do
-    Vanity.playground.define(:green_button) {}
-    assert_equal "#{@namespace}:experiments:green_button", Vanity.playground.experiment(:green_button).send(:key)
+    experiment :green_button do
+      true_false
+    end
+    assert_equal "#{namespace}:experiments:green_button", experiment(:green_button).send(:key)
+    assert_equal "#{namespace}:experiments:green_button:participants", experiment(:green_button).send(:key, "participants")
   end
 
   after do
-    Vanity.identity = nil
-    Vanity.instance_variable_set :@playground, Vanity::Playground.new
-    Vanity.playground.redis.keys("#{@namespace}:*").each do |key|
-      Vanity.playground.redis.del key
-    end
+    nuke_playground
   end
 end

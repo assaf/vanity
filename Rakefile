@@ -12,5 +12,7 @@ end
 
 task :default=>:test
 task :test do
-  require *FileList["test/**_test.rb"]
+  FileList["test/**_test.rb"].each do |file|
+    require file
+  end
 end

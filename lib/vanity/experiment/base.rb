@@ -21,7 +21,7 @@ module Vanity
       #   key => "vanity:experiments:green_button"
       #   key("participants") => "vanity:experiments:green_button:participants"
       def key(name = nil)
-        name ? "#{@namespace}:#{@name}" : @namespace
+        name ? "#{@namespace}:#{name}" : @namespace
       end
 
       # Shortcut for Vanity.playground.redis
