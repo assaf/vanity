@@ -1,6 +1,10 @@
 require "test/test_helper"
 
 class PlaygroundTest < MiniTest::Spec
+  before do
+    @namespace = "vanity_0"
+  end
+
   it "has one global instance" do
     assert instance = Vanity.playground
     assert_equal instance, Vanity.playground
@@ -18,7 +22,7 @@ class PlaygroundTest < MiniTest::Spec
   end
 
   it "use vanity-{major} as default namespace" do
-    assert namespace, Vanity.playground.namespace
+    assert @namespace, Vanity.playground.namespace
   end
 
   it "fails if it cannot load named experiment from file" do
@@ -101,8 +105,8 @@ class PlaygroundTest < MiniTest::Spec
     experiment :green_button do
       true_false
     end
-    assert_equal "#{namespace}:experiments:green_button", experiment(:green_button).send(:key)
-    assert_equal "#{namespace}:experiments:green_button:participants", experiment(:green_button).send(:key, "participants")
+    assert_equal "#{@namespace}:experiments:green_button", experiment(:green_button).send(:key)
+    assert_equal "#{@namespace}:experiments:green_button:participants", experiment(:green_button).send(:key, "participants")
   end
 
   after do
