@@ -6,13 +6,15 @@ Gem::Specification.new do |spec|
   spec.homepage       = "http://github.com/assaf/vanity"
   spec.summary        = "Experience Driven Development framework for Rails"
   spec.description    = ""
+  #spec.post_install_message = "To get started run vanity --help"
 
-  spec.files          = Dir["{bin,lib,example}/**/*", "CHANGELOG", "README.rdoc", "vanity.gemspec"]
+  spec.files          = Dir["{bin,lib,test,example}/**/*", "CHANGELOG", "README.rdoc", "vanity.gemspec"]
   spec.executable     = "vanity"
 
   spec.has_rdoc         = true
   spec.extra_rdoc_files = 'README.rdoc', 'CHANGELOG'
   spec.rdoc_options     = '--title', 'Vanity', '--main', 'README.rdoc',
                           '--webcvs', 'http://github.com/assaf/vanity'
-end
 
+  spec.add_dependency "redis", "0.1"
+end
