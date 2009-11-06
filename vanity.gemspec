@@ -12,9 +12,9 @@ Gem::Specification.new do |spec|
   spec.executable     = "vanity"
 
   spec.has_rdoc         = true
-  spec.extra_rdoc_files = 'README.rdoc', 'CHANGELOG'
-  spec.rdoc_options     = '--title', 'Vanity', '--main', 'README.rdoc',
-                          '--webcvs', 'http://github.com/assaf/vanity'
+  spec.extra_rdoc_files = "README.rdoc", "CHANGELOG"
+  spec.rdoc_options     = "--title", "Vanity #{spec.version}", "--main", "README.rdoc",
+                          "--webcvs", "http://github.com/assaf/#{spec.name}"
 
   spec.add_dependency "redis", "0.1"
 end

@@ -108,9 +108,7 @@ end
 class AbTestHelpersTest < ActionController::TestCase
   tests AbTestHelpersController
   def setup
-    experiment :simple_ab do
-      true_false
-    end
+    experiment(:simple_ab) { }
   end
 
   def test_fail_if_no_experiment

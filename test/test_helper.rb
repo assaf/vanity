@@ -36,6 +36,10 @@ class MiniTest::Unit::TestCase
       Vanity.playground.experiment(name)
     end
   end
+
+  def teardown
+    nuke_playground
+  end
 end
 
 ActionController::Routing::Routes.draw do |map|

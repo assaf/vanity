@@ -49,34 +49,27 @@ class PlaygroundTest < MiniTest::Spec
   it "returns experiment defined in file" do
     playground = class << Vanity.playground ; self ; end
     playground.send :define_method, :require do |file|
-      Vanity.playground.define "Green Button" do
-        true_false
-      end
+      Vanity.playground.define("Green Button") { }
     end
     assert_equal "green_button", experiment("Green button").name
   end
 
   it "can define and access experiment using symbol" do
-    assert green = experiment("Green Button") { true_false }
+    assert green = experiment("Green Button") { }
     assert_equal green, experiment(:green_button)
-    assert red = experiment(:red_button) { true_false }
+    assert red = experiment(:red_button) { }
     assert_equal red, experiment("Red Button")
   end
 
   it "detect and fail when defining the same experiment twice" do
-    experiment "Green Button" do
-      true_false
-    end
+    experiment("Green Button") { }
     assert_raises RuntimeError do
-      experiment :green_button do
-        true_false
-      end
+      experiment(:green_button) { }
     end
   end
 
   it "evalutes definition block when creating experiment" do
     experiment :green_button do
-      true_false
       expects(:xmts).returns("x")
     end
     assert_equal "x", experiment(:green_button).xmts
@@ -84,32 +77,13 @@ class PlaygroundTest < MiniTest::Spec
 
   it "saves experiments after defining it" do
     experiment :green_button do
-      true_false
       expects(:save)
     end
   end
 
-  it "loads experiment if one already exists" do
-    experiment :green_button do
-      true_false
-      @xmts = "x"
-    end
-    Vanity.instance_variable_set :@playground, Vanity::Playground.new
-    experiment :green_button do
-      expects(:xmts).returns(@xmts)
-    end
-    assert_equal "x", experiment(:green_button).xmts
-  end
-
   it "uses playground namespace in experiment" do
-    experiment :green_button do
-      true_false
-    end
+    experiment(:green_button) { }
     assert_equal "#{@namespace}:experiments:green_button", experiment(:green_button).send(:key)
     assert_equal "#{@namespace}:experiments:green_button:participants", experiment(:green_button).send(:key, "participants")
-  end
-
-  after do
-    nuke_playground
   end
 end

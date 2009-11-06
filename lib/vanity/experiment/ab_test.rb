@@ -3,6 +3,11 @@ module Vanity
 
     # The meat.
     class AbTest < Base
+      def initialize(*args) #:nodoc:
+        super
+        @alternatives = [true, false]
+      end
+
       # Chooses a value for the given identity. This method returns different
       # values for different identities, with random distribution, and consistently
       # returns the same value for the same identity.
@@ -28,11 +33,8 @@ module Vanity
       #     alternatives "red", "blue", "orange"
       #   end
       def alternatives(*args)
-        if @alternatives
-          fail "Cannot change alternatives between runs" unless @alternatives == args
-        else
-          @alternatives = args
-        end
+        @alternatives = args unless args.empty?
+        @alternatives
       end
 
       # True/false A/B test. For example:

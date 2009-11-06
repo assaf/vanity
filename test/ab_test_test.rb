@@ -2,22 +2,19 @@ require "test/test_helper"
 
 class AbTestTest < MiniTest::Spec
   it "uses A/B test when type: :ab_test" do
-    experiment :ab, type: :ab_test do
-      true_false
-    end
+    experiment(:ab, type: :ab_test) { }
     assert_instance_of Vanity::Experiment::AbTest, experiment(:ab)
   end
 
   it "uses A/B as default test type" do
-    experiment :default do
-      true_false
-    end
+    experiment(:default) { }
     assert_instance_of Vanity::Experiment::AbTest, experiment(:default)
   end
 
   it "requires at least two alternatives per experiment" do
     assert_raises RuntimeError do
       experiment :none, type: :ab_test do
+        alternatives []
       end
     end
     assert_raises RuntimeError do
@@ -30,29 +27,12 @@ class AbTestTest < MiniTest::Spec
     end
   end
 
-  it "complains if alternatives changed for stored definition" do
-    experiment :default do
-      true_false
-    end
-
-    new_playground
-    assert_raises RuntimeError do
-      experiment :default do
-        alternatives "foo", "bar"
-      end
-    end
-
-    new_playground
-    experiment :default do
-      true_false
-    end
-  end
-
   it "returns the same alternative consistently from choice" do
     experiment :foobar do
       alternatives "foo", "bar"
     end
-    assert_match /foo|bar/, value = experiment(:foobar).choice(Vanity.identity)
+    assert value = experiment(:foobar).choice(Vanity.identity)
+    assert_match /foo|bar/, value
     1000.times do
       assert_equal value, experiment(:foobar).choice(Vanity.identity)
     end
@@ -103,9 +83,5 @@ class AbTestTest < MiniTest::Spec
     end
     totals = experiment(:foobar).measure
     assert_equal ids.size, totals.inject(0) { |a,(k,v)| a + v[:conversions] }
-  end
-
-  after do
-    nuke_playground
   end
 end
