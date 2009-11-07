@@ -1,0 +1,22 @@
+<style>
+  ol.experiments { list-style: none; margin: 1em 0; padding: 0; border-bottom: 1px solid #ccc }
+  ol.experiments .hide { display: none }
+  li.experiment h3 { margin: 0 }
+  li.experiment blockquote { margin: 0 }
+  li.experiment .meta { color: #444 }
+  li.experiment .data dt { float: left }
+  li.experiment .green { color: green }
+  li.experiment .red { color: red }
+  li.experiment .data dd { margin: 0 0 .3em 6em }
+</style>
+<h2>Experiments</h2>
+<ol class="experiments">
+  <% experiments.sort_by(&:created_at).each do |exp| %>
+    <li class="experiment" id="experiment_<%= CGI.escape exp.id.to_s %>">
+      <h3><%= CGI.escape_html exp.name %></h3>
+      <blockquote><%= CGI.escape_html exp.description.to_s %></blockquote>
+      <%= exp.report %>
+      <p class="meta"><%= exp.humanize %> started <%= exp.created_at.strftime("%a, %b %-d %Y") %></p>
+    </li>
+  <% end %>
+</ol>

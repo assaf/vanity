@@ -57,6 +57,19 @@ module Vanity
         }) }
       end
 
+      def report
+        results = measure
+        alts = (0...@alternatives.count).map { |i|
+          alt = @alternatives[i]
+          "<dt>Option #{(65 + i).chr}</dt><dd><code>#{CGI.escape_html @alternatives[i].inspect}</code> viewed #{results[alt][:participants]} times, converted #{results[alt][:conversions]}<dd>"
+        }
+        %{<dl class="data">#{alts.join}</dl>}
+      end
+
+      def humanize
+        "A/B Test" 
+      end
+
       def save #:nodoc:
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives && @alternatives.size >= 2
         super

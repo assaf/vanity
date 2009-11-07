@@ -37,12 +37,12 @@ module Vanity
         @description
       end
 
-      # Called to save the experiment definition.
-      def save #:nodoc:
+      def report
+        fail "Implement me"
       end
 
-      def type
-        self.class.name.split("::").last.gsub(/([a-z])([A-Z])/) { "#{$1}_#{$2}" }.gsub(/([A-Z])([A-Z][a-z])/) { "#{$1}_#{$2}" }.downcase
+      # Called to save the experiment definition.
+      def save #:nodoc:
       end
 
     protected
