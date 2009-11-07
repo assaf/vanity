@@ -1,6 +1,25 @@
 require "test/test_helper"
 
 class ExperimentTest < MiniTest::Spec
+  it "creates ID from name" do
+    exp = experiment("Green Button/Alert") { }
+    assert_equal "Green Button/Alert", exp.name
+    assert_equal :green_button_alert, exp.id
+  end
+
+  it "evalutes definition block at creation" do
+    experiment :green_button do
+      expects(:xmts).returns("x")
+    end
+    assert_equal "x", experiment(:green_button).xmts
+  end
+
+  it "saves experiments after defining it" do
+    experiment :green_button do
+      expects(:save)
+    end
+  end
+
   it "stores when experiment created" do
     experiment(:simple) { }
     assert_instance_of Time, experiment(:simple).created_at

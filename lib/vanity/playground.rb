@@ -26,20 +26,15 @@ module Vanity
     # Defines a new experiment. Generally, do not call this directly,
     # use #experiment instead.
     def define(name, options = nil, &block)
-      name = name.to_s.downcase.gsub(/\W/, "_")
-      raise "Experiment #{name} already defined once" if @experiments[name]
-      yaml = redis.get("#{namespace}:experiments:#{name}")
-      if yaml
-        experiment = YAML.load(yaml)
-      else
-        options ||= {}
-        type = options[:type] || :ab_test
-        klass = Experiment.const_get(type.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase })
-        experiment = klass.new(name)
-      end
+      id = name.to_s.downcase.gsub(/\W/, "_")
+      raise "Experiment #{id} already defined once" if @experiments[id]
+      options ||= {}
+      type = options[:type] || :ab_test
+      klass = Experiment.const_get(type.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase })
+      experiment = klass.new(id, name)
       experiment.instance_eval &block
       experiment.save
-      @experiments[name] = experiment
+      @experiments[id] = experiment
     end
 
     # Returns the named experiment. You may not have guessed, but this method
@@ -49,11 +44,11 @@ module Vanity
     # non-word characters with underscores, so "Green call to action" becomes
     # "green_call_to_action". You can also use a symbol if you feel like it.
     def experiment(name)
-      name = name.to_s.downcase.gsub(/\W/, "_")
-      unless @experiments.has_key?(name)
-        require "experiments/#{name}"
+      id = name.to_s.downcase.gsub(/\W/, "_")
+      unless @experiments.has_key?(id)
+        require "experiments/#{id}"
       end
-      @experiments[name] or fail LoadError, "Expected experiments/#{name}.rb to define experiment #{name}"
+      @experiments[id] or fail LoadError, "Expected experiments/#{id}.rb to define experiment #{name}"
     end
 
   end

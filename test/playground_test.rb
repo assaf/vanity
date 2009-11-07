@@ -49,9 +49,11 @@ class PlaygroundTest < MiniTest::Spec
   it "returns experiment defined in file" do
     playground = class << Vanity.playground ; self ; end
     playground.send :define_method, :require do |file|
-      Vanity.playground.define("Green Button") { }
+      Vanity.playground.define "Green Button" do
+        def xmts ; "x" ; end
+      end
     end
-    assert_equal "green_button", experiment("Green button").name
+    assert_equal "x", experiment("Green button").xmts
   end
 
   it "can define and access experiment using symbol" do
@@ -65,19 +67,6 @@ class PlaygroundTest < MiniTest::Spec
     experiment("Green Button") { }
     assert_raises RuntimeError do
       experiment(:green_button) { }
-    end
-  end
-
-  it "evalutes definition block when creating experiment" do
-    experiment :green_button do
-      expects(:xmts).returns("x")
-    end
-    assert_equal "x", experiment(:green_button).xmts
-  end
-
-  it "saves experiments after defining it" do
-    experiment :green_button do
-      expects(:save)
     end
   end
 
