@@ -1,7 +1,7 @@
 require "test/test_helper"
 
 class UseVanityController < ActionController::Base
-  include Vanity::Helpers
+  include Vanity::Rails
 
   def index
     render text: ab_test(:simple)

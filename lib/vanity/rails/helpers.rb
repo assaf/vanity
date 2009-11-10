@@ -3,8 +3,10 @@ module Vanity
   #
   # 1) Use Vanity from within your controller:
   #
-  #   class ApplicationController < ActionController::Base include
-  #   Vanity::Helpers use_vanity :current_user end
+  #   class ApplicationController < ActionController::Base
+  #     include Vanity::Rails
+  #     use_vanity :current_user end
+  #   end
   #
   # 2) Present different options for an A/B test:
   #
@@ -12,8 +14,11 @@ module Vanity
   #
   # 3) Measure conversion:
   #
-  #   def signup ab_goal! :pricing . . .  end
-  module Helpers
+  #   def signup
+  #     ab_goal! :pricing
+  #     . . .
+  #   end
+  module Rails
     module ClassMethods
 
       # Defines the vanity_identity method, and the set_identity_context before
@@ -28,7 +33,7 @@ module Vanity
       # For example, if +current_user+ returns a +User+ object, then to use the
       # user's id:
       #   class ApplicationController < ActionController::Base
-      #     include Vanity::Helpers
+      #     include Vanity::Rails
       #     use_vanity :current_user
       #   end
       #
@@ -40,7 +45,7 @@ module Vanity
       #
       # For example:
       #   class ApplicationController < ActionController::Base
-      #     include Vanity::Helpers
+      #     include Vanity::Rails
       #     use_vanity :current_user
       #   end
       def use_vanity(symbol)
@@ -59,7 +64,7 @@ module Vanity
         end
         before_filter :set_vanity_context
 
-        helper Vanity::Helpers
+        helper Vanity::Rails
       end
     end
 

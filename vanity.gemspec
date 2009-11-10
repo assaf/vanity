@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name           = "vanity"
-  spec.version        = "0.0.2"
+  spec.version        = "0.1.1"
   spec.author         = "Assaf Arkin"
   spec.email          = "assaf@labnotes.org"
   spec.homepage       = "http://github.com/assaf/vanity"
@@ -9,7 +9,6 @@ Gem::Specification.new do |spec|
   #spec.post_install_message = "To get started run vanity --help"
 
   spec.files          = Dir["{bin,lib,test,example}/**/*", "CHANGELOG", "README.rdoc", "vanity.gemspec"]
-  spec.executable     = "vanity"
 
   spec.has_rdoc         = true
   spec.extra_rdoc_files = "README.rdoc", "CHANGELOG"

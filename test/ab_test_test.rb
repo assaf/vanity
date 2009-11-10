@@ -1,7 +1,7 @@
 require "test/test_helper"
 
 class AbTestController < ActionController::Base
-  include Vanity::Helpers
+  include Vanity::Rails
   use_vanity :current_user
   attr_accessor :current_user
 
