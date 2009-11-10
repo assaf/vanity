@@ -70,6 +70,9 @@ module Vanity
 
     # Returns list of all loaded experiments.
     def experiments
+      Dir[File.join(load_path, "*.rb")].each do |file|
+        require file
+      end
       @experiments.values
     end
 
