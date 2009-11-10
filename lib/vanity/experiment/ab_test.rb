@@ -1,11 +1,63 @@
 module Vanity
   module Experiment
 
+    # Experiment alternative.  See AbTest#alternatives.
+    class Alternative
+
+      def initialize(experiment, id, value) #:nodoc:
+        @experiment = experiment
+        @id = id
+        @value = value
+      end
+
+      # Alternative id, only unique for this experiment.
+      attr_reader :id
+     
+      # Alternative value.
+      attr_reader :value
+
+      # Number of participants who viewed this alternative.
+      def participants
+        redis.scard(key("participants")).to_i
+      end
+
+      # Number of participants who converted on this alternative.
+      def converted
+        redis.scard(key("converted")).to_i
+      end
+
+      # Number of conversions for this alternative (same participant may be counted more than once).
+      def conversions
+        redis.get(key("conversions")).to_i
+      end
+
+      def participating!(identity)
+        redis.sadd key("participants"), identity
+      end
+
+      def conversion!(identity)
+        if redis.sismember(key("participants"), identity)
+          redis.sadd key("converted"), identity
+          redis.incr key("conversions")
+        end
+      end
+
+    protected
+
+      def key(name)
+        @experiment.key("alts:#{id}:#{name}")
+      end
+
+      def redis
+        @experiment.redis
+      end
+
+    end
+
     # The meat.
     class AbTest < Base
       def initialize(*args) #:nodoc:
         super
-        @alternatives = [true, false]
       end
 
       # Chooses a value for this experiment.
@@ -19,8 +71,8 @@ module Vanity
       def choose
         identity = identify
         alt = alternative_for(identity)
-        redis.sadd key("alts:#{alt}:participants"), identity
-        @alternatives[alt]
+        alt.participating! identity
+        alt.value
       end
 
       # Records a conversion.
@@ -30,48 +82,40 @@ module Vanity
       def conversion!
         identity = identify
         alt = alternative_for(identity)
-        if redis.sismember(key("alts:#{alt}:participants"), identity)
-          redis.sadd key("alts:#{alt}:converted"), identity
-          redis.incr key("alts:#{alt}:conversions")
-        end
+        alt.conversion! identity
+        alt.id
       end
 
-      # Specifies alternative values for the A/B test. At least two values are required.
+      # Call this method once to specify values for the A/B test.  At least two
+      # values are required.
+      #
+      # Call without argument to previously defined alternatives (see Alternative).
+      #
       # For example:
-      #   experiment :background_color do
+      #   experiment "Background color" do
       #     alternatives "red", "blue", "orange"
       #   end
+      #
+      #   alts = experiment(:background_color).alternatives
+      #   puts "#{alts.count} alternatives, with the colors: #{alts.map(&:value).join(", ")}"
       def alternatives(*args)
-        @alternatives = args unless args.empty?
-        @alternatives
+        args = [true, false] if args.empty?
+        @alternatives = []
+        args.each_with_index do |arg, i|
+          @alternatives << Alternative.new(self, i, arg)
+        end
+        class << self ; self ; end.send(:define_method, :alternatives) { @alternatives }
+        alternatives
       end
 
-      # True/false A/B test. For example:
-      #   experiment :new_background do
-      #     true_false
-      #   end
+      # Sets this test to two alternatives: true and false.
       def true_false
         alternatives true, false
       end
 
-      # Returns measurements for this experience: an hash with the key being the
-      # alternative and the value being a hash of the participants and conversion counts.
-      # For example:
-      #   { :red=>{:participants=>15, :conversions=>5},
-      #     :blue=>{:participants=>12, :conversions=>8} }
-      def measure
-        (0...@alternatives.count).inject({}) { |h,alt| h.update(@alternatives[alt] => {
-          participants: redis.scard(key("alts:#{alt}:participants")).to_i,
-          converted: redis.scard(key("alts:#{alt}:converted")).to_i,
-          conversions: redis.get(key("alts:#{alt}:conversions")).to_i
-        }) }
-      end
-
       def report
-        results = measure
-        alts = (0...@alternatives.count).map { |i|
-          alt = @alternatives[i]
-          "<dt>Option #{(65 + i).chr}</dt><dd><code>#{CGI.escape_html @alternatives[i].inspect}</code> viewed #{results[alt][:participants]} times, converted #{results[alt][:conversions]}<dd>"
+        alts = alternatives.map { |alt|
+          "<dt>Option #{(65 + alt.id).chr}</dt><dd><code>#{CGI.escape_html alt.value.inspect}</code> viewed #{alt.participants} times, converted #{alt.conversions}<dd>"
         }
         %{<dl class="data">#{alts.join}</dl>}
       end
@@ -91,11 +135,11 @@ module Vanity
       #   teardown do
       #     experiment(:green_button).select(nil)
       #   end
-      def chooses(alternative)
-        index = alternatives.index(alternative)
-        raise ArgumentError, "No alternative #{alternative} for #{name}" unless index
+      def chooses(value)
+        alternative = alternatives.find { |alt| alt.value == value }
+        raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless alternative
         Vanity.context.session[:vanity] ||= {}
-        Vanity.context.session[:vanity][id] = index
+        Vanity.context.session[:vanity][id] = alternative.id
       end
 
       def humanize
@@ -103,7 +147,7 @@ module Vanity
       end
 
       def save #:nodoc:
-        fail "Experiment #{name} needs at least two alternatives" unless @alternatives && @alternatives.size >= 2
+        fail "Experiment #{name} needs at least two alternatives" unless alternatives.count >= 2
         super
       end
 
@@ -115,8 +159,9 @@ module Vanity
       # same experiment).
       def alternative_for(identity)
         session = Vanity.context.session[:vanity]
-        fixed = session && session[id]
-        fixed || Digest::MD5.hexdigest("#{name}/#{identity}").to_i(16) % @alternatives.count
+        index = session && session[id]
+        index ||= Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % alternatives.count
+        alternatives[index]
       end
 
     end

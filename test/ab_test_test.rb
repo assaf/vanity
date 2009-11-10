@@ -84,9 +84,9 @@ class AbTestTest < ActionController::TestCase
       identify { ids.pop }
     end
     1000.times { experiment(:foobar).choose }
-    totals = experiment(:foobar).measure
-    assert_equal 200, totals.inject(0) { |a,(k,v)| a + v[:participants] }
-    assert_in_delta totals["foo"][:participants], 100, 20
+    alts = experiment(:foobar).alternatives
+    assert_equal 200, alts.inject(0) { |total,alt| total + alt.participants }
+    assert_in_delta alts.first.participants, 100, 20
   end
 
   def records_each_converted_participant_only_once
@@ -101,8 +101,8 @@ class AbTestTest < ActionController::TestCase
       experiment(:foobar).choose
       experiment(:foobar).conversion!
     end
-    totals = experiment(:foobar).measure
-    assert_equal 100, totals.inject(0) { |a,(k,v)| a + v[:converted] }
+    alts = experiment(:foobar).alternatives
+    assert_equal 100, alts.inject(0) { |total,alt| total + alt.converted }
   end
 
   def test_records_conversion_only_for_participants
@@ -118,8 +118,8 @@ class AbTestTest < ActionController::TestCase
       test.identity << "!"
       experiment(:foobar).conversion!
     end
-    totals = experiment(:foobar).measure
-    assert_equal 100, totals.inject(0) { |a,(k,v)| a + v[:converted] }
+    alts = experiment(:foobar).alternatives
+    assert_equal 100, alts.inject(0) { |t,a| t + a.converted }
   end
 
 
@@ -177,9 +177,9 @@ class AbTestTest < ActionController::TestCase
       get :test_render
       post :goal
     end
-    totals = experiment(:simple_ab).measure
-    assert_equal [100,0], totals.values_at(true, false).map { |h| h[:participants] }
-    assert_equal [100,0], totals.values_at(true, false).map { |h| h[:conversions] }
+    alts = experiment(:simple_ab).alternatives
+    assert_equal [100,0], alts.map { |alt| alt.participants }
+    assert_equal [100,0], alts.map { |alt| alt.conversions }
   end
 
   def test_which_chooses_non_existent_alternative

@@ -81,18 +81,16 @@ module Vanity
         end
       end
 
-    protected
-
       # Returns key for this experiment, or with an argument, return a key
       # using the experiment as the namespace.  Examples:
       #   key => "vanity:experiments:green_button"
       #   key("participants") => "vanity:experiments:green_button:participants"
-      def key(name = nil)
+      def key(name = nil) #:nodoc:
         name ? "#{@namespace}:#{name}" : @namespace
       end
 
       # Shortcut for Vanity.playground.redis
-      def redis
+      def redis #:nodoc:
         @playground.redis
       end
     end
