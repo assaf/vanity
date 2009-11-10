@@ -2,7 +2,7 @@ require "minitest/spec"
 require "mocha"
 require "action_controller"
 require "action_controller/test_case"
-require "lib/vanity"
+require "lib/vanity/rails"
 MiniTest::Unit.autorun
 
 class MiniTest::Unit::TestCase

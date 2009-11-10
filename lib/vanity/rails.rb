@@ -1,3 +1,5 @@
+require "vanity"
+
 module Vanity
   # Helper methods for use in your controllers.
   #
@@ -110,3 +112,6 @@ module Vanity
     end
   end
 end
+
+# Use Rails logger by default.
+Vanity.playground.config[:logger] ||= ActionController::Base.logger

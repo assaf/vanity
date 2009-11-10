@@ -20,4 +20,3 @@ end
 require File.join(File.dirname(__FILE__), "vanity/playground")
 require File.join(File.dirname(__FILE__), "vanity/experiment/base")
 require File.join(File.dirname(__FILE__), "vanity/experiment/ab_test")
-require File.join(File.dirname(__FILE__), "vanity/rails") if defined?(ActionController)

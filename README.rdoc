@@ -77,6 +77,23 @@ Vanity identity set by the filter we know which alternative was presented by
 ab_test, and can correlate conversions to alternative.  It's that simple!
 
 
+== Configuring Vanity
+
+Vanity will work out of the box on a default configuration.  It will use Redis
+database 0, on 127.0.0.1 port 6379, and log using the Rails logger.
+
+If you have a different setup you can pass a hash of configuration options to
+Vanity.playground.config, just a string with host name and port, or configure
+each option individually.  Make sure the configure Vanity before using it, e.g.
+from config/environment.rb.
+
+Examples:
+
+  Vanity.playground.config = { host: "redis.local", logger: my_logger }
+  Vanity.playground.config = "redis.local:6379"
+  Vanity.playground.config[:password] = "supersecret"
+
+
 == Credits
 
 EDD was all Nathaniel Talbott's idea, I had experience tests to finish for
