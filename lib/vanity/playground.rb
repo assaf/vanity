@@ -2,18 +2,43 @@ require "active_support"
 
 module Vanity
 
-  # Playground catalogs all your experiments.  Use it to configure Vanity, for
-  # example:
-  #   Vanity.playground.config = "redis-server.local:6379"
-  #   Vanity.plauground.config[:logger] = my_logger
-  
+  # Vanity.playground.configuration
+  class Configuration
+  end
+
+  # Playground catalogs all your experiments, holds the Vanity configuration.
+  # For example:
+  #   Vanity.playground.logger = my_logger
+  #   puts Vanity.playground.map(&:name)
   class Playground
 
     # Created new Playground. Unless you need to, use the global Vanity.playground.
     def initialize
       @experiments = {}
-      @config = {}
+      @namespace = "vanity_#{Vanity::Version::MAJOR}".downcase.gsub(/\W/, "_")
+      @load_path = "experiments"
     end
+    
+    # Redis host name.  Default is 127.0.0.1
+    attr_accessor :host
+
+    # Redis port number.  Default is 6379.
+    attr_accessor :port
+
+    # Redis database number. Default is 0.
+    attr_accessor :db
+
+    # Redis database password.
+    attr_accessor :password
+
+    # Namespace for database keys.  Default is vanity_n, where n is the major release number, e.g. vanity_1 for 1.0.3.
+    attr_accessor :namespace
+
+    # Path to load experiment files from.
+    attr_accessor :load_path
+
+    # Logger.
+    attr_accessor :logger
 
     # Defines a new experiment. Generally, do not call this directly,
     # use #experiment instead.
@@ -38,60 +63,24 @@ module Vanity
     def experiment(name)
       id = name.to_s.downcase.gsub(/\W/, "_")
       unless @experiments.has_key?(id)
-        require "experiments/#{id}"
+        require File.join(load_path, id)
       end
       @experiments[id] or fail LoadError, "Expected experiments/#{id}.rb to define experiment #{name}"
     end
 
-    # Returns the configuration hash. For example:
-    #   Vanity.playground.config[:logger] = my_logger
-    def config
-      @config
-    end
-
-    # Sets the configuration.  Value can be one of:
-    # [Hash] Configuration options
-    # [String] Redis host and port (e.g. "localhost:6379")
-    # [nil] Clear out all configuration options.
-    #
-    # Configuration options include:
-    # [host] Redis server host (defaults to 127.0.0.1)
-    # [port] Redis server port (defaults to 6379)
-    # [db] Redis database (defaults to 0)
-    # [password] Password to use when accessing Redis database
-    # [logger] Logger to use
-    def config=(value)
-      case value
-      when String
-        host, port = value.split(":")
-        @config = { host: host, port: port }
-      when Hash
-        @config = value
-      when nil
-        @config = {}
-      end
+    # Returns list of all loaded experiments.
+    def experiments
+      @experiments.values
     end
 
     # Use this instance to access the Redis database.
     def redis
-      redis = Redis.new(redis_config)
+      redis = Redis.new(host: self.host, port: self.port, db: self.db,
+                        password: self.password, logger: self.logger)
       class << self ; self ; end.send(:define_method, :redis) { redis }
       redis
     end
 
-    # Use this namespace for all Redis keys.
-    def namespace
-      namespace = (config[:namespace] || "vanity_#{Vanity::Version::MAJOR}").downcase.gsub(/\W/, "_")
-      class << self ; self ; end.send(:define_method, :namespace) { namespace }
-      namespace
-    end
-
-  protected
-
-    def redis_config
-      { host: config[:host], port: config[:port], db: config[:db], password: config[:password] }
-    end
-  
   end
 
   @playground = Playground.new

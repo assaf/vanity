@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.description    = ""
   #spec.post_install_message = "To get started run vanity --help"
 
-  spec.files          = Dir["{bin,lib,test,example}/**/*", "CHANGELOG", "README.rdoc", "vanity.gemspec"]
+  spec.files          = Dir["{bin,lib,rails,test}/**/*", "CHANGELOG", "README.rdoc", "vanity.gemspec"]
 
   spec.has_rdoc         = true
   spec.extra_rdoc_files = "README.rdoc", "CHANGELOG"
