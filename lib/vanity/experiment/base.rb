@@ -17,7 +17,7 @@ module Vanity
       def initialize(playground, id, name, &block)
         @playground = playground
         @id, @name = id.to_sym, name
-        @namespace = "#{@playground.namespace}:experiments:#{@id}"
+        @namespace = "#{@playground.namespace}:#{@id}"
         created = redis.get(key(:created_at)) || (redis.setnx(key(:created_at), Time.now.to_i) ; redis.get(key(:created_at))) 
         @created_at = Time.at(created.to_i)
         @identify_block = ->(context){ context.vanity_identity }

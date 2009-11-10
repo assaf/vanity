@@ -15,7 +15,7 @@ module Vanity
     # Created new Playground. Unless you need to, use the global Vanity.playground.
     def initialize
       @experiments = {}
-      @namespace = "vanity_#{Vanity::Version::MAJOR}".downcase.gsub(/\W/, "_")
+      @namespace = "vanity:#{Vanity::Version::MAJOR}"
       @load_path = "experiments"
     end
     
@@ -31,7 +31,7 @@ module Vanity
     # Redis database password.
     attr_accessor :password
 
-    # Namespace for database keys.  Default is vanity_n, where n is the major release number, e.g. vanity_1 for 1.0.3.
+    # Namespace for database keys.  Default is vanity:n, where n is the major release number, e.g. vanity:1 for 1.0.3.
     attr_accessor :namespace
 
     # Path to load experiment files from.

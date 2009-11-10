@@ -2,7 +2,7 @@ require "test/test_helper"
 
 class PlaygroundTest < MiniTest::Spec
   before do
-    @namespace = "vanity_0"
+    @namespace = "vanity:0"
   end
 
   it "has one global instance" do
@@ -61,7 +61,7 @@ class PlaygroundTest < MiniTest::Spec
 
   it "uses playground namespace in experiment" do
     experiment(:green_button) { }
-    assert_equal "#{@namespace}:experiments:green_button", experiment(:green_button).send(:key)
-    assert_equal "#{@namespace}:experiments:green_button:participants", experiment(:green_button).send(:key, "participants")
+    assert_equal "#{@namespace}:green_button", experiment(:green_button).send(:key)
+    assert_equal "#{@namespace}:green_button:participants", experiment(:green_button).send(:key, "participants")
   end
 end
