@@ -76,6 +76,28 @@ module Vanity
         %{<dl class="data">#{alts.join}</dl>}
       end
 
+      # Forces this experiment to use a particular alternative. Useful for
+      # tests, e.g.
+      #
+      #   setup do
+      #     experiment(:green_button).select(true)
+      #   end
+      #
+      #   def test_shows_green_button
+      #     . . .
+      #   end
+      #
+      # Use nil to clear out selection:
+      #   teardown do
+      #     experiment(:green_button).select(nil)
+      #   end
+      def chooses(alternative)
+        index = alternatives.index(alternative)
+        raise ArgumentError, "No alternative #{alternative} for #{name}" unless index
+        Vanity.context.session[:vanity] ||= {}
+        Vanity.context.session[:vanity][id] = index
+      end
+
       def humanize
         "A/B Test" 
       end
@@ -92,7 +114,9 @@ module Vanity
       # identity, and randomly distributed alternatives for each identity (in the
       # same experiment).
       def alternative_for(identity)
-        Digest::MD5.hexdigest("#{name}/#{identity}").to_i(16) % @alternatives.count
+        session = Vanity.context.session[:vanity]
+        fixed = session && session[id]
+        fixed || Digest::MD5.hexdigest("#{name}/#{identity}").to_i(16) % @alternatives.count
       end
 
     end
