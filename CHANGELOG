@@ -1,2 +1,3 @@
 0.1.1
+* Added: experiment method on object, used to define and access experiments.
 * Changed: Vanity::Helpers becomes Vanity::Rails.

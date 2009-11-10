@@ -113,3 +113,23 @@ module Vanity
   end
 
 end
+
+class Object
+
+  # Use this method to define or access an experiment.
+  # 
+  # To define an experiment, call with a name, options and a block.  For
+  # example:
+  #   experiment "Text size" do
+  #     alternatives :small, :medium, :large
+  #   end
+  #
+  #   puts experiment(:text_size).alternatives
+  def experiment(name, options = nil, &block)
+    if block
+      Vanity.playground.define(name, options, &block)
+    else
+      Vanity.playground.experiment(name)
+    end
+  end
+end

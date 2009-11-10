@@ -20,23 +20,6 @@ class MiniTest::Unit::TestCase
     Vanity.instance_variable_set :@playground, Vanity::Playground.new
   end
 
-  # Call this to define or retrieve an experiment.
-  #
-  # To define an experiment give it name and block (options are optional):
-  #   experiment :green_button, type: :ab_test do
-  #     true_false
-  #   end
-  #
-  # To retrieve an experiment, just the name:
-  #   experiment(:green_button)
-  def experiment(name, options = nil, &block)
-    if block
-      Vanity.playground.define name, options, &block
-    else
-      Vanity.playground.experiment(name)
-    end
-  end
-
   attr_accessor :identity # pass identity to/from experiment/test case
 
   def teardown
