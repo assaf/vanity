@@ -10,17 +10,6 @@ class PlaygroundTest < MiniTest::Spec
     assert_equal instance, Vanity.playground
   end
 
-  it "has identity value by default" do
-    assert identity = Vanity.identity
-    assert_equal identity, Vanity.identity
-    assert_match /^[a-f0-9]{32}$/, identity
-  end
-
-  it "can accept external identity" do
-    Vanity.identity = 678
-    assert_equal 678, Vanity.identity
-  end
-
   it "use vanity-{major} as default namespace" do
     assert @namespace, Vanity.playground.namespace
   end

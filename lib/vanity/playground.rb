@@ -59,28 +59,16 @@ module Vanity
     @playground
   end
 
-  # Returns an identity value. If you cannot afford an identity (see #identity=),
-  # one will be assigned to you.
-  def self.identity
-    @identity ||= OpenSSL::Random.random_bytes(16).unpack("H*")[0]
+  # Returns the Vanity context.  For example, when using Rails this would be
+  # the current controller, which can be used to get/set the vanity identity.
+  def self.context
+    Thread.current[:vanity_context]
   end
 
-  # Sets the identity value. Generally, identity is associated with users and allows
-  # you to present the same options consistently, particularly useful for A/B testing.
-  # You'll want all users exposed to option A to keep seeing option A for the duration
-  # of the experiment.
-  #
-  # Typically, you'll do something like this in ApplicationController:
-  #   def set_vanity_identity
-  #     if current_user
-  #       Vanity.identity = current_user.id
-  #     else
-  #       Vanity.identity = cookies[:vanity_id]
-  #       cookies[:vanity_id] = { value: Vanity.identity, expires: 1.month.from_now }
-  #     end
-  #   end
-  def self.identity=(id)
-    @identity = id
+  # Sets the Vanity context.  For example, when using Rails this would be
+  # set by the set_vanity_context before filter (via use_vanity).
+  def self.context=(context)
+    Thread.current[:vanity_context] = context
   end
 
 end

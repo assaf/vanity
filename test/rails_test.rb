@@ -4,7 +4,7 @@ class UseVanityController < ActionController::Base
   include Vanity::Helpers
 
   def index
-    render text: "hai"
+    render text: ab_test(:simple)
   end
 
   attr_accessor :current_user
@@ -15,6 +15,8 @@ class UseVanityTest < ActionController::TestCase
   tests UseVanityController
 
   def setup
+    experiment :simple do
+    end
     UseVanityController.class_eval do
       use_vanity :current_user
     end
@@ -29,7 +31,7 @@ class UseVanityTest < ActionController::TestCase
 
   def test_vanity_cookie_default_id
     get :index
-    assert_match /^[a-f0-9]{32}$/, cookies['vanity_id']
+    assert_match cookies['vanity_id'], /^[a-f0-9]{32}$/
   end
 
   def test_vanity_cookie_retains_id
@@ -41,13 +43,13 @@ class UseVanityTest < ActionController::TestCase
   def test_vanity_identity_set_from_cookie
     @request.cookies['vanity_id'] = "from_last_time"
     get :index
-    assert_equal "from_last_time", Vanity.identity
+    assert_equal "from_last_time", @controller.send(:vanity_identity)
   end
 
   def test_vanity_identity_set_from_user
     @controller.current_user = mock("user", id: "user_id")
     get :index
-    assert_equal "user_id", Vanity.identity
+    assert_equal "user_id", @controller.send(:vanity_identity)
   end
 
   def test_vanity_identity_with_no_user_model
@@ -56,7 +58,7 @@ class UseVanityTest < ActionController::TestCase
     end
     @controller.current_user = Object.new
     get :index
-    assert_match /^[a-f0-9]{32}$/, cookies['vanity_id']
+    assert_match cookies['vanity_id'], /^[a-f0-9]{32}$/
   end
 
   def test_use_vanity_requires_arguments
@@ -65,15 +67,6 @@ class UseVanityTest < ActionController::TestCase
         use_vanity
       end
     end
-  end
-
-  def test_use_vanity_options_affect_filter
-    UseVanityController.class_eval do
-      use_vanity nil, except: [:index]
-    end
-    @controller.current_user = Object.new
-    get :index
-    assert_match /^[a-f0-9]{32}$/, cookies['vanity_id']
   end
 
   def teardown
@@ -120,7 +113,7 @@ class AbTestHelpersTest < ActionController::TestCase
 
   def test_ab_test_chooses_in_render
     responses = Array.new(100) do
-      @controller.send(:cookies).clear
+      @controller = nil ; setup_controller_request_and_response
       get :choose_render
       @response.body
     end
@@ -129,7 +122,7 @@ class AbTestHelpersTest < ActionController::TestCase
 
   def test_ab_test_chooses_view_helper
     responses = Array.new(100) do
-      @controller.send(:cookies).clear
+      @controller = nil ; setup_controller_request_and_response
       get :choose_view
       @response.body
     end
@@ -138,7 +131,7 @@ class AbTestHelpersTest < ActionController::TestCase
 
   def test_ab_test_with_capture
     responses = Array.new(100) do
-      @controller.send(:cookies).clear
+      @controller = nil ; setup_controller_request_and_response
       get :choose_capture
       @response.body
     end

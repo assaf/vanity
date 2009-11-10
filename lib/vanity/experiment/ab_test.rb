@@ -8,10 +8,16 @@ module Vanity
         @alternatives = [true, false]
       end
 
-      # Chooses a value for the given identity. This method returns different
-      # values for different identities, with random distribution, and consistently
-      # returns the same value for the same identity.
-      def choice(identity)
+      # Chooses a value for this experiment.
+      #
+      # This method returns different values for different identity (see
+      # #identify), and consistenly the same value for the same
+      # expriment/identity pair.
+      #
+      # For example:
+      #   color = experiment(:which_blue).choose
+      def choose
+        identity = identify
         alt = alternative_for(identity)
         if redis.sadd key("participant_#{identity}:experiments"), name
           redis.incr key("alternative_#{alt}:participants")
@@ -19,8 +25,12 @@ module Vanity
         @alternatives[alt]
       end
 
-      # Makes a conversion by the given identity. Each identity is counted once.
-      def converted(identity)
+      # Records a conversion.
+      #
+      # For example:
+      #   experiment(:which_blue).conversion!
+      def conversion!
+        identity = identify
         alt = alternative_for(identity)
         if redis.sismember(key("participant_#{identity}:experiments"), name)
           redis.sadd key("alternative_#{alt}:conversions"), identity
@@ -77,9 +87,10 @@ module Vanity
 
     private
 
-      # Chooses an alternative for the identity and returns its index. This method
-      # always returns the same choice a given identity and experiment, and randomly
-      # distributes results between different identities/experiments.
+      # Chooses an alternative for the identity and returns its index. This
+      # method always returns the same alternative for a given experiment and
+      # identity, and randomly distributed alternatives for each identity (in the
+      # same experiment).
       def alternative_for(identity)
         Digest::MD5.hexdigest("#{name}/#{identity}").to_i(16) % @alternatives.count
       end
