@@ -1,5 +1,6 @@
 $LOAD_PATH.delete_if { |path| path[/gems\/vanity-\d/] }
 $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
+RAILS_ROOT = File.expand_path("..")
 require "minitest/spec"
 require "mocha"
 require "action_controller"

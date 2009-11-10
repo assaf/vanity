@@ -1,6 +1,7 @@
 0.1.1
 * Added: experiment method on object, used to define and access experiments.
 * Added: playground configuration (Vanity.playground.namespace = , etc).
+* Added: use_vanity now accepts block instead of symbol.
 * Changed: Vanity::Helpers becomes Vanity::Rails.
 * Changed: A/B test experiments alternatives now handled using Alternatives
 object.

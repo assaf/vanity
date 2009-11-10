@@ -71,7 +71,6 @@ module Vanity
       #       controller.project.id
       #     end
       #   end
-      
       def identify(&block)
         if block_given?
           @identify_block = block

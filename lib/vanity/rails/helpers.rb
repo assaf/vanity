@@ -4,7 +4,6 @@ module Vanity
   # 1) Use Vanity from within your controller:
   #
   #   class ApplicationController < ActionController::Base
-  #     include Vanity::Rails
   #     use_vanity :current_user end
   #   end
   #
@@ -24,7 +23,7 @@ module Vanity
       # Defines the vanity_identity method, and the set_identity_context before
       # filter.
       #
-      # First argument names a method that returns an object whose identity is
+      # Single argument names a method that returns an object whose identity is
       # the vanity identity.  Identity is used to present an experiment
       # consistently to the same person or people.  It can be the user's
       # identity, group, project.  The object must provide its identity in
@@ -33,7 +32,6 @@ module Vanity
       # For example, if +current_user+ returns a +User+ object, then to use the
       # user's id:
       #   class ApplicationController < ActionController::Base
-      #     include Vanity::Rails
       #     use_vanity :current_user
       #   end
       #
@@ -41,17 +39,25 @@ module Vanity
       # value will be used, instead.  That random value is maintained using a
       # cookie.
       #
+      # Alternatively, if you call use_vanity with a block, it will yield to the
+      # block with controller.
+      #
       # If there is no identity you can use, call use_vanity with the value +nil+.
       #
       # For example:
       #   class ApplicationController < ActionController::Base
-      #     include Vanity::Rails
       #     use_vanity :current_user
       #   end
-      def use_vanity(symbol)
+      #
+      #   class ProjectController < ApplicationController
+      #     use_vanity { |controller| controller.project_id }
+      #   end
+      def use_vanity(symbol = nil, &block)
         define_method :vanity_identity do
           return @vanity_identity if @vanity_identity
-          if symbol && object = send(symbol)
+          if block
+            @vanity_identity = block.call(self)
+          elsif symbol && object = send(symbol)
             @vanity_identity = object.id
           else
             @vanity_identity = cookies["vanity_id"] || OpenSSL::Random.random_bytes(16).unpack("H*")[0]
@@ -63,8 +69,6 @@ module Vanity
           Vanity.context = self
         end
         before_filter :set_vanity_context
-
-        helper Vanity::Rails
       end
     end
 

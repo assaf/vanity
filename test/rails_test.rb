@@ -1,13 +1,11 @@
 require "test/test_helper"
 
 class UseVanityController < ActionController::Base
-  include Vanity::Rails
+  attr_accessor :current_user
 
   def index
     render text: ab_test(:simple)
   end
-
-  attr_accessor :current_user
 end
 
 # Pages accessible to everyone, e.g. sign in, community search.
@@ -61,12 +59,14 @@ class UseVanityTest < ActionController::TestCase
     assert_match cookies['vanity_id'], /^[a-f0-9]{32}$/
   end
 
-  def test_use_vanity_requires_arguments
-    assert_raise ArgumentError do
-      UseVanityController.class_eval do
-        use_vanity
-      end
+  def test_vanity_identity_set_with_block
+    UseVanityController.class_eval do
+      attr_accessor :project_id
+      use_vanity { |controller| controller.project_id }
     end
+    @controller.project_id = "576"
+    get :index
+    assert_equal "576", @controller.send(:vanity_identity)
   end
 
   def teardown
