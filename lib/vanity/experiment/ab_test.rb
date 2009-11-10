@@ -19,9 +19,7 @@ module Vanity
       def choose
         identity = identify
         alt = alternative_for(identity)
-        if redis.sadd key("participant_#{identity}:experiments"), name
-          redis.incr key("alternative_#{alt}:participants")
-        end
+        redis.sadd key("alternative_#{alt}:participants"), identity
         @alternatives[alt]
       end
 
@@ -32,8 +30,9 @@ module Vanity
       def conversion!
         identity = identify
         alt = alternative_for(identity)
-        if redis.sismember(key("participant_#{identity}:experiments"), name)
-          redis.sadd key("alternative_#{alt}:conversions"), identity
+        if redis.sismember(key("alternative_#{alt}:participants"), identity)
+          redis.sadd key("alternative_#{alt}:converted"), identity
+          redis.incr key("alternative_#{alt}:conversions")
         end
       end
 
@@ -62,8 +61,9 @@ module Vanity
       #     :blue=>{:participants=>12, :conversions=>8} }
       def measure
         (0...@alternatives.count).inject({}) { |h,alt| h.update(@alternatives[alt] => {
-          participants: redis.get(key("alternative_#{alt}:participants")).to_i,
-          conversions: redis.scard(key("alternative_#{alt}:conversions"))
+          participants: redis.scard(key("alternative_#{alt}:participants")).to_i,
+          converted: redis.scard(key("alternative_#{alt}:converted")).to_i,
+          conversions: redis.get(key("alternative_#{alt}:conversions")).to_i
         }) }
       end
 

@@ -1,4 +1,4 @@
-require "vanity"
+require File.join(File.dirname(__FILE__), "../vanity")
 
 module Vanity
   # Helper methods for use in your controllers.

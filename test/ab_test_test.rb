@@ -46,13 +46,14 @@ class AbTestTest < MiniTest::Spec
     end
     alts = Array.new(1000) { experiment(:foobar).choose }
     assert_equal %w{bar foo}, alts.uniq.sort
-    assert_in_delta alts.select { |a| a == "foo" }.count, 500, 50
+    assert_in_delta alts.select { |a| a == "foo" }.count, 500, 100 # this may fail, such is propability
   end
 
   it "records all participants in each alternative" do
+    ids = (Array.new(200) { |i| i.to_s } * 5).shuffle
     experiment :foobar do
       alternatives "foo", "bar"
-      identify { rand(200).to_s }
+      identify { ids.pop }
     end
     1000.times { experiment(:foobar).choose }
     totals = experiment(:foobar).measure
@@ -60,19 +61,20 @@ class AbTestTest < MiniTest::Spec
     assert_in_delta totals["foo"][:participants], 100, 20
   end
 
-  it "records conversion only once for each participant" do
+  it "records each converted participant only once" do
+    ids = (Array.new(100) { |i| i.to_s } * 5).shuffle
     test = self
     experiment :foobar do
       alternatives "foo", "bar"
-      identify { test.identity ||= rand(100).to_s }
+      identify { test.identity ||= ids.pop }
     end
-    1000.times do
+    500.times do
       test.identity = nil
       experiment(:foobar).choose
       experiment(:foobar).conversion!
     end
     totals = experiment(:foobar).measure
-    assert_equal 100, totals.inject(0) { |a,(k,v)| a + v[:conversions] }
+    assert_equal 100, totals.inject(0) { |a,(k,v)| a + v[:converted] }
   end
 
   it "records conversion only for participants" do
@@ -89,6 +91,6 @@ class AbTestTest < MiniTest::Spec
       experiment(:foobar).conversion!
     end
     totals = experiment(:foobar).measure
-    assert_equal 100, totals.inject(0) { |a,(k,v)| a + v[:conversions] }
+    assert_equal 100, totals.inject(0) { |a,(k,v)| a + v[:converted] }
   end
 end
