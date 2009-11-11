@@ -117,7 +117,8 @@ module Vanity
 
       # Time stamp when experiment was completed.
       def completed_at
-        Time.at(redis[key(:completed_at)].to_i)
+        time = redis[key(:completed_at)]
+        time && Time.at(time.to_i)
       end
       
       # Returns true if experiment active, false if completed.
@@ -143,6 +144,13 @@ module Vanity
       
       # Called to save the experiment definition.
       def save #:nodoc:
+      end
+
+      # Reset experiment.
+      def reset!
+        @created_at = Time.now
+        redis[key(:created_at)] = @created_at.to_i
+        redis.del key(:completed_at)
       end
 
       # Get rid of all experiment data.

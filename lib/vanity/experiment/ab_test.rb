@@ -262,6 +262,12 @@ module Vanity
         super
       end
 
+      def reset! #:nodoc:
+        redis.del key(:outcome)
+        alternatives.each(&:destroy)
+        super
+      end
+
       def destroy #:nodoc:
         redis.del key(:outcome)
         alternatives.each(&:destroy)

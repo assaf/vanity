@@ -52,11 +52,19 @@ class AbTestTest < ActionController::TestCase
       alternatives "foo", "bar"
     end
   end
+  
+  def test_returning_alternative_by_value
+    experiment :abcd do
+      alternatives :a, :b, :c, :d
+    end
+    assert_equal experiment(:abcd).alternatives[1], experiment(:abcd).alternative(:b)
+    assert_equal experiment(:abcd).alternatives[3], experiment(:abcd).alternative(:d)
+  end
 
 
   # -- Running experiment --
 
-  def returns_the_same_alternative_consistently
+  def test_returns_the_same_alternative_consistently
     experiment :foobar do
       alternatives "foo", "bar"
       identify { "6e98ec" }
@@ -68,7 +76,7 @@ class AbTestTest < ActionController::TestCase
     end
   end
 
-  def returns_different_alternatives_for_each_participant
+  def test_returns_different_alternatives_for_each_participant
     experiment :foobar do
       alternatives "foo", "bar"
       identify { rand(1000).to_s }
@@ -78,7 +86,7 @@ class AbTestTest < ActionController::TestCase
     assert_in_delta alts.select { |a| a == "foo" }.count, 500, 100 # this may fail, such is propability
   end
 
-  def records_all_participants_in_each_alternative
+  def test_records_all_participants_in_each_alternative
     ids = (Array.new(200) { |i| i.to_s } * 5).shuffle
     experiment :foobar do
       alternatives "foo", "bar"
@@ -90,7 +98,7 @@ class AbTestTest < ActionController::TestCase
     assert_in_delta alts.first.participants, 100, 20
   end
 
-  def records_each_converted_participant_only_once
+  def test_records_each_converted_participant_only_once
     ids = (Array.new(100) { |i| i.to_s } * 5).shuffle
     test = self
     experiment :foobar do
@@ -121,6 +129,26 @@ class AbTestTest < ActionController::TestCase
     end
     alts = experiment(:foobar).alternatives
     assert_equal 100, alts.inject(0) { |t,a| t + a.converted }
+  end
+
+  def test_reset_experiment
+    experiment :simple do
+      identify { "me" }
+      complete_if { alternatives.map(&:converted).sum >= 1 }
+      outcome_is { alternative(true) }
+    end
+    experiment(:simple).choose
+    experiment(:simple).conversion!
+    refute experiment(:simple).active?
+    assert_equal true, experiment(:simple).outcome.value
+
+    experiment(:simple).reset!
+    assert experiment(:simple).active?
+    assert_nil experiment(:simple).outcome
+    assert_nil experiment(:simple).completed_at
+    assert_equal 0, experiment(:simple).alternatives.map(&:participants).sum
+    assert_equal 0, experiment(:simple).alternatives.map(&:conversions).sum
+    assert_equal 0, experiment(:simple).alternatives.map(&:converted).sum
   end
 
 
