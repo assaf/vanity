@@ -51,7 +51,7 @@ the value.
 Here are some examples:
 
   def index
-    if ab_test(:new_page) # classic true/false test
+    if ab_test(:new_page) # classic false/true test
       render action: "new_page"
     else
       render action: "index"

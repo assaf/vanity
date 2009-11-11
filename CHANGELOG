@@ -1,6 +1,8 @@
-0.2.1
+0.2.1 (2009-11-11)
 * Added: z-score and confidence level for A/B test alternatives.
 * Added: test auto-completion and auto-outcome (complete_it, outcome_is).
+* Changed: default alternatives are now false/true, so if can't decide
+outcome, fall back on false.
 
 0.2.0 (2009-11-10)
 * Added: experiment method on object, used to define and access experiments.

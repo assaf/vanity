@@ -116,7 +116,7 @@ module Vanity
       #   alts = experiment(:background_color).alternatives
       #   puts "#{alts.count} alternatives, with the colors: #{alts.map(&:value).join(", ")}"
       def alternatives(*args)
-        args = [true, false] if args.empty?
+        args = [false, true] if args.empty?
         @alternatives = []
         args.each_with_index do |arg, i|
           @alternatives << Alternative.new(self, i, arg)
@@ -125,10 +125,11 @@ module Vanity
         alternatives
       end
 
-      # Sets this test to two alternatives: true and false.
-      def true_false
-        alternatives true, false
+      # Sets this test to two alternatives: false and true.
+      def false_true
+        alternatives false, true
       end
+      alias true_false false_true
 
       # Chooses a value for this experiment.
       #

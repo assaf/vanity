@@ -13,7 +13,7 @@ class AbTestController < ActionController::Base
   end
 
   def test_capture
-    render file: File.join(File.dirname(__FILE__), "ab_test_template.erb")
+    render inline: "<% ab_test :simple_ab do |value| %><%= value %><% end %>"
   end
 
   def goal
@@ -179,8 +179,8 @@ class AbTestTest < ActionController::TestCase
       post :goal
     end
     alts = experiment(:simple_ab).alternatives
-    assert_equal [100,0], alts.map { |alt| alt.participants }
-    assert_equal [100,0], alts.map { |alt| alt.conversions }
+    assert_equal [0,100], alts.map { |alt| alt.participants }
+    assert_equal [0,100], alts.map { |alt| alt.conversions }
   end
 
   def test_which_chooses_non_existent_alternative
@@ -272,10 +272,10 @@ class AbTestTest < ActionController::TestCase
     assert results.include?(true) && results.include?(false)
     refute experiment(:simple).active?
 
-    # Test that we always get the same choice (false)
+    # Test that we always get the same choice (true)
     100.times do
       test.identity = nil
-      assert_equal false, experiment(:simple).choose
+      assert_equal true, experiment(:simple).choose
       experiment(:simple).conversion!
     end
     # We don't get to count the 100 participant's conversion, but that's ok.
