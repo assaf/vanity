@@ -33,3 +33,24 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include "README.rdoc", "lib/**/*.rb"
   rdoc.options = spec.rdoc_options
 end
+
+task :report do
+  require "lib/vanity"
+  Vanity.playground.load_path = "test/experiments"
+  experiment(:null_abc).reset!
+
+  # Control	182	35	19.23%	N/A
+  182.times { |i| experiment(:null_abc).alternative(0).participating!(i) }
+  35.times  { |i| experiment(:null_abc).alternative(0).conversion!(i) }
+  # Treatment A	180	45	25.00%	1.33
+  180.times { |i| experiment(:null_abc).alternative(:a).participating!(i + 200) }
+  45.times  { |i| experiment(:null_abc).alternative(:a).conversion!(i + 200) }
+  # Treatment B	189	28	14.81%	-1.13
+  189.times { |i| experiment(:null_abc).alternative(:b).participating!(i + 400) }
+  28.times  { |i| experiment(:null_abc).alternative(:b).conversion!(i + 400) }
+  # Treatment C	188	61	32.45%	2.94
+  188.times { |i| experiment(:null_abc).alternative(:c).participating!(i + 600) }
+  61.times  { |i| experiment(:null_abc).alternative(:c).conversion!(i + 600) }
+
+  Vanity::Commands.report
+end
