@@ -19,7 +19,7 @@ module Vanity
         @id, @name = id.to_sym, name
         @namespace = "#{@playground.namespace}:#{@id}"
         redis.setnx key(:created_at), Time.now.to_i
-        @created_at = Time.at(redis.get(key(:created_at)).to_i)
+        @created_at = Time.at(redis[key(:created_at)].to_i)
         @identify_block = ->(context){ context.vanity_identity }
       end
 
@@ -117,12 +117,12 @@ module Vanity
 
       # Time stamp when experiment was completed.
       def completed_at
-        Time.at(redis.get(key(:completed_at)).to_i)
+        Time.at(redis[key(:completed_at)].to_i)
       end
       
       # Returns true if experiment active, false if completed.
       def active?
-        redis.get(key(:completed_at)).nil?
+        redis[key(:completed_at)].nil?
       end
 
 

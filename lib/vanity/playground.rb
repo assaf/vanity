@@ -15,6 +15,7 @@ module Vanity
     # Created new Playground. Unless you need to, use the global Vanity.playground.
     def initialize
       @experiments = {}
+      @host, @port, @db = "127.0.0.1", 6379, 0
       @namespace = "vanity:#{Vanity::Version::MAJOR}"
       @load_path = "experiments"
     end

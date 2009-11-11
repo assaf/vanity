@@ -28,7 +28,7 @@ module Vanity
 
       # Number of conversions for this alternative (same participant may be counted more than once).
       def conversions
-        redis.get(key("conversions")).to_i
+        redis[key("conversions")].to_i
       end
 
       # Conversion rate calculated as converted/participants.
@@ -228,7 +228,7 @@ module Vanity
 
       # Alternative chosen when this experiment was completed.
       def outcome
-        outcome = redis.get(key("outcome"))
+        outcome = redis[key("outcome")]
         outcome && alternatives[outcome.to_i]
       end
 
