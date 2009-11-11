@@ -1,5 +1,6 @@
 0.2.2
 * Added: vanity binary, with single command for generating a report.
+* Added: return alternative by value from experiment.alternative(val) method.
 
 0.2.1 (2009-11-11)
 * Added: z-score and confidence level for A/B test alternatives.

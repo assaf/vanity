@@ -32,12 +32,12 @@ class AbTestTest < ActionController::TestCase
 
   # --  Experiment definition --
 
-  def uses_ab_test_when_type_is_ab_test
+  def test_uses_ab_test_when_type_is_ab_test
     experiment(:ab, type: :ab_test) { }
     assert_instance_of Vanity::Experiment::AbTest, experiment(:ab)
   end
 
-  def requires_at_least_two_alternatives_per_experiment
+  def test_requires_at_least_two_alternatives_per_experiment
     assert_raises RuntimeError do
       experiment :none, type: :ab_test do
         alternatives []

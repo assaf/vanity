@@ -125,6 +125,11 @@ module Vanity
         alternatives
       end
 
+      # Returns an Alternative with the specified value.
+      def alternative(value)
+        alternatives.find { |alt| alt.value == value }
+      end
+
       # Sets this test to two alternatives: false and true.
       def false_true
         alternatives false, true
