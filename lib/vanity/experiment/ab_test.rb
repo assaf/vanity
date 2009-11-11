@@ -3,7 +3,6 @@ module Vanity
 
     # Experiment alternative.  See AbTest#alternatives.
     class Alternative
-      include Comparable
 
       def initialize(experiment, id, value) #:nodoc:
         @experiment = experiment
@@ -56,7 +55,8 @@ module Vanity
       # alternative is better than base if it receives a positive z-score,
       # worse if z-score is negative.  Call #confident if you need confidence
       # level (percentage).
-      def z_score(base)
+      def z_score
+        return 0 if base == self
         pc = base.conversion_rate
         nc = base.participants
         p = conversion_rate
@@ -66,10 +66,16 @@ module Vanity
 
       # How confident are we in this alternative being an improvement over the
       # base alternative.  Returns 0, 90, 95, 99 or 99.9 (percentage).
-      def confidence(base)
-        z_score = z_score(base)
-        confidence = AbTest::Z_TO_CONFIDENCE.find { |z,p| z_score >= z }
+      def confidence
+        score = z_score
+        confidence = AbTest::Z_TO_CONFIDENCE.find { |z,p| score >= z }
         confidence ? confidence.last : 0
+      end
+
+      def destroy #:nodoc:
+        redis.del key("participants")
+        redis.del key("converted")
+        redis.del key("conversions")
       end
 
     protected
@@ -82,7 +88,12 @@ module Vanity
         @experiment.redis
       end
 
+      def base
+        @base ||= @experiment.alternatives.first
+      end
+
     end
+
 
     # The meat.
     class AbTest < Base
@@ -90,31 +101,7 @@ module Vanity
         super
       end
 
-      # Chooses a value for this experiment.
-      #
-      # This method returns different values for different identity (see
-      # #identify), and consistenly the same value for the same
-      # expriment/identity pair.
-      #
-      # For example:
-      #   color = experiment(:which_blue).choose
-      def choose
-        identity = identify
-        alt = alternative_for(identity)
-        alt.participating! identity
-        alt.value
-      end
-
-      # Records a conversion.
-      #
-      # For example:
-      #   experiment(:which_blue).conversion!
-      def conversion!
-        identity = identify
-        alt = alternative_for(identity)
-        alt.conversion! identity
-        alt.id
-      end
+      # -- Alternatives --
 
       # Call this method once to specify values for the A/B test.  At least two
       # values are required.
@@ -143,13 +130,44 @@ module Vanity
         alternatives true, false
       end
 
-      def report
-        alts = alternatives.map { |alt|
-          "<dt>Option #{(65 + alt.id).chr}</dt><dd><code>#{CGI.escape_html alt.value.inspect}</code> viewed #{alt.participants} times, converted #{alt.conversions}, rate #{alt.conversion_rate}, z_score #{alt.z_score(alternatives[0])}, confidence #{alt.confidence(alternatives[0])}<dd>"
-        }
-        %{<dl class="data">#{alts.join}</dl>}
+      # Chooses a value for this experiment.
+      #
+      # This method returns different values for different identity (see
+      # #identify), and consistenly the same value for the same
+      # expriment/identity pair.
+      #
+      # For example:
+      #   color = experiment(:which_blue).choose
+      def choose
+        if active?
+          identity = identify
+          alt = alternative_for(identity)
+          alt.participating! identity
+          check_completion!
+          alt.value
+        elsif alternative = outcome
+          alternative.value
+        else
+          alternatives.first.value
+        end
       end
 
+      # Records a conversion.
+      #
+      # For example:
+      #   experiment(:which_blue).conversion!
+      def conversion!
+        if active?
+          identity = identify
+          alt = alternative_for(identity)
+          alt.conversion! identity
+          check_completion!
+        end
+      end
+
+      
+      # -- Testing --
+     
       # Forces this experiment to use a particular alternative. Useful for
       # tests, e.g.
       #
@@ -172,12 +190,75 @@ module Vanity
         Vanity.context.session[:vanity][id] = alternative.id
       end
 
+
+      # -- Reporting --
+
+      def report
+        alts = alternatives.map { |alt|
+          "<dt>Option #{(65 + alt.id).chr}</dt><dd><code>#{CGI.escape_html alt.value.inspect}</code> viewed #{alt.participants} times, converted #{alt.conversions}, rate #{alt.conversion_rate}, z_score #{alt.z_score}, confidence #{alt.confidence}<dd>"
+        }
+        %{<dl class="data">#{alts.join}</dl>}
+      end
+
       def humanize
         "A/B Test" 
       end
 
+
+      # -- Completion --
+
+      # Defines how the experiment can choose the optimal outcome on completion.
+      #
+      # The default implementation looks for the best (highest conversion rate)
+      # alternative.  If it's certain (95% or more) that this alternative is
+      # better than the first alternative, it switches to that one.  If it has
+      # no such certainty, it starts using the first alternative exclusively.
+      #
+      # The default implementation reads like this:
+      #   outcome_is do
+      #     highest = alternatives.sort.last
+      #     highest.confidence >= 95 ? highest ? alternatives.first
+      #   end
+      def outcome_is(&block)
+        raise ArgumentError, "Missing block" unless block
+        raise "outcome_is already called on this experiment" if @outcome_is
+        @outcome_is = block
+      end
+
+      # Alternative chosen when this experiment was completed.
+      def outcome
+        outcome = redis.get(key("outcome"))
+        outcome && alternatives[outcome.to_i]
+      end
+
+      def complete! #:nodoc:
+        super
+        if @outcome_is
+          begin
+            outcome = alternatives.find_index(@outcome_is.call)
+          rescue
+            # TODO: logging
+          end
+        end
+        unless outcome
+          highest = alternatives.sort.last rescue nil
+          outcome = highest && highest.confidence >= 95 ? highest.id : 0
+        end
+        # TODO: logging
+        redis.setnx key("outcome"), outcome
+      end
+
+      
+      # -- Store/validate --
+
       def save #:nodoc:
         fail "Experiment #{name} needs at least two alternatives" unless alternatives.count >= 2
+        super
+      end
+
+      def destroy #:nodoc:
+        redis.del key(:outcome)
+        alternatives.each(&:destroy)
         super
       end
 
@@ -205,4 +286,3 @@ module Vanity
     end
   end
 end
-

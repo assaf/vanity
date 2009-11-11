@@ -18,8 +18,8 @@ module Vanity
         @playground = playground
         @id, @name = id.to_sym, name
         @namespace = "#{@playground.namespace}:#{@id}"
-        created = redis.get(key(:created_at)) || (redis.setnx(key(:created_at), Time.now.to_i) ; redis.get(key(:created_at))) 
-        @created_at = Time.at(created.to_i)
+        redis.setnx key(:created_at), Time.now.to_i
+        @created_at = Time.at(redis.get(key(:created_at)).to_i)
         @identify_block = ->(context){ context.vanity_identity }
       end
 
@@ -31,26 +31,10 @@ module Vanity
       
       # Experiment creation timestamp.
       attr_reader :created_at
+
+      # Experiment completion timestamp.
+      attr_reader :completed_at
      
-      # Sets or returns description. For example
-      #   experiment :simple do
-      #     description "Simple experiment"
-      #   end
-      #
-      #   puts "Just defined: " + experiment(:simple).description
-      def description(text = nil)
-        @description = text if text
-        @description
-      end
-
-      def report
-        fail "Implement me"
-      end
-      
-      # Called to save the experiment definition.
-      def save #:nodoc:
-      end
-
       # Call this method with no argument or block to return an identity.  Call
       # this method with a block to define how to obtain an identity for the
       # current experiment.
@@ -80,6 +64,70 @@ module Vanity
         end
       end
 
+
+      # -- Reporting --
+
+      # Sets or returns description. For example
+      #   experiment :simple do
+      #     description "Simple experiment"
+      #   end
+      #
+      #   puts "Just defined: " + experiment(:simple).description
+      def description(text = nil)
+        @description = text if text
+        @description
+      end
+
+      def report
+        fail "Implement me"
+      end
+      
+
+      # -- Experiment completion --
+
+      # Define experiment completion condition.  For example:
+      #   complete_if do
+      #     alternatives.all? { |alt| alt.participants >= 100 } &&
+      #     alternatives.any? { |alt| alt.confidence >= 0.95 }
+      #   end
+      def complete_if(&block)
+        raise ArgumentError, "Missing block" unless block
+        raise "complete_if already called on this experiment" if @complete_block
+        @complete_block = block
+      end
+
+      # Derived classes call this after state changes that may lead to
+      # experiment completing.
+      def check_completion!
+        if @complete_block
+          begin
+            complete! if @complete_block.call
+          rescue
+            # TODO: logging
+          end
+        end
+      end
+      protected :check_completion!
+
+      # Force experiment to complete.
+      def complete!
+        redis.setnx key(:completed_at), Time.now.to_i
+        # TODO: logging
+      end
+
+      # Time stamp when experiment was completed.
+      def completed_at
+        Time.at(redis.get(key(:completed_at)).to_i)
+      end
+      
+      # Returns true if experiment active, false if completed.
+      def active?
+        redis.get(key(:completed_at)).nil?
+      end
+
+
+      # -- Store/validate --
+
       # Returns key for this experiment, or with an argument, return a key
       # using the experiment as the namespace.  Examples:
       #   key => "vanity:experiments:green_button"
@@ -92,6 +140,17 @@ module Vanity
       def redis #:nodoc:
         @playground.redis
       end
+      
+      # Called to save the experiment definition.
+      def save #:nodoc:
+      end
+
+      # Get rid of all experiment data.
+      def destroy
+        redis.del key(:created_at)
+        redis.del key(:completed_at)
+      end
+
     end
   end
 end

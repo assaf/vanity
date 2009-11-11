@@ -29,7 +29,8 @@ class AbTestTest < ActionController::TestCase
     experiment(:simple_ab) { }
   end
 
-  # Experiment definition
+
+  # --  Experiment definition --
 
   def uses_ab_test_when_type_is_ab_test
     experiment(:ab, type: :ab_test) { }
@@ -52,7 +53,8 @@ class AbTestTest < ActionController::TestCase
     end
   end
 
-  # Running experiment
+
+  # -- Running experiment --
 
   def returns_the_same_alternative_consistently
     experiment :foobar do
@@ -122,7 +124,7 @@ class AbTestTest < ActionController::TestCase
   end
 
 
-  # A/B helper methods
+  # -- A/B helper methods --
 
   def test_fail_if_no_experiment
     new_playground
@@ -167,7 +169,7 @@ class AbTestTest < ActionController::TestCase
   end
 
 
-  # Testing with tests
+  # -- Testing with tests --
   
   def test_with_given_choice
     100.times do
@@ -188,7 +190,7 @@ class AbTestTest < ActionController::TestCase
   end
 
 
-  # Z-score
+  # -- Z-score --
   
   def test_z_score
     experiment :abcd do
@@ -209,10 +211,140 @@ class AbTestTest < ActionController::TestCase
     188.times { |i| alts[3].participating!(i + 600) }
     61.times { |i| alts[3].conversion!(i + 600) }
 
-    z_scores = alts.map { |alt| sprintf("%4.2f", alt.z_score(alts[0])) }
+    z_scores = alts.map { |alt| sprintf("%4.2f", alt.z_score) }
     assert_equal %w{0.00 1.33 -1.13 2.94}, z_scores
 
-    confidences = alts.map { |alt| alt.confidence(alts[0]) }
+    confidences = alts.map { |alt| alt.confidence }
     assert_equal [0, 90, 0, 99], confidences
   end
+  
+
+  # -- Completion --
+
+  def test_completion_if
+    experiment :simple do
+      identify { rand }
+      complete_if { true }
+    end
+    experiment(:simple).choose
+    refute experiment(:simple).active?
+  end
+
+  def test_completion_if_fails
+    experiment :simple do
+      identify { rand }
+      complete_if { fail }
+    end
+    experiment(:simple).choose
+    assert experiment(:simple).active?
+  end
+
+  def test_completion
+    ids = Array.new(100) { |i| i.to_s }.shuffle
+    experiment :simple do
+      identify { ids.pop }
+      complete_if { alternatives.map(&:participants).sum >= 100 }
+    end
+    99.times do |i|
+      experiment(:simple).choose
+      assert experiment(:simple).active?
+    end
+
+    experiment(:simple).choose
+    refute experiment(:simple).active?
+  end
+
+  def test_ab_methods_after_completion
+    ids = Array.new(200) { |i| i.to_s }.shuffle
+    test = self
+    experiment :simple do
+      identify { test.identity ||= ids.pop }
+      complete_if { alternatives.map(&:participants).sum >= 100 }
+      outcome_is { alternatives[1] }
+    end
+    # Run experiment to completion (100 participants)
+    results = Set.new
+    100.times do
+      test.identity = nil
+      results << experiment(:simple).choose
+      experiment(:simple).conversion!
+    end
+    assert results.include?(true) && results.include?(false)
+    refute experiment(:simple).active?
+
+    # Test that we always get the same choice (false)
+    100.times do
+      test.identity = nil
+      assert_equal false, experiment(:simple).choose
+      experiment(:simple).conversion!
+    end
+    # We don't get to count the 100 participant's conversion, but that's ok.
+    assert_equal 99, experiment(:simple).alternatives.map(&:converted).sum
+    assert_equal 99, experiment(:simple).alternatives.map(&:conversions).sum
+  end
+
+
+  # -- Outcome --
+  
+  def test_completion_outcome
+    experiment :quick do
+      outcome_is { alternatives[1] }
+    end
+    experiment(:quick).complete!
+    assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
+  end
+
+  def test_outcome_is_returns_nil
+    experiment :quick do
+      outcome_is { nil }
+    end
+    experiment(:quick).complete!
+    assert_equal experiment(:quick).alternatives.first, experiment(:quick).outcome
+  end
+
+  def test_outcome_is_returns_something_else
+    experiment :quick do
+      outcome_is { "error" }
+    end
+    experiment(:quick).complete!
+    assert_equal experiment(:quick).alternatives.first, experiment(:quick).outcome
+  end
+
+  def test_outcome_is_fails
+    experiment :quick do
+      outcome_is { fail }
+    end
+    experiment(:quick).complete!
+    assert_equal experiment(:quick).alternatives.first, experiment(:quick).outcome
+  end
+
+  def test_outcome_choosing_best_alternative
+    experiment :quick do
+    end
+    2.times do |i|
+      experiment(:quick).alternatives[0].participating!(i)
+    end
+    10.times do |i|
+      experiment(:quick).alternatives[1].participating!(i)
+      experiment(:quick).alternatives[1].conversion!(i)
+    end
+    experiment(:quick).complete!
+    assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
+  end
+
+  def test_outcome_choosing_first_alternative
+    experiment :quick do
+    end
+    8.times do |i|
+      experiment(:quick).alternatives[0].participating!(i)
+      experiment(:quick).alternatives[0].conversion!(i)
+    end
+    7.times do |i|
+      experiment(:quick).alternatives[1].participating!(i)
+      experiment(:quick).alternatives[1].conversion!(i)
+    end
+    experiment(:quick).complete!
+    assert_equal experiment(:quick).alternatives[0], experiment(:quick).outcome
+  end
+
 end

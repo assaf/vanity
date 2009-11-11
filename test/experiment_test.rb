@@ -27,11 +27,13 @@ class ExperimentTest < MiniTest::Spec
   end
 
   it "keeps creation timestamp across definitions" do
-    early = Time.now - 1.day
+    early, late = Time.now - 1.day, Time.now
     Time.expects(:now).once.returns(early)
     experiment(:simple) { }
     assert_equal early.to_i, experiment(:simple).created_at.to_i
+
     new_playground
+    Time.expects(:now).once.returns(late)
     experiment(:simple) { }
     assert_equal early.to_i, experiment(:simple).created_at.to_i
   end
@@ -42,4 +44,5 @@ class ExperimentTest < MiniTest::Spec
     end
     assert_equal "Simple experiment", experiment(:simple).description
   end
+
 end
