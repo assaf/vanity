@@ -187,4 +187,32 @@ class AbTestTest < ActionController::TestCase
     end
   end
 
+
+  # Z-score
+  
+  def test_z_score
+    experiment :abcd do
+      alternatives :a, :b, :c, :d
+    end
+    alts = experiment(:abcd).alternatives
+    # participating, conversions, rate, z-score
+    # Control:      182	35 19.23%	N/A
+    182.times { |i| alts[0].participating!(i) }
+    35.times { |i| alts[0].conversion!(i) }
+    # Treatment A:  180	45 25.00%	1.33
+    180.times { |i| alts[1].participating!(i + 200) }
+    45.times { |i| alts[1].conversion!(i + 200) }
+    # Treatment B:  189	28 14.81%	-1.13
+    189.times { |i| alts[2].participating!(i + 400) }
+    28.times { |i| alts[2].conversion!(i + 400) }
+    # Treatment C:  188	61 32.45%	2.94
+    188.times { |i| alts[3].participating!(i + 600) }
+    61.times { |i| alts[3].conversion!(i + 600) }
+
+    z_scores = alts.map { |alt| sprintf("%4.2f", alt.z_score(alts[0])) }
+    assert_equal %w{0.00 1.33 -1.13 2.94}, z_scores
+
+    confidences = alts.map { |alt| alt.confidence(alts[0]) }
+    assert_equal [0, 90, 0, 99], confidences
+  end
 end

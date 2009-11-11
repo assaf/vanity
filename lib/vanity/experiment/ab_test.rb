@@ -3,6 +3,7 @@ module Vanity
 
     # Experiment alternative.  See AbTest#alternatives.
     class Alternative
+      include Comparable
 
       def initialize(experiment, id, value) #:nodoc:
         @experiment = experiment
@@ -31,6 +32,15 @@ module Vanity
         redis.get(key("conversions")).to_i
       end
 
+      # Conversion rate calculated as converted/participants.
+      def conversion_rate
+        converted.to_f / participants.to_f
+      end
+
+      def <=>(other)
+        conversion_rate <=> other.conversion_rate 
+      end
+
       def participating!(identity)
         redis.sadd key("participants"), identity
       end
@@ -40,6 +50,26 @@ module Vanity
           redis.sadd key("converted"), identity
           redis.incr key("conversions")
         end
+      end
+
+      # Z-score this alternativet related to the base alternative.  This
+      # alternative is better than base if it receives a positive z-score,
+      # worse if z-score is negative.  Call #confident if you need confidence
+      # level (percentage).
+      def z_score(base)
+        pc = base.conversion_rate
+        nc = base.participants
+        p = conversion_rate
+        n = participants
+        (p - pc) / Math.sqrt((p * (1-p)/n) + (pc * (1-pc)/nc))
+      end
+
+      # How confident are we in this alternative being an improvement over the
+      # base alternative.  Returns 0, 90, 95, 99 or 99.9 (percentage).
+      def confidence(base)
+        z_score = z_score(base)
+        confidence = AbTest::Z_TO_CONFIDENCE.find { |z,p| z_score >= z }
+        confidence ? confidence.last : 0
       end
 
     protected
@@ -115,7 +145,7 @@ module Vanity
 
       def report
         alts = alternatives.map { |alt|
-          "<dt>Option #{(65 + alt.id).chr}</dt><dd><code>#{CGI.escape_html alt.value.inspect}</code> viewed #{alt.participants} times, converted #{alt.conversions}<dd>"
+          "<dt>Option #{(65 + alt.id).chr}</dt><dd><code>#{CGI.escape_html alt.value.inspect}</code> viewed #{alt.participants} times, converted #{alt.conversions}, rate #{alt.conversion_rate}, z_score #{alt.z_score(alternatives[0])}, confidence #{alt.confidence(alternatives[0])}<dd>"
         }
         %{<dl class="data">#{alts.join}</dl>}
       end
@@ -162,6 +192,14 @@ module Vanity
         index = session && session[id]
         index ||= Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % alternatives.count
         alternatives[index]
+      end
+
+      begin
+        a = 0
+        # Returns array of [z-score, percentage]
+        pcts = (-5.0..3.1).step(0.01).map { |x| [x, a += 1 / Math.sqrt(2 * Math::PI) * Math::E ** (-x ** 2 / 2)] }
+        # We're really only interested in 90%, 95%, 99% and 99.9%.
+        Z_TO_CONFIDENCE = [90, 95, 99, 99.9].map { |pct| [pcts.find { |x,a| a >= pct }.first, pct] }.reverse
       end
 
     end
