@@ -1,8 +1,10 @@
-0.2.0
+0.2.1
+* Added: z-score and confidence level for A/B test alternatives.
+
+0.2.0 (2009-11-10)
 * Added: experiment method on object, used to define and access experiments.
 * Added: playground configuration (Vanity.playground.namespace = , etc).
 * Added: use_vanity now accepts block instead of symbol.
-* Added: z-score and confidence level for A/B test alternatives.
 * Changed: Vanity::Helpers becomes Vanity::Rails.
 * Changed: A/B test experiments alternatives now handled using Alternatives
 object.

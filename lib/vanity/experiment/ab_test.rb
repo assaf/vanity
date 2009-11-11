@@ -197,9 +197,9 @@ module Vanity
       begin
         a = 0
         # Returns array of [z-score, percentage]
-        pcts = (-5.0..3.1).step(0.01).map { |x| [x, a += 1 / Math.sqrt(2 * Math::PI) * Math::E ** (-x ** 2 / 2)] }
+        norm_dist = (-5.0..3.1).step(0.01).map { |x| [x, a += 1 / Math.sqrt(2 * Math::PI) * Math::E ** (-x ** 2 / 2)] }
         # We're really only interested in 90%, 95%, 99% and 99.9%.
-        Z_TO_CONFIDENCE = [90, 95, 99, 99.9].map { |pct| [pcts.find { |x,a| a >= pct }.first, pct] }.reverse
+        Z_TO_CONFIDENCE = [90, 95, 99, 99.9].map { |pct| [norm_dist.find { |x,a| a >= pct }.first, pct] }.reverse
       end
 
     end
