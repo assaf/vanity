@@ -34,6 +34,11 @@ module Vanity
 
       # Experiment completion timestamp.
       attr_reader :completed_at
+
+      # Returns the type of this class as a symbol (e.g. ab_test).
+      def type
+        self.class.type
+      end
      
       # Call this method with no argument or block to return an identity.  Call
       # this method with a block to define how to obtain an identity for the

@@ -7,12 +7,16 @@ module Vanity
       def initialize(experiment, id, value) #:nodoc:
         @experiment = experiment
         @id = id
+        @name = "option #{(@id + 1)}"
         @value = value
       end
 
       # Alternative id, only unique for this experiment.
       attr_reader :id
      
+      # Alternative name (option A, option B, etc).
+      attr_reader :name
+
       # Alternative value.
       attr_reader :value
 
@@ -33,7 +37,8 @@ module Vanity
 
       # Conversion rate calculated as converted/participants.
       def conversion_rate
-        converted.to_f / participants.to_f
+        c, p = converted.to_f, participants.to_f
+        p > 0 ? c/p : 0.0
       end
 
       def <=>(other)
@@ -51,31 +56,18 @@ module Vanity
         end
       end
 
-      # Z-score this alternativet related to the base alternative.  This
-      # alternative is better than base if it receives a positive z-score,
-      # worse if z-score is negative.  Call #confident if you need confidence
-      # level (percentage).
-      def z_score
-        return 0 if base == self
-        pc = base.conversion_rate
-        nc = base.participants
-        p = conversion_rate
-        n = participants
-        (p - pc) / Math.sqrt((p * (1-p)/n) + (pc * (1-pc)/nc))
-      end
-
-      # How confident are we in this alternative being an improvement over the
-      # base alternative.  Returns 0, 90, 95, 99 or 99.9 (percentage).
-      def confidence
-        score = z_score
-        confidence = AbTest::Z_TO_CONFIDENCE.find { |z,p| score >= z }
-        confidence ? confidence.last : 0
-      end
-
       def destroy #:nodoc:
         redis.del key("participants")
         redis.del key("converted")
         redis.del key("conversions")
+      end
+
+      def to_s #:nodoc:
+        name
+      end
+
+      def inspect #:nodoc:
+        "#{name}: #{value} #{converted}/#{participants}"
       end
 
     protected
@@ -97,6 +89,14 @@ module Vanity
 
     # The meat.
     class AbTest < Base
+      class << self
+
+        def confidence(score) #:nodoc:
+          confidence = AbTest::Z_TO_CONFIDENCE.find { |z,p| score >= z }
+          confidence ? confidence.last : 0
+        end
+      end
+
       def initialize(*args) #:nodoc:
         super
       end
@@ -199,11 +199,89 @@ module Vanity
 
       # -- Reporting --
 
+      # Returns an object with the following attributes:
+      # [:alts]  List of alternatives as structures (see below).
+      # [:best]  Best alternative.
+      # [:base]  Second best alternative.
+      # [:choice]  Choice alterntive, either selected outcome or :best.
+      #
+      # Each alternative is an object with the following attributes:
+      # [:id]    Identifier.
+      # [:conv]  Conversion rate (0.0 to 1.0).
+      # [:pop]   Population size (participants).
+      # [:z]     Z-score compared to base (above).
+      # [:conf]  Confidence based on z-score (0, 90, 95, 99, 99.9).
+      def score
+        struct = Struct.new(:id, :conv, :pop, :z, :conf)
+        alts = alternatives.map { |alt| struct.new(alt.id, alt.conversion_rate, alt.participants) }
+        # sort by conversion rate to find second best and 2nd best
+        sorted = alts.sort_by(&:conv)
+        base = sorted[-2]
+        # calculate z-score
+        pc = base.conv
+        nc = base.pop
+        alts.each do |alt|
+          p = alt.conv
+          n = alt.pop
+          alt.z = (p - pc) / ((p * (1-p)/n) + (pc * (1-pc)/nc)).abs ** 0.5
+          alt.conf = AbTest.confidence(alt.z)
+        end
+        # chosen alternative. we pick only if we have confidence to back it up.
+        best = sorted.last if sorted.last.conf > 0
+        choice = outcome ? alts[outcome.id] : best
+        Struct.new(:alts, :best, :base, :choice).new(alts, best, base, choice)
+      end
+
+      # Returns a hash with the following helpful information:
+      # [:alts]   List of alternatives converted to structure, see below.
+      # [:base]   Base alternative (lowest conversion, but more than zero).
+      # [:best]   Best performing alternative.
+      # [:choice] Either selected (outcome) or best alternative.
+      # [:claims] List of sentences that form the conclusion.
+      #
+      # Alternative structure contains the following fields:
+      # [:name]     Alternative name.
+      # [:conv]     Conversion rate.
+      # [:z]        z-score.
+      # [:conf]     Confidence level relative to the lowest alternative.
+      # [:improve]  Percentage of improvement over lowest alternative.
+      def conclusion
+        claims = []
+        struct = Struct.new(:id, :name, :value, :conv, :z, :conf, :improve)
+        alts = alternatives.map { |alt| struct.new(alt.id, alt.name, alt.value, alt.conversion_rate * 100, alt.z_score, alt.confidence) }
+        sorted = alts.reject { |alt| alt.z.nan? }.sort_by(&:z)
+        if sorted.size > 1
+          best = sorted.last if sorted.last.conv > 0
+          base = sorted.find { |alt| alt.conv > 0 }
+
+          alts.each do |alt|
+            alt.improve = (alt.conv- base.conv)/base.conv * 100 if base
+            alt.conf = AbTest.confidence(alt.z)
+          end
+
+          rate = ->(alt){ alt.conv <= 0 ? "has no conversion" : base && alt.conv > base.conv ?
+              ("converted at %.1f%% (%d%% better than %s)" % [alt.conv, alt.improve, base.name]) :
+              ("converted at %.1f%%" % [alt.conv]) }
+          if best
+            confidence = best.conf >= 90 ? "with confidence of #{best.conf}%" :
+              "but we can't say with confidence and recommend you run the test longer"
+            claims << "The best choice is #{best.name.capitalize}, it #{rate[best]}, #{confidence}."
+          end
+          remain = (sorted - [best]).reverse | alts
+          remain.each do |alt|
+            claims << "#{alt.name.capitalize} #{rate[alt]}."
+          end
+        else
+          claims << "This experiment did not run long enough to find a clear winner."
+        end
+        choice = outcome ? alts[outcome.id] : best
+        claims << "#{choice.name.capitalize} selected as the best alternative." if choice
+        Struct.new(:alts, :claims, :best, :base, :choice).new(alts, claims, best, base, choice)
+      end
+
+
       def report
-        alts = alternatives.map { |alt|
-          "<dt>Option #{(65 + alt.id).chr}</dt><dd><code>#{CGI.escape_html alt.value.inspect}</code> viewed #{alt.participants} times, converted #{alt.conversions}, rate #{alt.conversion_rate}, z_score #{alt.z_score}, confidence #{alt.confidence}<dd>"
-        }
-        %{<dl class="data">#{alts.join}</dl>}
+        conclusion[:claims].join(" ")
       end
 
       def humanize
@@ -247,8 +325,8 @@ module Vanity
           end
         end
         unless outcome
-          highest = alternatives.sort.last rescue nil
-          outcome = highest && highest.confidence >= 95 ? highest.id : 0
+          best = score.best
+          outcome = best.id if best
         end
         # TODO: logging
         redis.setnx key("outcome"), outcome

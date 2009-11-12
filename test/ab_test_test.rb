@@ -61,6 +61,14 @@ class AbTestTest < ActionController::TestCase
     assert_equal experiment(:abcd).alternatives[3], experiment(:abcd).alternative(:d)
   end
 
+  def test_alternative_name
+    experiment :abcd do
+      alternatives :a, :b
+    end
+    assert_equal "option 1", experiment(:abcd).alternative(:a).name
+    assert_equal "option 2", experiment(:abcd).alternative(:b).name
+  end
+
 
   # -- Running experiment --
 
@@ -218,12 +226,10 @@ class AbTestTest < ActionController::TestCase
   end
 
 
-  # -- Z-score --
+  # -- Scoring --
   
-  def test_z_score
-    experiment :abcd do
-      alternatives :a, :b, :c, :d
-    end
+  def test_scoring
+    experiment(:abcd) { alternatives :a, :b, :c, :d }
     alts = experiment(:abcd).alternatives
     # participating, conversions, rate, z-score
     # Control:      182	35 19.23%	N/A
@@ -239,11 +245,41 @@ class AbTestTest < ActionController::TestCase
     188.times { |i| alts[3].participating!(i + 600) }
     61.times { |i| alts[3].conversion!(i + 600) }
 
-    z_scores = alts.map { |alt| sprintf("%4.2f", alt.z_score) }
-    assert_equal %w{0.00 1.33 -1.13 2.94}, z_scores
+    z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z }
+    assert_equal %w{-1.33 0.00 -2.46 1.58}, z_scores
+    confidences = experiment(:abcd).score.alts.map(&:conf)
+    assert_equal [0, 0, 0, 90], confidences
+    assert_equal 3, experiment(:abcd).score.best.id
+  end
 
-    confidences = alts.map { |alt| alt.confidence }
-    assert_equal [0, 90, 0, 99], confidences
+  def test_scoring_without_data
+    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.z.nan? }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.conf == 0 }
+    assert_nil experiment(:abcd).score.best
+  end
+
+  def test_scoring_with_one_experiment
+    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    10.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
+    8.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.z.nan? }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.conf == 0 }
+    assert_nil experiment(:abcd).score.best
+  end
+
+  def test_scoring_with_some_experiments
+    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    10.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
+    8.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    12.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
+    5.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+
+    z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z }
+    assert_equal %w{NaN 2.01 NaN 0.00}, z_scores
+    confidences = experiment(:abcd).score.alts.map(&:conf)
+    assert_equal [0, 95, 0, 0], confidences
+    assert_equal 1, experiment(:abcd).score.best.id
   end
   
 
