@@ -232,56 +232,42 @@ module Vanity
         Struct.new(:alts, :best, :base, :choice).new(alts, best, base, choice)
       end
 
-      # Returns a hash with the following helpful information:
-      # [:alts]   List of alternatives converted to structure, see below.
-      # [:base]   Base alternative (lowest conversion, but more than zero).
-      # [:best]   Best performing alternative.
-      # [:choice] Either selected (outcome) or best alternative.
-      # [:claims] List of sentences that form the conclusion.
-      #
-      # Alternative structure contains the following fields:
-      # [:name]     Alternative name.
-      # [:conv]     Conversion rate.
-      # [:z]        z-score.
-      # [:conf]     Confidence level relative to the lowest alternative.
-      # [:improve]  Percentage of improvement over lowest alternative.
-      def conclusion
+      # Use the score returned by #score to derive a conclusion.  Returns an
+      # array of claims.
+      def conclusion(score = score)
         claims = []
-        struct = Struct.new(:id, :name, :value, :conv, :z, :conf, :improve)
-        alts = alternatives.map { |alt| struct.new(alt.id, alt.name, alt.value, alt.conversion_rate * 100, alt.z_score, alt.confidence) }
-        sorted = alts.reject { |alt| alt.z.nan? }.sort_by(&:z)
+        # find name form alt structure returned from score
+        name = ->(alt){ alternatives[alt.id].name }
+        # only interested in sorted alternatives with conversion
+        sorted = score.alts.select { |alt| alt.conv > 0.0 }.sort_by(&:conv).reverse
         if sorted.size > 1
-          best = sorted.last if sorted.last.conv > 0
-          base = sorted.find { |alt| alt.conv > 0 }
-
-          alts.each do |alt|
-            alt.improve = (alt.conv- base.conv)/base.conv * 100 if base
-            alt.conf = AbTest.confidence(alt.z)
+          # start with alternatives that have conversion, from best to worst,
+          # then alternatives with no conversion.
+          sorted |= score.alts
+          # we want a result that's clearly better than 2nd best.
+          best, second = sorted[0], sorted[1]
+          if best.conv > second.conv
+            claims << "The best choice is %s, it converted at %.1f%% (%d%% better than %s)." %
+              [name[best], best.conv * 100, (best.conv - second.conv) / second.conv * 100, name[second]]
+            if best.conf >= 90
+              claims << "There is %d%% chance this result is statistically significant." % score.best.conf
+            else
+              claims << "This result is not statistically significant, suggest you continue this experiment."
+            end
+            sorted.delete best
           end
-
-          rate = ->(alt){ alt.conv <= 0 ? "has no conversion" : base && alt.conv > base.conv ?
-              ("converted at %.1f%% (%d%% better than %s)" % [alt.conv, alt.improve, base.name]) :
-              ("converted at %.1f%%" % [alt.conv]) }
-          if best
-            confidence = best.conf >= 90 ? "with confidence of #{best.conf}%" :
-              "but we can't say with confidence and recommend you run the test longer"
-            claims << "The best choice is #{best.name.capitalize}, it #{rate[best]}, #{confidence}."
-          end
-          remain = (sorted - [best]).reverse | alts
-          remain.each do |alt|
-            claims << "#{alt.name.capitalize} #{rate[alt]}."
+          sorted.each do |alt|
+            if alt.conv > 0.0
+              claims << "%s converted at %.1f%%." % [name[alt].capitalize, alt.conv * 100]
+            else
+              claims << "%s did not convert." % name[alt].capitalize
+            end
           end
         else
           claims << "This experiment did not run long enough to find a clear winner."
         end
-        choice = outcome ? alts[outcome.id] : best
-        claims << "#{choice.name.capitalize} selected as the best alternative." if choice
-        Struct.new(:alts, :claims, :best, :base, :choice).new(alts, claims, best, base, choice)
-      end
-
-
-      def report
-        conclusion[:claims].join(" ")
+        claims << "#{name[score.choice].capitalize} selected as the best alternative." if score.choice
+        claims
       end
 
       def humanize
