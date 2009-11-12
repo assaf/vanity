@@ -1,10 +1,11 @@
-0.2.2
+0.2.2 (2009-11-12)
 * Added: vanity binary, with single command for generating a report.
 * Added: return alternative by value from experiment.alternative(val) method.
 * Added: reset an experiment by calling reset!.
 * Added: experiment alternative name (option 1, option 2, etc).
 * Added: new scoring algorithm: use experiment.score instead of
 alternative.z_score/confidence.
+* Added: experiment.conclusion for plain English results.
 
 0.2.1 (2009-11-11)
 * Added: z-score and confidence level for A/B test alternatives.
