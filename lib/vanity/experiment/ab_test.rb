@@ -7,7 +7,7 @@ module Vanity
       def initialize(experiment, id, value) #:nodoc:
         @experiment = experiment
         @id = id
-        @name = "option #{(@id + 1)}"
+        @name = "option #{(@id + 65).chr}"
         @value = value
       end
 
@@ -269,15 +269,15 @@ module Vanity
           end
           sorted.each do |alt|
             if alt.conv > 0.0
-              claims << "%s converted at %.1f%%." % [alt.name.capitalize, alt.conv * 100]
+              claims << "%s converted at %.1f%%." % [alt.name.gsub(/^o/, "O"), alt.conv * 100]
             else
-              claims << "%s did not convert." % alt.name.capitalize
+              claims << "%s did not convert." % alt.name.gsub(/^o/, "O")
             end
           end
         else
           claims << "This experiment did not run long enough to find a clear winner."
         end
-        claims << "#{score.choice.name.capitalize} selected as the best alternative." if score.choice
+        claims << "#{score.choice.name.gsub(/^o/, "O")} selected as the best alternative." if score.choice
         claims
       end
 

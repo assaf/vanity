@@ -65,8 +65,8 @@ class AbTestTest < ActionController::TestCase
     experiment :abcd do
       alternatives :a, :b
     end
-    assert_equal "option 1", experiment(:abcd).alternative(:a).name
-    assert_equal "option 2", experiment(:abcd).alternative(:b).name
+    assert_equal "option A", experiment(:abcd).alternative(:a).name
+    assert_equal "option B", experiment(:abcd).alternative(:b).name
   end
 
 
@@ -320,12 +320,12 @@ class AbTestTest < ActionController::TestCase
     61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
-The best choice is option 4: it converted at 32.4% (30% better than option 2).
+The best choice is option D: it converted at 32.4% (30% better than option B).
 With 90% probability this result is statistically significant.
-Option 2 converted at 25.0%.
-Option 1 converted at 19.2%.
-Option 3 converted at 14.8%.
-Option 4 selected as the best alternative.
+Option B converted at 25.0%.
+Option A converted at 19.2%.
+Option C converted at 14.8%.
+Option D selected as the best alternative.
     TEXT
   end
 
@@ -339,12 +339,12 @@ Option 4 selected as the best alternative.
     61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
-The best choice is option 4: it converted at 32.4% (30% better than option 2).
+The best choice is option D: it converted at 32.4% (30% better than option B).
 With 90% probability this result is statistically significant.
-Option 2 converted at 25.0%.
-Option 1 did not convert.
-Option 3 did not convert.
-Option 4 selected as the best alternative.
+Option B converted at 25.0%.
+Option A did not convert.
+Option C did not convert.
+Option D selected as the best alternative.
     TEXT
   end
 
@@ -358,11 +358,11 @@ Option 4 selected as the best alternative.
     61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
-The best choice is option 4: it converted at 32.4% (1% better than option 2).
+The best choice is option D: it converted at 32.4% (1% better than option B).
 This result is not statistically significant, suggest you continue this experiment.
-Option 2 converted at 32.2%.
-Option 1 did not convert.
-Option 3 did not convert.
+Option B converted at 32.2%.
+Option A did not convert.
+Option C did not convert.
     TEXT
   end
 
@@ -376,11 +376,11 @@ Option 3 did not convert.
     61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
-The best choice is option 4: it converted at 32.4%.
+The best choice is option D: it converted at 32.4%.
 This result is not statistically significant, suggest you continue this experiment.
-Option 2 converted at 32.3%.
-Option 1 did not convert.
-Option 3 did not convert.
+Option B converted at 32.3%.
+Option A did not convert.
+Option C did not convert.
     TEXT
   end
 
@@ -394,10 +394,10 @@ Option 3 did not convert.
     61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
-Option 4 converted at 32.4%.
-Option 2 converted at 32.4%.
-Option 1 did not convert.
-Option 3 did not convert.
+Option D converted at 32.4%.
+Option B converted at 32.4%.
+Option A did not convert.
+Option C did not convert.
     TEXT
   end
 
