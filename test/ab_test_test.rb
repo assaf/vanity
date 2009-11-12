@@ -230,23 +230,22 @@ class AbTestTest < ActionController::TestCase
   
   def test_scoring
     experiment(:abcd) { alternatives :a, :b, :c, :d }
-    alts = experiment(:abcd).alternatives
     # participating, conversions, rate, z-score
     # Control:      182	35 19.23%	N/A
-    182.times { |i| alts[0].participating!(i) }
-    35.times { |i| alts[0].conversion!(i) }
+    182.times { |i| experiment(:abcd).alternative(:a).participating!(i) }
+    35.times  { |i| experiment(:abcd).alternative(:a).conversion!(i) }
     # Treatment A:  180	45 25.00%	1.33
-    180.times { |i| alts[1].participating!(i + 200) }
-    45.times { |i| alts[1].conversion!(i + 200) }
-    # Treatment B:  189	28 14.81%	-1.13
-    189.times { |i| alts[2].participating!(i + 400) }
-    28.times { |i| alts[2].conversion!(i + 400) }
-    # Treatment C:  188	61 32.45%	2.94
-    188.times { |i| alts[3].participating!(i + 600) }
-    61.times { |i| alts[3].conversion!(i + 600) }
+    180.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
+    45.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    # treatment B:  189	28 14.81%	-1.13
+    189.times { |i| experiment(:abcd).alternative(:c).participating!(i) }
+    28.times  { |i| experiment(:abcd).alternative(:c).conversion!(i) }
+    # treatment C:  188	61 32.45%	2.94
+    188.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
+    61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
 
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z }
-    assert_equal %w{-1.33 0.00 -2.46 1.58}, z_scores
+    assert_equal %w{-1.33 0.00 -2.47 1.58}, z_scores
     confidences = experiment(:abcd).score.alts.map(&:conf)
     assert_equal [90, 0, 99, 90], confidences
 
@@ -256,7 +255,7 @@ class AbTestTest < ActionController::TestCase
     assert_equal 3, experiment(:abcd).score.choice.id
   end
 
-  def test_scoring_without_data
+  def test_scoring_with_no_performers
     experiment(:abcd) { alternatives :a, :b, :c, :d }
     assert experiment(:abcd).score.alts.all? { |alt| alt.z.nan? }
     assert experiment(:abcd).score.alts.all? { |alt| alt.conf == 0 }
@@ -265,7 +264,7 @@ class AbTestTest < ActionController::TestCase
     assert_nil experiment(:abcd).score.choice
   end
 
-  def test_scoring_with_one_experiment
+  def test_scoring_with_one_performer
     experiment(:abcd) { alternatives :a, :b, :c, :d }
     10.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
     8.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
@@ -276,7 +275,7 @@ class AbTestTest < ActionController::TestCase
     assert_nil experiment(:abcd).score.choice
   end
 
-  def test_scoring_with_some_experiments
+  def test_scoring_with_some_performers
     experiment(:abcd) { alternatives :a, :b, :c, :d }
     10.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
     8.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
@@ -292,7 +291,122 @@ class AbTestTest < ActionController::TestCase
     assert_equal 1, experiment(:abcd).score.best.id
     assert_equal 1, experiment(:abcd).score.choice.id
   end
-  
+
+
+  # -- Conclusion --
+
+  def test_conclusion
+    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    # participating, conversions, rate, z-score
+    # Control:      182	35 19.23%	N/A
+    182.times { |i| experiment(:abcd).alternative(:a).participating!(i) }
+    35.times  { |i| experiment(:abcd).alternative(:a).conversion!(i) }
+    # Treatment A:  180	45 25.00%	1.33
+    180.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
+    45.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    # treatment B:  189	28 14.81%	-1.13
+    189.times { |i| experiment(:abcd).alternative(:c).participating!(i) }
+    28.times  { |i| experiment(:abcd).alternative(:c).conversion!(i) }
+    # treatment C:  188	61 32.45%	2.94
+    188.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
+    61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+
+    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+The best choice is option 4: it converted at 32.4% (30% better than option 2).
+With 90% probability this result is statistically significant.
+Option 2 converted at 25.0%.
+Option 1 converted at 19.2%.
+Option 3 converted at 14.8%.
+Option 4 selected as the best alternative.
+    TEXT
+  end
+
+  def test_conclusion_with_some_performers
+    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    # Treatment A:  180	45 25.00%	1.33
+    180.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
+    45.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    # treatment C:  188	61 32.45%	2.94
+    188.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
+    61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+
+    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+The best choice is option 4: it converted at 32.4% (30% better than option 2).
+With 90% probability this result is statistically significant.
+Option 2 converted at 25.0%.
+Option 1 did not convert.
+Option 3 did not convert.
+Option 4 selected as the best alternative.
+    TEXT
+  end
+
+  def test_conclusion_without_clear_winner
+    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    # Treatment A:  180	45 25.00%	1.33
+    180.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
+    58.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    # treatment C:  188	61 32.45%	2.94
+    188.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
+    61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+
+    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+The best choice is option 4: it converted at 32.4% (1% better than option 2).
+This result is not statistically significant, suggest you continue this experiment.
+Option 2 converted at 32.2%.
+Option 1 did not convert.
+Option 3 did not convert.
+    TEXT
+  end
+
+  def test_conclusion_without_close_performers
+    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    # Treatment A:  180	45 25.00%	1.33
+    186.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
+    60.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    # treatment C:  188	61 32.45%	2.94
+    188.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
+    61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+
+    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+The best choice is option 4: it converted at 32.4%.
+This result is not statistically significant, suggest you continue this experiment.
+Option 2 converted at 32.3%.
+Option 1 did not convert.
+Option 3 did not convert.
+    TEXT
+  end
+
+  def test_conclusion_without_equal_performers
+    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    # Treatment A:  180	45 25.00%	1.33
+    188.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
+    61.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    # treatment C:  188	61 32.45%	2.94
+    188.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
+    61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+
+    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+Option 4 converted at 32.4%.
+Option 2 converted at 32.4%.
+Option 1 did not convert.
+Option 3 did not convert.
+    TEXT
+  end
+
+  def test_conclusion_with_one_performers
+    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    # Treatment A:  180	45 25.00%	1.33
+    180.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
+    45.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+
+    assert_equal "This experiment did not run long enough to find a clear winner.", experiment(:abcd).conclusion.join("\n")
+  end
+
+  def test_conclusion_with_no_performers
+    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    assert_equal "This experiment did not run long enough to find a clear winner.", experiment(:abcd).conclusion.join("\n")
+  end
+
 
   # -- Completion --
 

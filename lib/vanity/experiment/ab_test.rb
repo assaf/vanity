@@ -208,14 +208,14 @@ module Vanity
       #
       # Each alternative is an object with the following attributes:
       # [:id]    Identifier.
-      # [:conv]  Conversion rate (0.0 to 1.0).
+      # [:conv]  Conversion rate (0.0 to 1.0, rounded to 3 places).
       # [:pop]   Population size (participants).
       # [:diff]  Difference from least performant altenative (percentage).
       # [:z]     Z-score compared to base (above).
       # [:conf]  Confidence based on z-score (0, 90, 95, 99, 99.9).
       def score
         struct = Struct.new(:id, :conv, :pop, :diff, :z, :conf)
-        alts = alternatives.map { |alt| struct.new(alt.id, alt.conversion_rate, alt.participants) }
+        alts = alternatives.map { |alt| struct.new(alt.id, alt.conversion_rate.round(3), alt.participants) }
         # sort by conversion rate to find second best and 2nd best
         sorted = alts.sort_by(&:conv)
         base = sorted[-2]
@@ -256,10 +256,11 @@ module Vanity
           # we want a result that's clearly better than 2nd best.
           best, second = sorted[0], sorted[1]
           if best.conv > second.conv
-            claims << "The best choice is %s, it converted at %.1f%% (%d%% better than %s)." %
-              [name[best], best.conv * 100, (best.conv - second.conv) / second.conv * 100, name[second]]
+            diff = ((best.conv - second.conv) / second.conv * 100).round
+            better = " (%d%% better than %s)" % [diff, name[second]] if diff > 0
+            claims << "The best choice is %s: it converted at %.1f%%%s." % [name[best], best.conv * 100, better]
             if best.conf >= 90
-              claims << "There is %d%% chance this result is statistically significant." % score.best.conf
+              claims << "With %d%% probability this result is statistically significant." % score.best.conf
             else
               claims << "This result is not statistically significant, suggest you continue this experiment."
             end
