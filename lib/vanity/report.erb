@@ -15,7 +15,7 @@
     <li class="experiment" id="experiment_<%= CGI.escape exp.id.to_s %>">
       <h3><%= CGI.escape_html exp.name %></h3>
       <blockquote><%= CGI.escape_html exp.description.to_s %></blockquote>
-      <%= exp.report %>
+      <%= exp.conclusion.join(" ") %>
       <p class="meta"><%= exp.humanize %> started <%= exp.created_at.strftime("%a, %b %-d %Y") %></p>
     </li>
   <% end %>

@@ -92,6 +92,7 @@ module Vanity
       class << self
 
         def confidence(score) #:nodoc:
+          score = score.abs
           confidence = AbTest::Z_TO_CONFIDENCE.find { |z,p| score >= z }
           confidence ? confidence.last : 0
         end
@@ -203,16 +204,17 @@ module Vanity
       # [:alts]  List of alternatives as structures (see below).
       # [:best]  Best alternative.
       # [:base]  Second best alternative.
-      # [:choice]  Choice alterntive, either selected outcome or :best.
+      # [:choice]  Choice alterntive, either selected outcome or best alternative (with confidence).
       #
       # Each alternative is an object with the following attributes:
       # [:id]    Identifier.
       # [:conv]  Conversion rate (0.0 to 1.0).
       # [:pop]   Population size (participants).
+      # [:diff]  Difference from least performant altenative (percentage).
       # [:z]     Z-score compared to base (above).
       # [:conf]  Confidence based on z-score (0, 90, 95, 99, 99.9).
       def score
-        struct = Struct.new(:id, :conv, :pop, :z, :conf)
+        struct = Struct.new(:id, :conv, :pop, :diff, :z, :conf)
         alts = alternatives.map { |alt| struct.new(alt.id, alt.conversion_rate, alt.participants) }
         # sort by conversion rate to find second best and 2nd best
         sorted = alts.sort_by(&:conv)
@@ -226,9 +228,16 @@ module Vanity
           alt.z = (p - pc) / ((p * (1-p)/n) + (pc * (1-pc)/nc)).abs ** 0.5
           alt.conf = AbTest.confidence(alt.z)
         end
-        # chosen alternative. we pick only if we have confidence to back it up.
-        best = sorted.last if sorted.last.conf > 0
-        choice = outcome ? alts[outcome.id] : best
+        # difference is measured from least performant
+        if least = sorted.find { |alt| alt.conv > 0 }
+          alts.each do |alt|
+            alt.diff = (alt.conv - least.conv) / least.conv * 100 if alt.conv > least.conv
+          end
+        end
+        # best alternative is one with highest conversion rate (best shot).
+        # choice alternative can only pick best if we have high confidence (>90%).
+        best = sorted.last if sorted.last.conv > 0
+        choice = outcome ? alts[outcome.id] : (best && best.conf >= 90 ? best : nil)
         Struct.new(:alts, :best, :base, :choice).new(alts, best, base, choice)
       end
 

@@ -248,15 +248,21 @@ class AbTestTest < ActionController::TestCase
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z }
     assert_equal %w{-1.33 0.00 -2.46 1.58}, z_scores
     confidences = experiment(:abcd).score.alts.map(&:conf)
-    assert_equal [0, 0, 0, 90], confidences
+    assert_equal [90, 0, 99, 90], confidences
+
+    diff = experiment(:abcd).score.alts.map { |alt| alt.diff && alt.diff.round }
+    assert_equal [30, 69, nil, 119], diff
     assert_equal 3, experiment(:abcd).score.best.id
+    assert_equal 3, experiment(:abcd).score.choice.id
   end
 
   def test_scoring_without_data
     experiment(:abcd) { alternatives :a, :b, :c, :d }
     assert experiment(:abcd).score.alts.all? { |alt| alt.z.nan? }
     assert experiment(:abcd).score.alts.all? { |alt| alt.conf == 0 }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.diff.nil? }
     assert_nil experiment(:abcd).score.best
+    assert_nil experiment(:abcd).score.choice
   end
 
   def test_scoring_with_one_experiment
@@ -265,7 +271,9 @@ class AbTestTest < ActionController::TestCase
     8.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
     assert experiment(:abcd).score.alts.all? { |alt| alt.z.nan? }
     assert experiment(:abcd).score.alts.all? { |alt| alt.conf == 0 }
-    assert_nil experiment(:abcd).score.best
+    assert experiment(:abcd).score.alts.all? { |alt| alt.diff.nil? }
+    assert 1, experiment(:abcd).score.best.id
+    assert_nil experiment(:abcd).score.choice
   end
 
   def test_scoring_with_some_experiments
@@ -279,7 +287,10 @@ class AbTestTest < ActionController::TestCase
     assert_equal %w{NaN 2.01 NaN 0.00}, z_scores
     confidences = experiment(:abcd).score.alts.map(&:conf)
     assert_equal [0, 95, 0, 0], confidences
+    diff = experiment(:abcd).score.alts.map { |alt| alt.diff && alt.diff.round }
+    assert_equal [nil, 92, nil, nil], diff
     assert_equal 1, experiment(:abcd).score.best.id
+    assert_equal 1, experiment(:abcd).score.choice.id
   end
   
 
@@ -396,19 +407,30 @@ class AbTestTest < ActionController::TestCase
     assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
   end
 
-  def test_outcome_choosing_first_alternative
+  def test_outcome_only_performing_alternative
+    experiment :quick do
+    end
+    2.times do |i|
+      experiment(:quick).alternatives[1].participating!(i)
+      experiment(:quick).alternatives[1].conversion!(i)
+    end
+    experiment(:quick).complete!
+    assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
+  end
+
+  def test_outcome_choosing_equal_alternatives
     experiment :quick do
     end
     8.times do |i|
       experiment(:quick).alternatives[0].participating!(i)
       experiment(:quick).alternatives[0].conversion!(i)
     end
-    7.times do |i|
+    8.times do |i|
       experiment(:quick).alternatives[1].participating!(i)
       experiment(:quick).alternatives[1].conversion!(i)
     end
     experiment(:quick).complete!
-    assert_equal experiment(:quick).alternatives[0], experiment(:quick).outcome
+    assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
   end
 
 end
