@@ -253,6 +253,9 @@ class AbTestTest < ActionController::TestCase
     assert_equal [30, 69, nil, 119], diff
     assert_equal 3, experiment(:abcd).score.best.id
     assert_equal 3, experiment(:abcd).score.choice.id
+
+    assert_equal 1, experiment(:abcd).score.base.id
+    assert_equal 2, experiment(:abcd).score.least.id
   end
 
   def test_scoring_with_no_performers
@@ -262,6 +265,7 @@ class AbTestTest < ActionController::TestCase
     assert experiment(:abcd).score.alts.all? { |alt| alt.diff.nil? }
     assert_nil experiment(:abcd).score.best
     assert_nil experiment(:abcd).score.choice
+    assert_nil experiment(:abcd).score.least
   end
 
   def test_scoring_with_one_performer
@@ -273,6 +277,8 @@ class AbTestTest < ActionController::TestCase
     assert experiment(:abcd).score.alts.all? { |alt| alt.diff.nil? }
     assert 1, experiment(:abcd).score.best.id
     assert_nil experiment(:abcd).score.choice
+    assert 1, experiment(:abcd).score.base.id
+    assert 1, experiment(:abcd).score.least.id
   end
 
   def test_scoring_with_some_performers
@@ -290,6 +296,8 @@ class AbTestTest < ActionController::TestCase
     assert_equal [nil, 92, nil, nil], diff
     assert_equal 1, experiment(:abcd).score.best.id
     assert_equal 1, experiment(:abcd).score.choice.id
+    assert_equal 3, experiment(:abcd).score.base.id
+    assert_equal 3, experiment(:abcd).score.least.id
   end
 
 

@@ -204,18 +204,21 @@ module Vanity
       # [:alts]  List of alternatives as structures (see below).
       # [:best]  Best alternative.
       # [:base]  Second best alternative.
+      # [:least] Least performing (but more than zero) alternative.
       # [:choice]  Choice alterntive, either selected outcome or best alternative (with confidence).
       #
       # Each alternative is an object with the following attributes:
       # [:id]    Identifier.
+      # [:name]  Alternative name.
+      # [:value] Alternative value.
       # [:conv]  Conversion rate (0.0 to 1.0, rounded to 3 places).
       # [:pop]   Population size (participants).
       # [:diff]  Difference from least performant altenative (percentage).
       # [:z]     Z-score compared to base (above).
       # [:conf]  Confidence based on z-score (0, 90, 95, 99, 99.9).
       def score
-        struct = Struct.new(:id, :conv, :pop, :diff, :z, :conf)
-        alts = alternatives.map { |alt| struct.new(alt.id, alt.conversion_rate.round(3), alt.participants) }
+        struct = Struct.new(:id, :name, :value, :conv, :pop, :diff, :z, :conf)
+        alts = alternatives.map { |alt| struct.new(alt.id, alt.name, alt.value, alt.conversion_rate.round(3), alt.participants) }
         # sort by conversion rate to find second best and 2nd best
         sorted = alts.sort_by(&:conv)
         base = sorted[-2]
@@ -238,15 +241,13 @@ module Vanity
         # choice alternative can only pick best if we have high confidence (>90%).
         best = sorted.last if sorted.last.conv > 0
         choice = outcome ? alts[outcome.id] : (best && best.conf >= 90 ? best : nil)
-        Struct.new(:alts, :best, :base, :choice).new(alts, best, base, choice)
+        Struct.new(:alts, :best, :base, :least, :choice).new(alts, best, base, least, choice)
       end
 
       # Use the score returned by #score to derive a conclusion.  Returns an
       # array of claims.
       def conclusion(score = score)
         claims = []
-        # find name form alt structure returned from score
-        name = ->(alt){ alternatives[alt.id].name }
         # only interested in sorted alternatives with conversion
         sorted = score.alts.select { |alt| alt.conv > 0.0 }.sort_by(&:conv).reverse
         if sorted.size > 1
@@ -257,8 +258,8 @@ module Vanity
           best, second = sorted[0], sorted[1]
           if best.conv > second.conv
             diff = ((best.conv - second.conv) / second.conv * 100).round
-            better = " (%d%% better than %s)" % [diff, name[second]] if diff > 0
-            claims << "The best choice is %s: it converted at %.1f%%%s." % [name[best], best.conv * 100, better]
+            better = " (%d%% better than %s)" % [diff, second.name] if diff > 0
+            claims << "The best choice is %s: it converted at %.1f%%%s." % [best.name, best.conv * 100, better]
             if best.conf >= 90
               claims << "With %d%% probability this result is statistically significant." % score.best.conf
             else
@@ -268,15 +269,15 @@ module Vanity
           end
           sorted.each do |alt|
             if alt.conv > 0.0
-              claims << "%s converted at %.1f%%." % [name[alt].capitalize, alt.conv * 100]
+              claims << "%s converted at %.1f%%." % [alt.name.capitalize, alt.conv * 100]
             else
-              claims << "%s did not convert." % name[alt].capitalize
+              claims << "%s did not convert." % alt.name.capitalize
             end
           end
         else
           claims << "This experiment did not run long enough to find a clear winner."
         end
-        claims << "#{name[score.choice].capitalize} selected as the best alternative." if score.choice
+        claims << "#{score.choice.name.capitalize} selected as the best alternative." if score.choice
         claims
       end
 
