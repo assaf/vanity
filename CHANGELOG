@@ -1,6 +1,8 @@
-0.3.0
+0.3.0 (2009-11-13)
 * Added: score now includes least performing alternatives, names and values.
 * Added: shiny reports.
+* Added: Rails console shows current experiments status and also allows you to
+choose which alternative you want to see.
 * Changed: letters instead of numbers for options (option 1 => option A).
 * Changed: experiment.alternatives is now an immutable snapshot.
 * Changed: experiment.score returns populated alternative objects instead of

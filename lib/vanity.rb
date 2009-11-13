@@ -17,8 +17,8 @@ module Vanity
 end
 
 
-require File.join(File.dirname(__FILE__), "vanity/playground")
-require File.join(File.dirname(__FILE__), "vanity/experiment/base")
-require File.join(File.dirname(__FILE__), "vanity/experiment/ab_test")
-require File.join(File.dirname(__FILE__), "vanity/rails") if defined?(Rails)
-Vanity.autoload :Commands, File.join(File.dirname(__FILE__), "vanity/commands")
+require "vanity/playground"
+require "vanity/experiment/base"
+require "vanity/experiment/ab_test"
+require "vanity/rails" if defined?(Rails)
+Vanity.autoload :Commands, "vanity/commands"

@@ -1,6 +1,3 @@
-require "erb"
-require "cgi"
-
 module Vanity
 
   # Vanity.playground.configuration
@@ -86,40 +83,36 @@ module Vanity
       redis
     end
 
-    def template(name) #:nodoc:
-      path = File.join(File.dirname(__FILE__), "templates/#{name}")
-      path << ".erb" unless name["."]
-      erb = ERB.new(File.read(path), nil, '<')
-    end
-
-    # Render the named template.  Used for reporting and the console.
-    def render(name, locals = {})
-      locals[:playground] = self
-      keys = locals.keys
-      struct = Struct.new(*keys).new(*locals.values_at(*keys))
-      template(name).result(struct.instance_eval { binding })
-    end
-
   end
 
   @playground = Playground.new
-  # Returns the playground instance.
-  def self.playground
-    @playground
-  end
+  class << self
 
-  # Returns the Vanity context.  For example, when using Rails this would be
-  # the current controller, which can be used to get/set the vanity identity.
-  def self.context
-    Thread.current[:vanity_context]
-  end
+    # Returns the playground instance.
+    def playground
+      @playground
+    end
 
-  # Sets the Vanity context.  For example, when using Rails this would be
-  # set by the set_vanity_context before filter (via use_vanity).
-  def self.context=(context)
-    Thread.current[:vanity_context] = context
-  end
+    # Returns the Vanity context.  For example, when using Rails this would be
+    # the current controller, which can be used to get/set the vanity identity.
+    def context
+      Thread.current[:vanity_context]
+    end
 
+    # Sets the Vanity context.  For example, when using Rails this would be
+    # set by the set_vanity_context before filter (via use_vanity).
+    def context=(context)
+      Thread.current[:vanity_context] = context
+    end
+
+    # Path to template.
+    def template(name)
+      path = File.join(File.dirname(__FILE__), "templates/#{name}")
+      path << ".erb" unless name["."]
+      path
+    end
+
+  end
 end
 
 class Object

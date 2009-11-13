@@ -36,7 +36,8 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
 end
 
 task :report do
-  require "lib/vanity"
+  $LOAD_PATH.unshift "lib"
+  require "vanity"
   Vanity.playground.load_path = "test/experiments"
 
   class Context

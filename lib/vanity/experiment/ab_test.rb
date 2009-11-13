@@ -202,6 +202,12 @@ module Vanity
         self
       end
 
+      def chosen?(alternative) #:nodoc:
+        identity = identify
+        index = redis[key("participant:#{identity}:show")]
+        index && index.to_i == alternative.id
+      end
+
       # Used for testing.
       def count(identity, value, *what) #:nodoc:
         index = @alternatives.index(value)

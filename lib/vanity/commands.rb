@@ -1,1 +1,1 @@
-require File.join(File.dirname(__FILE__), "commands/report")
+require "vanity/commands/report"

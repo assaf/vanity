@@ -1,6 +1,7 @@
-require File.join(File.dirname(__FILE__), "../vanity")
-require File.join(File.dirname(__FILE__), "rails/helpers")
-require File.join(File.dirname(__FILE__), "rails/testing")
+require "vanity"
+require "vanity/rails/helpers"
+require "vanity/rails/testing"
+require "vanity/rails/console"
 
 # Use Rails logger by default.
 Vanity.playground.logger ||= ActionController::Base.logger
