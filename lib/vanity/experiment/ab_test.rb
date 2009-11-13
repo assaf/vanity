@@ -1,7 +1,7 @@
 module Vanity
   module Experiment
 
-    # Experiment alternative.  See AbTest#alternatives.
+    # Experiment alternative.  See AbTest#alternatives and AbTest#score.
     class Alternative
 
       def initialize(experiment, id, value, participants, converted, conversions) #:nodoc:
@@ -33,13 +33,21 @@ module Vanity
       # Number of conversions for this alternative (same participant may be counted more than once).
       attr_reader :conversions
 
-      # Conversion rate calculated as converted/participants.
+      # Z-score for this alternative. Populated by AbTest#score.
+      attr_accessor :z_score
+
+      # Confidence derived from z-score. Populated by AbTest#score.
+      attr_accessor :confidence
+    
+      # Difference from least performing alternative. Populated by AbTest#score.
+      attr_accessor :difference
+
+      # Conversion rate calculated as converted/participants, rounded to 3 places.
       def conversion_rate
-        c, p = converted.to_f, participants.to_f
-        p > 0 ? c/p : 0.0
+        @rate ||= (participants > 0 ? (converted.to_f/participants.to_f).round(3) : 0.0)
       end
 
-      def <=>(other)
+      def <=>(other) # sort by conversion rate
         conversion_rate <=> other.conversion_rate 
       end
 
@@ -81,18 +89,17 @@ module Vanity
 
       # -- Alternatives --
 
-      # Call this method once to specify values for the A/B test.  At least two
-      # values are required.
-      #
-      # Call without argument to previously defined alternatives (see Alternative).
-      #
-      # For example:
+      # Call this method once to set alternative values for this experiment.
+      # Require at least two values.  For example:
       #   experiment "Background color" do
       #     alternatives "red", "blue", "orange"
       #   end
-      #
+      # 
+      # Call without arguments to obtain current list of alternatives.  For example:
       #   alts = experiment(:background_color).alternatives
       #   puts "#{alts.count} alternatives, with the colors: #{alts.map(&:value).join(", ")}"
+      #
+      # If you want to know how well each alternative is faring, use #score.
       def alternatives(*args)
         unless args.empty?
           @alternatives = args.clone
@@ -116,7 +123,12 @@ module Vanity
 
       # Returns an Alternative with the specified value.
       def alternative(value)
-        alternatives.find { |alt| alt.value == value }
+        if index = @alternatives.index(value)
+          participants = redis.scard(key("alts:#{index}:participants")).to_i
+          converted = redis.scard(key("alts:#{index}:converted")).to_i
+          conversions = redis[key("alts:#{index}:conversions")].to_i
+          Alternative.new(self, index, value, participants, converted, conversions)
+        end
       end
 
       # Sets this test to two alternatives: false and true.
@@ -192,47 +204,43 @@ module Vanity
 
       # -- Reporting --
 
-      # Returns an object with the following attributes:
-      # [:alts]  List of alternatives as structures (see below).
-      # [:best]  Best alternative.
-      # [:base]  Second best alternative.
-      # [:least] Least performing (but more than zero) alternative.
-      # [:choice]  Choice alterntive, either selected outcome or best alternative (with confidence).
+      # Returns an object with the following methods:
+      # [:alts]   List of Alternative populated with interesting statistics.
+      # [:best]   Best performing alternative.
+      # [:base]   Second best performing alternative.
+      # [:least]  Least performing alternative (but more than zero conversion).
+      # [:choice] Choice alterntive, either the outcome or best alternative (if confidence >= 90%).
       #
-      # Each alternative is an object with the following attributes:
-      # [:id]    Identifier.
-      # [:name]  Alternative name.
-      # [:value] Alternative value.
-      # [:conv]  Conversion rate (0.0 to 1.0, rounded to 3 places).
-      # [:pop]   Population size (participants).
-      # [:diff]  Difference from least performant altenative (percentage).
-      # [:z]     Z-score compared to base (above).
-      # [:conf]  Confidence based on z-score (0, 90, 95, 99, 99.9).
+      # Alternatives returned by this method are populated with the following attributes:
+      # [:z_score]    Z-score (relative to the base alternative).
+      # [:confidence] Confidence (z-score mapped to 0, 90, 95, 99 or 99.9%).
+      # [:difference] Difference from the least performant altenative.
       def score
-        struct = Struct.new(:id, :name, :value, :conv, :pop, :diff, :z, :conf)
-        alts = alternatives.map { |alt| struct.new(alt.id, alt.name, alt.value, alt.conversion_rate.round(3), alt.participants) }
+        alts = alternatives
         # sort by conversion rate to find second best and 2nd best
-        sorted = alts.sort_by(&:conv)
+        sorted = alts.sort_by(&:conversion_rate)
         base = sorted[-2]
         # calculate z-score
-        pc = base.conv
-        nc = base.pop
+        pc = base.conversion_rate
+        nc = base.participants
         alts.each do |alt|
-          p = alt.conv
-          n = alt.pop
-          alt.z = (p - pc) / ((p * (1-p)/n) + (pc * (1-pc)/nc)).abs ** 0.5
-          alt.conf = AbTest.confidence(alt.z)
+          p = alt.conversion_rate
+          n = alt.participants
+          alt.z_score = (p - pc) / ((p * (1-p)/n) + (pc * (1-pc)/nc)).abs ** 0.5
+          alt.confidence = AbTest.confidence(alt.z_score)
         end
         # difference is measured from least performant
-        if least = sorted.find { |alt| alt.conv > 0 }
+        if least = sorted.find { |alt| alt.conversion_rate > 0 }
           alts.each do |alt|
-            alt.diff = (alt.conv - least.conv) / least.conv * 100 if alt.conv > least.conv
+            if alt.conversion_rate > least.conversion_rate
+              alt.difference = (alt.conversion_rate - least.conversion_rate) / least.conversion_rate * 100
+            end
           end
         end
         # best alternative is one with highest conversion rate (best shot).
         # choice alternative can only pick best if we have high confidence (>90%).
-        best = sorted.last if sorted.last.conv > 0
-        choice = outcome ? alts[outcome.id] : (best && best.conf >= 90 ? best : nil)
+        best = sorted.last if sorted.last.conversion_rate > 0
+        choice = outcome ? alts[outcome.id] : (best && best.confidence >= 90 ? best : nil)
         Struct.new(:alts, :best, :base, :least, :choice).new(alts, best, base, least, choice)
       end
 
@@ -241,27 +249,27 @@ module Vanity
       def conclusion(score = score)
         claims = []
         # only interested in sorted alternatives with conversion
-        sorted = score.alts.select { |alt| alt.conv > 0.0 }.sort_by(&:conv).reverse
+        sorted = score.alts.select { |alt| alt.conversion_rate > 0.0 }.sort_by(&:conversion_rate).reverse
         if sorted.size > 1
           # start with alternatives that have conversion, from best to worst,
           # then alternatives with no conversion.
           sorted |= score.alts
           # we want a result that's clearly better than 2nd best.
           best, second = sorted[0], sorted[1]
-          if best.conv > second.conv
-            diff = ((best.conv - second.conv) / second.conv * 100).round
+          if best.conversion_rate > second.conversion_rate
+            diff = ((best.conversion_rate - second.conversion_rate) / second.conversion_rate * 100).round
             better = " (%d%% better than %s)" % [diff, second.name] if diff > 0
-            claims << "The best choice is %s: it converted at %.1f%%%s." % [best.name, best.conv * 100, better]
-            if best.conf >= 90
-              claims << "With %d%% probability this result is statistically significant." % score.best.conf
+            claims << "The best choice is %s: it converted at %.1f%%%s." % [best.name, best.conversion_rate * 100, better]
+            if best.confidence >= 90
+              claims << "With %d%% probability this result is statistically significant." % score.best.confidence
             else
               claims << "This result is not statistically significant, suggest you continue this experiment."
             end
             sorted.delete best
           end
           sorted.each do |alt|
-            if alt.conv > 0.0
-              claims << "%s converted at %.1f%%." % [alt.name.gsub(/^o/, "O"), alt.conv * 100]
+            if alt.conversion_rate > 0.0
+              claims << "%s converted at %.1f%%." % [alt.name.gsub(/^o/, "O"), alt.conversion_rate * 100]
             else
               claims << "%s did not convert." % alt.name.gsub(/^o/, "O")
             end

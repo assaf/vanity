@@ -3,6 +3,8 @@
 * Added: shiny reports.
 * Changed: letters instead of numbers for options (option 1 => option A).
 * Changed: experiment.alternatives is now an immutable snapshot.
+* Changed: experiment.score returns populated alternative objects instead of
+structs.
 
 0.2.2 (2009-11-12)
 * Added: vanity binary, with single command for generating a report.

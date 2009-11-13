@@ -245,12 +245,12 @@ class AbTestTest < ActionController::TestCase
     188.times { |i| identity i; experiment(:abcd).chooses(:d).choose }
     61.times  { |i| identity i; experiment(:abcd).chooses(:d).conversion! }
 
-    z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z }
+    z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }
     assert_equal %w{-1.33 0.00 -2.47 1.58}, z_scores
-    confidences = experiment(:abcd).score.alts.map(&:conf)
+    confidences = experiment(:abcd).score.alts.map(&:confidence)
     assert_equal [90, 0, 99, 90], confidences
 
-    diff = experiment(:abcd).score.alts.map { |alt| alt.diff && alt.diff.round }
+    diff = experiment(:abcd).score.alts.map { |alt| alt.difference && alt.difference.round }
     assert_equal [30, 69, nil, 119], diff
     assert_equal 3, experiment(:abcd).score.best.id
     assert_equal 3, experiment(:abcd).score.choice.id
@@ -261,9 +261,9 @@ class AbTestTest < ActionController::TestCase
 
   def test_scoring_with_no_performers
     experiment(:abcd) { alternatives :a, :b, :c, :d }
-    assert experiment(:abcd).score.alts.all? { |alt| alt.z.nan? }
-    assert experiment(:abcd).score.alts.all? { |alt| alt.conf == 0 }
-    assert experiment(:abcd).score.alts.all? { |alt| alt.diff.nil? }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.confidence == 0 }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.difference.nil? }
     assert_nil experiment(:abcd).score.best
     assert_nil experiment(:abcd).score.choice
     assert_nil experiment(:abcd).score.least
@@ -273,9 +273,9 @@ class AbTestTest < ActionController::TestCase
     experiment(:abcd) { alternatives :a, :b, :c, :d }
     10.times { |i| identity i; experiment(:abcd).chooses(:b).choose }
     8.times  { |i| identity i; experiment(:abcd).chooses(:b).conversion! }
-    assert experiment(:abcd).score.alts.all? { |alt| alt.z.nan? }
-    assert experiment(:abcd).score.alts.all? { |alt| alt.conf == 0 }
-    assert experiment(:abcd).score.alts.all? { |alt| alt.diff.nil? }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.confidence == 0 }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.difference.nil? }
     assert 1, experiment(:abcd).score.best.id
     assert_nil experiment(:abcd).score.choice
     assert 1, experiment(:abcd).score.base.id
@@ -289,11 +289,11 @@ class AbTestTest < ActionController::TestCase
     12.times { |i| identity i; experiment(:abcd).chooses(:d).choose }
     5.times  { |i| identity i; experiment(:abcd).chooses(:d).conversion! }
 
-    z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z }
+    z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }
     assert_equal %w{NaN 2.01 NaN 0.00}, z_scores
-    confidences = experiment(:abcd).score.alts.map(&:conf)
+    confidences = experiment(:abcd).score.alts.map(&:confidence)
     assert_equal [0, 95, 0, 0], confidences
-    diff = experiment(:abcd).score.alts.map { |alt| alt.diff && alt.diff.round }
+    diff = experiment(:abcd).score.alts.map { |alt| alt.difference && alt.difference.round }
     assert_equal [nil, 92, nil, nil], diff
     assert_equal 1, experiment(:abcd).score.best.id
     assert_equal 1, experiment(:abcd).score.choice.id
