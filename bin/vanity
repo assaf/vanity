@@ -7,8 +7,10 @@ require "optparse"
 
 playground = Vanity.playground
 options = Struct.new(:output).new
-OptionParser.new("", 24, "  ") do |opts|
-  opts.banner = "Usage: #{File.basename($0)} [options]\n"
+opts = OptionParser.new("", 24, "  ") do |opts|
+  opts.banner = "Usage: #{File.basename($0)} [options] command\n"
+  opts.banner << "Commands:\n"
+  opts.banner << "  report  Report on all running experiments"
 
   opts.separator ""
   opts.separator "General options:"
@@ -33,10 +35,15 @@ OptionParser.new("", 24, "  ") do |opts|
     puts "Vanity #{Vanity::Version::STRING}"
     exit
   end
-end.parse!(ARGV)
+end
 
-cmds = ARGV.empty? ? ["report"] : ARGV
-cmds.each do |cmd|
+opts.parse!(ARGV)
+if ARGV.empty?
+  puts opts.banner
+  exit
+end
+
+ARGV.each do |cmd|
   case cmd
   when "report"
     Vanity::Commands.report options.output
