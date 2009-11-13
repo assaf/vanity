@@ -1,4 +1,4 @@
-Vanity is an Experience Driven-Development framework for Rails.
+Vanity is an Experiment Driven Development framework for Rails.
 
 http://farm3.static.flickr.com/2505/4098819727_14e66f0999_o.jpg
 
@@ -139,8 +139,11 @@ For example:
 
 == Credits
 
-EDD was all Nathaniel Talbott's idea, I had experience tests to finish for
-Apartly, there was coffee involved and out came the idea for Vanity.
+EDD was all Nathaniel Talbott's idea, I had experiments to finish for Apartly,
+there was coffee involved and out came the idea for Vanity.
+
+More about Experiment Driven Development:
+http://rubyconf.org/talks/28-how-tdd-bdd-miss-the-point-introducing-edd
 
 First experiment, A/B tests, heavily influenced by Patrick McKenzie's awesome
 A/Bingo (http://www.bingocardcreator.com/abingo)
