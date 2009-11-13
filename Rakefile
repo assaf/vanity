@@ -50,23 +50,23 @@ task :report do
 
   experiment(:null_abc).reset!
   # Control	182	35	19.23%	N/A
-  182.times { |i| identity[i]; experiment(:null_abc).chooses(nil).choose }
-  35.times  { |i| identity[i]; experiment(:null_abc).chooses(nil).conversion! }
+  182.times { |i| experiment(:null_abc).count i, nil, :participant }
+  35.times  { |i| experiment(:null_abc).count i, nil, :conversion }
   # Treatment A	180	45	25.00%	1.33
-  180.times { |i| identity[i]; experiment(:null_abc).chooses(:red).choose }
-  45.times  { |i| identity[i]; experiment(:null_abc).chooses(:red).conversion! }
+  180.times { |i| experiment(:null_abc).count i, :red, :participant }
+  45.times  { |i| experiment(:null_abc).count i, :red, :conversion }
   # Treatment B	189	28	14.81%	-1.13
-  189.times { |i| identity[i]; experiment(:null_abc).chooses(:green).choose }
-  28.times  { |i| identity[i]; experiment(:null_abc).chooses(:green).conversion! }
+  189.times { |i| experiment(:null_abc).count i, :green, :participant }
+  28.times  { |i| experiment(:null_abc).count i, :green, :conversion }
   # Treatment C	188	61	32.45%	2.94
-  188.times { |i| identity[i]; experiment(:null_abc).chooses(:blue).choose }
-  61.times  { |i| identity[i]; experiment(:null_abc).chooses(:blue).conversion! }
+  188.times { |i| experiment(:null_abc).count i, :blue, :participant }
+  61.times  { |i| experiment(:null_abc).count i, :blue, :conversion }
 
   experiment(:age_and_zipcode).reset!
-  182.times { |i| identity[i]; experiment(:age_and_zipcode).chooses(false).choose }
-  35.times  { |i| identity[i]; experiment(:age_and_zipcode).chooses(false).conversion! }
-  180.times { |i| identity[i]; experiment(:age_and_zipcode).chooses(true).choose }
-  45.times  { |i| identity[i]; experiment(:age_and_zipcode).chooses(true).conversion! }
+  182.times { |i| experiment(:age_and_zipcode).count i, false, :participant }
+  35.times  { |i| experiment(:age_and_zipcode).count i, false, :conversion }
+  180.times { |i| experiment(:age_and_zipcode).count i, true, :participant }
+  45.times  { |i| experiment(:age_and_zipcode).count i, true, :conversion }
   experiment(:age_and_zipcode).complete!
 
   Vanity::Commands.report

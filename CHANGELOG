@@ -5,6 +5,9 @@
 * Changed: experiment.alternatives is now an immutable snapshot.
 * Changed: experiment.score returns populated alternative objects instead of
 structs.
+* Changed: experiment.chooses uses Redis to store state, better for (when we
+get to) browser integration.
+* Changed: experiment.chooses skips recording participant or conversion.
 
 0.2.2 (2009-11-12)
 * Added: vanity binary, with single command for generating a report.

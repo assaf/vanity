@@ -3,7 +3,7 @@ module ActionController #:nodoc:
     alias :setup_controller_request_and_response_without_vanity :setup_controller_request_and_response
     def setup_controller_request_and_response
       setup_controller_request_and_response_without_vanity 
-      Vanity.context = @request
+      Vanity.context = @controller
     end
   end
 end

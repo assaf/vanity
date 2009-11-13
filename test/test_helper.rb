@@ -14,7 +14,6 @@ class MiniTest::Unit::TestCase
   def nuke_playground
     Vanity.playground.redis.flushdb
     new_playground
-    self.identity = nil
   end
 
   # Call this if you need a new playground, e.g. to re-define the same experiment,
@@ -23,28 +22,9 @@ class MiniTest::Unit::TestCase
     Vanity.instance_variable_set :@playground, Vanity::Playground.new
   end
 
-  attr_accessor :identity # pass identity to/from experiment/test case
-
   def teardown
     nuke_playground
     Vanity.context = nil
-  end
-end
-
-class ActionController::TestRequest
-  attr_accessor :vanity_identity # allow setting identity from test case
-end
-class ActionController::TestCase
-  def identity(*args)
-    if args.empty?
-      @request.vanity_identity
-    else
-      @request.vanity_identity = args.first
-    end
-  end
-
-  def identity=(id)
-    @request.vanity_identity = id
   end
 end
 

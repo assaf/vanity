@@ -52,7 +52,7 @@ module Vanity
       end
 
       def ==(other)
-        id == other.id && experiment == other.experiment
+        other && id == other.id && experiment == other.experiment
       end
 
       def to_s #:nodoc:
@@ -148,15 +148,16 @@ module Vanity
       def choose
         if active?
           identity = identify
-          index = alternative_for(identity)
-          redis.sadd key("alts:#{index}:participants"), identity
-          check_completion!
-          @alternatives[index]
-        elsif alternative = outcome
-          alternative.value
+          index = redis[key("participant:#{identity}:show")]
+          unless index
+            index = alternative_for(identity)
+            redis.sadd key("alts:#{index}:participants"), identity
+            check_completion!
+          end
         else
-          @alternatives.first
+          index = redis[key("outcome")] || alternative_for(identify)
         end
+        @alternatives[index.to_i]
       end
 
       # Records a conversion.
@@ -164,15 +165,15 @@ module Vanity
       # For example:
       #   experiment(:which_blue).conversion!
       def conversion!
-        if active?
-          identity = identify
-          index = alternative_for(identity)
-          if redis.sismember(key("alts:#{index}:participants"), identity)
-            redis.sadd key("alts:#{index}:converted"), identity
-            redis.incr key("alts:#{index}:conversions")
-          end
-          check_completion!
+        return unless active?
+        identity = identify
+        return if redis[key("participants:#{identity}:show")]
+        index = alternative_for(identity)
+        if redis.sismember(key("alts:#{index}:participants"), identity)
+          redis.sadd key("alts:#{index}:converted"), identity
+          redis.incr key("alts:#{index}:conversions")
         end
+        check_completion!
       end
 
       
@@ -196,8 +197,22 @@ module Vanity
       def chooses(value)
         index = @alternatives.index(value)
         raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-        Vanity.context.session[:vanity] ||= {}
-        Vanity.context.session[:vanity][id] = index
+        identity = identify
+        redis[key("participant:#{identity}:show")] = index
+        self
+      end
+
+      # Used for testing.
+      def count(identity, value, *what) #:nodoc:
+        index = @alternatives.index(value)
+        raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
+        if what.empty? || what.include?(:participant)
+          redis.sadd key("alts:#{index}:participants"), identity
+        end
+        if what.empty? || what.include?(:conversion)
+          redis.sadd key("alts:#{index}:converted"), identity
+          redis.incr key("alts:#{index}:conversions")
+        end
         self
       end
 
@@ -239,7 +254,7 @@ module Vanity
         end
         # best alternative is one with highest conversion rate (best shot).
         # choice alternative can only pick best if we have high confidence (>90%).
-        best = sorted.last if sorted.last.conversion_rate > 0
+        best = sorted.last if sorted.last.conversion_rate > 0.0
         choice = outcome ? alts[outcome.id] : (best && best.confidence >= 90 ? best : nil)
         Struct.new(:alts, :best, :base, :least, :choice).new(alts, best, base, least, choice)
       end
@@ -323,7 +338,7 @@ module Vanity
           outcome = best.id if best
         end
         # TODO: logging
-        redis.setnx key("outcome"), outcome
+        redis.setnx key("outcome"), outcome || 0
       end
 
       
@@ -356,9 +371,7 @@ module Vanity
       # identity, and randomly distributed alternatives for each identity (in the
       # same experiment).
       def alternative_for(identity)
-        session = Vanity.context.session[:vanity]
-        index = session && session[id]
-        index ||= Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.count
+        Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.count
       end
 
       begin

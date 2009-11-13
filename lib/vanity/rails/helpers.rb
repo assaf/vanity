@@ -59,10 +59,12 @@ module Vanity
             @vanity_identity = block.call(self)
           elsif symbol && object = send(symbol)
             @vanity_identity = object.id
-          else
+          elsif response # everyday use
             @vanity_identity = cookies["vanity_id"] || OpenSSL::Random.random_bytes(16).unpack("H*")[0]
             cookies["vanity_id"] = { value: @vanity_identity, expires: 1.month.from_now }
             @vanity_identity
+          else # during functional testing
+            @vanity_identity = "test"
           end
         end
         define_method :set_vanity_context do

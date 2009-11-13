@@ -40,7 +40,7 @@ Measure conversion:
 
 Check the report:
 
-  vanity
+  vanity --output vanity.html
 
 
 == A/B Tests
@@ -150,7 +150,6 @@ A/Bingo (http://www.bingocardcreator.com/abingo)
 
 Pain points courtesy of Google Analytics's stylish graphs and too-many-clicks
 goal tracking process.
-
 
 
 == License
