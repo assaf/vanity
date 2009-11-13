@@ -1,6 +1,8 @@
 Vanity is an Experience Driven-Development framework for Rails.
 
-Requires Ruby 1.9 and Redis 1.0 or later.
+http://farm3.static.flickr.com/2505/4098819727_14e66f0999_o.jpg
+
+Requires Ruby 1.9.1 or later, Redis 1.0 or later.
 
 
 == A/B Testing with Rails (in 5 easy steps)
