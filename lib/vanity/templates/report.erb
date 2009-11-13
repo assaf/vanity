@@ -1,12 +1,16 @@
 <html>
 <head>
   <title>Experiments (<%= Time.now %>)</title>
-  <%= render("vanity.css") %>
+  <style>
+    body { margin: 2em auto; width: 40em; font-family: "Helvetica Neue", "Helvetica", "Verdana", sans-serif }
+    h1 { margin: 1em 0; border-bottom: 3px solid #ccc }
+  </style>
+  <%= playground.render "vanity.css" %>
 </head>
 <body>
   <div class="vanity">
     <h1>Experiments</h1>
-    <%= render "experiments", experiments: playground.experiments %>
+    <%= playground.render "experiments", experiments: playground.experiments %>
   </div>
 </body>
 </html>

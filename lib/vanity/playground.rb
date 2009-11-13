@@ -97,7 +97,6 @@ module Vanity
       locals[:playground] = self
       keys = locals.keys
       struct = Struct.new(*keys).new(*locals.values_at(*keys))
-      struct.class_eval "def render(name, locals = {}) ; playground.render(name, locals) ; end"
       template(name).result(struct.instance_eval { binding })
     end
 

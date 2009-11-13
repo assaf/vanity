@@ -37,20 +37,29 @@ end
 task :report do
   require "lib/vanity"
   Vanity.playground.load_path = "test/experiments"
-  experiment(:null_abc).reset!
 
+=begin
+=end
+  experiment(:null_abc).reset!
   # Control	182	35	19.23%	N/A
-  182.times { |i| experiment(:null_abc).alternative(0).participating!(i) }
-  35.times  { |i| experiment(:null_abc).alternative(0).conversion!(i) }
+  182.times { |i| experiment(:null_abc).alternatives[0].participating!(i) }
+  35.times  { |i| experiment(:null_abc).alternatives[0].conversion!(i) }
   # Treatment A	180	45	25.00%	1.33
-  180.times { |i| experiment(:null_abc).alternative(:a).participating!(i + 200) }
-  45.times  { |i| experiment(:null_abc).alternative(:a).conversion!(i + 200) }
+  180.times { |i| experiment(:null_abc).alternatives[1].participating!(i + 200) }
+  45.times  { |i| experiment(:null_abc).alternatives[1].conversion!(i + 200) }
   # Treatment B	189	28	14.81%	-1.13
-  189.times { |i| experiment(:null_abc).alternative(:b).participating!(i + 400) }
-  28.times  { |i| experiment(:null_abc).alternative(:b).conversion!(i + 400) }
+  189.times { |i| experiment(:null_abc).alternatives[2].participating!(i + 400) }
+  28.times  { |i| experiment(:null_abc).alternatives[2].conversion!(i + 400) }
   # Treatment C	188	61	32.45%	2.94
-  188.times { |i| experiment(:null_abc).alternative(:c).participating!(i + 600) }
-  61.times  { |i| experiment(:null_abc).alternative(:c).conversion!(i + 600) }
+  188.times { |i| experiment(:null_abc).alternatives[3].participating!(i + 600) }
+  61.times  { |i| experiment(:null_abc).alternatives[3].conversion!(i + 600) }
+
+  experiment(:age_and_zipcode).reset!
+  182.times { |i| experiment(:age_and_zipcode).alternatives[0].participating!(i) }
+  35.times  { |i| experiment(:age_and_zipcode).alternatives[0].conversion!(i) }
+  180.times { |i| experiment(:age_and_zipcode).alternatives[1].participating!(i + 200) }
+  45.times  { |i| experiment(:age_and_zipcode).alternatives[1].conversion!(i + 200) }
+  experiment(:age_and_zipcode).complete!
 
   Vanity::Commands.report
 end
