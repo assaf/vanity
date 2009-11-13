@@ -1,7 +1,8 @@
-0.2.3
+0.3.0
 * Added: score now includes least performing alternatives, names and values.
 * Added: shiny reports.
 * Changed: letters instead of numbers for options (option 1 => option A).
+* Changed: experiment.alternatives is now an immutable snapshot.
 
 0.2.2 (2009-11-12)
 * Added: vanity binary, with single command for generating a report.

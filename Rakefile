@@ -32,33 +32,41 @@ end
 Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include "README.rdoc", "lib/**/*.rb"
   rdoc.options = spec.rdoc_options
+  rdoc.options << "-f" << "darkfish"
 end
 
 task :report do
   require "lib/vanity"
   Vanity.playground.load_path = "test/experiments"
 
-=begin
-=end
+  class Context
+    def session
+      @session ||= {}
+    end
+    attr_accessor :vanity_identity
+  end
+  Vanity.context = Context.new
+  identity = ->(id){ Vanity.context.vanity_identity = id }
+
   experiment(:null_abc).reset!
   # Control	182	35	19.23%	N/A
-  182.times { |i| experiment(:null_abc).alternatives[0].participating!(i) }
-  35.times  { |i| experiment(:null_abc).alternatives[0].conversion!(i) }
+  182.times { |i| identity[i]; experiment(:null_abc).chooses(nil).choose }
+  35.times  { |i| identity[i]; experiment(:null_abc).chooses(nil).conversion! }
   # Treatment A	180	45	25.00%	1.33
-  180.times { |i| experiment(:null_abc).alternatives[1].participating!(i + 200) }
-  45.times  { |i| experiment(:null_abc).alternatives[1].conversion!(i + 200) }
+  180.times { |i| identity[i]; experiment(:null_abc).chooses(:red).choose }
+  45.times  { |i| identity[i]; experiment(:null_abc).chooses(:red).conversion! }
   # Treatment B	189	28	14.81%	-1.13
-  189.times { |i| experiment(:null_abc).alternatives[2].participating!(i + 400) }
-  28.times  { |i| experiment(:null_abc).alternatives[2].conversion!(i + 400) }
+  189.times { |i| identity[i]; experiment(:null_abc).chooses(:green).choose }
+  28.times  { |i| identity[i]; experiment(:null_abc).chooses(:green).conversion! }
   # Treatment C	188	61	32.45%	2.94
-  188.times { |i| experiment(:null_abc).alternatives[3].participating!(i + 600) }
-  61.times  { |i| experiment(:null_abc).alternatives[3].conversion!(i + 600) }
+  188.times { |i| identity[i]; experiment(:null_abc).chooses(:blue).choose }
+  61.times  { |i| identity[i]; experiment(:null_abc).chooses(:blue).conversion! }
 
   experiment(:age_and_zipcode).reset!
-  182.times { |i| experiment(:age_and_zipcode).alternatives[0].participating!(i) }
-  35.times  { |i| experiment(:age_and_zipcode).alternatives[0].conversion!(i) }
-  180.times { |i| experiment(:age_and_zipcode).alternatives[1].participating!(i + 200) }
-  45.times  { |i| experiment(:age_and_zipcode).alternatives[1].conversion!(i + 200) }
+  182.times { |i| identity[i]; experiment(:age_and_zipcode).chooses(false).choose }
+  35.times  { |i| identity[i]; experiment(:age_and_zipcode).chooses(false).conversion! }
+  180.times { |i| identity[i]; experiment(:age_and_zipcode).chooses(true).choose }
+  45.times  { |i| identity[i]; experiment(:age_and_zipcode).chooses(true).conversion! }
   experiment(:age_and_zipcode).complete!
 
   Vanity::Commands.report

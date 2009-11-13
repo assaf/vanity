@@ -27,6 +27,24 @@ class MiniTest::Unit::TestCase
 
   def teardown
     nuke_playground
+    Vanity.context = nil
+  end
+end
+
+class ActionController::TestRequest
+  attr_accessor :vanity_identity # allow setting identity from test case
+end
+class ActionController::TestCase
+  def identity(*args)
+    if args.empty?
+      @request.vanity_identity
+    else
+      @request.vanity_identity = args.first
+    end
+  end
+
+  def identity=(id)
+    @request.vanity_identity = id
   end
 end
 

@@ -4,11 +4,12 @@ module Vanity
     # Experiment alternative.  See AbTest#alternatives.
     class Alternative
 
-      def initialize(experiment, id, value) #:nodoc:
+      def initialize(experiment, id, value, participants, converted, conversions) #:nodoc:
         @experiment = experiment
         @id = id
         @name = "option #{(@id + 65).chr}"
         @value = value
+        @participants, @converted, @conversions = participants, converted, conversions
       end
 
       # Alternative id, only unique for this experiment.
@@ -20,20 +21,17 @@ module Vanity
       # Alternative value.
       attr_reader :value
 
+      # Experiment this alternative belongs to.
+      attr_reader :experiment
+
       # Number of participants who viewed this alternative.
-      def participants
-        redis.scard(key("participants")).to_i
-      end
+      attr_reader :participants
 
       # Number of participants who converted on this alternative.
-      def converted
-        redis.scard(key("converted")).to_i
-      end
+      attr_reader :converted
 
       # Number of conversions for this alternative (same participant may be counted more than once).
-      def conversions
-        redis[key("conversions")].to_i
-      end
+      attr_reader :conversions
 
       # Conversion rate calculated as converted/participants.
       def conversion_rate
@@ -45,21 +43,8 @@ module Vanity
         conversion_rate <=> other.conversion_rate 
       end
 
-      def participating!(identity)
-        redis.sadd key("participants"), identity
-      end
-
-      def conversion!(identity)
-        if redis.sismember(key("participants"), identity)
-          redis.sadd key("converted"), identity
-          redis.incr key("conversions")
-        end
-      end
-
-      def destroy #:nodoc:
-        redis.del key("participants")
-        redis.del key("converted")
-        redis.del key("conversions")
+      def ==(other)
+        id == other.id && experiment == other.experiment
       end
 
       def to_s #:nodoc:
@@ -68,20 +53,6 @@ module Vanity
 
       def inspect #:nodoc:
         "#{name}: #{value} #{converted}/#{participants}"
-      end
-
-    protected
-
-      def key(name)
-        @experiment.key("alts:#{id}:#{name}")
-      end
-
-      def redis
-        @experiment.redis
-      end
-
-      def base
-        @base ||= @experiment.alternatives.first
       end
 
     end
@@ -96,10 +67,16 @@ module Vanity
           confidence = AbTest::Z_TO_CONFIDENCE.find { |z,p| score >= z }
           confidence ? confidence.last : 0
         end
+
+        def friendly_name
+          "A/B Test" 
+        end
+
       end
 
       def initialize(*args) #:nodoc:
         super
+        @alternatives = [false, true]
       end
 
       # -- Alternatives --
@@ -117,13 +94,24 @@ module Vanity
       #   alts = experiment(:background_color).alternatives
       #   puts "#{alts.count} alternatives, with the colors: #{alts.map(&:value).join(", ")}"
       def alternatives(*args)
-        args = [false, true] if args.empty?
-        @alternatives = []
-        args.each_with_index do |arg, i|
-          @alternatives << Alternative.new(self, i, arg)
+        unless args.empty?
+          @alternatives = args.clone
         end
-        class << self ; self ; end.send(:define_method, :alternatives) { @alternatives }
+        class << self
+          alias :alternatives :_alternatives
+        end
         alternatives
+      end
+
+      def _alternatives #:nodoc:
+        alts = []
+        @alternatives.each_with_index do |value, i|
+          participants = redis.scard(key("alts:#{i}:participants")).to_i
+          converted = redis.scard(key("alts:#{i}:converted")).to_i
+          conversions = redis[key("alts:#{i}:conversions")].to_i
+          alts << Alternative.new(self, i, value, participants, converted, conversions)
+        end
+        alts
       end
 
       # Returns an Alternative with the specified value.
@@ -148,14 +136,14 @@ module Vanity
       def choose
         if active?
           identity = identify
-          alt = alternative_for(identity)
-          alt.participating! identity
+          index = alternative_for(identity)
+          redis.sadd key("alts:#{index}:participants"), identity
           check_completion!
-          alt.value
+          @alternatives[index]
         elsif alternative = outcome
           alternative.value
         else
-          alternatives.first.value
+          @alternatives.first
         end
       end
 
@@ -166,8 +154,11 @@ module Vanity
       def conversion!
         if active?
           identity = identify
-          alt = alternative_for(identity)
-          alt.conversion! identity
+          index = alternative_for(identity)
+          if redis.sismember(key("alts:#{index}:participants"), identity)
+            redis.sadd key("alts:#{index}:converted"), identity
+            redis.incr key("alts:#{index}:conversions")
+          end
           check_completion!
         end
       end
@@ -191,10 +182,11 @@ module Vanity
       #     experiment(:green_button).select(nil)
       #   end
       def chooses(value)
-        alternative = alternatives.find { |alt| alt.value == value }
-        raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless alternative
+        index = @alternatives.index(value)
+        raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
         Vanity.context.session[:vanity] ||= {}
-        Vanity.context.session[:vanity][id] = alternative.id
+        Vanity.context.session[:vanity][id] = index
+        self
       end
 
 
@@ -281,10 +273,6 @@ module Vanity
         claims
       end
 
-      def humanize
-        "A/B Test" 
-      end
-
 
       # -- Completion --
 
@@ -312,16 +300,17 @@ module Vanity
         outcome && alternatives[outcome.to_i]
       end
 
-      def complete! #:nodoc:
+      def complete!
+        return unless active?
         super
         if @outcome_is
           begin
-            outcome = alternatives.find_index(@outcome_is.call)
+            result = @outcome_is.call
+            outcome = result.id if result && result.experiment == self
           rescue
             # TODO: logging
           end
-        end
-        unless outcome
+        else
           best = score.best
           outcome = best.id if best
         end
@@ -332,20 +321,23 @@ module Vanity
       
       # -- Store/validate --
 
-      def save #:nodoc:
+      def save
         fail "Experiment #{name} needs at least two alternatives" unless alternatives.count >= 2
         super
       end
 
-      def reset! #:nodoc:
+      def reset!
+        @alternatives.count.times do |i|
+          redis.del key("alts:#{i}:participants")
+          redis.del key("alts:#{i}:converted")
+          redis.del key("alts:#{i}:conversions")
+        end
         redis.del key(:outcome)
-        alternatives.each(&:destroy)
         super
       end
 
-      def destroy #:nodoc:
-        redis.del key(:outcome)
-        alternatives.each(&:destroy)
+      def destroy
+        reset
         super
       end
 
@@ -358,8 +350,7 @@ module Vanity
       def alternative_for(identity)
         session = Vanity.context.session[:vanity]
         index = session && session[id]
-        index ||= Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % alternatives.count
-        alternatives[index]
+        index ||= Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.count
       end
 
       begin

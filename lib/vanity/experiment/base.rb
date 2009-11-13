@@ -18,8 +18,6 @@ module Vanity
         @playground = playground
         @id, @name = id.to_sym, name
         @namespace = "#{@playground.namespace}:#{@id}"
-        redis.setnx key(:created_at), Time.now.to_i
-        @created_at = Time.at(redis[key(:created_at)].to_i)
         @identify_block = ->(context){ context.vanity_identity }
       end
 
@@ -147,11 +145,13 @@ module Vanity
         @playground.redis
       end
       
-      # Called to save the experiment definition.
-      def save #:nodoc:
+      # Called by Playground to save the experiment definition.
+      def save
+        redis.setnx key(:created_at), Time.now.to_i
+        @created_at = Time.at(redis[key(:created_at)].to_i)
       end
 
-      # Reset experiment.
+      # Reset experiment to its initial state.
       def reset!
         @created_at = Time.now
         redis[key(:created_at)] = @created_at.to_i

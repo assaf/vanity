@@ -25,10 +25,6 @@ end
 
 class AbTestTest < ActionController::TestCase
   tests AbTestController
-  def setup
-    experiment(:simple_ab) { }
-  end
-
 
   # --  Experiment definition --
 
@@ -132,7 +128,7 @@ class AbTestTest < ActionController::TestCase
       test.identity = nil
       experiment(:foobar).choose
       experiment(:foobar).conversion!
-      test.identity << "!"
+      test.identity.concat "!"
       experiment(:foobar).conversion!
     end
     alts = experiment(:foobar).alternatives
@@ -163,13 +159,13 @@ class AbTestTest < ActionController::TestCase
   # -- A/B helper methods --
 
   def test_fail_if_no_experiment
-    new_playground
     assert_raise MissingSourceFile do
       get :test_render
     end
   end
 
   def test_ab_test_chooses_in_render
+    experiment(:simple_ab) { }
     responses = Array.new(100) do
       @controller = nil ; setup_controller_request_and_response
       get :test_render
@@ -179,6 +175,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_ab_test_chooses_view_helper
+    experiment(:simple_ab) { }
     responses = Array.new(100) do
       @controller = nil ; setup_controller_request_and_response
       get :test_view
@@ -188,6 +185,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_ab_test_with_capture
+    experiment(:simple_ab) { }
     responses = Array.new(100) do
       @controller = nil ; setup_controller_request_and_response
       get :test_capture
@@ -197,6 +195,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_ab_test_goal
+    experiment(:simple_ab) { }
     responses = Array.new(100) do
       @controller.send(:cookies).clear
       get :goal
@@ -208,6 +207,7 @@ class AbTestTest < ActionController::TestCase
   # -- Testing with tests --
   
   def test_with_given_choice
+    experiment(:simple_ab) { }
     100.times do
       @controller = nil ; setup_controller_request_and_response
       experiment(:simple_ab).chooses(true)
@@ -220,6 +220,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_which_chooses_non_existent_alternative
+    experiment(:simple_ab) { }
     assert_raises ArgumentError do
       experiment(:simple_ab).chooses(404)
     end
@@ -227,22 +228,22 @@ class AbTestTest < ActionController::TestCase
 
 
   # -- Scoring --
-  
+ 
   def test_scoring
     experiment(:abcd) { alternatives :a, :b, :c, :d }
     # participating, conversions, rate, z-score
     # Control:      182	35 19.23%	N/A
-    182.times { |i| experiment(:abcd).alternative(:a).participating!(i) }
-    35.times  { |i| experiment(:abcd).alternative(:a).conversion!(i) }
+    182.times { |i| identity i; experiment(:abcd).chooses(:a).choose }
+    35.times  { |i| identity i; experiment(:abcd).chooses(:a).conversion! }
     # Treatment A:  180	45 25.00%	1.33
-    180.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
-    45.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    180.times { |i| identity i; experiment(:abcd).chooses(:b).choose }
+    45.times  { |i| identity i; experiment(:abcd).chooses(:b).conversion! }
     # treatment B:  189	28 14.81%	-1.13
-    189.times { |i| experiment(:abcd).alternative(:c).participating!(i) }
-    28.times  { |i| experiment(:abcd).alternative(:c).conversion!(i) }
+    189.times { |i| identity i; experiment(:abcd).chooses(:c).choose }
+    28.times  { |i| identity i; experiment(:abcd).chooses(:c).conversion! }
     # treatment C:  188	61 32.45%	2.94
-    188.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
-    61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+    188.times { |i| identity i; experiment(:abcd).chooses(:d).choose }
+    61.times  { |i| identity i; experiment(:abcd).chooses(:d).conversion! }
 
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z }
     assert_equal %w{-1.33 0.00 -2.47 1.58}, z_scores
@@ -270,8 +271,8 @@ class AbTestTest < ActionController::TestCase
 
   def test_scoring_with_one_performer
     experiment(:abcd) { alternatives :a, :b, :c, :d }
-    10.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
-    8.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    10.times { |i| identity i; experiment(:abcd).chooses(:b).choose }
+    8.times  { |i| identity i; experiment(:abcd).chooses(:b).conversion! }
     assert experiment(:abcd).score.alts.all? { |alt| alt.z.nan? }
     assert experiment(:abcd).score.alts.all? { |alt| alt.conf == 0 }
     assert experiment(:abcd).score.alts.all? { |alt| alt.diff.nil? }
@@ -283,10 +284,10 @@ class AbTestTest < ActionController::TestCase
 
   def test_scoring_with_some_performers
     experiment(:abcd) { alternatives :a, :b, :c, :d }
-    10.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
-    8.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
-    12.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
-    5.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+    10.times { |i| identity i; experiment(:abcd).chooses(:b).choose }
+    8.times  { |i| identity i; experiment(:abcd).chooses(:b).conversion! }
+    12.times { |i| identity i; experiment(:abcd).chooses(:d).choose }
+    5.times  { |i| identity i; experiment(:abcd).chooses(:d).conversion! }
 
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z }
     assert_equal %w{NaN 2.01 NaN 0.00}, z_scores
@@ -307,17 +308,17 @@ class AbTestTest < ActionController::TestCase
     experiment(:abcd) { alternatives :a, :b, :c, :d }
     # participating, conversions, rate, z-score
     # Control:      182	35 19.23%	N/A
-    182.times { |i| experiment(:abcd).alternative(:a).participating!(i) }
-    35.times  { |i| experiment(:abcd).alternative(:a).conversion!(i) }
+    182.times { |i| identity i; experiment(:abcd).chooses(:a).choose }
+    35.times  { |i| identity i; experiment(:abcd).chooses(:a).conversion! }
     # Treatment A:  180	45 25.00%	1.33
-    180.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
-    45.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    180.times { |i| identity i; experiment(:abcd).chooses(:b).choose }
+    45.times  { |i| identity i; experiment(:abcd).chooses(:b).conversion! }
     # treatment B:  189	28 14.81%	-1.13
-    189.times { |i| experiment(:abcd).alternative(:c).participating!(i) }
-    28.times  { |i| experiment(:abcd).alternative(:c).conversion!(i) }
+    189.times { |i| identity i; experiment(:abcd).chooses(:c).choose }
+    28.times  { |i| identity i; experiment(:abcd).chooses(:c).conversion! }
     # treatment C:  188	61 32.45%	2.94
-    188.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
-    61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+    188.times { |i| identity i; experiment(:abcd).chooses(:d).choose }
+    61.times  { |i| identity i; experiment(:abcd).chooses(:d).conversion! }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 The best choice is option D: it converted at 32.4% (30% better than option B).
@@ -332,11 +333,11 @@ Option D selected as the best alternative.
   def test_conclusion_with_some_performers
     experiment(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
-    180.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
-    45.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    180.times { |i| identity i; experiment(:abcd).chooses(:b).choose }
+    45.times  { |i| identity i; experiment(:abcd).chooses(:b).conversion! }
     # treatment C:  188	61 32.45%	2.94
-    188.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
-    61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+    188.times { |i| identity i; experiment(:abcd).chooses(:d).choose }
+    61.times  { |i| identity i; experiment(:abcd).chooses(:d).conversion! }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 The best choice is option D: it converted at 32.4% (30% better than option B).
@@ -351,11 +352,11 @@ Option D selected as the best alternative.
   def test_conclusion_without_clear_winner
     experiment(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
-    180.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
-    58.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    180.times { |i| identity i; experiment(:abcd).chooses(:b).choose }
+    58.times  { |i| identity i; experiment(:abcd).chooses(:b).conversion! }
     # treatment C:  188	61 32.45%	2.94
-    188.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
-    61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+    188.times { |i| identity i; experiment(:abcd).chooses(:d).choose }
+    61.times  { |i| identity i; experiment(:abcd).chooses(:d).conversion! }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 The best choice is option D: it converted at 32.4% (1% better than option B).
@@ -369,11 +370,11 @@ Option C did not convert.
   def test_conclusion_without_close_performers
     experiment(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
-    186.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
-    60.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    186.times { |i| identity i; experiment(:abcd).chooses(:b).choose }
+    60.times  { |i| identity i; experiment(:abcd).chooses(:b).conversion! }
     # treatment C:  188	61 32.45%	2.94
-    188.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
-    61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+    188.times { |i| identity i; experiment(:abcd).chooses(:d).choose }
+    61.times  { |i| identity i; experiment(:abcd).chooses(:d).conversion! }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 The best choice is option D: it converted at 32.4%.
@@ -387,11 +388,11 @@ Option C did not convert.
   def test_conclusion_without_equal_performers
     experiment(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
-    188.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
-    61.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    188.times { |i| identity i; experiment(:abcd).chooses(:b).choose }
+    61.times  { |i| identity i; experiment(:abcd).chooses(:b).conversion! }
     # treatment C:  188	61 32.45%	2.94
-    188.times { |i| experiment(:abcd).alternative(:d).participating!(i) }
-    61.times  { |i| experiment(:abcd).alternative(:d).conversion!(i) }
+    188.times { |i| identity i; experiment(:abcd).chooses(:d).choose }
+    61.times  { |i| identity i; experiment(:abcd).chooses(:d).conversion! }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 Option D converted at 32.4%.
@@ -404,8 +405,8 @@ Option C did not convert.
   def test_conclusion_with_one_performers
     experiment(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
-    180.times { |i| experiment(:abcd).alternative(:b).participating!(i) }
-    45.times  { |i| experiment(:abcd).alternative(:b).conversion!(i) }
+    180.times { |i| identity i; experiment(:abcd).chooses(:b).choose }
+    45.times  { |i| identity i; experiment(:abcd).chooses(:b).conversion! }
 
     assert_equal "This experiment did not run long enough to find a clear winner.", experiment(:abcd).conclusion.join("\n")
   end
@@ -518,41 +519,31 @@ Option C did not convert.
   def test_outcome_choosing_best_alternative
     experiment :quick do
     end
-    2.times do |i|
-      experiment(:quick).alternatives[0].participating!(i)
-    end
-    10.times do |i|
-      experiment(:quick).alternatives[1].participating!(i)
-      experiment(:quick).alternatives[1].conversion!(i)
-    end
+    2.times  { |i| identity i; experiment(:quick).chooses(false).choose }
+    10.times { |i| identity i; experiment(:quick).chooses(true).choose }
+    10.times { |i| identity i; experiment(:quick).chooses(true).conversion! }
     experiment(:quick).complete!
-    assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
+    assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
 
   def test_outcome_only_performing_alternative
     experiment :quick do
     end
-    2.times do |i|
-      experiment(:quick).alternatives[1].participating!(i)
-      experiment(:quick).alternatives[1].conversion!(i)
-    end
+    2.times { |i| identity i; experiment(:quick).chooses(true).choose }
+    2.times { |i| identity i; experiment(:quick).chooses(true).conversion! }
     experiment(:quick).complete!
-    assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
+    assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
 
   def test_outcome_choosing_equal_alternatives
     experiment :quick do
     end
-    8.times do |i|
-      experiment(:quick).alternatives[0].participating!(i)
-      experiment(:quick).alternatives[0].conversion!(i)
-    end
-    8.times do |i|
-      experiment(:quick).alternatives[1].participating!(i)
-      experiment(:quick).alternatives[1].conversion!(i)
-    end
+    8.times { |i| identity i; experiment(:quick).chooses(false).choose }
+    8.times { |i| identity i; experiment(:quick).chooses(false).conversion! }
+    8.times { |i| identity i; experiment(:quick).chooses(true).choose }
+    8.times { |i| identity i; experiment(:quick).chooses(true).conversion! }
     experiment(:quick).complete!
-    assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
+    assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
 
 end
