@@ -1,6 +1,3 @@
-require "erb"
-require "cgi"
-
 module Vanity
   module Commands
     class << self
@@ -8,10 +5,7 @@ module Vanity
       # Generate a report with all available tests.  Outputs to the named file,
       # or stdout with no arguments.
       def report(output = nil)
-        require "erb"
-        erb = ERB.new(File.read("lib/vanity/report.erb"), nil, '<')
-        experiments = Vanity.playground.experiments
-        html = erb.result(binding)
+        html = Vanity.playground.render("report")
         if output
           File.open output, 'w' do |file|
             file.write html

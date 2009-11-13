@@ -1,4 +1,5 @@
-require "active_support"
+require "erb"
+require "cgi"
 
 module Vanity
 
@@ -83,6 +84,21 @@ module Vanity
                         password: self.password, logger: self.logger)
       class << self ; self ; end.send(:define_method, :redis) { redis }
       redis
+    end
+
+    def template(name) #:nodoc:
+      path = File.join(File.dirname(__FILE__), "templates/#{name}")
+      path << ".erb" unless name["."]
+      erb = ERB.new(File.read(path), nil, '<')
+    end
+
+    # Render the named template.  Used for reporting and the console.
+    def render(name, locals = {})
+      locals[:playground] = self
+      keys = locals.keys
+      struct = Struct.new(*keys).new(*locals.values_at(*keys))
+      struct.class_eval "def render(name, locals = {}) ; playground.render(name, locals) ; end"
+      template(name).result(struct.instance_eval { binding })
     end
 
   end

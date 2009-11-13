@@ -1,0 +1,14 @@
+<style>
+  .vanity h1 { border-bottom: 1px solid #ccc }
+  .vanity h2 { margin: 0 }
+  .vanity .experiments { list-style: none; margin: 0; padding: 0 }
+  .vanity .experiment { padding-bottom: 1em; margin: 0 0 1em 0; border-bottom: 1px dashed #ddd }
+  .vanity .experiment .type { margin-left: .3em; color: #bbb; font-size: .8em; font-weight: normal }
+  .vanity .experiment table { border-collapse: collapse; table-layout: fixed; width: 100%; border-bottom: 1px solid #ccc; margin: 0 }
+  .vanity .experiment td { padding: .5em; border-top: 1px solid #ccc }
+  .vanity .experiment .choice td { font-weight: bold; background: #f0f0f8 }
+  .vanity .experiment td.option { width: 5em; white-space: nowrap; overflow: hidden }
+  .vanity .experiment td.value { width: 8em; white-space: nowrap; overflow: hidden }
+  .vanity .experiment caption { caption-side: bottom; padding: .5em; background: transparent; margin-bottom: 1em; text-align: left }
+  .vanity .experiment .meta { color: #444; font-style: italic }
+</style>

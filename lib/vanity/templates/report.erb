@@ -1,0 +1,12 @@
+<html>
+<head>
+  <title>Experiments (<%= Time.now %>)</title>
+  <%= render("vanity.css") %>
+</head>
+<body>
+  <div class="vanity">
+    <h1>Experiments</h1>
+    <%= render "experiments", experiments: playground.experiments %>
+  </div>
+</body>
+</html>

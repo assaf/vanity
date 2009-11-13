@@ -1,0 +1,13 @@
+<% score = experiment.score %>
+<table>
+  <thead>
+    <% score.alts.each do |alt| %>
+      <tr class="<%= "choice" if score.choice == alt %>">
+        <td class="option"><%= alt.name.gsub(/^o/, "O") %>:</td>
+        <td class="value"><code><%= CGI.escape_html alt.value.to_s %></code></td>
+        <td><%= "%.1f%%" % [alt.conv * 100] %> <%= "(%d%% better than %s)" % [alt.diff, score.least.name] if alt.diff && alt.diff >= 1 %></td>
+      </tr>
+    <% end %>
+    <caption><%= experiment.conclusion(score).join(" ") %></caption>
+  </thead>
+</table>
