@@ -21,7 +21,7 @@ class PlaygroundTest < MiniTest::Spec
   end
 
   it "loads named experiment from experiments directory" do
-    Vanity.playground.expects(:require).with("experiments/green_button")
+    Vanity.playground.expects(:load).with("experiments/green_button.rb")
     begin
       experiment("Green button")
     rescue LoadError=>ex
@@ -29,7 +29,7 @@ class PlaygroundTest < MiniTest::Spec
   end
 
   it "complains if experiment not defined in expected filed" do
-    Vanity.playground.expects(:require).with("experiments/green_button")
+    Vanity.playground.expects(:load).with("experiments/green_button.rb")
     assert_raises LoadError do
       experiment("Green button")
     end
@@ -37,7 +37,7 @@ class PlaygroundTest < MiniTest::Spec
 
   it "returns experiment defined in file" do
     playground = class << Vanity.playground ; self ; end
-    playground.send :define_method, :require do |file|
+    playground.send :define_method, :load do |file|
       Vanity.playground.define "Green Button" do
         def xmts ; "x" ; end
       end

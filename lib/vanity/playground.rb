@@ -61,16 +61,15 @@ module Vanity
     # "green_call_to_action". You can also use a symbol if you feel like it.
     def experiment(name)
       id = name.to_s.downcase.gsub(/\W/, "_")
-      unless @experiments.has_key?(id)
-        require File.join(load_path, id)
-      end
+      load File.join(load_path, "#{id}.rb") unless @experiments.has_key?(id)
       @experiments[id] or fail LoadError, "Expected experiments/#{id}.rb to define experiment #{name}"
     end
 
     # Returns list of all loaded experiments.
     def experiments
       Dir[File.join(load_path, "*.rb")].each do |file|
-        require file
+        id = File.basename(file).gsub(/.rb$/, "")
+        load file unless @experiments.has_key?(id)
       end
       @experiments.values
     end
@@ -81,6 +80,11 @@ module Vanity
                         password: self.password, logger: self.logger)
       class << self ; self ; end.send(:define_method, :redis) { redis }
       redis
+    end
+
+    # Reloads all experiments.
+    def reload!
+      @experiments.clear
     end
 
   end

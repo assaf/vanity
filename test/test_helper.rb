@@ -5,6 +5,7 @@ require "minitest/spec"
 require "mocha"
 require "action_controller"
 require "action_controller/test_case"
+require "initializer"
 require "lib/vanity/rails"
 MiniTest::Unit.autorun
 
@@ -31,3 +32,4 @@ end
 ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
+Rails.configuration = Rails::Configuration.new

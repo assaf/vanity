@@ -1,3 +1,8 @@
+0.3.2
+* Changed: When you run Vanity in development mode
+(configuration.cache_classes = false), it will reload experiments on each
+request. You can also Vanity.playground.reload!.
+
 0.3.1 (2009-11-13)
 * Changed: Redis 1.0 is now vendored into Vanity. This means one less
 dependecy ... actually two, since Redis brings with it RSpec.

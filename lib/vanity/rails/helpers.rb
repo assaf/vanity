@@ -71,6 +71,7 @@ module Vanity
           Vanity.context = self
         end
         before_filter :set_vanity_context
+        before_filter { Vanity.playground.reload! } unless ::Rails.configuration.cache_classes
       end
     end
 
