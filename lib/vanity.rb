@@ -1,3 +1,4 @@
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), "../vendor/redis-0.1/lib")
 require "redis"
 require "openssl"
 
@@ -15,7 +16,6 @@ module Vanity
     STRING = "#{MAJOR}.#{MINOR}.#{PATCH}"
   end
 end
-
 
 require "vanity/playground"
 require "vanity/experiment/base"

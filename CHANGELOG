@@ -1,3 +1,7 @@
+0.3.1 (2009-11-13)
+* Changed: Redis 1.0 is now vendored into Vanity. This means one less
+dependecy ... actually two, since Redis brings with it RSpec.
+
 0.3.0 (2009-11-13)
 * Added: score now includes least performing alternatives, names and values.
 * Added: shiny reports.
