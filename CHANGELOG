@@ -10,6 +10,7 @@ structs.
 * Changed: experiment.chooses uses Redis to store state, better for (when we
 get to) browser integration.
 * Changed: experiment.chooses skips recording participant or conversion.
+* Changed: to MIT license.
 
 0.2.2 (2009-11-12)
 * Added: vanity binary, with single command for generating a report.

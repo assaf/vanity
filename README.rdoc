@@ -139,19 +139,12 @@ For example:
 
 == Credits
 
-EDD was all Nathaniel Talbott's idea, I had experiments to finish for Apartly,
-there was coffee involved and out came the idea for Vanity.
-
-More about Experiment Driven Development:
-http://rubyconf.org/talks/28-how-tdd-bdd-miss-the-point-introducing-edd
+Experiment Driven Development: Nathaniel Talbott (http://blog.talbott.ws).
 
 First experiment, A/B tests, heavily influenced by Patrick McKenzie's awesome
-A/Bingo (http://www.bingocardcreator.com/abingo)
+[A/Bingo]http://www.bingocardcreator.com/abingo.
 
-Pain points courtesy of Google Analytics's stylish graphs and too-many-clicks
-goal tracking process.
+And let’s not forget Steven Blank’s The Four Steps to the
+Epiphany[http://www.amazon.com/gp/product/0976470705].
 
-
-== License
-
-Vanity, copyright (C) 2009 Assaf Arkin, released under the "Use for good, not evil" license (www.json.org/license.html)
+Copyright (C) 2009 Assaf Arkin, released under the MIT license.

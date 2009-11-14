@@ -3,12 +3,12 @@ Gem::Specification.new do |spec|
   spec.version        = "0.3.0"
   spec.author         = "Assaf Arkin"
   spec.email          = "assaf@labnotes.org"
-  spec.homepage       = "http://github.com/assaf/vanity"
+  spec.homepage       = "http://assaf.github.com/vanity"
   spec.summary        = "Experience Driven Development framework for Rails"
-  spec.description    = ""
+  spec.description    = "Mirror, mirror on the wall ..."
   spec.post_install_message = "To get started run vanity --help"
 
-  spec.files          = Dir["{bin,lib,rails,test}/**/*", "CHANGELOG", "README.rdoc", "vanity.gemspec"]
+  spec.files          = Dir["{bin,lib,rails,test}/**/*", "CHANGELOG", "MIT-LICENSE", "README.rdoc", "vanity.gemspec"]
   spec.executable     = "vanity"
 
   spec.has_rdoc         = true
