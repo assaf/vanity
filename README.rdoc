@@ -49,10 +49,4 @@ Learn more about Vanity: http://assaf.github.com/vanity
 
 Experiment Driven Development: Nathaniel Talbott (http://blog.talbott.ws).
 
-First experiment, A/B tests, heavily influenced by Patrick McKenzie's awesome
-[A/Bingo]http://www.bingocardcreator.com/abingo.
-
-And let’s not forget Steven Blank’s The Four Steps to the
-Epiphany[http://www.amazon.com/gp/product/0976470705].
-
 Copyright (C) 2009 Assaf Arkin, released under the MIT license.
