@@ -1,45 +1,38 @@
 require "test/test_helper"
 
-class ExperimentTest < MiniTest::Spec
-  it "creates ID from name" do
-    exp = experiment("Green Button/Alert") { }
-    assert_equal "Green Button/Alert", exp.name
-    assert_equal :green_button_alert, exp.id
+class ExperimentTest < MiniTest::Unit::TestCase
+  def test_experiment_mapping_name_to_id
+    experiment = Vanity.playground.define("Green Button/Alert", :ab_test) { }
+    assert_equal "Green Button/Alert", experiment.name
+    assert_equal :green_button_alert, experiment.id
   end
 
-  it "evalutes definition block at creation" do
-    experiment :green_button do
-      expects(:xmts).returns("x")
-    end
-    assert_equal "x", experiment(:green_button).xmts
-  end
-
-  it "saves experiments after defining it" do
-    experiment :green_button do
+  def test_saving_experiment_after_definition
+    Vanity.playground.define :simple, :ab_test do
       expects(:save)
     end
   end
 
-  it "stores when experiment created" do
-    experiment(:simple) { }
+  def test_experiment_has_created_timestamp
+    Vanity.playground.define(:simple, :ab_test) {}
     assert_instance_of Time, experiment(:simple).created_at
     assert_in_delta experiment(:simple).created_at.to_i, Time.now.to_i, 1
   end
-
-  it "keeps creation timestamp across definitions" do
+ 
+  def test_experiment_keeps_created_timestamp_across_definitions
     early, late = Time.now - 1.day, Time.now
     Time.expects(:now).once.returns(early)
-    experiment(:simple) { }
+    Vanity.playground.define(:simple, :ab_test) {}
     assert_equal early.to_i, experiment(:simple).created_at.to_i
 
     new_playground
     Time.expects(:now).once.returns(late)
-    experiment(:simple) { }
+    Vanity.playground.define(:simple, :ab_test) {}
     assert_equal early.to_i, experiment(:simple).created_at.to_i
   end
 
-  it "has description" do
-    experiment :simple do
+  def test_experiment_has_description
+    Vanity.playground.define :simple, :ab_test do
       description "Simple experiment"
     end
     assert_equal "Simple experiment", experiment(:simple).description

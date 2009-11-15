@@ -14,9 +14,10 @@ module Vanity
 
       end
 
-      def initialize(playground, id, name, &block)
+      def initialize(playground, id, name, options, &block)
         @playground = playground
         @id, @name = id.to_sym, name
+        @options = options || {}
         @namespace = "#{@playground.namespace}:#{@id}"
         @identify_block = ->(context){ context.vanity_identity }
       end
@@ -26,7 +27,7 @@ module Vanity
 
       # Unique identifier, derived from name, e.g. "Green Button" become :green_button.
       attr_reader :id
-      
+
       # Experiment creation timestamp.
       attr_reader :created_at
 

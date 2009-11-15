@@ -28,29 +28,24 @@ class AbTestTest < ActionController::TestCase
 
   # --  Experiment definition --
 
-  def test_uses_ab_test_when_type_is_ab_test
-    experiment(:ab, type: :ab_test) { }
-    assert_instance_of Vanity::Experiment::AbTest, experiment(:ab)
-  end
-
   def test_requires_at_least_two_alternatives_per_experiment
     assert_raises RuntimeError do
-      experiment :none, type: :ab_test do
+      ab_test :none do
         alternatives []
       end
     end
     assert_raises RuntimeError do
-      experiment :one, type: :ab_test do
+      ab_test :one do
         alternatives "foo"
       end
     end
-    experiment :two, type: :ab_test do
+    ab_test :two do
       alternatives "foo", "bar"
     end
   end
   
   def test_returning_alternative_by_value
-    experiment :abcd do
+    ab_test :abcd do
       alternatives :a, :b, :c, :d
     end
     assert_equal experiment(:abcd).alternatives[1], experiment(:abcd).alternative(:b)
@@ -58,7 +53,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_alternative_name
-    experiment :abcd do
+    ab_test :abcd do
       alternatives :a, :b
     end
     assert_equal "option A", experiment(:abcd).alternative(:a).name
@@ -69,7 +64,7 @@ class AbTestTest < ActionController::TestCase
   # -- Running experiment --
 
   def test_returns_the_same_alternative_consistently
-    experiment :foobar do
+    ab_test :foobar do
       alternatives "foo", "bar"
       identify { "6e98ec" }
     end
@@ -81,7 +76,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_returns_different_alternatives_for_each_participant
-    experiment :foobar do
+    ab_test :foobar do
       alternatives "foo", "bar"
       identify { rand }
     end
@@ -92,7 +87,7 @@ class AbTestTest < ActionController::TestCase
 
   def test_records_all_participants_in_each_alternative
     ids = (Array.new(200) { |i| i } * 5).shuffle
-    experiment :foobar do
+    ab_test :foobar do
       alternatives "foo", "bar"
       identify { ids.pop }
     end
@@ -104,7 +99,7 @@ class AbTestTest < ActionController::TestCase
 
   def test_records_each_converted_participant_only_once
     ids = ((1..100).map { |i| [i,i] } * 5).shuffle.flatten # 3,3,1,1,7,7 etc
-    experiment :foobar do
+    ab_test :foobar do
       alternatives "foo", "bar"
       identify { ids.pop }
     end
@@ -118,7 +113,7 @@ class AbTestTest < ActionController::TestCase
 
   def test_records_conversion_only_for_participants
     ids = ((1..100).map { |i| [-i,i,i] } * 5).shuffle.flatten # -3,3,3,-1,1,1,-7,7,7 etc
-    experiment :foobar do
+    ab_test :foobar do
       alternatives "foo", "bar"
       identify { ids.pop }
     end
@@ -132,7 +127,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_reset_experiment
-    experiment :simple do
+    ab_test :simple do
       identify { "me" }
       complete_if { alternatives.map(&:converted).sum >= 1 }
       outcome_is { alternative(true) }
@@ -155,13 +150,13 @@ class AbTestTest < ActionController::TestCase
   # -- A/B helper methods --
 
   def test_fail_if_no_experiment
-    assert_raise MissingSourceFile do
+    assert_raise LoadError do
       get :test_render
     end
   end
 
   def test_ab_test_chooses_in_render
-    experiment(:simple) { }
+    ab_test(:simple) { }
     responses = Array.new(100) do
       @controller = nil ; setup_controller_request_and_response
       get :test_render
@@ -171,7 +166,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_ab_test_chooses_view_helper
-    experiment(:simple) { }
+    ab_test(:simple) { }
     responses = Array.new(100) do
       @controller = nil ; setup_controller_request_and_response
       get :test_view
@@ -181,7 +176,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_ab_test_with_capture
-    experiment(:simple) { }
+    ab_test(:simple) { }
     responses = Array.new(100) do
       @controller = nil ; setup_controller_request_and_response
       get :test_capture
@@ -191,7 +186,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_ab_test_goal
-    experiment(:simple) { }
+    ab_test(:simple) { }
     responses = Array.new(100) do
       @controller.send(:cookies).clear
       get :goal
@@ -203,7 +198,7 @@ class AbTestTest < ActionController::TestCase
   # -- Testing with tests --
   
   def test_with_given_choice
-    experiment(:simple) { alternatives :a, :b, :c }
+    ab_test(:simple) { alternatives :a, :b, :c }
     100.times do |i|
       @controller = nil ; setup_controller_request_and_response
       experiment(:simple).chooses(:b)
@@ -213,7 +208,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_which_chooses_non_existent_alternative
-    experiment(:simple) { }
+    ab_test(:simple) { }
     assert_raises ArgumentError do
       experiment(:simple).chooses(404)
     end
@@ -223,7 +218,7 @@ class AbTestTest < ActionController::TestCase
   # -- Scoring --
  
   def test_scoring
-    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # participating, conversions, rate, z-score
     # Control:      182	35 19.23%	N/A
     182.times { |i| experiment(:abcd).count i, :a, :participant }
@@ -253,7 +248,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_scoring_with_no_performers
-    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test(:abcd) { alternatives :a, :b, :c, :d }
     assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
     assert experiment(:abcd).score.alts.all? { |alt| alt.confidence == 0 }
     assert experiment(:abcd).score.alts.all? { |alt| alt.difference.nil? }
@@ -263,7 +258,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_scoring_with_one_performer
-    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test(:abcd) { alternatives :a, :b, :c, :d }
     10.times { |i| experiment(:abcd).count i, :b, :participant }
     8.times  { |i| experiment(:abcd).count i, :b, :conversion }
     assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
@@ -276,7 +271,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_scoring_with_some_performers
-    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test(:abcd) { alternatives :a, :b, :c, :d }
     10.times { |i| experiment(:abcd).count i, :b, :participant }
     8.times  { |i| experiment(:abcd).count i, :b, :conversion }
     12.times { |i| experiment(:abcd).count i, :d, :participant }
@@ -298,7 +293,7 @@ class AbTestTest < ActionController::TestCase
   # -- Conclusion --
 
   def test_conclusion
-    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # participating, conversions, rate, z-score
     # Control:      182	35 19.23%	N/A
     182.times { |i| experiment(:abcd).count i, :a, :participant }
@@ -324,7 +319,7 @@ Option D selected as the best alternative.
   end
 
   def test_conclusion_with_some_performers
-    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
     180.times { |i| experiment(:abcd).count i, :b, :participant }
     45.times  { |i| experiment(:abcd).count i, :b, :conversion }
@@ -343,7 +338,7 @@ Option D selected as the best alternative.
   end
 
   def test_conclusion_without_clear_winner
-    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
     180.times { |i| experiment(:abcd).count i, :b, :participant }
     58.times  { |i| experiment(:abcd).count i, :b, :conversion }
@@ -361,7 +356,7 @@ Option C did not convert.
   end
 
   def test_conclusion_without_close_performers
-    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
     186.times { |i| experiment(:abcd).count i, :b, :participant }
     60.times  { |i| experiment(:abcd).count i, :b, :conversion }
@@ -379,7 +374,7 @@ Option C did not convert.
   end
 
   def test_conclusion_without_equal_performers
-    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
     188.times { |i| experiment(:abcd).count i, :b, :participant }
     61.times  { |i| experiment(:abcd).count i, :b, :conversion }
@@ -396,7 +391,7 @@ Option C did not convert.
   end
 
   def test_conclusion_with_one_performers
-    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
     180.times { |i| experiment(:abcd).count i, :b, :participant }
     45.times  { |i| experiment(:abcd).count i, :b, :conversion }
@@ -405,7 +400,7 @@ Option C did not convert.
   end
 
   def test_conclusion_with_no_performers
-    experiment(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test(:abcd) { alternatives :a, :b, :c, :d }
     assert_equal "This experiment did not run long enough to find a clear winner.", experiment(:abcd).conclusion.join("\n")
   end
 
@@ -413,7 +408,7 @@ Option C did not convert.
   # -- Completion --
 
   def test_completion_if
-    experiment :simple do
+    ab_test :simple do
       identify { rand }
       complete_if { true }
     end
@@ -422,7 +417,7 @@ Option C did not convert.
   end
 
   def test_completion_if_fails
-    experiment :simple do
+    ab_test :simple do
       identify { rand }
       complete_if { fail }
     end
@@ -432,7 +427,7 @@ Option C did not convert.
 
   def test_completion
     ids = Array.new(100) { |i| i.to_s }.shuffle
-    experiment :simple do
+    ab_test :simple do
       identify { ids.pop }
       complete_if { alternatives.map(&:participants).sum >= 100 }
     end
@@ -447,7 +442,7 @@ Option C did not convert.
 
   def test_ab_methods_after_completion
     ids = Array.new(200) { |i| [i, i] }.shuffle.flatten
-    experiment :simple do
+    ab_test :simple do
       identify { ids.pop }
       complete_if { alternatives.map(&:participants).sum >= 100 }
       outcome_is { alternatives[1] }
@@ -475,7 +470,7 @@ Option C did not convert.
   # -- Outcome --
   
   def test_completion_outcome
-    experiment :quick do
+    ab_test :quick do
       outcome_is { alternatives[1] }
     end
     experiment(:quick).complete!
@@ -483,7 +478,7 @@ Option C did not convert.
   end
 
   def test_outcome_is_returns_nil
-    experiment :quick do
+    ab_test :quick do
       outcome_is { nil }
     end
     experiment(:quick).complete!
@@ -491,7 +486,7 @@ Option C did not convert.
   end
 
   def test_outcome_is_returns_something_else
-    experiment :quick do
+    ab_test :quick do
       outcome_is { "error" }
     end
     experiment(:quick).complete!
@@ -499,7 +494,7 @@ Option C did not convert.
   end
 
   def test_outcome_is_fails
-    experiment :quick do
+    ab_test :quick do
       outcome_is { fail }
     end
     experiment(:quick).complete!
@@ -507,7 +502,7 @@ Option C did not convert.
   end
 
   def test_outcome_choosing_best_alternative
-    experiment :quick do
+    ab_test :quick do
     end
     2.times  { |i| experiment(:quick).count i, false, :participant }
     10.times { |i| experiment(:quick).count i, true }
@@ -516,7 +511,7 @@ Option C did not convert.
   end
 
   def test_outcome_only_performing_alternative
-    experiment :quick do
+    ab_test :quick do
     end
     2.times { |i| experiment(:quick).count i, true }
     experiment(:quick).complete!
@@ -524,7 +519,7 @@ Option C did not convert.
   end
 
   def test_outcome_choosing_equal_alternatives
-    experiment :quick do
+    ab_test :quick do
     end
     8.times { |i| experiment(:quick).count i, false }
     8.times { |i| experiment(:quick).count i, true }
@@ -532,4 +527,8 @@ Option C did not convert.
     assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
 
+
+  def ab_test(name, &block)
+    Vanity.playground.define name, :ab_test, &block
+  end
 end

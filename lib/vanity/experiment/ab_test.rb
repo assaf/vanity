@@ -91,7 +91,7 @@ module Vanity
 
       # Call this method once to set alternative values for this experiment.
       # Require at least two values.  For example:
-      #   experiment "Background color" do
+      #   ab_test "Background color" do
       #     alternatives "red", "blue", "orange"
       #   end
       # 
@@ -388,6 +388,16 @@ module Vanity
         Z_TO_CONFIDENCE = [90, 95, 99, 99.9].map { |pct| [norm_dist.find { |x,a| a >= pct }.first, pct] }.reverse
       end
 
+    end
+  end
+
+  module Definition
+    # Define an A/B test with the given name.  For example:
+    #   ab_test "New Banner" do
+    #     alternatives :red, :green, :blue
+    #   end
+    def ab_test(name, &block)
+      define name, :ab_test, &block
     end
   end
 end

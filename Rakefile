@@ -40,15 +40,6 @@ task :report do
   require "vanity"
   Vanity.playground.load_path = "test/experiments"
 
-  class Context
-    def session
-      @session ||= {}
-    end
-    attr_accessor :vanity_identity
-  end
-  Vanity.context = Context.new
-  identity = ->(id){ Vanity.context.vanity_identity = id }
-
   experiment(:null_abc).reset!
   # Control	182	35	19.23%	N/A
   182.times { |i| experiment(:null_abc).count i, nil, :participant }

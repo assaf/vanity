@@ -1,67 +1,89 @@
 require "test/test_helper"
 
-class PlaygroundTest < MiniTest::Spec
-  before do
+class PlaygroundTest < MiniTest::Unit::TestCase
+  def setup
     @namespace = "vanity:0"
   end
 
-  it "has one global instance" do
+  def test_has_one_global_instance
     assert instance = Vanity.playground
     assert_equal instance, Vanity.playground
   end
 
-  it "use vanity-{major} as default namespace" do
+  def test_playground_namespace
     assert @namespace, Vanity.playground.namespace
   end
 
-  it "fails if it cannot load named experiment from file" do
-    assert_raises MissingSourceFile do
-      experiment("Green button")
-    end
-  end
 
-  it "loads named experiment from experiments directory" do
-    Vanity.playground.expects(:load).with("experiments/green_button.rb")
-    begin
-      experiment("Green button")
-    rescue LoadError=>ex
-    end
-  end
+  # -- Loading experiments --
 
-  it "complains if experiment not defined in expected filed" do
-    Vanity.playground.expects(:load).with("experiments/green_button.rb")
+  def test_fails_if_cannot_load_named_experiment
     assert_raises LoadError do
       experiment("Green button")
     end
   end
 
-  it "returns experiment defined in file" do
-    playground = class << Vanity.playground ; self ; end
-    playground.send :define_method, :load do |file|
-      Vanity.playground.define "Green Button" do
-        def xmts ; "x" ; end
-      end
+  def test_loading_experiment
+    Vanity.playground.load_path = Dir.tmpdir
+    File.open File.join(Dir.tmpdir, "green_button.rb"), "w" do |f|
+      f.write <<-RUBY
+        ab_test "Green Button" do
+          def xmts
+            "x"
+          end
+        end
+      RUBY
     end
-    assert_equal "x", experiment("Green button").xmts
+    assert_equal "x", experiment(:green_button).xmts
   end
 
-  it "can define and access experiment using symbol" do
-    assert green = experiment("Green Button") { }
-    assert_equal green, experiment(:green_button)
-    assert red = experiment(:red_button) { }
-    assert_equal red, experiment("Red Button")
+  def test_fails_if_error_loading_experiment
+    Vanity.playground.load_path = Dir.tmpdir
+    File.open File.join(Dir.tmpdir, "green_button.rb"), "w" do |f|
+      f.write "fail 'yawn!'"
+    end
+    assert_raises LoadError do
+      experiment(:green_button)
+    end
   end
 
-  it "detect and fail when defining the same experiment twice" do
-    experiment("Green Button") { }
+  def test_complains_if_not_defined_where_expected
+    Vanity.playground.load_path = Dir.tmpdir
+    File.open File.join(Dir.tmpdir, "green_button.rb"), "w" do |f|
+      f.write ""
+    end
+    assert_raises LoadError do
+      experiment("Green button")
+    end
+  end
+
+  def test_reloading_experiments
+    Vanity.playground.define(:ab, :ab_test) {}
+    Vanity.playground.define(:cd, :ab_test) {}
+    assert 2, Vanity.playground.experiments.count
+    Vanity.playground.reload!
+    assert_empty Vanity.playground.experiments
+  end
+
+  # -- Defining experiment --
+  
+  def test_can_access_experiment_by_name_or_id
+    exp = Vanity.playground.define(:green_button, :ab_test) { }
+    assert_equal exp, experiment("Green Button")
+    assert_equal exp, experiment(:green_button)
+  end
+
+  def test_fail_when_defining_same_experiment_twice
+    Vanity.playground.define("Green Button", :ab_test) { }
     assert_raises RuntimeError do
-      experiment(:green_button) { }
+      Vanity.playground.define("Green Button", :ab_test) { }
     end
   end
 
-  it "uses playground namespace in experiment" do
-    experiment(:green_button) { }
+  def test_uses_playground_namespace_for_experiment
+    Vanity.playground.define(:green_button, :ab_test) { }
     assert_equal "#{@namespace}:green_button", experiment(:green_button).send(:key)
     assert_equal "#{@namespace}:green_button:participants", experiment(:green_button).send(:key, "participants")
   end
+
 end

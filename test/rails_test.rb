@@ -13,7 +13,7 @@ class UseVanityTest < ActionController::TestCase
   tests UseVanityController
 
   def setup
-    experiment :simple do
+    Vanity.playground.define :simple, :ab_test do
     end
     UseVanityController.class_eval do
       use_vanity :current_user

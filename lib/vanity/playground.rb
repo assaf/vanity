@@ -1,7 +1,21 @@
 module Vanity
 
-  # Vanity.playground.configuration
-  class Configuration
+  # These methods are available from experiment files (files located in the
+  # experiments directory and loaded by Vanity).  Use these methods to define
+  # you experiments, for example:
+  #   ab_test "New Banner" do
+  #     alternatives :red, :green, :blue
+  #   end
+  module Definition
+
+  protected
+    # Defines a new experiment, given the experiment's name, type and
+    # definition block.
+    def define(name, type, options = nil, &block)
+      options ||= {}
+      Vanity.playground.define(name, type, options, &block)
+    end
+
   end
 
   # Playground catalogs all your experiments, holds the Vanity configuration.
@@ -40,14 +54,12 @@ module Vanity
     attr_accessor :logger
 
     # Defines a new experiment. Generally, do not call this directly,
-    # use #experiment instead.
-    def define(name, options = nil, &block)
+    # use one of the definition methods (ab_test, measure, etc).
+    def define(name, type, options = {}, &block)
       id = name.to_s.downcase.gsub(/\W/, "_")
       raise "Experiment #{id} already defined once" if @experiments[id]
-      options ||= {}
-      type = options[:type] || :ab_test
       klass = Experiment.const_get(type.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase })
-      experiment = klass.new(self, id, name)
+      experiment = klass.new(self, id, name, options)
       experiment.instance_eval &block
       experiment.save
       @experiments[id] = experiment
@@ -61,7 +73,25 @@ module Vanity
     # "green_call_to_action". You can also use a symbol if you feel like it.
     def experiment(name)
       id = name.to_s.downcase.gsub(/\W/, "_")
-      load File.join(load_path, "#{id}.rb") unless @experiments.has_key?(id)
+      unless @experiments.has_key?(id)
+        @loading ||= []
+        fail "Circular dependency detected: #{@loading.join('=>')}=>#{id}" if @loading.include?(id)
+        begin
+          @loading.push id
+          source = File.read(File.expand_path("#{id}.rb", load_path))
+          context = Object.new
+          context.instance_eval do
+            extend Definition
+            eval source
+          end
+        rescue
+          error = LoadError.exception($!.message)
+          error.set_backtrace $!.backtrace
+          raise error
+        ensure
+          @loading.pop
+        end
+      end
       @experiments[id] or fail LoadError, "Expected experiments/#{id}.rb to define experiment #{name}"
     end
 
@@ -69,9 +99,14 @@ module Vanity
     def experiments
       Dir[File.join(load_path, "*.rb")].each do |file|
         id = File.basename(file).gsub(/.rb$/, "")
-        load file unless @experiments.has_key?(id)
+        experiment id
       end
       @experiments.values
+    end
+
+    # Reloads all experiments.
+    def reload!
+      @experiments.clear
     end
 
     # Use this instance to access the Redis database.
@@ -80,11 +115,6 @@ module Vanity
                         password: self.password, logger: self.logger)
       class << self ; self ; end.send(:define_method, :redis) { redis }
       redis
-    end
-
-    # Reloads all experiments.
-    def reload!
-      @experiments.clear
     end
 
   end
@@ -119,22 +149,12 @@ module Vanity
   end
 end
 
+
 class Object
 
-  # Use this method to define or access an experiment.
-  # 
-  # To define an experiment, call with a name, options and a block.  For
-  # example:
-  #   experiment "Text size" do
-  #     alternatives :small, :medium, :large
-  #   end
-  #
+  # Use this method to access an experiment by name.  For example:
   #   puts experiment(:text_size).alternatives
-  def experiment(name, options = nil, &block)
-    if block
-      Vanity.playground.define(name, options, &block)
-    else
-      Vanity.playground.experiment(name)
-    end
+  def experiment(name)
+    Vanity.playground.experiment(name)
   end
 end
