@@ -1,5 +1,5 @@
 <% score = experiment.score %>
-<table class="ab">
+<table>
   <caption><%= experiment.conclusion(score).join(" ") %></caption>
   <% score.alts.each do |alt| %>
     <tr class="<%= "choice" if score.choice == alt %>">
