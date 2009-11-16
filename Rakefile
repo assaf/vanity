@@ -39,8 +39,9 @@ task :report do
   $LOAD_PATH.unshift "lib"
   require "vanity"
   Vanity.playground.load_path = "test/experiments"
+  Vanity.playground.experiments.each(&:reset!)
+  Vanity.playground.reload!
 
-  experiment(:null_abc).reset!
   # Control	182	35	19.23%	N/A
   182.times { |i| experiment(:null_abc).count i, nil, :participant }
   35.times  { |i| experiment(:null_abc).count i, nil, :conversion }
@@ -54,13 +55,11 @@ task :report do
   188.times { |i| experiment(:null_abc).count i, :blue, :participant }
   61.times  { |i| experiment(:null_abc).count i, :blue, :conversion }
 
-  experiment(:age_and_zipcode).reset!
   80.times { |i| experiment(:age_and_zipcode).count i, false, :participant }
   35.times  { |i| experiment(:age_and_zipcode).count i, false, :conversion }
   84.times { |i| experiment(:age_and_zipcode).count i, true, :participant }
   32.times  { |i| experiment(:age_and_zipcode).count i, true, :conversion }
 
-  experiment(:engagement).reset!
 
   Vanity::Commands.report ENV["OUTPUT"]
 end

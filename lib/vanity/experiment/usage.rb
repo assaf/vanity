@@ -29,10 +29,14 @@ module Vanity
         @milestones
       end
 
-      def milestone(label)
+      def milestone(label, date_or_time = nil)
         id = label.to_s.downcase.gsub(/\s/, "_")
         redis.setnx key("milestones:#{id}:label"), label
-        redis.setnx key("milestones:#{id}:created_at"), Time.now.to_i
+        if date_or_time
+          redis[key("milestones:#{id}:created_at")] = date_or_time.to_time.to_i
+        else
+          redis.setnx key("milestones:#{id}:created_at"), Time.now.to_i
+        end
         @milestones << [label, Time.at(redis[key("milestones:#{id}:created_at")].to_i)]
       end
 

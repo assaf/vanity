@@ -88,8 +88,8 @@ module Vanity
         redis[key(:created_at)] = date_or_time.to_time.to_i
         @created_at = Time.at(redis[key(:created_at)].to_i)
       end
-      
 
+      #
       # -- Experiment completion --
 
       # Define experiment completion condition.  For example:
