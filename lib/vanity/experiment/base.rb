@@ -82,8 +82,11 @@ module Vanity
         @description
       end
 
-      def report
-        fail "Implement me"
+      # Use this if you need the experiment to start earlier than when it was
+      # first defined.
+      def created_at=(date_or_time)
+        redis[key(:created_at)] = date_or_time.to_time.to_i
+        @created_at = Time.at(redis[key(:created_at)].to_i)
       end
       
 
