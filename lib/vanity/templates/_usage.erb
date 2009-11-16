@@ -4,6 +4,7 @@ $(function () {
     var lines = [<%= experiment.results.map { |label, data| "{label:'#{h label}',data:[#{data.map { |x,y| "[#{x.to_time.to_i * 1000},#{y ? y : "null"}]" }.join(",")}]}" }.join(",")%>];
     var markings = [<%= i = 0; experiment.milestones.map { |label, date| point = date.to_time.to_i * 1000; "{color:'#f02020',xaxis:{from:#{point},to:#{point}},text:'M#{i += 1}'}" }.join(",") %>];
     var chart = $("#experiment_<%= experiment.id %> .chart");
+    chart.height(chart.width() / 3);
     var options = { xaxis: { mode: "time", minTickSize: [3, "day"] }, yaxis: { ticks: 5 },
       series: { lines: { show: true, lineWidth: 3 }, shadowSize: 0 },
       legend: { position: 'sw', container: "#experiment_<%= experiment.id %> .legend", backgroundOpacity: 0.5 },

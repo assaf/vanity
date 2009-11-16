@@ -12,7 +12,7 @@
 .vanity .ab_test td.value { width: 8em; white-space: nowrap; overflow: hidden }
 .vanity .ab_test td.action { width: 6em; overflow: hidden; text-align: center }
 
-.usage .chart { width:100%; height:300px; margin: 2em 0 }
+.usage .chart { width:100%; margin: 2em 0 }
 .usage .legend { float: left; width:20%; padding-right: 1em; overflow: hidden }
 .usage .milestones { overflow: hidden; padding-left: 1em; border-left: 1px solid #ccc }
 .usage .milestones table { border-collapse: collapse; table-layout: fixed; width: 100% }
