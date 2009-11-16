@@ -202,7 +202,8 @@ module Vanity
         self
       end
 
-      def chosen?(alternative) #:nodoc:
+      # True if this alternative is currently showing (see #chooses).
+      def showing?(alternative) #:nodoc:
         identity = identify
         index = redis[key("participant:#{identity}:show")]
         index && index.to_i == alternative.id

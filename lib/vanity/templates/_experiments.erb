@@ -1,9 +1,9 @@
 <ul class="experiments">
   <% experiments.sort_by(&:created_at).each do |experiment| %>
-    <li class="experiment" id="experiment_<%= CGI.escape experiment.id.to_s %>">
-      <h2 class="<%= experiment.type %>"><%= CGI.escape_html experiment.name %> <span class="type">(<%= experiment.class.friendly_name %>)</span></h2>
-      <p class="description"><%= CGI.escape_html experiment.description.to_s %></p>
-      <%= render Vanity.template("ab_test"), experiment: experiment %>
+    <li class="experiment" id="experiment_<%=h experiment.id.to_s %>">
+      <h2 class="<%= experiment.type %>"><%=h experiment.name %> <span class="type">(<%= experiment.class.friendly_name %>)</span></h2>
+      <p class="description"><%=h experiment.description.to_s %></p>
+      <%= render Vanity.template(experiment.type), experiment: experiment %>
       <p class="meta">Started <%= experiment.created_at.strftime("%a, %b %-d %Y") %>
         <%= " | Completed #{experiment.completed_at.strftime("%a, %b %-d %Y")}" unless experiment.active? %>
       </p>

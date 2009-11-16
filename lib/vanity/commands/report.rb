@@ -18,6 +18,11 @@ module Vanity
       ERB.new(path, nil, '<').result(locals.instance_eval { binding })
     end
 
+    # Escape HTML.
+    def h(html)
+      CGI.escape_html(html)
+    end
+
   end
 
   module Commands

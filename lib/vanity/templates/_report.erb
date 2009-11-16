@@ -1,16 +1,16 @@
 <html>
-<head>
-  <title>Experiments (<%= Time.now %>)</title>
-  <style>
-    .vanity { margin: 2em auto; width: 40em; font-family: "Helvetica Neue", "Helvetica", "Verdana", sans-serif }
-    .vanity h1 { margin: 1em 0; border-bottom: 3px solid #ccc }
-  </style>
-  <%= render Vanity.template("vanity.css") %>
-</head>
-<body>
-  <div class="vanity">
-    <h1>Experiments</h1>
-    <%= render Vanity.template("experiments"), experiments: Vanity.playground.experiments %>
-  </div>
-</body>
+  <head>
+    <title>Experiments (<%= Time.now %>)</title>
+    <style>
+      .vanity { margin: 2em auto; width: 40em; font-family: "Helvetica Neue", "Helvetica", "Verdana", sans-serif }
+      .vanity h1 { margin: 1em 0; border-bottom: 3px solid #ccc }
+      <%= File.read(Vanity.template("vanity.css")) %>
+    </style>
+  </head>
+  <body>
+    <div class="vanity">
+      <h1>Experiments</h1>
+      <%= render Vanity.template("experiments"), experiments: Vanity.playground.experiments %>
+    </div>
+  </body>
 </html>
