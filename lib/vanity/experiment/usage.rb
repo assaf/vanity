@@ -22,7 +22,7 @@ module Vanity
       end
 
       def results
-        @measure.call
+        @measure.call created_at.to_date, Date.today
       end
 
       def milestones
