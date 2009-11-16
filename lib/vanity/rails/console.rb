@@ -6,8 +6,9 @@ module Vanity
       end
 
       def chooses
-        experiment(params[:e]).chooses(experiment(params[:e]).alternatives[params[:a].to_i].value)
-        redirect_to :back
+        exp = Vanity.playground.experiment(params[:e])
+        exp.chooses(exp.alternatives[params[:a].to_i].value)
+        render partial: Vanity.template("experiment"), locals: { experiment: exp }
       end
     end
   end
