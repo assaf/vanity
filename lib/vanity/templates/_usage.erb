@@ -7,7 +7,7 @@ $(function () {
     var options = { xaxis: { mode: "time", minTickSize: [3, "day"] }, yaxis: { ticks: 5 },
       series: { lines: { show: true, lineWidth: 3 }, shadowSize: 0 },
       legend: { position: 'sw', container: "#experiment_<%= experiment.id %> .legend", backgroundOpacity: 0.5 },
-      grid: { markings: markings, backgroundColor: { colors: ["#fff", "#ddf"] } } };
+      grid: { markings: markings, borderWidth: 0, backgroundColor: { colors: ["#fff", "#f8f8f8"] } } };
     var plot = $.plot(chart, lines, options);
     jQuery.each(markings, function(i, mark) { 
       $('<div style="position:absolute;top:5%;color:#f02020;font-size:smaller"></div>').
