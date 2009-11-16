@@ -11,12 +11,14 @@ The experiment method is no longer overloaded: it looks up an experiment
 (loading its definition if necessary), but does not define an experiment.
 The ab_test method is overloaded, though this may change in the future.
 
-* Changed: playground.define now requires an experiment type, ab_test is not
+* Changed: Playground.define now requires an experiment type, ab_test is not
 the default any more.
 * Changed: When you run Vanity in development mode
 (configuration.cache_classes = false), it will reload experiments on each
 request. You can also Vanity.playground.reload!.
-* Changed: fancy AJAX trickery in Rails console.
+* Changed: Fancy AJAX trickery in Rails console.
+* Changed: You can break long experiment descriptions into multiple paragraphs
+using two consecutive newlines.
 
 0.3.1 (2009-11-13)
 * Changed: Redis 1.0 is now vendored into Vanity. This means one less

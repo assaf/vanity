@@ -1,5 +1,5 @@
 <h2><%=h experiment.name %> <span class="type">(<%= experiment.class.friendly_name %>)</span></h2>
-<p class="description"><%=h experiment.description.to_s %></p>
+<%= experiment.description.to_s.split(/\n\s*\n/).map { |para| %{<p class="description">#{h para}</p>} }.join %>
 <%= render Vanity.template(experiment.type), experiment: experiment %>
 <p class="meta">Started <%= experiment.created_at.strftime("%a, %b %-d") %>
   <%= " | Completed #{experiment.completed_at.strftime("%a, %b %-d")}" unless experiment.active? %></p>

@@ -1,7 +1,9 @@
 .vanity .experiments { list-style: none; margin: 0; padding: 0 }
 .vanity .experiment { padding-bottom: 1em; margin: 0 0 1em 0; border-bottom: 1px dashed #ddd }
+.vanity .experiment .description { padding: .5em; margin: 0 }
 .vanity .experiment .type { margin-left: .3em; color: #bbb; font-size: .8em; font-weight: normal }
 .vanity .experiment .meta { color: #444; font-style: italic }
+
 .vanity .ab_test table { border-collapse: collapse; table-layout: fixed; width: 100%; border-bottom: 1px solid #ccc; margin: 1em 0 0 0 }
 .vanity .ab_test td { padding: .5em; border-top: 1px solid #ccc }
 .vanity .ab_test .choice td { font-weight: bold; background: #f0f0f8 }

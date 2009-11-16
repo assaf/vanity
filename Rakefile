@@ -55,11 +55,10 @@ task :report do
   61.times  { |i| experiment(:null_abc).count i, :blue, :conversion }
 
   experiment(:age_and_zipcode).reset!
-  182.times { |i| experiment(:age_and_zipcode).count i, false, :participant }
+  80.times { |i| experiment(:age_and_zipcode).count i, false, :participant }
   35.times  { |i| experiment(:age_and_zipcode).count i, false, :conversion }
-  180.times { |i| experiment(:age_and_zipcode).count i, true, :participant }
-  45.times  { |i| experiment(:age_and_zipcode).count i, true, :conversion }
-  experiment(:age_and_zipcode).complete!
+  84.times { |i| experiment(:age_and_zipcode).count i, true, :participant }
+  32.times  { |i| experiment(:age_and_zipcode).count i, true, :conversion }
 
   Vanity::Commands.report
 end
