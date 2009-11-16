@@ -45,8 +45,14 @@ Check the report:
 Learn more about Vanity: http://assaf.github.com/vanity
 
 
-== Credits
+== Credits/License
+
+Copyright (C) 2009 Assaf Arkin, released under the MIT license.
 
 Experiment Driven Development: Nathaniel Talbott (http://blog.talbott.ws).
 
-Copyright (C) 2009 Assaf Arkin, released under the MIT license.
+jQuery, Copyright (c) 2009 John Resig, released under the MIT license:
+http://dev.jquery.com
+
+Flot, Copyright (c) 2007-2009 IOLA and Ole Laursen, released under teh MIT
+license: http://code.google.com/p/flot
