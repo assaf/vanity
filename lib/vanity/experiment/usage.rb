@@ -17,9 +17,12 @@ module Vanity
         @milestones = []
       end
 
-      def measure
-        { "Yay me"=> Array.new(28) { |i| [Date.today - i, rand] },
-          "Party time"=> Array.new(28) { |i| [Date.today - i, rand] } }
+      def measure(&block)
+        @measure = block
+      end
+
+      def results
+        @measure.call
       end
 
       def milestones
