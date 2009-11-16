@@ -79,7 +79,5 @@ task :report do
   84.times { |i| experiment(:age_and_zipcode).send(:count_participant, i, true) }
   32.times  { |i| experiment(:age_and_zipcode).send(:count_conversion, i, true) }
 
-  experiment(:engagement).reset!
-
   Vanity::Commands.report ENV["OUTPUT"]
 end
