@@ -60,5 +60,12 @@ task :report do
   84.times { |i| experiment(:age_and_zipcode).count i, true, :participant }
   32.times  { |i| experiment(:age_and_zipcode).count i, true, :conversion }
 
-  Vanity::Commands.report
+  experiment(:engagement).reset!
+  def Time.now ; Time.at(Time.new.to_i - 15 * 60 * 60 * 24) ; end
+  experiment(:engagement).milestone "Added smiley face"
+  def Time.now ; Time.at(Time.new.to_i - 5 * 60 * 60 * 24) ; end
+  experiment(:engagement).milestone "Changed to pastels"
+  def Time.now ; Time.at(Time.new.to_i) ; end
+
+  Vanity::Commands.report ENV["OUTPUT"]
 end

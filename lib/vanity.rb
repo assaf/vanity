@@ -20,5 +20,6 @@ end
 require "vanity/playground"
 require "vanity/experiment/base"
 require "vanity/experiment/ab_test"
+require "vanity/experiment/usage"
 require "vanity/rails" if defined?(Rails)
 Vanity.autoload :Commands, "vanity/commands"

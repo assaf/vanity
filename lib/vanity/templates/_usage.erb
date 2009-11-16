@@ -1,0 +1,36 @@
+<style>
+.usage .chart { width:100%; height:300px; margin: 1em 0 }
+.usage .legend { float: left; width:20%; padding-right: 1em; overflow: hidden }
+.usage .milestones { overflow: hidden; padding-left: 1em; border-left: 1px solid #ccc }
+.usage .milestones table { border-collapse: collapse; table-layout: fixed; width: 100% }
+.usage .meta { clear:both; padding-top: 2em }
+</style>
+<div class="chart"></div>
+<script id="source" language="javascript" type="text/javascript">
+$(function () {
+    var lines = [<%= experiment.measure.map { |label, data| "{label:'#{h label}',data:[#{data.map { |x,y| "[#{x.to_time.to_i * 1000},#{y ? y : "null"}]" }.join(",")}]}" }.join(",")%>];
+    var markings = [<%= i = 0; experiment.milestones.map { |label, date| point = date.to_time.to_i * 1000; "{color:'#f02020',xaxis:{from:#{point},to:#{point}},text:'M#{i += 1}'}" }.join(",") %>];
+    var chart = $("#experiment_<%= experiment.id %> .chart");
+    var options = { xaxis: { mode: "time", minTickSize: [3, "day"] }, yaxis: { ticks: 5 },
+      series: { lines: { show: true, lineWidth: 3 }, shadowSize: 0 },
+      legend: { position: 'sw', container: "#experiment_<%= experiment.id %> .legend", backgroundOpacity: 0.5 },
+      grid: { markings: markings, backgroundColor: { colors: ["#fff", "#ddf"] } } };
+    var plot = $.plot(chart, lines, options);
+    jQuery.each(markings, function(i, mark) { 
+      $('<div style="position:absolute;top:5%;color:#f02020;font-size:smaller"></div>').
+        css({left:plot.pointOffset({x:mark.xaxis.from}).left+4}).text(mark.text).appendTo(chart);
+    });
+});
+</script>
+<div class="legend"></div>
+<div class="milestones">
+  <table>
+    <% experiment.milestones.each_with_index do |(label, time), i| %>
+      <tr>
+        <td style="width:3em;font-weight:500">M<%= i + 1 %>:</td>
+        <td><%=h label %></td>
+        <td style="width:8em;text-align:right"><abbr title="<%= time %>"><%= time.strftime("%a, %b %-d") %></abbr></td>
+      </tr>
+    <% end %>
+  </table>
+</div>
