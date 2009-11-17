@@ -74,10 +74,17 @@ task :report do
   188.times { |i| experiment(:null_abc).send(:count_participant, i, :blue) }
   61.times  { |i| experiment(:null_abc).send(:count_conversion, i, :blue) }
 
-  80.times { |i| experiment(:age_and_zipcode).send(:count_participant, i, false) }
-  35.times  { |i| experiment(:age_and_zipcode).send(:count_conversion, i, false) }
-  84.times { |i| experiment(:age_and_zipcode).send(:count_participant, i, true) }
-  32.times  { |i| experiment(:age_and_zipcode).send(:count_conversion, i, true) }
+  98.times { |i| experiment(:age_and_zipcode).send(:count_participant, i, false) }
+  79.times  { |i| experiment(:age_and_zipcode).send(:count_conversion, i, false) }
+  95.times { |i| experiment(:age_and_zipcode).send(:count_participant, i, true) }
+  69.times  { |i| experiment(:age_and_zipcode).send(:count_conversion, i, true) }
+
+  85.times { |i| experiment(:price_options).send(:count_participant, i, 19) }
+  8.times  { |i| experiment(:price_options).send(:count_conversion, i, 19) }
+  82.times { |i| experiment(:price_options).send(:count_participant, i, 25) }
+  5.times { |i| experiment(:price_options).send(:count_conversion, i, 25) }
+  87.times { |i| experiment(:price_options).send(:count_participant, i, 29) }
+  2.times { |i| experiment(:price_options).send(:count_conversion, i, 29) }
 
   Vanity::Commands.report ENV["OUTPUT"]
 end
