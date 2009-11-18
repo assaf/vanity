@@ -1,5 +1,5 @@
-require "rake/rdoctask"
 require "rake/testtask"
+require "yard"
 
 spec = Gem::Specification.load(File.expand_path("vanity.gemspec", File.dirname(__FILE__)))
 
@@ -29,10 +29,9 @@ Rake::TestTask.new do |task|
   #task.warning = true
 end
 
-Rake::RDocTask.new(:rdoc) do |rdoc|
-  rdoc.rdoc_files.include "README.rdoc", "lib/**/*.rb"
-  rdoc.options = spec.rdoc_options
-  rdoc.options << "-f" << "darkfish"
+YARD::Rake::YardocTask.new(:yardoc) do |task|
+  task.files  = ["lib/**/*.rb"]
+  task.options = "--output", "api", "--title", "Vanity #{spec.version}", "--main", "README.rdoc", "--files", "CHANGELOG"
 end
 
 task :report do

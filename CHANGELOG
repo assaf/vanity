@@ -1,4 +1,4 @@
-0.4.0 (2009-11-17)
+== 0.4.0 (2009-11-17)
 This release changes the way you define a new experiment.  You can use a
 method suitable for the type of experiment you want to define, or call the
 generic define method (previously: experiment method).  For example:
@@ -13,55 +13,43 @@ The ab_test method is overloaded, though this may change in the future.
 
 * Added: A/B test report now showing number of participants.
 * Added: AbTest.score method accepts minimum probability (default 90), and
-* Changed: Playground.define now requires an experiment type, ab_test is not
-the default any more.
-* Changed: When you run Vanity in development mode
-(configuration.cache_classes = false), it will reload experiments on each
-request. You can also Vanity.playground.reload!.
+* Changed: Playground.define now requires an experiment type, ab_test is not the default any more.
+* Changed: When you run Vanity in development mode (configuration.cache_classes = false), it will reload experiments on each request. You can also Vanity.playground.reload!.
 * Changed: Fancy AJAX trickery in Rails console.
-* Changed: You can break long experiment descriptions into multiple paragraphs
-using two consecutive newlines.
-* Changed: AbTest confidence becomes probability.
-only returns choice alternative with probability equal or higher than that.
+* Changed: You can break long experiment descriptions into multiple paragraphs using two consecutive newlines.
+* Changed: AbTest confidence becomes probability; only returns choice alternative with probability equal or higher than that.
 
-0.3.1 (2009-11-13)
-* Changed: Redis 1.0 is now vendored into Vanity. This means one less
-dependecy ... actually two, since Redis brings with it RSpec.
+== 0.3.1 (2009-11-13)
+* Changed: Redis 1.0 is now vendored into Vanity. This means one less dependecy ... actually two, since Redis brings with it RSpec.
 
-0.3.0 (2009-11-13)
+== 0.3.0 (2009-11-13)
 * Added: score now includes least performing alternatives, names and values.
 * Added: shiny reports.
-* Added: Rails console shows current experiments status and also allows you to
-choose which alternative you want to see.
+* Added: Rails console shows current experiments status and also allows you to choose which alternative you want to see.
 * Changed: letters instead of numbers for options (option 1 => option A).
 * Changed: experiment.alternatives is now an immutable snapshot.
-* Changed: experiment.score returns populated alternative objects instead of
-structs.
-* Changed: experiment.chooses uses Redis to store state, better for (when we
-get to) browser integration.
+* Changed: experiment.score returns populated alternative objects instead of structs.
+* Changed: experiment.chooses uses Redis to store state, better for (when we get to) browser integration.
 * Changed: experiment.chooses skips recording participant or conversion.
 * Changed: to MIT license.
 
-0.2.2 (2009-11-12)
+== 0.2.2 (2009-11-12)
 * Added: vanity binary, with single command for generating a report.
 * Added: return alternative by value from experiment.alternative(val) method.
 * Added: reset an experiment by calling reset!.
 * Added: experiment alternative name (option 1, option 2, etc).
-* Added: new scoring algorithm: use experiment.score instead of
-alternative.z_score/confidence.
+* Added: new scoring algorithm: use experiment.score instead of alternative.z_score/confidence.
 * Added: experiment.conclusion for plain English results.
 
-0.2.1 (2009-11-11)
+== 0.2.1 (2009-11-11)
 * Added: z-score and confidence level for A/B test alternatives.
 * Added: test auto-completion and auto-outcome (complete_it, outcome_is).
-* Changed: default alternatives are now false/true, so if can't decide
-outcome, fall back on false.
+* Changed: default alternatives are now false/true, so if can't decide outcome, fall back on false.
 
-0.2.0 (2009-11-10)
+== 0.2.0 (2009-11-10)
 * Added: experiment method on object, used to define and access experiments.
 * Added: playground configuration (Vanity.playground.namespace = , etc).
 * Added: use_vanity now accepts block instead of symbol.
 * Changed: Vanity::Helpers becomes Vanity::Rails.
-* Changed: A/B test experiments alternatives now handled using Alternatives
-object.
+* Changed: A/B test experiments alternatives now handled using Alternatives object.
 * Removed: A/B test measure method no longer in use.
