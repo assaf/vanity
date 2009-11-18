@@ -14,7 +14,7 @@ module Vanity
   # 3) Measure conversion:
   #
   #   def signup
-  #     ab_goal! :pricing
+  #     track! :pricing
   #     . . .
   #   end
   module Rails
@@ -114,10 +114,10 @@ module Vanity
 
     # This method records conversion on the named A/B test. For example:
     #   def create
-    #     ab_goal! :call_to_action
+    #     track! :call_to_action
     #     Acccount.create! params[:account]
     #   end
-    def ab_goal!(name)
+    def track!(name)
       Vanity.playground.experiment(name).conversion!
     end
   end
