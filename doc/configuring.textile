@@ -1,0 +1,13 @@
+---
+layout: page
+title: Configuring the Playground
+---
+
+Vanity will work out of the box on a default configuration.  Assuming you're using Redis on localhost, post 6379, there's nothing special to do.
+
+If you run a different setup, use the playground object to configure Vanity.  For example:
+
+<pre>
+Vanity.playground.host = "redis.local"
+Vanity.playground.password = "supersecret"
+</pre>
