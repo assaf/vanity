@@ -36,8 +36,8 @@ module Vanity
       # Z-score for this alternative. Populated by AbTest#score.
       attr_accessor :z_score
 
-      # Confidence derived from z-score. Populated by AbTest#score.
-      attr_accessor :confidence
+      # Probability derived from z-score. Populated by AbTest#score.
+      attr_accessor :probability
     
       # Difference from least performing alternative. Populated by AbTest#score.
       attr_accessor :difference
@@ -70,10 +70,11 @@ module Vanity
     class AbTest < Base
       class << self
 
-        def confidence(score) #:nodoc:
+        # Convert z-score to probability.
+        def probability(score)
           score = score.abs
-          confidence = AbTest::Z_TO_CONFIDENCE.find { |z,p| score >= z }
-          confidence ? confidence.last : 0
+          probability = AbTest::Z_TO_PROBABILITY.find { |z,p| score >= z }
+          probability ? probability.last : 0
         end
 
         def friendly_name
@@ -231,12 +232,12 @@ module Vanity
       # [:best]   Best performing alternative.
       # [:base]   Second best performing alternative.
       # [:least]  Least performing alternative (but more than zero conversion).
-      # [:choice] Choice alterntive, either the outcome or best alternative (if confidence >= 90%).
+      # [:choice] Choice alterntive, either the outcome or best alternative (if probability >= 90%).
       #
       # Alternatives returned by this method are populated with the following attributes:
-      # [:z_score]    Z-score (relative to the base alternative).
-      # [:confidence] Confidence (z-score mapped to 0, 90, 95, 99 or 99.9%).
-      # [:difference] Difference from the least performant altenative.
+      # [:z_score]      Z-score (relative to the base alternative).
+      # [:probability]  Probability (z-score mapped to 0, 90, 95, 99 or 99.9%).
+      # [:difference]   Difference from the least performant altenative.
       def score
         alts = alternatives
         # sort by conversion rate to find second best and 2nd best
@@ -249,7 +250,7 @@ module Vanity
           p = alt.conversion_rate
           n = alt.participants
           alt.z_score = (p - pc) / ((p * (1-p)/n) + (pc * (1-pc)/nc)).abs ** 0.5
-          alt.confidence = AbTest.confidence(alt.z_score)
+          alt.probability = AbTest.probability(alt.z_score)
         end
         # difference is measured from least performant
         if least = sorted.find { |alt| alt.conversion_rate > 0 }
@@ -260,9 +261,9 @@ module Vanity
           end
         end
         # best alternative is one with highest conversion rate (best shot).
-        # choice alternative can only pick best if we have high confidence (>90%).
+        # choice alternative can only pick best if we have high probability (>90%).
         best = sorted.last if sorted.last.conversion_rate > 0.0
-        choice = outcome ? alts[outcome.id] : (best && best.confidence >= 90 ? best : nil)
+        choice = outcome ? alts[outcome.id] : (best && best.probability >= 90 ? best : nil)
         Struct.new(:alts, :best, :base, :least, :choice).new(alts, best, base, least, choice)
       end
 
@@ -282,8 +283,8 @@ module Vanity
             diff = ((best.conversion_rate - second.conversion_rate) / second.conversion_rate * 100).round
             better = " (%d%% better than %s)" % [diff, second.name] if diff > 0
             claims << "The best choice is %s: it converted at %.1f%%%s." % [best.name, best.conversion_rate * 100, better]
-            if best.confidence >= 90
-              claims << "With %d%% probability this result is statistically significant." % score.best.confidence
+            if best.probability >= 90
+              claims << "With %d%% probability this result is statistically significant." % score.best.probability
             else
               claims << "This result is not statistically significant, suggest you continue this experiment."
             end
@@ -316,7 +317,7 @@ module Vanity
       # The default implementation reads like this:
       #   outcome_is do
       #     highest = alternatives.sort.last
-      #     highest.confidence >= 95 ? highest ? alternatives.first
+      #     highest.probability >= 95 ? highest ? alternatives.first
       #   end
       def outcome_is(&block)
         raise ArgumentError, "Missing block" unless block
@@ -382,11 +383,11 @@ module Vanity
       end
 
       begin
-        a = 0
+        a = 50.0
         # Returns array of [z-score, percentage]
-        norm_dist = (-5.0..3.1).step(0.01).map { |x| [x, a += 1 / Math.sqrt(2 * Math::PI) * Math::E ** (-x ** 2 / 2)] }
+        norm_dist = (0.0..3.1).step(0.01).map { |x| [x, a += 1 / Math.sqrt(2 * Math::PI) * Math::E ** (-x ** 2 / 2)] }
         # We're really only interested in 90%, 95%, 99% and 99.9%.
-        Z_TO_CONFIDENCE = [90, 95, 99, 99.9].map { |pct| [norm_dist.find { |x,a| a >= pct }.first, pct] }.reverse
+        Z_TO_PROBABILITY = [90, 95, 99, 99.9].map { |pct| [norm_dist.find { |x,a| a >= pct }.first, pct] }.reverse
       end
 
     end

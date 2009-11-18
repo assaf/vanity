@@ -95,7 +95,7 @@ module Vanity
       # Define experiment completion condition.  For example:
       #   complete_if do
       #     alternatives.all? { |alt| alt.participants >= 100 } &&
-      #     alternatives.any? { |alt| alt.confidence >= 0.95 }
+      #     alternatives.any? { |alt| alt.probability >= 0.95 }
       #   end
       def complete_if(&block)
         raise ArgumentError, "Missing block" unless block
