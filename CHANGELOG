@@ -1,4 +1,4 @@
-0.4.0 (2009-11-15)
+0.4.0 (2009-11-17)
 This release changes the way you define a new experiment.  You can use a
 method suitable for the type of experiment you want to define, or call the
 generic define method (previously: experiment method).  For example:
@@ -19,7 +19,9 @@ request. You can also Vanity.playground.reload!.
 * Changed: Fancy AJAX trickery in Rails console.
 * Changed: You can break long experiment descriptions into multiple paragraphs
 using two consecutive newlines.
-* Changed: Experiment confidence becomes probability.
+* Changed: AbTest confidence becomes probability.
+* Changed: AbTest score method accepts minimum probability (default 90), and
+only returns choice alternative with probability equal or higher than that.
 
 0.3.1 (2009-11-13)
 * Changed: Redis 1.0 is now vendored into Vanity. This means one less
