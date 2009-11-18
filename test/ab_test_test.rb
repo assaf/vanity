@@ -289,6 +289,18 @@ class AbTestTest < ActionController::TestCase
     assert_equal 3, experiment(:abcd).score.least.id
   end
 
+  def test_scoring_with_different_probability
+    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    10.times { |i| experiment(:abcd).count i, :b, :participant }
+    8.times  { |i| experiment(:abcd).count i, :b, :conversion }
+    12.times { |i| experiment(:abcd).count i, :d, :participant }
+    5.times  { |i| experiment(:abcd).count i, :d, :conversion }
+
+    assert_equal 1, experiment(:abcd).score(90).choice.id
+    assert_equal 1, experiment(:abcd).score(95).choice.id
+    assert_nil experiment(:abcd).score(99).choice
+  end
+
 
   # -- Conclusion --
 

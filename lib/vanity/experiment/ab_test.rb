@@ -232,13 +232,16 @@ module Vanity
       # [:best]   Best performing alternative.
       # [:base]   Second best performing alternative.
       # [:least]  Least performing alternative (but more than zero conversion).
-      # [:choice] Choice alterntive, either the outcome or best alternative (if probability >= 90%).
+      # [:choice] Choice alterntive, either the outcome or best alternative.
       #
       # Alternatives returned by this method are populated with the following attributes:
       # [:z_score]      Z-score (relative to the base alternative).
       # [:probability]  Probability (z-score mapped to 0, 90, 95, 99 or 99.9%).
       # [:difference]   Difference from the least performant altenative.
-      def score
+      #
+      # The choice alternative is set only if the probability is higher or
+      # equal to the specified probability (default is 90%).
+      def score(probability = 90)
         alts = alternatives
         # sort by conversion rate to find second best and 2nd best
         sorted = alts.sort_by(&:conversion_rate)
@@ -263,7 +266,7 @@ module Vanity
         # best alternative is one with highest conversion rate (best shot).
         # choice alternative can only pick best if we have high probability (>90%).
         best = sorted.last if sorted.last.conversion_rate > 0.0
-        choice = outcome ? alts[outcome.id] : (best && best.probability >= 90 ? best : nil)
+        choice = outcome ? alts[outcome.id] : (best && best.probability >= probability ? best : nil)
         Struct.new(:alts, :best, :base, :least, :choice).new(alts, best, base, least, choice)
       end
 
