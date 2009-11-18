@@ -1,5 +1,4 @@
 require "rake/testtask"
-require "yard"
 
 spec = Gem::Specification.load(File.expand_path("vanity.gemspec", File.dirname(__FILE__)))
 
@@ -29,17 +28,30 @@ Rake::TestTask.new do |task|
   #task.warning = true
 end
 
-YARD::Rake::YardocTask.new(:yardoc) do |task|
-  task.files  = ["lib/**/*.rb"]
-  task.options = "--output", "api", "--title", "Vanity #{spec.version}", "--main", "README.rdoc", "--files", "CHANGELOG"
+begin
+  require "yard"
+  YARD::Rake::YardocTask.new(:yardoc) do |task|
+    task.files  = ["lib/**/*.rb"]
+    task.options = "--output", "api", "--title", "Vanity #{spec.version}", "--main", "README.rdoc", "--files", "CHANGELOG"
+  end
+rescue LoadError
 end
 
-file "_site"=>FileList["doc/**/*"] do
-  sh "jekyll", "doc", "_site"
+file ".site"=>FileList["doc/**/*"] do
+  sh "jekyll", "doc", ".site"
 end
-desc "Build site documentation"
-task :docs=>["_site", :yardoc] do
-  cp_r "api", "_site/"
+file ".site/api"=>"api" do
+  cp_r "api", ".site/"
+end
+desc "Push site documentation to Github pages"
+task :gh_pages=>[".site", ".site/api"] do
+  Dir.chdir ".site" do
+    sh "git co gh-pages"
+    sh "git add -u"
+    sh "git add *"
+    sh "git commit -m \"Documentation update\""
+    sh "git push"
+  end
 end
 
 task :report do
