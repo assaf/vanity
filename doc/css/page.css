@@ -1,0 +1,40 @@
+html { background-color: #fff; color: #111 }
+body {
+  font-size: 12pt;
+  font-family: "Georgia", serif;
+  line-height: 1.5em;
+  width: 40em;
+  margin: 2em auto;
+}
+a:link, a:visited { color: #0044b3; text-decoration: none; }
+a:hover{ text-decoration: underline }
+img { border: 1px solid #eee; padding: 16px }
+blockquote { padding-left: 2em; padding-right: 2em; margin-left: 0.3em; margin-right: 0; font-style: italic }
+ul { list-style-type: disc }
+ul ul { list-style-type: disc; padding-left: 1em }
+table { border-spacing: 0; width: 100%; margin: 0.3em 0 0.3em 0 }
+th, td { padding: 0.3em 0.5em 0.3em 0.5em; border-bottom: 1px solid #D8D8D8; vertical-align: top; background-color: #FFF }
+th, thead td { border-bottom: none; background-color: #669966; color: #fff; text-align: left }
+
+pre, code { font-family: "Andale Mono", "DejaVu Sans Mono", "Courier New", "Courier", monospace; font-size: 10pt; color: #222 }
+pre { margin: 0.6em 0 0.6em 1em; padding: 0; white-space: pre-wrap; white-space: -moz-pre-wrap !important }
+pre br { display: none }
+
+h1 { margin: 0 0 1.2em 0 }
+h1 img { border: none; margin: 0; padding: 0 }
+h2, h3, h3 { font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif; margin: 0 }
+h2 { font-size: 1.5em }
+h3 { font-size: 1.2em; margin-top: 2.5em }
+h4 { font-size: 1.0em; margin-top: 1.5em }
+/*line-height: 1.25em; letter-spacing: 0.03em; color: #87C72E; */
+
+#header .title { font-family: "Alte Haas Grotesk", Verdana; font-weight: bold; font-size: 72pt; color: #1F6684; text-shadow: #ccc 4px 4px 8px }
+#header .banner { 
+  position: absolute; top: 1em; left: -2.4em; text-align: center; padding: .2em 0 .3em 0; width: 8em;
+  background: #ff0000; border: 1px solid #fff0f0; color: #ff8; font-size: 18pt; font-weight: bold;
+  -webkit-transform: rotate(-45deg); -moz-transform: rotate(-45deg);
+  -webkit-box-shadow: 2px 2px 8px #ccc; -moz-box-shadow: 2px 2px 8px #ccc; 
+}
+
+#links { position:absolute; right:1em; top:1em }
+#footer { font-size: .9em; padding: 0; margin: 3em 0; border-top: 1px solid #ccc; text-align: right }

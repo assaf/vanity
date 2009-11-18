@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <meta content='text/html;charset=UTF-8' http-equiv='Content-Type'>
+    <title>Vanity &mdash; {{ page.title }}</title>
+    <style type='text/css'>@import 'css/page.css';</style>
+    <style media='print' type='text/css'>@import 'css/print.css';</style>
+    <link href='images/favicon.png' rel='shortcut icon'>
+  </head>
+  <body>
+    <h1><a href='http://assaf.github.com/vanity' title="Mirror, mirror, on the wall &hellip;" class="title"><img src="images/vanity.png"></a></h1>
+    <h2 id='{{ page.title | downcase | replace(' ', '_') }}'>{{ page.title }}</h2>
+    {{ content }}
+    <div id="links"<a href="http://github.com/assaf/vanity">Source code<a> | <a href="http://assaf.github.com/vanity/api/index.html">API reference</a></div>
+    <div id='footer'>Copyright &copy; 2009 Assaf Arkin</div>
+  </body>
+</html>
