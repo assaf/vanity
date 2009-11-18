@@ -1,7 +1,7 @@
 Vanity is an Experiment Driven Development framework for Rails.
 
+* Documentation: http://vanity.labnotes.org
 * On github: http://github.com/assaf/vanity
-* Documentation: http://assaf.github.com/vanity
 * Vanity requires Ruby 1.9.1 or later, Redis 1.0 or later.
 
 http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg

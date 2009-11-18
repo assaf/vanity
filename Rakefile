@@ -28,11 +28,12 @@ Rake::TestTask.new do |task|
   #task.warning = true
 end
 
+
 begin
   require "yard"
   YARD::Rake::YardocTask.new(:yardoc) do |task|
     task.files  = ["lib/**/*.rb"]
-    task.options = "--output", "api", "--title", "Vanity #{spec.version}", "--main", "README.rdoc", "--files", "CHANGELOG"
+    task.options = "--output", ".api", "--title", "Vanity #{spec.version}", "--main", "README.rdoc", "--files", "CHANGELOG"
   end
 rescue LoadError
 end
@@ -40,19 +41,17 @@ end
 file ".site"=>FileList["doc/**/*"] do
   sh "jekyll", "doc", ".site"
 end
-file ".site/api"=>"api" do
-  cp_r "api", ".site/"
+file ".site/api"=>"yardoc" do
+  cp_r ".api", ".site/apm"
 end
-desc "Push site documentation to Github pages"
-task :gh_pages=>[".site", ".site/api"] do
-  Dir.chdir ".site" do
-    sh "git co gh-pages"
-    sh "git add -u"
-    sh "git add *"
-    sh "git commit -m \"Documentation update\""
-    sh "git push"
-  end
+desc "Push site to server"
+task :publish=>[".site", ".site/api"] do
+  sh "rsync -cr --del --progress .site/ labnotes.org:/var/www/vanity/"
 end
+task :clobber do
+  rm_rf ".api", ".site"
+end
+
 
 task :report do
   $LOAD_PATH.unshift "lib"
