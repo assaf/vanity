@@ -34,6 +34,14 @@ YARD::Rake::YardocTask.new(:yardoc) do |task|
   task.options = "--output", "api", "--title", "Vanity #{spec.version}", "--main", "README.rdoc", "--files", "CHANGELOG"
 end
 
+file "_site"=>FileList["doc/**/*"] do
+  sh "jekyll", "doc", "_site"
+end
+desc "Build site documentation"
+task :docs=>["_site", :yardoc] do
+  cp_r "api", "_site/"
+end
+
 task :report do
   $LOAD_PATH.unshift "lib"
   require "vanity"
