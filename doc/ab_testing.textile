@@ -1,0 +1,189 @@
+---
+layout: page
+title: A/B Testing
+---
+
+"A/B testing":http://en.wikipedia.org/wiki/A/B_testing (or "split testing") are experiments you can run to compare the performance of different alternatives.  A classical example is using an A/B test to compare two landing pages and determine which one leads to more sign ups.  You can test out new features, or changes to existing features, and in-spite of the name, an A/B test can compare more than two alternatives.
+
+
+h3. True or False
+
+Let's start with a simple experiment.  We have this idea that a bigger sign-up link will increase the number of people who sign up for our service.  Let's set out to prove it.
+
+We'll start by defining a new experiment:
+
+<pre>
+ab_test "Big singup link" do
+  description "Testing to see if a bigger sign-up link increases conversion."
+end
+</pre>
+
+Next, we're going to show some of our visitors a bigger sign-up link:
+
+<pre>
+<% bigger = "font:14pt;font-weight:bold" if ab_test(:big_signup_link) %>
+<%= link_to "Sign up", signup_url, style: bigger %>
+</pre>
+
+Approximately half the visitors to our site will see this link:
+
+<a href="#">Sign up</a>
+
+While the other half will see this one:
+
+<a href="#" style="font:14pt;font-weight:bold">Sign up</a>
+
+We want to measure how effective each link is, so we're going to track new sign ups:
+
+<pre>
+class SignupController < ApplicationController
+  def signup
+    Account.create(params[:account])
+    track! :big_signup_link
+  end
+end
+</pre>
+
+*Note:* You can reference an experiment by its name or identifier, that is, you can call @experiment(:big_signup_link)@ or @experiment("Big singup link")@.  The identifier is all lower case and replaces non-word characters with underscores.  It also matches the experiment's file name, in this case @experiments/big_signup_link.rb@.
+
+
+h3. Interpreting the Results
+
+We're going to let the experiment run for a while and track the results using the "console":console.html, or by running the command @vanity report@.
+
+Vanity splits the audience randomly -- using "cookies and other mechanisms":identity.html -- and records who got to see each alternative, and how many in each group converted (in our case, signed up).  Dividing conversions by participants gives you the conversion rate.
+
+!images/clear_winner.png!
+
+Vanity will show the conversion rate for each alternative, and how that conversion compares to the worst performing alternative.  In the example above, option A has 80.6% conversion rate, 11% more than option B's 72.6% conversion rate (72.6 * 111% ~ 80.6%). 
+
+(These large numbers are easily explained by the fact that this report was generated form made up data)
+
+It takes only a handful of visits before you'll see one alternative clearly performing better than all others.  That's a sign that you should continue running the experiment.  You see, small sample size tend to give out random results.
+
+To get actionable results, you want a large enough sample, more specifically, you want to look at the probability.  Vanity picks the top two alternatives and "calculates a z-score":http://20bits.com/articles/statistical-analysis-and-ab-testing/ to determine the probability that the best alternative performed better than second best.  If presents that probability which should tell you when is a good time to wrap up the experiment.
+
+This is the part that gets most people confused about A/B testing.  Let's say we ran an experiment with two alternatives and we notice that option B performs 50% better than option A (A * 150% = B).  We calculate from the z-score a 90% probability.
+
+"With 90% probability" does not mean 90% of the difference (50%), it does not mean B performs 45% better than A (90% * 50% = 45%).  In fact, it doesn't tell us how well B performs relative to A.  Option B may perform exceptionally well during the experiment, not so well later on.
+
+The only thing "with 90% probability" tells us is the probability that option B is somewhat better than option A.  And that means 10% probability that the results we're seeing are totally random and mean nothing in the long run.  In other words: 9 out of 10 times, B is indeed better than A.
+
+If you run the test longer to collect a larger sample size you'll see the probability increase to 95%, then 99% and finally 99.9%.  That's big confidence in the outcome of the experiment, but it might take a long time to get there.
+
+You might want to instead decide on some target probability (which could change from one experiment to another).  For example, if you pick 95% as the target, you're going to act on the wrong conclusion 1 out of 20 times, but you're going to finish your experiments faster, which means you'll get to iterate quickly and more often.  Fast iterations are one way to improve the quality of your software.
+
+You'll want to read more about "A/B testing and statistical significance":http://www.cennydd.co.uk/2009/statistical-significance-other-ab-test-pitfalls/
+
+
+h3.  Multiple Alternatives
+
+Your A/B tests can have as many alternatives as you care, with two caveats.  The more alternatives you have the larger the sample size you need, and so the longer it will take to find out the outcome of your experiment.  You want alternatives that are significantly different from each other, testing two pricing options at $5 and $25 is fast, testing all the prices between $5 and $25 at $1 increments will take a long time to reach any conclusive result.
+
+The second caveat is that right now Vanity only scores the two best performing alternatives.  This may be an issue in some experiments, it may also be fixed in a future release.
+
+To define an experiment with multiple alternatives:
+
+<pre>
+ab_test "Price options" do
+  description "Mirror, mirror on the wall, who's the better price of them all?"
+  alternatives 5, 15, 25
+end
+</pre>
+
+The @ab_test@ method returns the value of one of the chosen alternatives, so in your views you can write:
+
+<pre>
+<h2>Get started for only $<%= ab_test :price_options %> a month!</h2>
+</pre>
+
+!images/price_options.png!
+
+If you don't given any values, Vanity will run your experiment with the values false and true.  Here are other examples for rendering A/B tests with multiple values:
+
+<pre>
+def index
+  # alternatives are names of templates 
+  render template: ab_test(:new_page)
+end
+</pre>
+   
+<pre>
+<%= ab_test(:greeting) %> <%= current_user.name %>
+</pre>
+   
+<pre>
+<% ab_test :features do |count| %>
+  <%= count %> features to choose from!
+<% end %>
+</pre>
+
+
+h3.  A/B Testing and Code Testing
+
+If you're presenting more than one alternative to visitors of your site, you'll want to test more than one alternative.  Don't let A/B testing become A/broken.
+
+You can force a functional/integration test to choose a given alternative:
+
+<pre>
+def test_big_signup_link
+  experiment(:big_signup_link).chooses(true)
+  get :index
+  assert_select "a[href=/signup][style^=font:14pt]", "Sign up"
+end
+</pre>
+
+Here's another example using Webrat:
+
+<pre>
+def test_price_option
+  [19, 25, 29].each do |price| 
+    experiment(:price_options).chooses(price)
+    visit root_path
+    assert_contain "Get started for only $#{price} a month!"
+  end
+end
+</pre>
+
+You'll also want to test each alternative visually, from your Web browser.  For that you'll have to install the "Vanity Rails Console":console.html, which lets you pick which alternative is shown to you:
+
+!images/ab_console.png!
+
+Once the experiment is over, simply remove its definition from the experiments directory and run the test suite again.  You'll see errors in all the places that touch the experiment (from failing to load it), pointing you to what parts of the code you need to remove/change.
+
+
+h3. Let the Test Decide
+
+Sample size and probability help you interpret the results, you can also use them to configure an experiment to automatically complete itself.
+
+This experiment will conclude once it has 1000 participants for each alternative, or a leading alternative with probability of 95% or higher:
+
+<pre>
+ab_test "Self completed" do
+  description "This experiment will self-complete."
+  complete_if do
+    alternatives.all? { |alt| alt.participants >= 1000 } ||
+      (score.choice && score.choice.probability >= 95)
+  end
+end
+</pre>
+
+When it reaches its end, the experiment will stop recording conversions, chose one of its alternatives as the outcome and switch every usage of @ab_test@ to that alternative.
+
+By default Vanity will choose the alternative with the highest conversion rate.  This is most often, but not always, the best outcome.  Imagine an experiment where option B results in less conversions, but higher quality conversion that option A.  Perhaps you're interested in option B conversions if you're losing no more than 20% compared to option A.  Here's a way to write that outcome:
+
+<pre>
+ab_test "Self completed" do
+  description "This experiment will self-complete."
+
+  complete_if do
+    score(95).choice # only return choice with probability >= 95
+  end
+
+  outcome_is do
+    a, b = alternatives
+    b.conversion_rate >= 0.8 * a.conversion_rate ? b : a
+  end
+end
+</pre>
+
