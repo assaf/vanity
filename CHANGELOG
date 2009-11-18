@@ -11,6 +11,8 @@ The experiment method is no longer overloaded: it looks up an experiment
 (loading its definition if necessary), but does not define an experiment.
 The ab_test method is overloaded, though this may change in the future.
 
+* Added: A/B test report now showing number of participants.
+* Added: AbTest.score method accepts minimum probability (default 90), and
 * Changed: Playground.define now requires an experiment type, ab_test is not
 the default any more.
 * Changed: When you run Vanity in development mode
@@ -20,7 +22,6 @@ request. You can also Vanity.playground.reload!.
 * Changed: You can break long experiment descriptions into multiple paragraphs
 using two consecutive newlines.
 * Changed: AbTest confidence becomes probability.
-* Changed: AbTest score method accepts minimum probability (default 90), and
 only returns choice alternative with probability equal or higher than that.
 
 0.3.1 (2009-11-13)
