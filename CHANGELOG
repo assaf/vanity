@@ -19,6 +19,7 @@ request. You can also Vanity.playground.reload!.
 * Changed: Fancy AJAX trickery in Rails console.
 * Changed: You can break long experiment descriptions into multiple paragraphs
 using two consecutive newlines.
+* Changed: Experiment confidence becomes probability.
 
 0.3.1 (2009-11-13)
 * Changed: Redis 1.0 is now vendored into Vanity. This means one less

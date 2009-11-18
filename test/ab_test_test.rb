@@ -235,8 +235,8 @@ class AbTestTest < ActionController::TestCase
 
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }
     assert_equal %w{-1.33 0.00 -2.47 1.58}, z_scores
-    confidences = experiment(:abcd).score.alts.map(&:confidence)
-    assert_equal [90, 0, 99, 90], confidences
+    probabilities = experiment(:abcd).score.alts.map(&:probability)
+    assert_equal [90, 0, 99, 90], probabilities
 
     diff = experiment(:abcd).score.alts.map { |alt| alt.difference && alt.difference.round }
     assert_equal [30, 69, nil, 119], diff
@@ -250,7 +250,7 @@ class AbTestTest < ActionController::TestCase
   def test_scoring_with_no_performers
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
     assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
-    assert experiment(:abcd).score.alts.all? { |alt| alt.confidence == 0 }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.probability == 0 }
     assert experiment(:abcd).score.alts.all? { |alt| alt.difference.nil? }
     assert_nil experiment(:abcd).score.best
     assert_nil experiment(:abcd).score.choice
@@ -262,7 +262,7 @@ class AbTestTest < ActionController::TestCase
     10.times { |i| experiment(:abcd).count i, :b, :participant }
     8.times  { |i| experiment(:abcd).count i, :b, :conversion }
     assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
-    assert experiment(:abcd).score.alts.all? { |alt| alt.confidence == 0 }
+    assert experiment(:abcd).score.alts.all? { |alt| alt.probability == 0 }
     assert experiment(:abcd).score.alts.all? { |alt| alt.difference.nil? }
     assert 1, experiment(:abcd).score.best.id
     assert_nil experiment(:abcd).score.choice
@@ -279,8 +279,8 @@ class AbTestTest < ActionController::TestCase
 
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }
     assert_equal %w{NaN 2.01 NaN 0.00}, z_scores
-    confidences = experiment(:abcd).score.alts.map(&:confidence)
-    assert_equal [0, 95, 0, 0], confidences
+    probabilities = experiment(:abcd).score.alts.map(&:probability)
+    assert_equal [0, 95, 0, 0], probabilities
     diff = experiment(:abcd).score.alts.map { |alt| alt.difference && alt.difference.round }
     assert_equal [nil, 92, nil, nil], diff
     assert_equal 1, experiment(:abcd).score.best.id
