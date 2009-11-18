@@ -1,15 +1,13 @@
 == 0.4.0 (2009-11-17)
-This release changes the way you define a new experiment.  You can use a
-method suitable for the type of experiment you want to define, or call the
-generic define method (previously: experiment method).  For example:
+This release changes the way you define a new experiment.  You can use a method suitable for the type of experiment you want to define, or call the generic define method (previously: experiment method).  For example:
 
   ab_test "My A/B test" do
 	  alternatives :a, :b
 	end
 
-The experiment method is no longer overloaded: it looks up an experiment
-(loading its definition if necessary), but does not define an experiment.
-The ab_test method is overloaded, though this may change in the future.
+The experiment method is no longer overloaded: it looks up an experiment (loading its definition if necessary), but does not define an experiment.  The ab_test method is overloaded, though this may change in the future.
+
+In addition, the ab_goal! method is now track!.  This method may be used for other tests in the future.
 
 * Added: A/B test report now showing number of participants.
 * Added: AbTest.score method accepts minimum probability (default 90), and
@@ -18,6 +16,7 @@ The ab_test method is overloaded, though this may change in the future.
 * Changed: Fancy AJAX trickery in Rails console.
 * Changed: You can break long experiment descriptions into multiple paragraphs using two consecutive newlines.
 * Changed: AbTest confidence becomes probability; only returns choice alternative with probability equal or higher than that.
+* Changed: ab_goal! becomes track!.
 
 == 0.3.1 (2009-11-13)
 * Changed: Redis 1.0 is now vendored into Vanity. This means one less dependecy ... actually two, since Redis brings with it RSpec.

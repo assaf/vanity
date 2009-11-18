@@ -36,7 +36,7 @@ And:
     def signup
       @account = Account.new(params[:account])
       if @account.save
-        ab_goal! :pricing_options # <- here be conversion!
+        track! :pricing_options # <- here be conversion!
         redirect_to @acccount
       else
         render action: :offer

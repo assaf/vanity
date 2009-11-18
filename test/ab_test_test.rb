@@ -16,8 +16,8 @@ class AbTestController < ActionController::Base
     render inline: "<% ab_test :simple do |value| %><%= value %><% end %>"
   end
 
-  def goal
-    ab_goal! :simple
+  def track
+    track! :simple
     render text: ""
   end
 end
@@ -185,11 +185,11 @@ class AbTestTest < ActionController::TestCase
     assert_equal %w{false true}, responses.map(&:strip).uniq.sort
   end
 
-  def test_ab_test_goal
+  def test_ab_test_track
     ab_test(:simple) { }
     responses = Array.new(100) do
       @controller.send(:cookies).clear
-      get :goal
+      get :track
       @response.body
     end
   end
