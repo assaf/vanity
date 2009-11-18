@@ -274,6 +274,12 @@ module Vanity
       # array of claims.
       def conclusion(score = score)
         claims = []
+        participants = score.alts.inject(0) { |t,alt| t + alt.participants }
+        claims << case participants
+          when 0 ; "There are no participants in this experiment yet."
+          when 1 ; "There is one participant in this experiment."
+          else ; "There are #{participants} participants in this experiment."
+        end
         # only interested in sorted alternatives with conversion
         sorted = score.alts.select { |alt| alt.conversion_rate > 0.0 }.sort_by(&:conversion_rate).reverse
         if sorted.size > 1

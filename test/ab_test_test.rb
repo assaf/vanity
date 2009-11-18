@@ -321,6 +321,7 @@ class AbTestTest < ActionController::TestCase
     61.times  { |i| experiment(:abcd).count i, :d, :conversion }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+There are 739 participants in this experiment.
 The best choice is option D: it converted at 32.4% (30% better than option B).
 With 90% probability this result is statistically significant.
 Option B converted at 25.0%.
@@ -340,6 +341,7 @@ Option D selected as the best alternative.
     61.times  { |i| experiment(:abcd).count i, :d, :conversion }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+There are 368 participants in this experiment.
 The best choice is option D: it converted at 32.4% (30% better than option B).
 With 90% probability this result is statistically significant.
 Option B converted at 25.0%.
@@ -359,6 +361,7 @@ Option D selected as the best alternative.
     61.times  { |i| experiment(:abcd).count i, :d, :conversion }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+There are 368 participants in this experiment.
 The best choice is option D: it converted at 32.4% (1% better than option B).
 This result is not statistically significant, suggest you continue this experiment.
 Option B converted at 32.2%.
@@ -377,6 +380,7 @@ Option C did not convert.
     61.times  { |i| experiment(:abcd).count i, :d, :conversion }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+There are 374 participants in this experiment.
 The best choice is option D: it converted at 32.4%.
 This result is not statistically significant, suggest you continue this experiment.
 Option B converted at 32.3%.
@@ -395,6 +399,7 @@ Option C did not convert.
     61.times  { |i| experiment(:abcd).count i, :d, :conversion }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+There are 376 participants in this experiment.
 Option D converted at 32.4%.
 Option B converted at 32.4%.
 Option A did not convert.
@@ -408,12 +413,18 @@ Option C did not convert.
     180.times { |i| experiment(:abcd).count i, :b, :participant }
     45.times  { |i| experiment(:abcd).count i, :b, :conversion }
 
-    assert_equal "This experiment did not run long enough to find a clear winner.", experiment(:abcd).conclusion.join("\n")
+    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+There are 180 participants in this experiment.
+This experiment did not run long enough to find a clear winner.
+    TEXT
   end
 
   def test_conclusion_with_no_performers
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
-    assert_equal "This experiment did not run long enough to find a clear winner.", experiment(:abcd).conclusion.join("\n")
+    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+There are no participants in this experiment yet.
+This experiment did not run long enough to find a clear winner.
+    TEXT
   end
 
 
