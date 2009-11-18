@@ -1,36 +1,42 @@
 Vanity is an Experiment Driven Development framework for Rails.
 
-http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
+* On github: http://github.com/assaf/vanity
+* Documentation: http://assaf.github.com/vanity
+* Vanity requires Ruby 1.9.1 or later, Redis 1.0 or later.
 
-Requires Ruby 1.9.1 or later, Redis 1.0 or later.
+http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
 
 == A/B Testing with Rails (in 5 easy steps)
 
-Add Vanity to your Rails app:
+<b>Step 1:</b> Start using Vanity in your Rails application:
+
+  gem.config "vanity"
+
+And:
 
   class ApplicationController < ActionController::Base
     use_vanity :current_user
   end
 
-Define an A/B test.  This test compares three pricing options:
+<b>Step 2:</b> Define your first A/B test.  This experiment goes in the file <code>experiments/price_options.rb</code>:
 
-  experiment "Price options" do
-    description "Mirror, mirror on the wall, who's the better price of them all?"
+  ab_test "Price options" do
+    description "Mirror, mirror on the wall, who's the better price of all?"
     alternatives 19, 25, 29
   end
 
-Present different options to the user:
+<b>Step 3:</b> Present the different options to your users:
 
-  <h2>Get started for only $<%= ab_test :pricing_options %> a month!</h2>
+  <h2>Get started for only $<%= ab_test :price_options %> a month!</h2>
 
-Measure conversion:
+<b>Step 4:</b> Measure conversion:
 
   class SignupController < ApplicationController
     def signup
       @account = Account.new(params[:account])
       if @account.save
-        ab_goal! :pricing_options # <- conversion
+        ab_goal! :pricing_options # <- here be conversion!
         redirect_to @acccount
       else
         render action: :offer
@@ -38,15 +44,13 @@ Measure conversion:
     end
   end
 
-Check the report:
+<b>Step 5:</b> Check the report:
 
   vanity --output vanity.html
 
-Learn more about Vanity: http://assaf.github.com/vanity
 
+== Credits/License
 
-== Credits
-
-Experiment Driven Development: Nathaniel Talbott (http://blog.talbott.ws).
+Idea behind Experiment Driven Development: Nathaniel Talbott (http://blog.talbott.ws).
 
 Copyright (C) 2009 Assaf Arkin, released under the MIT license.

@@ -1,0 +1,32 @@
+---
+layout: page
+title: Managing Identity
+---
+
+For effective A/B tests, you want to:
+- Randomly show different alternatives to different people
+- Consistently show the same alternatives to the same person
+- Know which alternative caused a conversion
+- When running multiple tests at once, keep them independent
+
+If you don't use any other mechanism, Vanity will assign a random value to a persistent cookie and use it to track the same visitor on subsequent visits.  Cookie tracking is enabled by use_vanity.
+
+If you keep track of users, you would want to use the user's identity instead.  Using user identity is more reliable than a cookie tied to a single Web browser.
+
+To do that, call use_vanity with the name of a method which returns an object with the desired id attribute.  Alternatively, you can use a proc.  These two examples are equivalent:
+
+<pre>
+use_vanity :current_user
+use_vanity { |controller| controller.current_user.id }
+</pre>
+
+There are times when you would want to use a different identity to distinguish test alternatives.  For example, your application may have groups and you may want to A/B test an option that will be available (or not) to all people in the same group.
+
+You can tell Vanity to use a different identity on a particular controller using use_vanity.  Alternatively, you can configure the experiment to extract the identity.  The following example will apply to all controllers that have a project attribute (without affecting other experiments):
+
+<pre>
+example "New feature" do
+  description "New feature only available to some groups"
+  identify { |controller| controller.project.id }
+end
+</pre>
