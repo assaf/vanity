@@ -18,6 +18,7 @@ In addition, the ab_goal! method is now track!.  This method may be used for oth
 * Changed: You can break long experiment descriptions into multiple paragraphs using two consecutive newlines.
 * Changed: AbTest confidence becomes probability; only returns choice alternative with probability equal or higher than that.
 * Changed: ab_goal! becomes track!.
+* Changed: Console becomes Dashboard, which is less confusing with rails console (script/console).
 
 == 0.3.1 (2009-11-13)
 * Changed: Redis 1.0 is now vendored into Vanity. This means one less dependecy ... actually two, since Redis brings with it RSpec.

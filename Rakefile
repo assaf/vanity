@@ -46,7 +46,7 @@ file ".site/api"=>"yardoc" do
   cp_r ".api", ".site/apm"
 end
 desc "Push site to server"
-task :publish=>[".site", ".site/api"] do
+task :publish=>[:clobber, ".site", ".site/api"] do
   sh "rsync -cr --del --progress .site/ labnotes.org:/var/www/vanity/"
 end
 task :clobber do

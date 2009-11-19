@@ -49,7 +49,7 @@ end
 
 h3. Interpreting the Results
 
-We're going to let the experiment run for a while and track the results using the "console":console.html, or by running the command @vanity report@.
+We're going to let the experiment run for a while and track the results using "the dashboard":dashboard.html, or by running the command @vanity report@.
 
 Vanity splits the audience randomly -- using "cookies and other mechanisms":identity.html -- and records who got to see each alternative, and how many in each group converted (in our case, signed up).  Dividing conversions by participants gives you the conversion rate.
 
@@ -145,9 +145,9 @@ def test_price_option
 end
 </pre>
 
-You'll also want to test each alternative visually, from your Web browser.  For that you'll have to install the "Vanity Rails Console":console.html, which lets you pick which alternative is shown to you:
+You'll also want to test each alternative visually, from your Web browser.  For that you'll have to install the "the Dashboard":dashboard.html, which lets you pick which alternative is shown to you:
 
-!images/ab_console.png!
+!images/ab_in_dashboard.png!
 
 Once the experiment is over, simply remove its definition from the experiments directory and run the test suite again.  You'll see errors in all the places that touch the experiment (from failing to load it), pointing you to what parts of the code you need to remove/change.
 
