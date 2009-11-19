@@ -2,7 +2,7 @@ require "test/test_helper"
 
 class PlaygroundTest < MiniTest::Unit::TestCase
   def setup
-    @namespace = "vanity:0"
+    @namespace = "vanity:1"
   end
 
   def test_has_one_global_instance
