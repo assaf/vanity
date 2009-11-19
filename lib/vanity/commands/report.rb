@@ -7,7 +7,7 @@ module Vanity
   # outside Rails).
   module Render
     
-    # Render the named template.  Used for reporting and the console.
+    # Render the named template.  Used for reporting and the dashboard.
     def render(path, locals = {})
       locals[:playground] = self
       keys = locals.keys

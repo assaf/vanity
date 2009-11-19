@@ -1,7 +1,7 @@
 require "vanity"
 require "vanity/rails/helpers"
 require "vanity/rails/testing"
-require "vanity/rails/console"
+require "vanity/rails/dashboard"
 
 # Use Rails logger by default.
 Vanity.playground.logger ||= ActionController::Base.logger

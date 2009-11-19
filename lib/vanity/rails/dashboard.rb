@@ -1,6 +1,6 @@
 module Vanity
   module Rails
-    module ConsoleActions
+    module Dashboard
       def index
         render Vanity.template("_report"), content_type: Mime::HTML, layout: true
       end
