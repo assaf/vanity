@@ -43,7 +43,7 @@ file ".site"=>FileList["doc/**/*"] do
   sh "jekyll", "doc", ".site"
 end
 file ".site/api"=>"yardoc" do
-  cp_r ".api", ".site/apm"
+  cp_r ".api", ".site/api"
 end
 desc "Push site to server"
 task :publish=>[:clobber, ".site", ".site/api"] do
