@@ -49,7 +49,7 @@ task :publish=>[".site", ".site/api"] do
   sh "rsync -cr --del --progress .site/ labnotes.org:/var/www/vanity/"
 end
 task :clobber do
-  rm_rf ".api", ".site"
+  rm_rf [".api", ".site"]
 end
 
 
@@ -57,26 +57,25 @@ task :report do
   $LOAD_PATH.unshift "lib"
   require "vanity"
   Vanity.playground.load_path = "test/experiments"
+  Vanity.playground.experiments.each(&:destroy)
 
-  experiment(:null_abc).reset!
   # Control	182	35	19.23%	N/A
-  182.times { |i| experiment(:null_abc).count i, nil, :participant }
-  35.times  { |i| experiment(:null_abc).count i, nil, :conversion }
+  182.times { |i| experiment(:null_abc).send(:count_participant, i, nil) }
+  35.times  { |i| experiment(:null_abc).send(:count_conversion, i, nil) }
   # Treatment A	180	45	25.00%	1.33
-  180.times { |i| experiment(:null_abc).count i, :red, :participant }
-  45.times  { |i| experiment(:null_abc).count i, :red, :conversion }
+  180.times { |i| experiment(:null_abc).send(:count_participant, i, :red) }
+  45.times  { |i| experiment(:null_abc).send(:count_conversion, i, :red) }
   # Treatment B	189	28	14.81%	-1.13
-  189.times { |i| experiment(:null_abc).count i, :green, :participant }
-  28.times  { |i| experiment(:null_abc).count i, :green, :conversion }
+  189.times { |i| experiment(:null_abc).send(:count_participant, i, :green) }
+  28.times  { |i| experiment(:null_abc).send(:count_conversion, i, :green) }
   # Treatment C	188	61	32.45%	2.94
-  188.times { |i| experiment(:null_abc).count i, :blue, :participant }
-  61.times  { |i| experiment(:null_abc).count i, :blue, :conversion }
+  188.times { |i| experiment(:null_abc).send(:count_participant, i, :blue) }
+  61.times  { |i| experiment(:null_abc).send(:count_conversion, i, :blue) }
 
-  experiment(:age_and_zipcode).reset!
-  80.times { |i| experiment(:age_and_zipcode).count i, false, :participant }
-  35.times  { |i| experiment(:age_and_zipcode).count i, false, :conversion }
-  84.times { |i| experiment(:age_and_zipcode).count i, true, :participant }
-  32.times  { |i| experiment(:age_and_zipcode).count i, true, :conversion }
+  80.times { |i| experiment(:age_and_zipcode).send(:count_participant, i, false) }
+  35.times  { |i| experiment(:age_and_zipcode).send(:count_conversion, i, false) }
+  84.times { |i| experiment(:age_and_zipcode).send(:count_participant, i, true) }
+  32.times  { |i| experiment(:age_and_zipcode).send(:count_conversion, i, true) }
 
   Vanity::Commands.report
 end

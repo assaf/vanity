@@ -22,58 +22,53 @@ module Vanity
         @identify_block = ->(context){ context.vanity_identity }
       end
 
-      # Human readable experiment name, supplied during creation.
+      # Human readable experiment name (first argument you pass when creating a
+      # new experiment).
       attr_reader :name
 
-      # Unique identifier, derived from name, e.g. "Green Button" become :green_button.
+      # Unique identifier, derived from name experiment name, e.g. "Green
+      # Button" becomes :green_button.
       attr_reader :id
 
-      # Experiment creation timestamp.
+      # Time stamp when experiment was created.
       attr_reader :created_at
 
-      # Experiment completion timestamp.
+      # Time stamp when experiment was completed.
       attr_reader :completed_at
 
-      # Returns the type of this class as a symbol (e.g. ab_test).
+      # Returns the type of this experiment as a symbol (e.g. :ab_test).
       def type
         self.class.type
       end
      
-      # Call this method with no argument or block to return an identity.  Call
-      # this method with a block to define how to obtain an identity for the
-      # current experiment.
+      # Defines how we obtain an identity for the current experiment.  Usually
+      # Vanity gets the identity form a session object (see use_vanity), but
+      # there are cases where you want a particular experiment to use a
+      # different identity.
       #
-      # For example, this experiment use the identity of the project associated
-      # with the controller:
-      #
-      #   class ProjectController < ApplicationController
-      #     before_filter :set_project
-      #     attr_reader :project
-      #
-      #     . . .
-      #   end
-      #
-      #   experiment "Project widget" do
+      # For example, if all your experiments use current_user and you need one
+      # experiment to use the current project:
+      #   ab_test "Project widget" do
       #     alternatives :small, :medium, :large
       #     identify do |controller|
       #       controller.project.id
       #     end
       #   end
       def identify(&block)
-        if block_given?
-          @identify_block = block
-          self
-        else
-          @identify_block.call(Vanity.context) or fail "No identity found"
-        end
+        @identify_block = block
       end
+
+      def identity
+        @identify_block.call(Vanity.context) or fail "No identity found"
+      end
+      protected :identity
 
 
       # -- Reporting --
 
       # Sets or returns description. For example
-      #   experiment :simple do
-      #     description "Simple experiment"
+      #   ab_test "Simple" do
+      #     description "A simple A/B experiment"
       #   end
       #
       #   puts "Just defined: " + experiment(:simple).description
@@ -91,8 +86,7 @@ module Vanity
 
       # Define experiment completion condition.  For example:
       #   complete_if do
-      #     alternatives.all? { |alt| alt.participants >= 100 } &&
-      #     alternatives.any? { |alt| alt.probability >= 0.95 }
+      #     !score(95).chosen.nil?
       #   end
       def complete_if(&block)
         raise ArgumentError, "Missing block" unless block
@@ -130,34 +124,7 @@ module Vanity
         redis[key(:completed_at)].nil?
       end
 
-
       # -- Store/validate --
-
-      # Returns key for this experiment, or with an argument, return a key
-      # using the experiment as the namespace.  Examples:
-      #   key => "vanity:experiments:green_button"
-      #   key("participants") => "vanity:experiments:green_button:participants"
-      def key(name = nil) #:nodoc:
-        name ? "#{@namespace}:#{name}" : @namespace
-      end
-
-      # Shortcut for Vanity.playground.redis
-      def redis #:nodoc:
-        @playground.redis
-      end
-      
-      # Called by Playground to save the experiment definition.
-      def save
-        redis.setnx key(:created_at), Time.now.to_i
-        @created_at = Time.at(redis[key(:created_at)].to_i)
-      end
-
-      # Reset experiment to its initial state.
-      def reset!
-        @created_at = Time.now
-        redis[key(:created_at)] = @created_at.to_i
-        redis.del key(:completed_at)
-      end
 
       # Get rid of all experiment data.
       def destroy
@@ -165,6 +132,27 @@ module Vanity
         redis.del key(:completed_at)
       end
 
+      # Called by Playground to save the experiment definition.
+      def save
+        redis.setnx key(:created_at), Time.now.to_i
+        @created_at = Time.at(redis[key(:created_at)].to_i)
+      end
+
+    protected
+
+      # Returns key for this experiment, or with an argument, return a key
+      # using the experiment as the namespace.  Examples:
+      #   key => "vanity:experiments:green_button"
+      #   key("participants") => "vanity:experiments:green_button:participants"
+      def key(name = nil)
+        name ? "#{@namespace}:#{name}" : @namespace
+      end
+
+      # Shortcut for Vanity.playground.redis
+      def redis
+        @playground.redis
+      end
+      
     end
   end
 end

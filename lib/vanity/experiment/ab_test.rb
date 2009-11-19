@@ -1,10 +1,10 @@
 module Vanity
   module Experiment
 
-    # Experiment alternative.  See AbTest#alternatives and AbTest#score.
+    # One of several alternatives in an A/B test (see AbTest#alternatives).
     class Alternative
 
-      def initialize(experiment, id, value, participants, converted, conversions) #:nodoc:
+      def initialize(experiment, id, value, participants, converted, conversions)
         @experiment = experiment
         @id = id
         @name = "option #{(@id + 65).chr}"
@@ -27,13 +27,13 @@ module Vanity
       # Number of participants who viewed this alternative.
       attr_reader :participants
 
-      # Number of participants who converted on this alternative.
+      # Number of participants who converted on this alternative (a participant is counted only once).
       attr_reader :converted
 
       # Number of conversions for this alternative (same participant may be counted more than once).
       attr_reader :conversions
 
-      # Z-score for this alternative. Populated by AbTest#score.
+      # Z-score for this alternative, related to 2nd-best performing alternative. Populated by AbTest#score.
       attr_accessor :z_score
 
       # Probability derived from z-score. Populated by AbTest#score.
@@ -44,22 +44,28 @@ module Vanity
 
       # Conversion rate calculated as converted/participants, rounded to 3 places.
       def conversion_rate
-        @rate ||= (participants > 0 ? (converted.to_f/participants.to_f).round(3) : 0.0)
+        @conversion_rate ||= (participants > 0 ? (converted.to_f/participants.to_f).round(3) : 0.0)
       end
 
-      def <=>(other) # sort by conversion rate
-        conversion_rate <=> other.conversion_rate 
+      # The measure we use to order (sort) alternatives and decide which one is better (by calculating z-score).
+      # Defaults to conversion rate.
+      def measure
+        conversion_rate
+      end
+
+      def <=>(other)
+        measure <=> other.measure 
       end
 
       def ==(other)
         other && id == other.id && experiment == other.experiment
       end
 
-      def to_s #:nodoc:
+      def to_s
         name
       end
 
-      def inspect #:nodoc:
+      def inspect
         "#{name}: #{value} #{converted}/#{participants}"
       end
 
@@ -83,7 +89,7 @@ module Vanity
 
       end
 
-      def initialize(*args) #:nodoc:
+      def initialize(*args)
         super
         @alternatives = [false, true]
       end
@@ -100,18 +106,18 @@ module Vanity
       #   alts = experiment(:background_color).alternatives
       #   puts "#{alts.count} alternatives, with the colors: #{alts.map(&:value).join(", ")}"
       #
-      # If you want to know how well each alternative is faring, use #score.
+      # If you want to know how well each alternative is doing, use #score.
       def alternatives(*args)
         unless args.empty?
           @alternatives = args.clone
         end
         class << self
-          alias :alternatives :_alternatives
+          define_method :alternatives, instance_method(:_alternatives)
         end
         alternatives
       end
 
-      def _alternatives #:nodoc:
+      def _alternatives
         alts = []
         @alternatives.each_with_index do |value, i|
           participants = redis.scard(key("alts:#{i}:participants")).to_i
@@ -121,34 +127,44 @@ module Vanity
         end
         alts
       end
+      private :_alternatives
 
-      # Returns an Alternative with the specified value.
+      # Returns an Alternative with the specified value.  For example, given:
+      #   ab_test "Which color" do
+      #     alternatives :red, :green, :blue
+      #   end
+      # Then:
+      #   alternative(:red) == alternatives[0]
+      #   alternative(:blue) == alternatives[2]
       def alternative(value)
-        if index = @alternatives.index(value)
-          participants = redis.scard(key("alts:#{index}:participants")).to_i
-          converted = redis.scard(key("alts:#{index}:converted")).to_i
-          conversions = redis[key("alts:#{index}:conversions")].to_i
-          Alternative.new(self, index, value, participants, converted, conversions)
-        end
+        alternatives.find { |alt| alt.value == value }
       end
 
-      # Sets this test to two alternatives: false and true.
+      # Defines an A/B test with two alternatives: false and true.  For example:
+      #   ab_test "More bacon" do
+      #     false_true
+      #   end
+      #
+      # This is the default pair of alternatives, so just syntactic sugar for
+      # those who love being explicit.
       def false_true
         alternatives false, true
       end
       alias true_false false_true
 
-      # Chooses a value for this experiment.
+      # Chooses a value for this experiment.  You probably want to use the
+      # Rails helper method ab_test instead.
       #
-      # This method returns different values for different identity (see
-      # #identify), and consistenly the same value for the same
-      # expriment/identity pair.
+      # This method picks an alternative for the current identity and returns
+      # the alternative's value.  It will consistently choose the same
+      # alternative for the same identity, and randomly split alternatives
+      # between different identities.
       #
       # For example:
       #   color = experiment(:which_blue).choose
       def choose
         if active?
-          identity = identify
+          identity = identity()
           index = redis[key("participant:#{identity}:show")]
           unless index
             index = alternative_for(identity)
@@ -161,13 +177,14 @@ module Vanity
         @alternatives[index.to_i]
       end
 
-      # Records a conversion.
-      #
+      # Tracks a conversion.  You probably want to use the Rails helper method
+      # track! instead.
+      # 
       # For example:
-      #   experiment(:which_blue).conversion!
-      def conversion!
+      #   experiment(:which_blue).track!
+      def track!
         return unless active?
-        identity = identify
+        identity = identity()
         return if redis[key("participants:#{identity}:show")]
         index = alternative_for(identity)
         if redis.sismember(key("alts:#{index}:participants"), identity)
@@ -180,9 +197,9 @@ module Vanity
       
       # -- Testing --
      
-      # Forces this experiment to use a particular alternative. Useful for
-      # tests, e.g.
-      #
+      # Forces this experiment to use a particular alternative.  You'll want to
+      # use this from your test cases to test for the different alternatives.
+      # For example:
       #   setup do
       #     experiment(:green_button).select(true)
       #   end
@@ -196,81 +213,71 @@ module Vanity
       #     experiment(:green_button).select(nil)
       #   end
       def chooses(value)
-        index = @alternatives.index(value)
-        raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-        identity = identify
-        redis[key("participant:#{identity}:show")] = index
+        if value.nil?
+          redis.del key("participant:#{identity}:show")
+        else
+          index = @alternatives.index(value)
+          raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
+          redis[key("participant:#{identity}:show")] = index
+        end
         self
       end
 
       # True if this alternative is currently showing (see #chooses).
-      def showing?(alternative) #:nodoc:
-        identity = identify
+      def showing?(alternative)
+        identity = identity()
         index = redis[key("participant:#{identity}:show")]
         index && index.to_i == alternative.id
-      end
-
-      # Used for testing.
-      def count(identity, value, *what) #:nodoc:
-        index = @alternatives.index(value)
-        raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-        if what.empty? || what.include?(:participant)
-          redis.sadd key("alts:#{index}:participants"), identity
-        end
-        if what.empty? || what.include?(:conversion)
-          redis.sadd key("alts:#{index}:converted"), identity
-          redis.incr key("alts:#{index}:conversions")
-        end
-        self
       end
 
 
       # -- Reporting --
 
-      # Returns an object with the following methods:
-      # [:alts]   List of Alternative populated with interesting statistics.
-      # [:best]   Best performing alternative.
+      # Scores alternatives based on the current tracking data.  This method
+      # returns a structure with the following attributes:
+      # [:alts]   Ordered list of alternatives, populated with scoring info.
       # [:base]   Second best performing alternative.
       # [:least]  Least performing alternative (but more than zero conversion).
       # [:choice] Choice alterntive, either the outcome or best alternative.
       #
-      # Alternatives returned by this method are populated with the following attributes:
+      # Alternatives returned by this method are populated with the following
+      # attributes:
       # [:z_score]      Z-score (relative to the base alternative).
       # [:probability]  Probability (z-score mapped to 0, 90, 95, 99 or 99.9%).
       # [:difference]   Difference from the least performant altenative.
-      #
-      # The choice alternative is set only if the probability is higher or
+      # 
+      # The choice alternative is set only if its probability is higher or
       # equal to the specified probability (default is 90%).
       def score(probability = 90)
         alts = alternatives
         # sort by conversion rate to find second best and 2nd best
-        sorted = alts.sort_by(&:conversion_rate)
+        sorted = alts.sort_by(&:measure)
         base = sorted[-2]
         # calculate z-score
-        pc = base.conversion_rate
+        pc = base.measure
         nc = base.participants
         alts.each do |alt|
-          p = alt.conversion_rate
+          p = alt.measure
           n = alt.participants
           alt.z_score = (p - pc) / ((p * (1-p)/n) + (pc * (1-pc)/nc)).abs ** 0.5
           alt.probability = AbTest.probability(alt.z_score)
         end
         # difference is measured from least performant
-        if least = sorted.find { |alt| alt.conversion_rate > 0 }
+        if least = sorted.find { |alt| alt.measure > 0 }
           alts.each do |alt|
-            if alt.conversion_rate > least.conversion_rate
-              alt.difference = (alt.conversion_rate - least.conversion_rate) / least.conversion_rate * 100
+            if alt.measure > least.measure
+              alt.difference = (alt.measure - least.measure) / least.measure * 100
             end
           end
         end
         # best alternative is one with highest conversion rate (best shot).
         # choice alternative can only pick best if we have high probability (>90%).
-        best = sorted.last if sorted.last.conversion_rate > 0.0
+        best = sorted.last if sorted.last.measure > 0.0
         choice = outcome ? alts[outcome.id] : (best && best.probability >= probability ? best : nil)
         Struct.new(:alts, :best, :base, :least, :choice).new(alts, best, base, least, choice)
       end
 
-      # Use the score returned by #score to derive a conclusion.  Returns an
+      # Use the result of #score to derive a conclusion.  Returns an
       # array of claims.
       def conclusion(score = score)
         claims = []
@@ -281,17 +288,17 @@ module Vanity
           else ; "There are #{participants} participants in this experiment."
         end
         # only interested in sorted alternatives with conversion
-        sorted = score.alts.select { |alt| alt.conversion_rate > 0.0 }.sort_by(&:conversion_rate).reverse
+        sorted = score.alts.select { |alt| alt.measure > 0.0 }.sort_by(&:measure).reverse
         if sorted.size > 1
           # start with alternatives that have conversion, from best to worst,
           # then alternatives with no conversion.
           sorted |= score.alts
           # we want a result that's clearly better than 2nd best.
           best, second = sorted[0], sorted[1]
-          if best.conversion_rate > second.conversion_rate
-            diff = ((best.conversion_rate - second.conversion_rate) / second.conversion_rate * 100).round
+          if best.measure > second.measure
+            diff = ((best.measure - second.measure) / second.measure * 100).round
             better = " (%d%% better than %s)" % [diff, second.name] if diff > 0
-            claims << "The best choice is %s: it converted at %.1f%%%s." % [best.name, best.conversion_rate * 100, better]
+            claims << "The best choice is %s: it converted at %.1f%%%s." % [best.name, best.measure * 100, better]
             if best.probability >= 90
               claims << "With %d%% probability this result is statistically significant." % score.best.probability
             else
@@ -300,8 +307,8 @@ module Vanity
             sorted.delete best
           end
           sorted.each do |alt|
-            if alt.conversion_rate > 0.0
-              claims << "%s converted at %.1f%%." % [alt.name.gsub(/^o/, "O"), alt.conversion_rate * 100]
+            if alt.measure > 0.0
+              claims << "%s converted at %.1f%%." % [alt.name.gsub(/^o/, "O"), alt.measure * 100]
             else
               claims << "%s did not convert." % alt.name.gsub(/^o/, "O")
             end
@@ -317,16 +324,17 @@ module Vanity
       # -- Completion --
 
       # Defines how the experiment can choose the optimal outcome on completion.
-      #
-      # The default implementation looks for the best (highest conversion rate)
-      # alternative.  If it's certain (95% or more) that this alternative is
-      # better than the first alternative, it switches to that one.  If it has
-      # no such certainty, it starts using the first alternative exclusively.
+     
+      # By default, Vanity will take the best alternative (highest conversion
+      # rate) and use that as the outcome.  You experiment may have different
+      # needs, maybe you want the least performing alternative, or factor cost
+      # in the equation?
       #
       # The default implementation reads like this:
       #   outcome_is do
-      #     highest = alternatives.sort.last
-      #     highest.probability >= 95 ? highest ? alternatives.first
+      #     a, b = alternatives
+      #     # a is expensive, only choose a if it performs 2x better than b
+      #     a.measure > b.measure * 2 ? a : b
       #   end
       def outcome_is(&block)
         raise ArgumentError, "Missing block" unless block
@@ -334,7 +342,7 @@ module Vanity
         @outcome_is = block
       end
 
-      # Alternative chosen when this experiment was completed.
+      # Alternative chosen when this experiment completed.
       def outcome
         outcome = redis[key("outcome")]
         outcome && alternatives[outcome.to_i]
@@ -361,12 +369,7 @@ module Vanity
       
       # -- Store/validate --
 
-      def save
-        fail "Experiment #{name} needs at least two alternatives" unless alternatives.count >= 2
-        super
-      end
-
-      def reset!
+      def destroy
         @alternatives.count.times do |i|
           redis.del key("alts:#{i}:participants")
           redis.del key("alts:#{i}:converted")
@@ -376,12 +379,12 @@ module Vanity
         super
       end
 
-      def destroy
-        reset
+      def save
+        fail "Experiment #{name} needs at least two alternatives" unless alternatives.count >= 2
         super
       end
 
-    private
+    protected
 
       # Chooses an alternative for the identity and returns its index. This
       # method always returns the same alternative for a given experiment and
@@ -389,6 +392,23 @@ module Vanity
       # same experiment).
       def alternative_for(identity)
         Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.count
+      end
+
+      # Used for testing Vanity.
+      def count_participant(identity, value)
+        index = @alternatives.index(value)
+        raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
+        redis.sadd key("alts:#{index}:participants"), identity
+        self
+      end
+
+      # Used for testing Vanity.
+      def count_conversion(identity, value)
+        index = @alternatives.index(value)
+        raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
+        redis.sadd key("alts:#{index}:converted"), identity
+        redis.incr key("alts:#{index}:conversions")
+        self
       end
 
       begin

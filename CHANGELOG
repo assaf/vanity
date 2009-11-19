@@ -11,6 +11,7 @@ In addition, the ab_goal! method is now track!.  This method may be used for oth
 
 * Added: A/B test report now showing number of participants.
 * Added: AbTest.score method accepts minimum probability (default 90), and
+* Removed: Experiment.reset! method. Destroy and save have the same effect.
 * Changed: Playground.define now requires an experiment type, ab_test is not the default any more.
 * Changed: When you run Vanity in development mode (configuration.cache_classes = false), it will reload experiments on each request. You can also Vanity.playground.reload!.
 * Changed: Fancy AJAX trickery in Rails console.

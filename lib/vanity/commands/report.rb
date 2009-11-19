@@ -3,7 +3,8 @@ require "cgi"
 
 module Vanity
   
-  # Render method available in templates (when running outside Rails).
+  # Render method available to templates (when used by Vanity command line,
+  # outside Rails).
   module Render
     
     # Render the named template.  Used for reporting and the console.
@@ -25,12 +26,13 @@ module Vanity
 
   end
 
+  # Commands available when running Vanity from the command line (see bin/vanity).
   module Commands
     class << self
       include Render
 
-      # Generate a report with all available tests.  Outputs to the named file,
-      # or stdout with no arguments.
+      # Generate an HTML report.  Outputs to the named file, or stdout with no
+      # arguments.
       def report(output = nil)
         html = render(Vanity.template("report"))
         if output

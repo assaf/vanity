@@ -1,8 +1,8 @@
 module Vanity
 
-  # These methods are available from experiment files (files located in the
-  # experiments directory and loaded by Vanity).  Use these methods to define
-  # you experiments, for example:
+  # These methods are available from experiment definitions (files located in
+  # the experiments directory, automatically loaded by Vanity).  Use these
+  # methods to define you experiments, for example:
   #   ab_test "New Banner" do
   #     alternatives :red, :green, :blue
   #   end
@@ -134,7 +134,7 @@ module Vanity
     end
 
     # Sets the Vanity context.  For example, when using Rails this would be
-    # set by the set_vanity_context before filter (via use_vanity).
+    # set by the set_vanity_context before filter (via Vanity::Rails#use_vanity).
     def context=(context)
       Thread.current[:vanity_context] = context
     end
