@@ -13,7 +13,7 @@ h3. Reading Order
 
 * "Introduction":#intro
 * "A/B Testing":ab_testing.html
-* Rails Console
+* "Rails Console":console.html
 * "Managing Identity":identity.html
 * "Configuring Vanity":configuring.html
 * "API reference":api/index.html
