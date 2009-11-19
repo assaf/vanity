@@ -4,29 +4,40 @@ title: Managing Identity
 ---
 
 For effective A/B tests, you want to:
-- Randomly show different alternatives to different people
-- Consistently show the same alternatives to the same person
-- Know which alternative caused a conversion
-- When running multiple tests at once, keep them independent
+# Randomly show different alternatives to different people
+# Consistently show the same alternative to the same person
+# Know which alternative you're showing and tracking
+# When running multiple tests at once, keep them independent
 
-If you don't use any other mechanism, Vanity will assign a random value to a persistent cookie and use it to track the same visitor on subsequent visits.  Cookie tracking is enabled by use_vanity.
+Vanity will assign each visitor a unique identifier and store it in a cookie that persists across sessions.  That way, each visitor will get to see the same alternatives on repeating visits.  Assuming they use the same browser on all visits.
 
-If you keep track of users, you would want to use the user's identity instead.  Using user identity is more reliable than a cookie tied to a single Web browser.
+If you have a better way of tracking visitors, e.g. using sign in, you'll want to use that instead.  That way the same person gets treated to the same experiment, even if they switch between machines and browsers.
 
-To do that, call use_vanity with the name of a method which returns an object with the desired id attribute.  Alternatively, you can use a proc.  These two examples are equivalent:
+You can choose either option using the @use_vanity@ method.  In the first case, just call @use_vanity@ from within the @ApplicationController@.  In the second case, you'll want to pass @use_vanity@ either a block that returns an identity value, or the name of a method that returns an object which provides the identity.
+
+Sounds complications?  These two examples are equivalent:
 
 <pre>
-use_vanity :current_user
-use_vanity { |controller| controller.current_user.id }
+class ApplicationController < ActionController::Base
+  use_vanity :current_user
+end
 </pre>
 
-There are times when you would want to use a different identity to distinguish test alternatives.  For example, your application may have groups and you may want to A/B test an option that will be available (or not) to all people in the same group.
+<pre>
+class ApplicationController < ActionController::Base
+  use_vanity { |c| c.current_user && c.current_user.id }
+end
+</pre>
 
-You can tell Vanity to use a different identity on a particular controller using use_vanity.  Alternatively, you can configure the experiment to extract the identity.  The following example will apply to all controllers that have a project attribute (without affecting other experiments):
+If you use either block or method name and they return @nil@, Vanity will fallback on persistent cookie mechanism.
+
+An identity can be anything.  For example, if you're running an experiment to test a new feature that will be available in some projects but not others, you'll want to slice the audience by project identifier, not user ID.
+
+You can also give each experiment a different identity using the @identify@ callback.  Here's an example that tells one experiment to use a project identifier:
 
 <pre>
-example "New feature" do
-  description "New feature only available to some groups"
-  identify { |controller| controller.project.id }
+ab_test "New feature" do
+  description "New feature only available to some projects"
+  identify { |c| c.current_project.id }
 end
 </pre>

@@ -1,4 +1,4 @@
-== 0.4.0 (2009-11-17)
+== 0.4.0 (2009-11-19)
 This release changes the way you define a new experiment.  You can use a method suitable for the type of experiment you want to define, or call the generic define method (previously: experiment method).  For example:
 
   ab_test "My A/B test" do
