@@ -20,37 +20,27 @@ module Vanity
   module Rails
     module ClassMethods
 
-      # Defines the vanity_identity method, and the set_identity_context before
-      # filter.
+      # Defines the vanity_identity method and the set_identity_context filter.
       #
-      # Single argument names a method that returns an object whose identity is
-      # the vanity identity.  Identity is used to present an experiment
-      # consistently to the same person or people.  It can be the user's
-      # identity, group, project.  The object must provide its identity in
-      # response to the method +id+.
-      #
-      # For example, if +current_user+ returns a +User+ object, then to use the
-      # user's id:
+      # Call with the name of a method that returns an object whose identity
+      # will be used as the Vanity identity.  Confusing?  Let's try by example:
+      # 
       #   class ApplicationController < ActionController::Base
       #     use_vanity :current_user
+      #
+      #     def current_user
+      #       User.find(session[:user_id])
+      #     end
       #   end
+      # 
+      # If that method (current_user in this example) returns nil, Vanity will
+      # set the identity for you (using a cookie to remember it across
+      # requests).  It also uses this mechanism if you don't provide an
+      # identity object, by calling use_vanity with no arguments.
       #
-      # If that method returns nil (e.g. the user has not signed in), a random
-      # value will be used, instead.  That random value is maintained using a
-      # cookie.
-      #
-      # Alternatively, if you call use_vanity with a block, it will yield to the
-      # block with controller.
-      #
-      # If there is no identity you can use, call use_vanity with the value +nil+.
-      #
-      # For example:
-      #   class ApplicationController < ActionController::Base
-      #     use_vanity :current_user
-      #   end
-      #
+      # Of course you can also use a block:
       #   class ProjectController < ApplicationController
-      #     use_vanity { |controller| controller.project_id }
+      #     use_vanity { |controller| controller.params[:project_id] }
       #   end
       def use_vanity(symbol = nil, &block)
         define_method :vanity_identity do
@@ -73,10 +63,6 @@ module Vanity
         before_filter :set_vanity_context
         before_filter { Vanity.playground.reload! } unless ::Rails.configuration.cache_classes
       end
-    end
-
-    def self.included(base) #:nodoc:
-      base.extend ClassMethods
     end
 
     # This method returns one of the alternative values in the named A/B test.
@@ -117,8 +103,8 @@ module Vanity
     #     track! :call_to_action
     #     Acccount.create! params[:account]
     #   end
-    def track!(name)
-      Vanity.playground.experiment(name).conversion!
+    def track!(name, *args)
+      Vanity.playground.experiment(name).track! *args
     end
   end
 end

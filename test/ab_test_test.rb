@@ -105,7 +105,7 @@ class AbTestTest < ActionController::TestCase
     end
     500.times do
       experiment(:foobar).choose
-      experiment(:foobar).conversion!
+      experiment(:foobar).track!
     end
     alts = experiment(:foobar).alternatives
     assert_equal 100, alts.map(&:converted).sum
@@ -119,25 +119,25 @@ class AbTestTest < ActionController::TestCase
     end
     500.times do
       experiment(:foobar).choose
-      experiment(:foobar).conversion!
-      experiment(:foobar).conversion!
+      experiment(:foobar).track!
+      experiment(:foobar).track!
     end
     alts = experiment(:foobar).alternatives
     assert_equal 100, alts.map(&:converted).sum
   end
 
-  def test_reset_experiment
+  def test_destroy_experiment
     ab_test :simple do
       identify { "me" }
       complete_if { alternatives.map(&:converted).sum >= 1 }
       outcome_is { alternative(true) }
     end
     experiment(:simple).choose
-    experiment(:simple).conversion!
+    experiment(:simple).track!
     refute experiment(:simple).active?
     assert_equal true, experiment(:simple).outcome.value
 
-    experiment(:simple).reset!
+    experiment(:simple).destroy
     assert experiment(:simple).active?
     assert_nil experiment(:simple).outcome
     assert_nil experiment(:simple).completed_at
@@ -214,6 +214,21 @@ class AbTestTest < ActionController::TestCase
     end
   end
 
+  def test_chooses_cleared_with_nil
+    ab_test :simple  do
+      identify { rand }
+      alternatives :a, :b, :c
+    end
+    responses = Array.new(100) { |i|
+      @controller = nil ; setup_controller_request_and_response
+      experiment(:simple).chooses(:b)
+      experiment(:simple).chooses(nil)
+      get :test_render
+      @response.body
+    }
+    assert responses.uniq.size == 3
+  end
+
 
   # -- Scoring --
  
@@ -221,17 +236,17 @@ class AbTestTest < ActionController::TestCase
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # participating, conversions, rate, z-score
     # Control:      182	35 19.23%	N/A
-    182.times { |i| experiment(:abcd).count i, :a, :participant }
-    35.times  { |i| experiment(:abcd).count i, :a, :conversion }
+    182.times { |i| experiment(:abcd).send(:count_participant, i, :a) }
+    35.times  { |i| experiment(:abcd).send(:count_conversion, i, :a) }
     # Treatment A:  180	45 25.00%	1.33
-    180.times { |i| experiment(:abcd).count i, :b, :participant }
-    45.times  { |i| experiment(:abcd).count i, :b, :conversion }
+    180.times { |i| experiment(:abcd).send(:count_participant, i, :b) }
+    45.times  { |i| experiment(:abcd).send(:count_conversion, i, :b) }
     # treatment B:  189	28 14.81%	-1.13
-    189.times { |i| experiment(:abcd).count i, :c, :participant }
-    28.times  { |i| experiment(:abcd).count i, :c, :conversion }
+    189.times { |i| experiment(:abcd).send(:count_participant, i, :c) }
+    28.times  { |i| experiment(:abcd).send(:count_conversion, i, :c) }
     # treatment C:  188	61 32.45%	2.94
-    188.times { |i| experiment(:abcd).count i, :d, :participant }
-    61.times  { |i| experiment(:abcd).count i, :d, :conversion }
+    188.times { |i| experiment(:abcd).send(:count_participant, i, :d) }
+    61.times  { |i| experiment(:abcd).send(:count_conversion, i, :d) }
 
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }
     assert_equal %w{-1.33 0.00 -2.47 1.58}, z_scores
@@ -259,8 +274,8 @@ class AbTestTest < ActionController::TestCase
 
   def test_scoring_with_one_performer
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
-    10.times { |i| experiment(:abcd).count i, :b, :participant }
-    8.times  { |i| experiment(:abcd).count i, :b, :conversion }
+    10.times { |i| experiment(:abcd).send(:count_participant, i, :b) }
+    8.times  { |i| experiment(:abcd).send(:count_conversion, i, :b) }
     assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
     assert experiment(:abcd).score.alts.all? { |alt| alt.probability == 0 }
     assert experiment(:abcd).score.alts.all? { |alt| alt.difference.nil? }
@@ -272,10 +287,10 @@ class AbTestTest < ActionController::TestCase
 
   def test_scoring_with_some_performers
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
-    10.times { |i| experiment(:abcd).count i, :b, :participant }
-    8.times  { |i| experiment(:abcd).count i, :b, :conversion }
-    12.times { |i| experiment(:abcd).count i, :d, :participant }
-    5.times  { |i| experiment(:abcd).count i, :d, :conversion }
+    10.times { |i| experiment(:abcd).send(:count_participant, i, :b) }
+    8.times  { |i| experiment(:abcd).send(:count_conversion, i, :b) }
+    12.times { |i| experiment(:abcd).send(:count_participant, i, :d) }
+    5.times  { |i| experiment(:abcd).send(:count_conversion, i, :d) }
 
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }
     assert_equal %w{NaN 2.01 NaN 0.00}, z_scores
@@ -291,10 +306,10 @@ class AbTestTest < ActionController::TestCase
 
   def test_scoring_with_different_probability
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
-    10.times { |i| experiment(:abcd).count i, :b, :participant }
-    8.times  { |i| experiment(:abcd).count i, :b, :conversion }
-    12.times { |i| experiment(:abcd).count i, :d, :participant }
-    5.times  { |i| experiment(:abcd).count i, :d, :conversion }
+    10.times { |i| experiment(:abcd).send(:count_participant, i, :b) }
+    8.times  { |i| experiment(:abcd).send(:count_conversion, i, :b) }
+    12.times { |i| experiment(:abcd).send(:count_participant, i, :d) }
+    5.times  { |i| experiment(:abcd).send(:count_conversion, i, :d) }
 
     assert_equal 1, experiment(:abcd).score(90).choice.id
     assert_equal 1, experiment(:abcd).score(95).choice.id
@@ -308,17 +323,17 @@ class AbTestTest < ActionController::TestCase
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # participating, conversions, rate, z-score
     # Control:      182	35 19.23%	N/A
-    182.times { |i| experiment(:abcd).count i, :a, :participant }
-    35.times  { |i| experiment(:abcd).count i, :a, :conversion }
+    182.times { |i| experiment(:abcd).send(:count_participant, i, :a) }
+    35.times  { |i| experiment(:abcd).send(:count_conversion, i, :a) }
     # Treatment A:  180	45 25.00%	1.33
-    180.times { |i| experiment(:abcd).count i, :b, :participant }
-    45.times  { |i| experiment(:abcd).count i, :b, :conversion }
+    180.times { |i| experiment(:abcd).send(:count_participant, i, :b) }
+    45.times  { |i| experiment(:abcd).send(:count_conversion, i, :b) }
     # treatment B:  189	28 14.81%	-1.13
-    189.times { |i| experiment(:abcd).count i, :c, :participant }
-    28.times  { |i| experiment(:abcd).count i, :c, :conversion }
+    189.times { |i| experiment(:abcd).send(:count_participant, i, :c) }
+    28.times  { |i| experiment(:abcd).send(:count_conversion, i, :c) }
     # treatment C:  188	61 32.45%	2.94
-    188.times { |i| experiment(:abcd).count i, :d, :participant }
-    61.times  { |i| experiment(:abcd).count i, :d, :conversion }
+    188.times { |i| experiment(:abcd).send(:count_participant, i, :d) }
+    61.times  { |i| experiment(:abcd).send(:count_conversion, i, :d) }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 739 participants in this experiment.
@@ -334,11 +349,11 @@ Option D selected as the best alternative.
   def test_conclusion_with_some_performers
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
-    180.times { |i| experiment(:abcd).count i, :b, :participant }
-    45.times  { |i| experiment(:abcd).count i, :b, :conversion }
+    180.times { |i| experiment(:abcd).send(:count_participant, i, :b) }
+    45.times  { |i| experiment(:abcd).send(:count_conversion, i, :b) }
     # treatment C:  188	61 32.45%	2.94
-    188.times { |i| experiment(:abcd).count i, :d, :participant }
-    61.times  { |i| experiment(:abcd).count i, :d, :conversion }
+    188.times { |i| experiment(:abcd).send(:count_participant, i, :d) }
+    61.times  { |i| experiment(:abcd).send(:count_conversion, i, :d) }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 368 participants in this experiment.
@@ -354,11 +369,11 @@ Option D selected as the best alternative.
   def test_conclusion_without_clear_winner
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
-    180.times { |i| experiment(:abcd).count i, :b, :participant }
-    58.times  { |i| experiment(:abcd).count i, :b, :conversion }
+    180.times { |i| experiment(:abcd).send(:count_participant, i, :b) }
+    58.times  { |i| experiment(:abcd).send(:count_conversion, i, :b) }
     # treatment C:  188	61 32.45%	2.94
-    188.times { |i| experiment(:abcd).count i, :d, :participant }
-    61.times  { |i| experiment(:abcd).count i, :d, :conversion }
+    188.times { |i| experiment(:abcd).send(:count_participant, i, :d) }
+    61.times  { |i| experiment(:abcd).send(:count_conversion, i, :d) }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 368 participants in this experiment.
@@ -373,11 +388,11 @@ Option C did not convert.
   def test_conclusion_without_close_performers
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
-    186.times { |i| experiment(:abcd).count i, :b, :participant }
-    60.times  { |i| experiment(:abcd).count i, :b, :conversion }
+    186.times { |i| experiment(:abcd).send(:count_participant, i, :b) }
+    60.times  { |i| experiment(:abcd).send(:count_conversion, i, :b) }
     # treatment C:  188	61 32.45%	2.94
-    188.times { |i| experiment(:abcd).count i, :d, :participant }
-    61.times  { |i| experiment(:abcd).count i, :d, :conversion }
+    188.times { |i| experiment(:abcd).send(:count_participant, i, :d) }
+    61.times  { |i| experiment(:abcd).send(:count_conversion, i, :d) }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 374 participants in this experiment.
@@ -392,11 +407,11 @@ Option C did not convert.
   def test_conclusion_without_equal_performers
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
-    188.times { |i| experiment(:abcd).count i, :b, :participant }
-    61.times  { |i| experiment(:abcd).count i, :b, :conversion }
+    188.times { |i| experiment(:abcd).send(:count_participant, i, :b) }
+    61.times  { |i| experiment(:abcd).send(:count_conversion, i, :b) }
     # treatment C:  188	61 32.45%	2.94
-    188.times { |i| experiment(:abcd).count i, :d, :participant }
-    61.times  { |i| experiment(:abcd).count i, :d, :conversion }
+    188.times { |i| experiment(:abcd).send(:count_participant, i, :d) }
+    61.times  { |i| experiment(:abcd).send(:count_conversion, i, :d) }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 376 participants in this experiment.
@@ -410,8 +425,8 @@ Option C did not convert.
   def test_conclusion_with_one_performers
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
     # Treatment A:  180	45 25.00%	1.33
-    180.times { |i| experiment(:abcd).count i, :b, :participant }
-    45.times  { |i| experiment(:abcd).count i, :b, :conversion }
+    180.times { |i| experiment(:abcd).send(:count_participant, i, :b) }
+    45.times  { |i| experiment(:abcd).send(:count_conversion, i, :b) }
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 180 participants in this experiment.
@@ -474,7 +489,7 @@ This experiment did not run long enough to find a clear winner.
     results = Set.new
     100.times do
       results << experiment(:simple).choose
-      experiment(:simple).conversion!
+      experiment(:simple).track!
     end
     assert results.include?(true) && results.include?(false)
     refute experiment(:simple).active?
@@ -482,7 +497,7 @@ This experiment did not run long enough to find a clear winner.
     # Test that we always get the same choice (true)
     100.times do
       assert_equal true, experiment(:simple).choose
-      experiment(:simple).conversion!
+      experiment(:simple).track!
     end
     # We don't get to count the 100 participant's conversion, but that's ok.
     assert_equal 99, experiment(:simple).alternatives.map(&:converted).sum
@@ -527,8 +542,8 @@ This experiment did not run long enough to find a clear winner.
   def test_outcome_choosing_best_alternative
     ab_test :quick do
     end
-    2.times  { |i| experiment(:quick).count i, false, :participant }
-    10.times { |i| experiment(:quick).count i, true }
+    2.times  { |i| experiment(:quick).send(:count_participant, i, false) }
+    10.times { |i| experiment(:quick).send(:count_participant, i, true).send(:count_conversion, i, true) }
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
@@ -536,7 +551,7 @@ This experiment did not run long enough to find a clear winner.
   def test_outcome_only_performing_alternative
     ab_test :quick do
     end
-    2.times { |i| experiment(:quick).count i, true }
+    2.times  { |i| experiment(:quick).send(:count_participant, i, true).send(:count_conversion, i, true) }
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
@@ -544,8 +559,8 @@ This experiment did not run long enough to find a clear winner.
   def test_outcome_choosing_equal_alternatives
     ab_test :quick do
     end
-    8.times { |i| experiment(:quick).count i, false }
-    8.times { |i| experiment(:quick).count i, true }
+    8.times { |i| experiment(:quick).send(:count_participant, i, false).send(:count_conversion, i, false) }
+    8.times { |i| experiment(:quick).send(:count_participant, i, true). send(:count_conversion, i, true) }
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
