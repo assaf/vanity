@@ -18,6 +18,7 @@ h3. Reading Order
 * "Configuring Vanity":configuring.html
 * "API reference":api/index.html
 * "Source code":http://github.com/assaf/vanity
+* "Google group":http://groups.google.com/group/vanity-talk
 
 
 h3(#intro). A/B Testing with Rails (in 5 easy steps)

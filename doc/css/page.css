@@ -36,5 +36,5 @@ h4 { font-size: 1.0em; margin-top: 1.5em }
   -webkit-box-shadow: 2px 2px 8px #ccc; -moz-box-shadow: 2px 2px 8px #ccc; 
 }
 
-#links { position:absolute; right:1em; top:1em }
+#links { position:absolute; right: 0; top: 0; padding: .6em; color: #ccc }
 #footer { font-size: .9em; padding: 0; margin: 3em 0; border-top: 1px solid #ccc; text-align: right }
