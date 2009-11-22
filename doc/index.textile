@@ -11,14 +11,18 @@ Vanity requires Ruby 1.9.1 or later, Redis 1.0 or later.
 
 h3. Reading Order
 
-* "Introduction":#intro
+* "2 Minute Demo":#intro
 * "A/B Testing":ab_testing.html
 * "The Dashboard":dashboard.html
 * "Managing Identity":identity.html
 * "Configuring Vanity":configuring.html
+
+Also:
+
+* "Experiment Driven Development":http://blog.labnotes.org/2009/11/19/vanity-experiment-driven-development-for-rails/
+* "Get the code":http://github.com/assaf/vanity
 * "API reference":api/index.html
-* "Source code":http://github.com/assaf/vanity
-* "Google group":http://groups.google.com/group/vanity-talk
+* "Join the group group":http://groups.google.com/group/vanity-talk
 
 
 h3(#intro). A/B Testing with Rails (in 5 easy steps)
