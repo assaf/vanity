@@ -1,0 +1,15 @@
+---
+layout: page
+title: Credits / Licenses
+---
+
+
+Experiment Driven Development conceived by "Nathaniel Talbott":http://blog.talbott.ws.
+
+A/B tests, influenced by Patrick McKenzie's awesome "A/Bingo":http://www.bingocardcreator.com/abingo.
+
+"Redis client library":http://github.com/ezmobius/redis-rb, copyright of "Ezra Zygmuntowicz":http://brainspl.at, released under the "MIT license":http://github.com/ezmobius/redis-rb/blob/master/LICENSE.
+
+Original code, copyright of "Assaf Arkin":http://labnotes.org, released under the "MIT license":http://github.com/assaf/vanity/blob/master/MIT-LICENSE.
+
+Documentation available under the "Creative Commons Attribution":http://creativecommons.org/licenses/by/3.0/ license.
