@@ -20,8 +20,9 @@ task :install do
   sh "#{sudo} gem install #{spec.name}-#{spec.version}.gem"
 end
 
+
 task :default=>:test
-desc "Run all tests"
+desc "Run all tests (also default task)"
 Rake::TestTask.new do |task|
   task.test_files = FileList['test/*_test.rb']
   task.verbose = true
@@ -29,28 +30,28 @@ Rake::TestTask.new do |task|
   mkpath ENV["TMPDIR"] = File.expand_path("tmp")
 end
 
+task(:clobber) { rm_rf "tmp" }
 
 begin
   require "yard"
   YARD::Rake::YardocTask.new(:yardoc) do |task|
     task.files  = ["lib/**/*.rb"]
-    task.options = "--output", ".api", "--title", "Vanity #{spec.version}", "--main", "README.rdoc", "--files", "CHANGELOG"
+    task.options = "--output", "html/api", "--title", "Vanity #{spec.version}", "--main", "README.rdoc", "--files", "CHANGELOG"
   end
 rescue LoadError
 end
 
-file ".site"=>FileList["doc/**/*"] do
-  sh "jekyll", "doc", ".site"
-end
-file ".site/api"=>"yardoc" do
-  cp_r ".api", ".site/api"
-end
-desc "Push site to server"
-task :publish=>[:clobber, ".site", ".site/api"] do
-  sh "rsync -cr --del --progress .site/ labnotes.org:/var/www/vanity/"
-end
-task :clobber do
-  rm_rf [".api", ".site"]
+desc "Jekyll generates the main documentation (sans API)"
+task(:jekyll) { sh "jekyll", "doc", "html" }
+
+desc "Create documentation in docs directory (including API)"
+task :docs=>[:jekyll, :yardoc]
+desc "Remove temporary files and directories"
+task(:clobber) { rm_rf "html" }
+
+desc "Publish documentation to vanity.labnotes.org"
+task :publish=>[:clobber, :docs] do
+  sh "rsync -cr --del --progress html/ labnotes.org:/var/www/vanity/"
 end
 
 
