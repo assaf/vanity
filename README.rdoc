@@ -1,13 +1,13 @@
 Vanity is an Experiment Driven Development framework for Rails.
 
-* Documentation: http://vanity.labnotes.org
+* All about Vanity: http://vanity.labnotes.org
 * On github: http://github.com/assaf/vanity
 * Vanity requires Ruby 1.9.1 or later, Redis 1.0 or later.
 
 http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
 
-== A/B Testing with Rails (in 5 easy steps)
+== A/B Testing With Rails (In 5 Easy Steps)
 
 <b>Step 1:</b> Start using Vanity in your Rails application:
 
@@ -51,6 +51,8 @@ And:
 
 == Credits/License
 
-Idea behind Experiment Driven Development: Nathaniel Talbott (http://blog.talbott.ws).
+Original code, copyright of Assaf Arkin, released under the MIT license.  
 
-Copyright (C) 2009 Assaf Arkin, released under the MIT license.
+Documentation available under the Creative Commons Attribution license.
+
+For full list of credits / licenses: http://vanity.labnotes.org/credits.html.

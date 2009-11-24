@@ -81,12 +81,3 @@ vanity --output vanity.html
 !images/price_options.png!
 
 Read more about "A/B Testing ...":ab_testing.html
-
-
-h3. Credits
-
-Experiment Driven Development was coined by "Nathaniel Talbott's":http://blog.talbott.ws/.
-
-A/B tests, influenced by Patrick McKenzie's awesome "A/Bingo":http://www.bingocardcreator.com/abingo.
-
-Copyright (C) 2009 Assaf Arkin, released under the "MIT license":http://github.com/assaf/necktie/blob/master/MIT-LICENSE.
