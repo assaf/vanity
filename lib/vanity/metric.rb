@@ -14,18 +14,41 @@ module Vanity
   # http://500hats.typepad.com/500blogs/2007/09/startup-metrics.html
   class Metric
 
+    # These methods are available when defining a metric in a file loaded
+    # from the +experiments/metrics+ directory.
+    #
+    # For example:
+    #   $ cat experiments/metrics/yawn_sec
+    #   metric "Yawns/sec" do
+    #     description "Most boring metric ever"
+    #   end
+    module Definition
+      
+      # The playground this metric belongs to.
+      attr_reader :playground
+
+      # Defines a new metric, using the class Vanity::Metric.
+      def metric(name, &block)
+        metric = Metric.new(@playground, name.to_s.downcase.gsub(/\W/, "_"))
+        metric.name = name
+        metric.instance_eval &block
+        metric
+      end
+
+    end
+
     class << self
 
-      # Helper method to return title for a metric.
+      # Helper method to return name for a metric.
       #
-      # A metric object may have a +title+ method that returns a short
-      # descriptive title.  It may also have no title, or no +title+ method, in
+      # A metric object may have a +name+ method that returns a short
+      # descriptive name.  It may also have no name, or no +name+ method, in
       # which case the metric identifier will do.
       # 
       # Example:
-      #   Vanity.playground.metrics.map { |id, metric| Vanity::Metric.title(id, metric) }
-      def title(id, metric)
-        metric.respond_to?(:title) && metric.title || id.to_s.capitalize.gsub(/_+/, " ")
+      #   Vanity.playground.metrics.map { |id, metric| Vanity::Metric.name(id, metric) }
+      def name(id, metric)
+        metric.respond_to?(:name) && metric.name || id.to_s.capitalize.gsub(/_+/, " ")
       end
 
       # Helper method to return description for a metric.
@@ -52,48 +75,51 @@ module Vanity
         metric.respond_to?(:bounds) && metric.bounds || [nil, nil]
       end
 
+      # Playground uses this to load metric definitions.
+      def load(playground, stack, path, id)
+        fn = File.join(path, "#{id}.rb")
+        return Metric.new(playground, id) unless File.exist?(fn)
+
+        fail "Circular dependency detected: #{stack.join('=>')}=>#{fn}" if stack.include?(fn)
+        source = File.read(fn)
+        begin
+          stack.push fn
+          context = Object.new
+          context.instance_eval do
+            extend Definition
+            @playground = playground
+            metric = eval source
+            fail LoadError, "Expected #{fn} to define metric #{id}" unless metric.id == id
+            metric
+          end
+        rescue
+          error = LoadError.exception($!.message)
+          error.set_backtrace $!.backtrace
+          raise error
+        ensure
+          stack.pop
+        end
+      end
+
     end
 
     def initialize(playground, id)
       @playground = playground
-      @id = id
+      @id = id.to_sym
       @hooks = []
     end
 
-    # All metrics implement this value.  Given two arguments, a start date and
-    # an end date, it returns an array of measurements.
-    def values(to, from)
-      @playground.redis.mget((to.to_date..from.to_date).map { |date| "metrics:#{id}:#{date}:count" }).map(&:to_i)
-    end
-
-    # This method returns the acceptable bounds of a metric as an array with
-    # two values: low and high.  Use nil for unbounded.
-    #
-    # Alerts are created when metric values exceed their bounds.  For example,
-    # a metric of user registration can use historical data to calculate
-    # expected range of new registration for the next day.  If actual metric
-    # falls below the expected range, it could indicate registration process is
-    # broken.  Going above higher bound could trigger opening a Champagne
-    # bottle.
-    #
-    # The default implementation returns +nil+.
-    def bounds
-    end
-
     # Metric identifier.
-    attr_accessor :id
+    attr_reader :id
 
-    # Metric title.
-    attr_accessor :title
 
-    # Metric description.
-    attr_accessor :description
+    # -- Tracking --
 
     # Called to track an action associated with this metric.
     def track!(vanity_id)
       timestamp = Time.now
       @playground.redis.incr "metrics:#{id}:#{timestamp.to_date}:count"
-      @playground.logger.info "vanity tracked #{title || id}"
+      @playground.logger.info "vanity tracked #{name || id}"
       @hooks.each do |hook|
         hook.call id, timestamp, vanity_id
       end
@@ -109,5 +135,55 @@ module Vanity
     def hook(&block)
       @hooks << block
     end
+
+    # This method returns the acceptable bounds of a metric as an array with
+    # two values: low and high.  Use nil for unbounded.
+    #
+    # Alerts are created when metric values exceed their bounds.  For example,
+    # a metric of user registration can use historical data to calculate
+    # expected range of new registration for the next day.  If actual metric
+    # falls below the expected range, it could indicate registration process is
+    # broken.  Going above higher bound could trigger opening a Champagne
+    # bottle.
+    #
+    # The default implementation returns +nil+.
+    def bounds
+    end
+    
+
+    #  -- Reporting --
+    
+    # Human readable metric name (first argument you pass when creating a new
+    # metric).
+    attr_accessor :name
+
+    # Sets or returns description. For example
+    #   metric "Yawns/sec" do
+    #     description "Most boring metric ever"
+    #   end
+    #
+    #   puts "Just defined: " + metric(:boring).description
+    def description(text = nil)
+      @description = text if text
+      @description
+    end
+
+    # Sets or returns description. For example
+    #   metric "Yawns/sec" do
+    #     description "Most boring metric ever"
+    #   end
+    #
+    #   puts "Just defined: " + metric(:boring).description
+    def description(text = nil)
+      @description = text if text
+      @description
+    end
+
+    # All metrics implement this value.  Given two arguments, a start date and
+    # an end date, it returns an array of measurements.
+    def values(to, from)
+      @playground.redis.mget((to.to_date..from.to_date).map { |date| "metrics:#{id}:#{date}:count" }).map(&:to_i)
+    end
+
   end
 end

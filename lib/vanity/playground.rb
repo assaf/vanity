@@ -24,17 +24,17 @@ module Vanity
   #   puts Vanity.playground.map(&:name)
   class Playground
 
-    DEFAULTS = { :host=>"127.0.0.1", :port=>6379, :db=>0 }
+    DEFAULTS = { :host=>"127.0.0.1", :port=>6379, :db=>0, :load_path=>"experiments" }
 
     # Created new Playground. Unless you need to, use the global Vanity.playground.
     def initialize
       @experiments = {}
       @metrics = {}
-      @host, @port, @db = DEFAULTS.values_at(:host, :port, :db)
+      @host, @port, @db, @load_path = DEFAULTS.values_at(:host, :port, :db, :load_path)
       @namespace = "vanity:#{Vanity::Version::MAJOR}"
-      @load_path = "experiments"
       @logger = Logger.new(STDOUT)
       @logger.level = Logger::ERROR
+      @loading = []
     end
     
     # Redis host name.  Default is 127.0.0.1
@@ -79,7 +79,6 @@ module Vanity
     def experiment(name)
       id = name.to_s.downcase.gsub(/\W/, "_")
       unless @experiments.has_key?(id)
-        @loading ||= []
         fail "Circular dependency detected: #{@loading.join('=>')}=>#{id}" if @loading.include?(id)
         begin
           @loading.push id
@@ -112,6 +111,7 @@ module Vanity
     # Reloads all experiments.
     def reload!
       @experiments.clear
+      @metrics.clear
     end
 
     # Use this instance to access the Redis database.
@@ -125,7 +125,7 @@ module Vanity
     # Returns a metric (creating one if doesn't already exist).
     def metric(id)
       id = id.to_sym
-      @metrics[id] ||= Metric.new(self, id)
+      @metrics[id] ||= Metric.load(self, @loading, File.expand_path("metrics", load_path), id)
     end
 
     # Returns hash of metrics (key is metric id).

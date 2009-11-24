@@ -13,6 +13,12 @@ MiniTest::Unit.autorun
 
 class MiniTest::Unit::TestCase
 
+  def setup
+    FileUtils.mkpath "tmp/experiments/metrics"
+    Vanity.context = mock("Context")
+    Vanity.context.stubs(:vanity_identity).returns(rand)
+  end
+
   # Call this on teardown. It wipes put the playground and any state held in it
   # (mostly experiments), resets vanity ID, and clears Redis of all experiments.
   def nuke_playground
@@ -29,7 +35,9 @@ class MiniTest::Unit::TestCase
   def teardown
     nuke_playground
     Vanity.context = nil
+    FileUtils.rm_rf "tmp"
   end
+
 end
 
 ActionController::Routing::Routes.draw do |map|
@@ -39,3 +47,9 @@ Rails.configuration = Rails::Configuration.new
 
 # Using DB 0 for development, don't mess with it when running Vanity test suite.
 Vanity::Playground::DEFAULTS[:db] = 15
+
+# Change the default load path so we can create test files and load them from
+# there and not polluate other directories.  Use local tmp directory to work
+# around permission issues in some places.
+ENV["TMPDIR"] = File.expand_path("tmp")
+Vanity::Playground::DEFAULTS[:load_path] = "tmp/experiments"
