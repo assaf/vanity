@@ -39,10 +39,10 @@ class MetricTest < MiniTest::Unit::TestCase
   end
 
   def test_tracking_can_tell_the_time
-    Time.is (Date.today - 4).to_time do
+    Timecop.travel Date.today - 4 do
       4.times { Vanity.playground.track! :play }
     end
-    Time.is (Date.today - 2).to_time do
+    Timecop.travel Date.today - 2 do
       2.times { Vanity.playground.track! :play }
     end
     1.times { Vanity.playground.track! :play }

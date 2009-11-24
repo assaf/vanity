@@ -8,6 +8,7 @@ require "action_controller/test_case"
 require "initializer"
 require "lib/vanity/rails"
 require "test/mock_redis" # <-- load this when you don't want to use Redis
+require "timecop"
 MiniTest::Unit.autorun
 
 class MiniTest::Unit::TestCase
@@ -38,23 +39,3 @@ Rails.configuration = Rails::Configuration.new
 
 # Using DB 0 for development, don't mess with it when running Vanity test suite.
 Vanity::Playground::DEFAULTS[:db] = 15
-
-# Time.now adapted from Jason Earl:
-# http://jasonearl.com/blog/testing_time_dependent_code/index.html
-def Time.now
-  @active || new
-end
-    
-# Set the time to be fake for a given block of code
-def Time.is(new_time, &block)
-  if block_given?
-    begin
-      old_time, @active = @active, new_time
-      yield
-    ensure
-      @active = old_time
-    end
-  else
-    @active = new_time || Time.new
-  end
-end
