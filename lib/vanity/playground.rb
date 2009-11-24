@@ -24,11 +24,13 @@ module Vanity
   #   puts Vanity.playground.map(&:name)
   class Playground
 
+    DEFAULTS = { :host=>"127.0.0.1", :port=>6379, :db=>0 }
+
     # Created new Playground. Unless you need to, use the global Vanity.playground.
     def initialize
       @experiments = {}
       @metrics = {}
-      @host, @port, @db = "127.0.0.1", 6379, 0
+      @host, @port, @db = DEFAULTS.values_at(:host, :port, :db)
       @namespace = "vanity:#{Vanity::Version::MAJOR}"
       @load_path = "experiments"
       @logger = Logger.new(STDOUT)

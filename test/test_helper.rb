@@ -36,6 +36,8 @@ ActionController::Routing::Routes.draw do |map|
 end
 Rails.configuration = Rails::Configuration.new
 
+# Using DB 0 for development, don't mess with it when running Vanity test suite.
+Vanity::Playground::DEFAULTS[:db] = 15
 
 # Time.now adapted from Jason Earl:
 # http://jasonearl.com/blog/testing_time_dependent_code/index.html
