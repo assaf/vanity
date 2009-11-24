@@ -82,23 +82,21 @@ module Vanity
 
         fail "Circular dependency detected: #{stack.join('=>')}=>#{fn}" if stack.include?(fn)
         source = File.read(fn)
-        begin
-          stack.push fn
-          context = Object.new
-          context.instance_eval do
-            extend Definition
-            @playground = playground
-            metric = eval source
-            fail LoadError, "Expected #{fn} to define metric #{id}" unless metric.id == id
-            metric
-          end
-        rescue
-          error = LoadError.exception($!.message)
-          error.set_backtrace $!.backtrace
-          raise error
-        ensure
-          stack.pop
+        stack.push fn
+        context = Object.new
+        context.instance_eval do
+          extend Definition
+          @playground = playground
+          metric = eval source
+          fail LoadError, "Expected #{fn} to define metric #{id}" unless metric.id == id
+          metric
         end
+      rescue
+        error = LoadError.exception($!.message)
+        error.set_backtrace $!.backtrace
+        raise error
+      ensure
+        stack.pop
       end
 
     end

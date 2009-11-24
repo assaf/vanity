@@ -1,23 +1,5 @@
 module Vanity
 
-  # These methods are available from experiment definitions (files located in
-  # the experiments directory, automatically loaded by Vanity).  Use these
-  # methods to define you experiments, for example:
-  #   ab_test "New Banner" do
-  #     alternatives :red, :green, :blue
-  #   end
-  module Definition
-
-  protected
-    # Defines a new experiment, given the experiment's name, type and
-    # definition block.
-    def define(name, type, options = nil, &block)
-      options ||= {}
-      Vanity.playground.define(name, type, options, &block)
-    end
-
-  end
-
   # Playground catalogs all your experiments, holds the Vanity configuration.
   # For example:
   #   Vanity.playground.logger = my_logger
@@ -61,7 +43,7 @@ module Vanity
     # Defines a new experiment. Generally, do not call this directly,
     # use one of the definition methods (ab_test, measure, etc).
     def define(name, type, options = {}, &block)
-      id = name.to_s.downcase.gsub(/\W/, "_")
+      id = name.to_s.downcase.gsub(/\W/, "_").to_sym
       raise "Experiment #{id} already defined once" if @experiments[id]
       klass = Experiment.const_get(type.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase })
       experiment = klass.new(self, id, name, options)
@@ -70,33 +52,12 @@ module Vanity
       @experiments[id] = experiment
     end
 
-    # Returns the named experiment. You may not have guessed, but this method
-    # raises an exception if it cannot load the experiment's definition.
-    #
-    # Experiment names are always mapped by downcasing them and replacing
-    # non-word characters with underscores, so "Green call to action" becomes
-    # "green_call_to_action". You can also use a symbol if you feel like it.
+    # Returns the experiment. You may not have guessed, but this method raises
+    # an exception if it cannot load the experiment's definition.
     def experiment(name)
-      id = name.to_s.downcase.gsub(/\W/, "_")
-      unless @experiments.has_key?(id)
-        fail "Circular dependency detected: #{@loading.join('=>')}=>#{id}" if @loading.include?(id)
-        begin
-          @loading.push id
-          source = File.read(File.expand_path("#{id}.rb", load_path))
-          context = Object.new
-          context.instance_eval do
-            extend Definition
-            eval source
-          end
-        rescue
-          error = LoadError.exception($!.message)
-          error.set_backtrace $!.backtrace
-          raise error
-        ensure
-          @loading.pop
-        end
-      end
-      @experiments[id] or fail LoadError, "Expected experiments/#{id}.rb to define experiment #{name}"
+      id = name.to_s.downcase.gsub(/\W/, "_").to_sym
+      warn "Deprecated: pleae call experiment method with experiment identifier (a Ruby symbol)" unless id == name
+      @experiments[id] ||= Experiment::Base.load(self, @loading, File.expand_path(load_path), id)
     end
 
     # Returns list of all loaded experiments.

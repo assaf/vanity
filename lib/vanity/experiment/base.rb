@@ -1,6 +1,26 @@
 module Vanity
   module Experiment
 
+    # These methods are available from experiment definitions (files located in
+    # the experiments directory, automatically loaded by Vanity).  Use these
+    # methods to define you experiments, for example:
+    #   ab_test "New Banner" do
+    #     alternatives :red, :green, :blue
+    #   end
+    module Definition
+
+      # The playground this experiment belongs to.
+      attr_reader :playground
+
+      # Defines a new experiment, given the experiment's name, type and
+      # definition block.
+      def define(name, type, options = nil, &block)
+        options ||= {}
+        playground.define(name, type, options, &block)
+      end
+
+    end
+
     # Base class that all experiment types are derived from.
     class Base
 
@@ -10,6 +30,28 @@ module Vanity
         # ab_test).
         def type
           name.split("::").last.gsub(/([a-z])([A-Z])/) { "#{$1}_#{$2}" }.gsub(/([A-Z])([A-Z][a-z])/) { "#{$1}_#{$2}" }.downcase
+        end
+
+        # Playground uses this to load experiment definitions.
+        def load(playground, stack, path, id)
+          fn = File.join(path, "#{id}.rb")
+          fail "Circular dependency detected: #{stack.join('=>')}=>#{fn}" if stack.include?(fn)
+          source = File.read(fn)
+          stack.push fn
+          context = Object.new
+          context.instance_eval do
+            extend Definition
+            @playground = playground
+            experiment = eval source
+            fail LoadError, "Expected #{fn} to define experiment #{id}" unless experiment.id == id
+            experiment
+          end
+        rescue
+          error = LoadError.exception($!.message)
+          error.set_backtrace $!.backtrace
+          raise error
+        ensure
+          stack.pop
         end
 
       end

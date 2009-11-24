@@ -420,15 +420,17 @@ module Vanity
       end
 
     end
-  end
 
-  module Definition
-    # Define an A/B test with the given name.  For example:
-    #   ab_test "New Banner" do
-    #     alternatives :red, :green, :blue
-    #   end
-    def ab_test(name, &block)
-      define name, :ab_test, &block
+
+    module Definition
+      # Define an A/B test with the given name.  For example:
+      #   ab_test "New Banner" do
+      #     alternatives :red, :green, :blue
+      #   end
+      def ab_test(name, &block)
+        define name, :ab_test, &block
+      end
     end
+
   end
 end
