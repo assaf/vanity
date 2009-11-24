@@ -2,6 +2,7 @@ $LOAD_PATH.unshift File.join(File.dirname(__FILE__), "../vendor/redis-0.1/lib")
 require "redis"
 require "openssl"
 require "date"
+require "logger"
 
 # All the cool stuff happens in other places:
 # - Vanity::Helpers

@@ -91,13 +91,17 @@ module Vanity
 
     # Returns hash of metrics (key is metric id).
     def metrics
+      redis.keys("metrics:*:created_at").each do |key|
+        metric key[/metrics:(.*):created_at/, 1]
+      end
       @metrics
     end
 
     # Tracks an action associated with a metric.  For example:
     #   Vanity.playground.track! :uploaded_video
-    def track!(id)
-      metric(id).track! Vanity.context.vanity_identity
+    def track!(id, count = 1)
+      vanity_id = Vanity.context.vanity_identity if Vanity.context
+      metric(id).track! vanity_id, count
     end
   end
 

@@ -7,8 +7,8 @@ require "action_controller"
 require "action_controller/test_case"
 require "initializer"
 require "lib/vanity/rails"
-require "test/mock_redis" # <-- load this when you don't want to use Redis
 require "timecop"
+require "test/mock_redis" # <-- load this when you don't want to use Redis
 MiniTest::Unit.autorun
 
 class MiniTest::Unit::TestCase

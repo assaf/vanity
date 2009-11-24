@@ -72,8 +72,10 @@ class MetricTest < MiniTest::Unit::TestCase
     Vanity.playground.metric(:yawns_sec)
     Vanity.playground.metric(:cheers_sec)
     assert 2, Vanity.playground.metrics.count
+    metrics = Vanity.playground.metrics.values
     Vanity.playground.reload!
-    assert_empty Vanity.playground.metrics
+    assert 2, Vanity.playground.metrics.count
+    refute_equal metrics, Vanity.playground.metrics.values
   end
 
 
@@ -99,8 +101,17 @@ class MetricTest < MiniTest::Unit::TestCase
     assert_equal [0,4,0,2,0,1], boredom
   end
 
-
-  # -- Tracking and hooks --
+  def test_tracking_with_count
+    Timecop.travel Date.today - 4 do
+      Vanity.playground.track! :yawns_sec, 4
+    end
+    Timecop.travel Date.today - 2 do
+      Vanity.playground.track! :yawns_sec, 2
+    end
+    Vanity.playground.track! :yawns_sec
+    boredom = Vanity.playground.metric(:yawns_sec).values(Date.today - 5, Date.today)
+    assert_equal [0,4,0,2,0,1], boredom
+  end
 
   def test_tracking_runs_hook
     returns = 0
@@ -121,6 +132,13 @@ class MetricTest < MiniTest::Unit::TestCase
     Vanity.playground.metric(:many_happy_returns).hook { returns += 1 }
     Vanity.playground.track! :many_happy_returns
     assert_equal 3, returns
+  end
+
+  def test_destroy_metric_wipes_data
+    Vanity.playground.track! :many_happy_returns, 3
+    assert_equal [3], Vanity.playground.metric(:many_happy_returns).values(Date.today, Date.today)
+    Vanity.playground.metric(:many_happy_returns).destroy!
+    assert_equal [0], Vanity.playground.metric(:many_happy_returns).values(Date.today, Date.today)
   end
 
 
@@ -185,6 +203,27 @@ class MetricTest < MiniTest::Unit::TestCase
   def test_bounds_helper_for_metric_with_no_bounds_method
     metric = Object.new
     assert_equal [nil, nil], Vanity::Metric.bounds(metric)
+  end
+
+
+  # -- Timestamp --
+  
+  def test_metric_has_created_timestamp
+    metric = Vanity.playground.metric(:coolness)
+    assert_instance_of Time, metric.created_at
+    assert_in_delta metric.created_at.to_i, Time.now.to_i, 1
+  end
+ 
+  def test_metric_keeps_created_timestamp_across_restarts
+    past = Date.today - 1
+    Timecop.travel past do
+      metric = Vanity.playground.metric(:coolness)
+      assert_in_delta metric.created_at.to_i, past.to_time.to_i, 1
+    end
+
+    new_playground
+    metric = Vanity.playground.metric(:coolness)
+    assert_in_delta metric.created_at.to_i, past.to_time.to_i, 1
   end
 
 end

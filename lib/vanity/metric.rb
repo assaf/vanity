@@ -105,6 +105,8 @@ module Vanity
       @playground = playground
       @id = id.to_sym
       @hooks = []
+      redis.setnx key(:created_at), Time.now.to_i
+      @created_at = Time.at(redis[key(:created_at)].to_i)
     end
 
     # Metric identifier.
@@ -114,9 +116,9 @@ module Vanity
     # -- Tracking --
 
     # Called to track an action associated with this metric.
-    def track!(vanity_id)
+    def track!(vanity_id, count = 1)
       timestamp = Time.now
-      @playground.redis.incr "metrics:#{id}:#{timestamp.to_date}:count"
+      redis.incrby key(timestamp.to_date, "count"), count
       @playground.logger.info "vanity tracked #{name || id}"
       @hooks.each do |hook|
         hook.call id, timestamp, vanity_id
@@ -155,6 +157,9 @@ module Vanity
     # metric).
     attr_accessor :name
 
+    # Time stamp when metric was created.
+    attr_reader :created_at
+
     # Sets or returns description. For example
     #   metric "Yawns/sec" do
     #     description "Most boring metric ever"
@@ -180,7 +185,22 @@ module Vanity
     # All metrics implement this value.  Given two arguments, a start date and
     # an end date, it returns an array of measurements.
     def values(to, from)
-      @playground.redis.mget((to.to_date..from.to_date).map { |date| "metrics:#{id}:#{date}:count" }).map(&:to_i)
+      redis.mget((to.to_date..from.to_date).map { |date| key(date, "count") }).map(&:to_i)
+    end
+
+
+    # -- Storage --
+
+    def destroy!
+      redis.del redis.keys(key("*"))
+    end
+
+    def redis
+      @playground.redis
+    end
+
+    def key(*args)
+      "metrics:#{id}:#{args.join(':')}"
     end
 
   end

@@ -57,8 +57,11 @@ end
 task :report do
   $LOAD_PATH.unshift "lib"
   require "vanity"
+  require "timecop"
   Vanity.playground.load_path = "test/experiments"
   Vanity.playground.experiments.each(&:destroy)
+  Vanity.playground.metrics.values.each(&:destroy)
+  Vanity.playground.reload!
 
   # Control	182	35	19.23%	N/A
   182.times { |i| experiment(:null_abc).send(:count_participant, i, nil) }
@@ -78,5 +81,18 @@ task :report do
   84.times { |i| experiment(:age_and_zipcode).send(:count_participant, i, true) }
   32.times  { |i| experiment(:age_and_zipcode).send(:count_conversion, i, true) }
 
-  Vanity::Commands.report
+
+  Vanity.playground.metric(:cheers).description "Finding ways to make people happy :-)"
+  Vanity.playground.metric(:yawns).description "How many yawns/sec can our video-sharing micro-blogging social network elicit?"
+  cheers, yawns = 0, 0
+  (Date.today - 80..Date.today).each do |date|
+    Timecop.travel date do
+      cheers = cheers - 5 + rand(20)
+      Vanity.playground.track! :yawns, cheers
+      yawns = yawns - 5 + rand(30)
+      Vanity.playground.track! :cheers, yawns
+    end
+  end
+
+  Vanity::Commands.report ENV["OUTPUT"]
 end

@@ -13,8 +13,10 @@ class MockRedis
     @@hash[key] = value.to_s
   end
 
-  def del(key)
-    @@hash.delete key
+  def del(*keys)
+    keys.flatten.each do |key|
+      @@hash.delete key
+    end
   end
 
   def setnx(key, value)
@@ -25,8 +27,17 @@ class MockRedis
     @@hash[key] = (@@hash[key].to_i + 1).to_s
   end
 
+  def incrby(key, value)
+    @@hash[key] = (@@hash[key].to_i + value).to_s
+  end
+
   def mget(keys)
     @@hash.values_at(*keys)
+  end
+
+  def keys(pattern)
+    regexp = Regexp.new(Regexp.escape(pattern).gsub("*", ".*"))
+    @@hash.keys.select { |key| key =~ regexp }
   end
 
   def flushdb

@@ -15,8 +15,10 @@ module Vanity
       struct.send :include, Render
       locals = struct.new(*locals.values_at(*keys))
       dir, base = File.split(path)
-      path = File.read(File.join(dir, "_#{base}"))
-      ERB.new(path, nil, '<').result(locals.instance_eval { binding })
+      path = File.join(dir, "_#{base}")
+      erb = ERB.new(File.read(path), nil, '<>')
+      erb.filename = path
+      erb.result(locals.instance_eval { binding })
     end
 
     # Escape HTML.
