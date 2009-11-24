@@ -27,9 +27,12 @@ module Vanity
     # Created new Playground. Unless you need to, use the global Vanity.playground.
     def initialize
       @experiments = {}
+      @metrics = {}
       @host, @port, @db = "127.0.0.1", 6379, 0
       @namespace = "vanity:#{Vanity::Version::MAJOR}"
       @load_path = "experiments"
+      @logger = Logger.new(STDOUT)
+      @logger.level = Logger::ERROR
     end
     
     # Redis host name.  Default is 127.0.0.1
@@ -117,6 +120,22 @@ module Vanity
       redis
     end
 
+    # Returns a metric (creating one if doesn't already exist).
+    def metric(id)
+      id = id.to_sym
+      @metrics[id] ||= Metric.new(self, id)
+    end
+
+    # Returns hash of metrics (key is metric id).
+    def metrics
+      @metrics
+    end
+
+    # Tracks an action associated with a metric.  For example:
+    #   Vanity.playground.track! :uploaded_video
+    def track!(id)
+      metric(id).track! Vanity.context.vanity_identity
+    end
   end
 
   @playground = Playground.new

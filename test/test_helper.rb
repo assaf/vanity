@@ -7,9 +7,11 @@ require "action_controller"
 require "action_controller/test_case"
 require "initializer"
 require "lib/vanity/rails"
+require "test/mock_redis" # <-- load this when you don't want to use Redis
 MiniTest::Unit.autorun
 
 class MiniTest::Unit::TestCase
+
   # Call this on teardown. It wipes put the playground and any state held in it
   # (mostly experiments), resets vanity ID, and clears Redis of all experiments.
   def nuke_playground
@@ -33,3 +35,24 @@ ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
 Rails.configuration = Rails::Configuration.new
+
+
+# Time.now adapted from Jason Earl:
+# http://jasonearl.com/blog/testing_time_dependent_code/index.html
+def Time.now
+  @active || new
+end
+    
+# Set the time to be fake for a given block of code
+def Time.is(new_time, &block)
+  if block_given?
+    begin
+      old_time, @active = @active, new_time
+      yield
+    ensure
+      @active = old_time
+    end
+  else
+    @active = new_time || Time.new
+  end
+end

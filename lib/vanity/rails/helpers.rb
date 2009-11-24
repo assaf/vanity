@@ -103,8 +103,8 @@ module Vanity
     #     track! :call_to_action
     #     Acccount.create! params[:account]
     #   end
-    def track!(name, *args)
-      Vanity.playground.experiment(name).track! *args
+    def track!(name)
+      Vanity.playground.track! name
     end
   end
 end
