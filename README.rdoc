@@ -49,6 +49,30 @@ And:
   vanity --output vanity.html
 
 
+== Building From Source
+
+To run the test suite for the first time:
+
+  $ gem install timecop
+  $ rake
+
+You can also +rake test+ if you insist on being explicit.
+
+To build the documentation:
+ 
+  $ gem install yardoc jekyll
+  $ rake docs
+  $ open html/index.html
+
+To clean up after yourself:
+
+  $ rake clobber
+
+To package Vanity as a gem and install on your machine:
+
+  $ rake install
+
+
 == Credits/License
 
 Original code, copyright of Assaf Arkin, released under the MIT license.  
