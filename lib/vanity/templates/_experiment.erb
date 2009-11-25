@@ -1,4 +1,4 @@
-<h2><%=h experiment.name %> <span class="type">(<%= experiment.class.friendly_name %>)</span></h2>
+<h3><%=h experiment.name %> <span class="type">(<%= experiment.class.friendly_name %>)</span></h3>
 <%= experiment.description.to_s.split(/\n\s*\n/).map { |para| %{<p class="description">#{h para}</p>} }.join %>
 <%= render Vanity.template(experiment.type), experiment: experiment %>
 <p class="meta">Started <%= experiment.created_at.strftime("%a, %b %-d") %>

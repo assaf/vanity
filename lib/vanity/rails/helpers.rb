@@ -51,7 +51,7 @@ module Vanity
             @vanity_identity = object.id
           elsif response # everyday use
             @vanity_identity = cookies["vanity_id"] || OpenSSL::Random.random_bytes(16).unpack("H*")[0]
-            cookies["vanity_id"] = { value: @vanity_identity, expires: 1.month.from_now }
+            cookies["vanity_id"] = { :value=>@vanity_identity, :expires=>1.month.from_now }
             @vanity_identity
           else # during functional testing
             @vanity_identity = "test"
@@ -103,8 +103,8 @@ module Vanity
     #     track! :call_to_action
     #     Acccount.create! params[:account]
     #   end
-    def track!(name, *args)
-      Vanity.playground.experiment(name).track! *args
+    def track!(name)
+      Vanity.playground.track! name
     end
   end
 end

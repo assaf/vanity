@@ -370,7 +370,7 @@ module Vanity
       # -- Store/validate --
 
       def destroy
-        @alternatives.count.times do |i|
+        @alternatives.size.times do |i|
           redis.del key("alts:#{i}:participants")
           redis.del key("alts:#{i}:converted")
           redis.del key("alts:#{i}:conversions")
@@ -380,7 +380,7 @@ module Vanity
       end
 
       def save
-        fail "Experiment #{name} needs at least two alternatives" unless alternatives.count >= 2
+        fail "Experiment #{name} needs at least two alternatives" unless alternatives.size >= 2
         super
       end
 
@@ -391,7 +391,7 @@ module Vanity
       # identity, and randomly distributed alternatives for each identity (in the
       # same experiment).
       def alternative_for(identity)
-        Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.count
+        Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.size
       end
 
       # Used for testing Vanity.
@@ -420,15 +420,17 @@ module Vanity
       end
 
     end
-  end
 
-  module Definition
-    # Define an A/B test with the given name.  For example:
-    #   ab_test "New Banner" do
-    #     alternatives :red, :green, :blue
-    #   end
-    def ab_test(name, &block)
-      define name, :ab_test, &block
+
+    module Definition
+      # Define an A/B test with the given name.  For example:
+      #   ab_test "New Banner" do
+      #     alternatives :red, :green, :blue
+      #   end
+      def ab_test(name, &block)
+        define name, :ab_test, &block
+      end
     end
+
   end
 end

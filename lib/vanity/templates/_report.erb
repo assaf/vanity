@@ -6,11 +6,19 @@
       .vanity h1 { margin: 1em 0; border-bottom: 3px solid #ccc }
       <%= File.read(Vanity.template("vanity.css")) %>
     </style>
+    <script language="javascript" type="text/javascript"><%= File.read(Vanity.template("jquery.min.js")) %></script>
+    <script language="javascript" type="text/javascript"><%= File.read(Vanity.template("flot.min.js")) %></script>
   </head>
   <body>
     <div class="vanity">
-      <h1>Experiments</h1>
-      <%= render Vanity.template("experiments"), experiments: Vanity.playground.experiments %>
+      <% experiments = Vanity.playground.experiments ; unless experiments.empty? %>
+        <h2>Experiments</h2>
+        <%= render Vanity.template("experiments"), experiments: experiments %>
+      <% end %>
+      <% metrics = Vanity.playground.metrics ; unless metrics.empty? %>
+        <h2>Metrics</h2>
+        <%= render Vanity.template("metrics"), metrics: metrics %>
+      <% end %>
     </div>
   </body>
 </html>

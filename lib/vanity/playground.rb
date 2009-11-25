@@ -1,35 +1,23 @@
 module Vanity
 
-  # These methods are available from experiment definitions (files located in
-  # the experiments directory, automatically loaded by Vanity).  Use these
-  # methods to define you experiments, for example:
-  #   ab_test "New Banner" do
-  #     alternatives :red, :green, :blue
-  #   end
-  module Definition
-
-  protected
-    # Defines a new experiment, given the experiment's name, type and
-    # definition block.
-    def define(name, type, options = nil, &block)
-      options ||= {}
-      Vanity.playground.define(name, type, options, &block)
-    end
-
-  end
-
   # Playground catalogs all your experiments, holds the Vanity configuration.
-  # For example:
+  #
+  # @example
   #   Vanity.playground.logger = my_logger
   #   puts Vanity.playground.map(&:name)
   class Playground
 
+    DEFAULTS = { :host=>"127.0.0.1", :port=>6379, :db=>0, :load_path=>"experiments" }
+
     # Created new Playground. Unless you need to, use the global Vanity.playground.
     def initialize
       @experiments = {}
-      @host, @port, @db = "127.0.0.1", 6379, 0
+      @metrics = {}
+      @host, @port, @db, @load_path = DEFAULTS.values_at(:host, :port, :db, :load_path)
       @namespace = "vanity:#{Vanity::Version::MAJOR}"
-      @load_path = "experiments"
+      @logger = Logger.new(STDOUT)
+      @logger.level = Logger::ERROR
+      @loading = []
     end
     
     # Redis host name.  Default is 127.0.0.1
@@ -56,7 +44,7 @@ module Vanity
     # Defines a new experiment. Generally, do not call this directly,
     # use one of the definition methods (ab_test, measure, etc).
     def define(name, type, options = {}, &block)
-      id = name.to_s.downcase.gsub(/\W/, "_")
+      id = name.to_s.downcase.gsub(/\W/, "_").to_sym
       raise "Experiment #{id} already defined once" if @experiments[id]
       klass = Experiment.const_get(type.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase })
       experiment = klass.new(self, id, name, options)
@@ -65,34 +53,12 @@ module Vanity
       @experiments[id] = experiment
     end
 
-    # Returns the named experiment. You may not have guessed, but this method
-    # raises an exception if it cannot load the experiment's definition.
-    #
-    # Experiment names are always mapped by downcasing them and replacing
-    # non-word characters with underscores, so "Green call to action" becomes
-    # "green_call_to_action". You can also use a symbol if you feel like it.
+    # Returns the experiment. You may not have guessed, but this method raises
+    # an exception if it cannot load the experiment's definition.
     def experiment(name)
-      id = name.to_s.downcase.gsub(/\W/, "_")
-      unless @experiments.has_key?(id)
-        @loading ||= []
-        fail "Circular dependency detected: #{@loading.join('=>')}=>#{id}" if @loading.include?(id)
-        begin
-          @loading.push id
-          source = File.read(File.expand_path("#{id}.rb", load_path))
-          context = Object.new
-          context.instance_eval do
-            extend Definition
-            eval source
-          end
-        rescue
-          error = LoadError.exception($!.message)
-          error.set_backtrace $!.backtrace
-          raise error
-        ensure
-          @loading.pop
-        end
-      end
-      @experiments[id] or fail LoadError, "Expected experiments/#{id}.rb to define experiment #{name}"
+      id = name.to_s.downcase.gsub(/\W/, "_").to_sym
+      warn "Deprecated: pleae call experiment method with experiment identifier (a Ruby symbol)" unless id == name
+      @experiments[id] ||= Experiment::Base.load(self, @loading, File.expand_path(load_path), id)
     end
 
     # Returns list of all loaded experiments.
@@ -107,22 +73,53 @@ module Vanity
     # Reloads all experiments.
     def reload!
       @experiments.clear
+      @metrics.clear
     end
 
     # Use this instance to access the Redis database.
     def redis
-      redis = Redis.new(host: self.host, port: self.port, db: self.db,
-                        password: self.password, logger: self.logger)
+      redis = Redis.new(:host=>self.host, :port=>self.port, :db=>self.db,
+                        :password=>self.password, :logger=>self.logger)
       class << self ; self ; end.send(:define_method, :redis) { redis }
       redis
     end
 
+    # Returns a metric (creating one if doesn't already exist).
+    #
+    # @since 1.1.0
+    def metric(id)
+      id = id.to_sym
+      @metrics[id] ||= Metric.load(self, @loading, File.expand_path("metrics", load_path), id)
+    end
+
+    # Returns hash of metrics (key is metric id).
+    #
+    # @since 1.1.0
+    def metrics
+      redis.keys("metrics:*:created_at").each do |key|
+        metric key[/metrics:(.*):created_at/, 1]
+      end
+      @metrics
+    end
+
+    # Tracks an action associated with a metric.
+    #
+    # @example
+    #   Vanity.playground.track! :uploaded_video
+    #
+    # @since 1.1.0
+    def track!(id, count = 1)
+      vanity_id = Vanity.context.vanity_identity if Vanity.context
+      metric(id).track! vanity_id, count
+    end
   end
 
   @playground = Playground.new
   class << self
 
     # Returns the playground instance.
+    #
+    # @see Vanity::Playground
     def playground
       @playground
     end
@@ -152,8 +149,12 @@ end
 
 class Object
 
-  # Use this method to access an experiment by name.  For example:
+  # Use this method to access an experiment by name.
+  #
+  # @example
   #   puts experiment(:text_size).alternatives
+  #
+  # @see Vanity::Playground#experiment
   def experiment(name)
     Vanity.playground.experiment(name)
   end

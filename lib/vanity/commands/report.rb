@@ -15,8 +15,10 @@ module Vanity
       struct.send :include, Render
       locals = struct.new(*locals.values_at(*keys))
       dir, base = File.split(path)
-      path = File.read(File.join(dir, "_#{base}"))
-      ERB.new(path, nil, '<').result(locals.instance_eval { binding })
+      path = File.join(dir, "_#{base}")
+      erb = ERB.new(File.read(path), nil, '<>')
+      erb.filename = path
+      erb.result(locals.instance_eval { binding })
     end
 
     # Escape HTML.
@@ -24,6 +26,14 @@ module Vanity
       CGI.escape_html(html)
     end
 
+    # Dumbed down from Rails' simple_format.
+    def simple_format(text, options={})
+      open = "<p #{options.map { |k,v| "#{k}=\"#{CGI.escape_html v}\"" }.join(" ")}>"
+      text = open + text.gsub(/\r\n?/, "\n").   # \r\n and \r -> \n
+        gsub(/\n\n+/, "</p>\n\n#{open}").       # 2+ newline  -> paragraph
+        gsub(/([^\n]\n)(?=[^\n])/, '\1<br />') + # 1 newline   -> br
+        "</p>"
+    end
   end
 
   # Commands available when running Vanity from the command line (see bin/vanity).

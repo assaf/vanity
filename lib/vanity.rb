@@ -1,11 +1,14 @@
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), "../vendor/redis-0.1/lib")
 require "redis"
 require "openssl"
+require "date"
+require "logger"
 
-# All the cool stuff happens in other places:
-# - Vanity::Helpers
-# - Vanity::Playground
-# - Experiment::AbTest
+# All the cool stuff happens in other places.
+# @see Vanity::Rails
+# @see Vanity::Playground
+# @see Vanity::Metric
+# @see Vanity::Experiment
 module Vanity
   # Version number.
   module Version
@@ -18,6 +21,7 @@ module Vanity
 end
 
 require "vanity/playground"
+require "vanity/metric"
 require "vanity/experiment/base"
 require "vanity/experiment/ab_test"
 require "vanity/rails" if defined?(Rails)

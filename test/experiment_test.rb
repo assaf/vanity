@@ -1,6 +1,6 @@
 require "test/test_helper"
 
-class ExperimentTest < MiniTest::Unit::TestCase
+class ExperimentTest < Test::Unit::TestCase
   def test_experiment_mapping_name_to_id
     experiment = Vanity.playground.define("Green Button/Alert", :ab_test) { }
     assert_equal "Green Button/Alert", experiment.name

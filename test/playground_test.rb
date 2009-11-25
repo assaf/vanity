@@ -1,17 +1,10 @@
 require "test/test_helper"
 
-class PlaygroundTest < MiniTest::Unit::TestCase
-  def setup
-    @namespace = "vanity:1"
-  end
+class PlaygroundTest < Test::Unit::TestCase
 
   def test_has_one_global_instance
     assert instance = Vanity.playground
     assert_equal instance, Vanity.playground
-  end
-
-  def test_playground_namespace
-    assert @namespace, Vanity.playground.namespace
   end
 
 
@@ -24,8 +17,7 @@ class PlaygroundTest < MiniTest::Unit::TestCase
   end
 
   def test_loading_experiment
-    Vanity.playground.load_path = Dir.tmpdir
-    File.open File.join(Dir.tmpdir, "green_button.rb"), "w" do |f|
+    File.open "tmp/experiments/green_button.rb", "w" do |f|
       f.write <<-RUBY
         ab_test "Green Button" do
           def xmts
@@ -38,8 +30,7 @@ class PlaygroundTest < MiniTest::Unit::TestCase
   end
 
   def test_fails_if_error_loading_experiment
-    Vanity.playground.load_path = Dir.tmpdir
-    File.open File.join(Dir.tmpdir, "green_button.rb"), "w" do |f|
+    File.open "tmp/experiments/green_button.rb", "w" do |f|
       f.write "fail 'yawn!'"
     end
     assert_raises LoadError do
@@ -48,8 +39,7 @@ class PlaygroundTest < MiniTest::Unit::TestCase
   end
 
   def test_complains_if_not_defined_where_expected
-    Vanity.playground.load_path = Dir.tmpdir
-    File.open File.join(Dir.tmpdir, "green_button.rb"), "w" do |f|
+    File.open "tmp/experiments/green_button.rb", "w" do |f|
       f.write ""
     end
     assert_raises LoadError do
@@ -60,9 +50,9 @@ class PlaygroundTest < MiniTest::Unit::TestCase
   def test_reloading_experiments
     Vanity.playground.define(:ab, :ab_test) {}
     Vanity.playground.define(:cd, :ab_test) {}
-    assert 2, Vanity.playground.experiments.count
+    assert 2, Vanity.playground.experiments.size
     Vanity.playground.reload!
-    assert_empty Vanity.playground.experiments
+    assert Vanity.playground.experiments.empty?
   end
 
   # -- Defining experiment --
@@ -82,8 +72,8 @@ class PlaygroundTest < MiniTest::Unit::TestCase
 
   def test_uses_playground_namespace_for_experiment
     Vanity.playground.define(:green_button, :ab_test) { }
-    assert_equal "#{@namespace}:green_button", experiment(:green_button).send(:key)
-    assert_equal "#{@namespace}:green_button:participants", experiment(:green_button).send(:key, "participants")
+    assert_equal "vanity:#{Vanity::Version::MAJOR}:green_button", experiment(:green_button).send(:key)
+    assert_equal "vanity:#{Vanity::Version::MAJOR}:green_button:participants", experiment(:green_button).send(:key, "participants")
   end
 
 end
