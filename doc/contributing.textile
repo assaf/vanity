@@ -1,0 +1,43 @@
+---
+layout: page
+title: Contributing
+---
+
+By all means.
+
+h3. Relevant Links
+
+* "Google Group":http://groups.google.com/group/vanity-talk
+* "Source code":http://github.com/assaf/vanity
+* "Continuous integration":http://runcoderun.com/assaf/vanity
+* "Code metrics":http://devver.net/caliper/project?repo=git%3A%2F%2Fgithub.com%2Fassaf%2Fvanity.git
+
+
+h3. Building From Source
+
+Vanity test suite requires "Rails":http://rubyonrails.org, "Mocha":http://mocha.rubyforge.org/ and "Timecop":http://github.com/jtrupiano/timecop.  To run the test suite:
+
+<pre>
+$ gem install rails mocha timecop
+$ rake
+</pre>
+
+Documentation is built using "Jekyll":http://jekyllrb.com/ (these pages) and "Yardoc":http://yardoc.org/ (API).  To build and view documentation: To build the documentation:
+
+<pre>
+$ gem install yardoc jekyll
+$ rake docs
+$ open html/index.html
+</pre>
+
+To clean up after yourself:
+
+<pre>
+$ rake clobber
+</pre>
+
+To package Vanity as a gem and install on your machine:
+
+<pre>
+$ rake install
+</pre>

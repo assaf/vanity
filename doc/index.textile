@@ -23,6 +23,7 @@ Also:
 * "Get the code(Official Github repository)":http://github.com/assaf/vanity
 * "API reference":api/index.html
 * "Join vanity-talk list":http://groups.google.com/group/vanity-talk
+* "Contributing to Vanity":contributing.html
 
 
 h3(#intro). A/B Testing with Rails (in 5 easy steps)
