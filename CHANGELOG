@@ -1,5 +1,8 @@
 == 1.1.0
+This release introduces metrics.  Metrics are the gateway drug to better software.
 
+* Added: Metrics.
+* Changed: All tests are green on Ruby 1.8.6, 1.8.7 and 1.9.1.
 * Deprecated: Please call experiment method with experiment identifier (a symbol) and not experiment name.
 
 == 1.0.0 (2009-11-19)

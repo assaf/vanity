@@ -53,3 +53,14 @@ Vanity::Playground::DEFAULTS[:db] = 15
 # around permission issues in some places.
 ENV["TMPDIR"] = File.expand_path("tmp")
 Vanity::Playground::DEFAULTS[:load_path] = "tmp/experiments"
+
+
+class Array
+  # Not in Ruby 1.8.6.
+  unless method_defined?(:shuffle)
+    def shuffle
+      copy = clone
+      Array.new(size) { copy.delete_at(Kernel.rand(copy.size)) } 
+    end
+  end
+end

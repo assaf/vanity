@@ -50,7 +50,7 @@ class PlaygroundTest < Test::Unit::TestCase
   def test_reloading_experiments
     Vanity.playground.define(:ab, :ab_test) {}
     Vanity.playground.define(:cd, :ab_test) {}
-    assert 2, Vanity.playground.experiments.count
+    assert 2, Vanity.playground.experiments.size
     Vanity.playground.reload!
     assert Vanity.playground.experiments.empty?
   end

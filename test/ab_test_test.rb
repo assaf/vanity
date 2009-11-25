@@ -82,7 +82,7 @@ class AbTestTest < ActionController::TestCase
     end
     alts = Array.new(1000) { experiment(:foobar).choose }
     assert_equal %w{bar foo}, alts.uniq.sort
-    assert_in_delta alts.select { |a| a == "foo" }.count, 500, 100 # this may fail, such is propability
+    assert_in_delta alts.select { |a| a == "foo" }.size, 500, 100 # this may fail, such is propability
   end
 
   def test_records_all_participants_in_each_alternative
