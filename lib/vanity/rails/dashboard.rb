@@ -2,13 +2,13 @@ module Vanity
   module Rails
     module Dashboard
       def index
-        render Vanity.template("_report"), content_type: Mime::HTML, layout: true
+        render Vanity.template("_report"), :content_type=>Mime::HTML, :layout=>true
       end
 
       def chooses
         exp = Vanity.playground.experiment(params[:e])
         exp.chooses(exp.alternatives[params[:a].to_i].value)
-        render partial: Vanity.template("experiment"), locals: { experiment: exp }
+        render :partial=>Vanity.template("experiment"), :locals=>{ :experiment=>exp }
       end
     end
   end

@@ -1,6 +1,6 @@
 require "test/test_helper"
 
-class PlaygroundTest < MiniTest::Unit::TestCase
+class PlaygroundTest < Test::Unit::TestCase
 
   def test_has_one_global_instance
     assert instance = Vanity.playground
@@ -52,7 +52,7 @@ class PlaygroundTest < MiniTest::Unit::TestCase
     Vanity.playground.define(:cd, :ab_test) {}
     assert 2, Vanity.playground.experiments.count
     Vanity.playground.reload!
-    assert_empty Vanity.playground.experiments
+    assert Vanity.playground.experiments.empty?
   end
 
   # -- Defining experiment --

@@ -1,6 +1,6 @@
 require "test/test_helper"
 
-class MetricTest < MiniTest::Unit::TestCase
+class MetricTest < Test::Unit::TestCase
   
   # -- Via the playground --
 
@@ -12,13 +12,13 @@ class MetricTest < MiniTest::Unit::TestCase
   def test_playground_tracks_all_loaded_metrics
     Vanity.playground.metric(:yawns_sec)
     Vanity.playground.metric(:cheers_sec)
-    assert_includes Vanity.playground.metrics.keys, :yawns_sec
-    assert_includes Vanity.playground.metrics.keys, :cheers_sec
+    assert Vanity.playground.metrics.keys.include?(:yawns_sec)
+    assert Vanity.playground.metrics.keys.include?(:cheers_sec)
   end
 
   def test_playground_tracking_creates_metric_on_demand
     Vanity.playground.track! :yawns_sec
-    assert_includes Vanity.playground.metrics.keys, :yawns_sec
+    assert Vanity.playground.metrics.keys.include?(:yawns_sec)
     assert_respond_to Vanity.playground.metrics[:yawns_sec], :values
   end
 
@@ -74,7 +74,7 @@ class MetricTest < MiniTest::Unit::TestCase
     metrics = Vanity.playground.metrics.values
     Vanity.playground.reload!
     assert 2, Vanity.playground.metrics.count
-    refute_equal metrics, Vanity.playground.metrics.values
+    assert_not_equal metrics, Vanity.playground.metrics.values
   end
 
 

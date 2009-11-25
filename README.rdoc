@@ -53,7 +53,7 @@ And:
 
 To run the test suite for the first time:
 
-  $ gem install timecop
+  $ gem install rails mocha timecop
   $ rake
 
 You can also +rake test+ if you insist on being explicit.

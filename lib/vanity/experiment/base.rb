@@ -61,7 +61,7 @@ module Vanity
         @id, @name = id.to_sym, name
         @options = options || {}
         @namespace = "#{@playground.namespace}:#{@id}"
-        @identify_block = ->(context){ context.vanity_identity }
+        @identify_block = lambda { |context| context.vanity_identity }
       end
 
       # Human readable experiment name (first argument you pass when creating a

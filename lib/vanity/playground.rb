@@ -78,8 +78,8 @@ module Vanity
 
     # Use this instance to access the Redis database.
     def redis
-      redis = Redis.new(host: self.host, port: self.port, db: self.db,
-                        password: self.password, logger: self.logger)
+      redis = Redis.new(:host=>self.host, :port=>self.port, :db=>self.db,
+                        :password=>self.password, :logger=>self.logger)
       class << self ; self ; end.send(:define_method, :redis) { redis }
       redis
     end

@@ -4,7 +4,7 @@ class UseVanityController < ActionController::Base
   attr_accessor :current_user
 
   def index
-    render text: ab_test(:simple)
+    render :text=>ab_test(:simple)
   end
 end
 
@@ -29,7 +29,7 @@ class UseVanityTest < ActionController::TestCase
 
   def test_vanity_cookie_default_id
     get :index
-    assert_match cookies['vanity_id'], /^[a-f0-9]{32}$/
+    assert cookies['vanity_id'] =~ /^[a-f0-9]{32}$/
   end
 
   def test_vanity_cookie_retains_id
@@ -45,7 +45,7 @@ class UseVanityTest < ActionController::TestCase
   end
 
   def test_vanity_identity_set_from_user
-    @controller.current_user = mock("user", id: "user_id")
+    @controller.current_user = mock("user", :id=>"user_id")
     get :index
     assert_equal "user_id", @controller.send(:vanity_identity)
   end
@@ -56,7 +56,7 @@ class UseVanityTest < ActionController::TestCase
     end
     @controller.current_user = Object.new
     get :index
-    assert_match cookies['vanity_id'], /^[a-f0-9]{32}$/
+    assert cookies['vanity_id'] =~ /^[a-f0-9]{32}$/
   end
 
   def test_vanity_identity_set_with_block

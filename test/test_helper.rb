@@ -1,7 +1,7 @@
 $LOAD_PATH.delete_if { |path| path[/gems\/vanity-\d/] }
 $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
 RAILS_ROOT = File.expand_path("..")
-require "minitest/spec"
+require "test/unit"
 require "mocha"
 require "action_controller"
 require "action_controller/test_case"
@@ -9,9 +9,9 @@ require "initializer"
 require "lib/vanity/rails"
 require "timecop"
 require "test/mock_redis" # <-- load this when you don't want to use Redis
-MiniTest::Unit.autorun
+#Test::Unit.autorun
 
-class MiniTest::Unit::TestCase
+class Test::Unit::TestCase
 
   def setup
     FileUtils.mkpath "tmp/experiments/metrics"

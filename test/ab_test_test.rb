@@ -5,20 +5,20 @@ class AbTestController < ActionController::Base
   attr_accessor :current_user
 
   def test_render
-    render text: ab_test(:simple)
+    render :text=>ab_test(:simple)
   end
 
   def test_view
-    render inline: "<%= ab_test(:simple) %>"
+    render :inline=>"<%= ab_test(:simple) %>"
   end
 
   def test_capture
-    render inline: "<% ab_test :simple do |value| %><%= value %><% end %>"
+    render :inline=>"<% ab_test :simple do |value| %><%= value %><% end %>"
   end
 
   def track
     track! :simple
-    render text: ""
+    render :text=>""
   end
 end
 
@@ -134,7 +134,7 @@ class AbTestTest < ActionController::TestCase
     end
     experiment(:simple).choose
     experiment(:simple).track!
-    refute experiment(:simple).active?
+    assert !experiment(:simple).active?
     assert_equal true, experiment(:simple).outcome.value
 
     experiment(:simple).destroy
@@ -292,8 +292,8 @@ class AbTestTest < ActionController::TestCase
     12.times { |i| experiment(:abcd).send(:count_participant, i, :d) }
     5.times  { |i| experiment(:abcd).send(:count_conversion, i, :d) }
 
-    z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }
-    assert_equal %w{NaN 2.01 NaN 0.00}, z_scores
+    z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }.map(&:downcase)
+    assert_equal %w{nan 2.01 nan 0.00}, z_scores
     probabilities = experiment(:abcd).score.alts.map(&:probability)
     assert_equal [0, 95, 0, 0], probabilities
     diff = experiment(:abcd).score.alts.map { |alt| alt.difference && alt.difference.round }
@@ -451,7 +451,7 @@ This experiment did not run long enough to find a clear winner.
       complete_if { true }
     end
     experiment(:simple).choose
-    refute experiment(:simple).active?
+    assert !experiment(:simple).active?
   end
 
   def test_completion_if_fails
@@ -475,7 +475,7 @@ This experiment did not run long enough to find a clear winner.
     end
 
     experiment(:simple).choose
-    refute experiment(:simple).active?
+    assert !experiment(:simple).active?
   end
 
   def test_ab_methods_after_completion
@@ -492,7 +492,7 @@ This experiment did not run long enough to find a clear winner.
       experiment(:simple).track!
     end
     assert results.include?(true) && results.include?(false)
-    refute experiment(:simple).active?
+    assert !experiment(:simple).active?
 
     # Test that we always get the same choice (true)
     100.times do
