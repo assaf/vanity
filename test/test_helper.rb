@@ -17,6 +17,7 @@ class MiniTest::Unit::TestCase
     FileUtils.mkpath "tmp/experiments/metrics"
     Vanity.context = mock("Context")
     Vanity.context.stubs(:vanity_identity).returns(rand)
+    nuke_playground
   end
 
   # Call this on teardown. It wipes put the playground and any state held in it
@@ -33,7 +34,6 @@ class MiniTest::Unit::TestCase
   end
 
   def teardown
-    nuke_playground
     Vanity.context = nil
     FileUtils.rm_rf "tmp"
   end

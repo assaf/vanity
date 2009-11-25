@@ -60,7 +60,7 @@ task :report do
   require "timecop"
   Vanity.playground.load_path = "test/experiments"
   Vanity.playground.experiments.each(&:destroy)
-  Vanity.playground.metrics.values.each(&:destroy)
+  Vanity.playground.metrics.values.each(&:destroy!)
   Vanity.playground.reload!
 
   # Control	182	35	19.23%	N/A

@@ -6,7 +6,7 @@ class MetricTest < MiniTest::Unit::TestCase
 
   def test_playground_creates_metric_on_demand
     assert metric = Vanity.playground.metric(:yawns_sec)
-    assert_equal :yawns_sec, metric.id
+    assert_equal "Yawns sec", metric.name
   end
 
   def test_playground_tracks_all_loaded_metrics
@@ -43,7 +43,6 @@ class MetricTest < MiniTest::Unit::TestCase
       RUBY
     end
     assert metric = Vanity.playground.metric(:yawns_sec)
-    assert_equal :yawns_sec, metric.id
     assert_equal "Yawns/sec", metric.name
   end
 
@@ -84,32 +83,32 @@ class MetricTest < MiniTest::Unit::TestCase
   def test_tracking_can_count
     4.times { Vanity.playground.track! :yawns_sec }
     2.times { Vanity.playground.track! :cheers_sec }
-    yawns = Vanity.playground.metric(:yawns_sec).values(Date.today, Date.today).first
-    cheers = Vanity.playground.metric(:cheers_sec).values(Date.today, Date.today).first
+    yawns = Vanity.playground.metric(:yawns_sec).values(today, today).first
+    cheers = Vanity.playground.metric(:cheers_sec).values(today, today).first
     assert yawns = 2 * cheers
   end
 
   def test_tracking_can_tell_the_time
-    Timecop.travel Date.today - 4 do
+    Timecop.travel today - 4 do
       4.times { Vanity.playground.track! :yawns_sec }
     end
-    Timecop.travel Date.today - 2 do
+    Timecop.travel today - 2 do
       2.times { Vanity.playground.track! :yawns_sec }
     end
     1.times { Vanity.playground.track! :yawns_sec }
-    boredom = Vanity.playground.metric(:yawns_sec).values(Date.today - 5, Date.today)
+    boredom = Vanity.playground.metric(:yawns_sec).values(today - 5, today)
     assert_equal [0,4,0,2,0,1], boredom
   end
 
   def test_tracking_with_count
-    Timecop.travel Date.today - 4 do
+    Timecop.travel today - 4 do
       Vanity.playground.track! :yawns_sec, 4
     end
-    Timecop.travel Date.today - 2 do
+    Timecop.travel today - 2 do
       Vanity.playground.track! :yawns_sec, 2
     end
     Vanity.playground.track! :yawns_sec
-    boredom = Vanity.playground.metric(:yawns_sec).values(Date.today - 5, Date.today)
+    boredom = Vanity.playground.metric(:yawns_sec).values(today - 5, today)
     assert_equal [0,4,0,2,0,1], boredom
   end
 
@@ -136,33 +135,26 @@ class MetricTest < MiniTest::Unit::TestCase
 
   def test_destroy_metric_wipes_data
     Vanity.playground.track! :many_happy_returns, 3
-    assert_equal [3], Vanity.playground.metric(:many_happy_returns).values(Date.today, Date.today)
+    assert_equal [3], Vanity.playground.metric(:many_happy_returns).values(today, today)
     Vanity.playground.metric(:many_happy_returns).destroy!
-    assert_equal [0], Vanity.playground.metric(:many_happy_returns).values(Date.today, Date.today)
+    assert_equal [0], Vanity.playground.metric(:many_happy_returns).values(today, today)
   end
 
 
-  # -- Name helper --
+  # -- Metric name --
   
-  def test_name_for_metric_with_name
-    metric = Vanity.playground.metric(:bst)
-    metric.name = "Blood, sweat, tears"
-    assert_equal "Blood, sweat, tears", Vanity::Metric.name(:bst, metric)
+  def test_name_from_identifier
+    assert_equal "Many happy returns", Vanity.playground.metric(:many_happy_returns).name
   end
 
-  def test_name_for_metric_with_no_name
-    metric = Vanity.playground.metric(:bst)
-    assert_equal "Bst", Vanity::Metric.name(:bst, metric)
-  end
-
-  def test_name_for_metric_with_no_name_attributes
-    metric = Object.new
-    assert_equal "Bst", Vanity::Metric.name(:bst, metric)
-  end
-
-  def test_name_for_metric_with_compound_id
-    metric = Vanity.playground.metric(:blood_sweat_tears)
-    assert_equal "Blood sweat tears", Vanity::Metric.name(:blood_sweat_tears, metric)
+  def test_name_from_definition
+    File.open "tmp/experiments/metrics/yawns_hour.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Yawns/hour" do
+        end
+      RUBY
+    end
+    assert_equal "Yawns/hour", Vanity.playground.metric(:yawns_hour).name
   end
 
 
@@ -226,4 +218,42 @@ class MetricTest < MiniTest::Unit::TestCase
     assert_in_delta metric.created_at.to_i, past.to_time.to_i, 1
   end
 
+
+  # -- Data helper --
+
+  def test_data_with_explicit_dates
+    Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
+    Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
+    Vanity.playground.track! :yawns_sec
+    boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), Date.today - 5, Date.today)
+    assert_equal [[today - 5, 0], [today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
+  end
+
+  def test_data_with_start_date
+    Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
+    Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
+    Vanity.playground.track! :yawns_sec
+    boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), Date.today - 5)
+    assert_equal [[today - 5, 0], [today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
+  end
+
+  def test_data_with_duration
+    Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
+    Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
+    Vanity.playground.track! :yawns_sec
+    boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), 5)
+    assert_equal [[today - 5, 0], [today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
+  end
+
+  def test_data_with_no_dates
+    boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec))
+    assert_equal [today - 90, 0], boredom.first
+    assert_equal [today, 0], boredom.last
+  end
+
+
+  def today
+    @today ||= Date.today
+  end
+  
 end

@@ -1,7 +1,8 @@
 module Vanity
 
   # Playground catalogs all your experiments, holds the Vanity configuration.
-  # For example:
+  #
+  # @example
   #   Vanity.playground.logger = my_logger
   #   puts Vanity.playground.map(&:name)
   class Playground
@@ -84,12 +85,16 @@ module Vanity
     end
 
     # Returns a metric (creating one if doesn't already exist).
+    #
+    # @since 1.1.0
     def metric(id)
       id = id.to_sym
       @metrics[id] ||= Metric.load(self, @loading, File.expand_path("metrics", load_path), id)
     end
 
     # Returns hash of metrics (key is metric id).
+    #
+    # @since 1.1.0
     def metrics
       redis.keys("metrics:*:created_at").each do |key|
         metric key[/metrics:(.*):created_at/, 1]
@@ -97,8 +102,12 @@ module Vanity
       @metrics
     end
 
-    # Tracks an action associated with a metric.  For example:
+    # Tracks an action associated with a metric.
+    #
+    # @example
     #   Vanity.playground.track! :uploaded_video
+    #
+    # @since 1.1.0
     def track!(id, count = 1)
       vanity_id = Vanity.context.vanity_identity if Vanity.context
       metric(id).track! vanity_id, count
@@ -109,6 +118,8 @@ module Vanity
   class << self
 
     # Returns the playground instance.
+    #
+    # @see Vanity::Playground
     def playground
       @playground
     end
@@ -138,8 +149,12 @@ end
 
 class Object
 
-  # Use this method to access an experiment by name.  For example:
+  # Use this method to access an experiment by name.
+  #
+  # @example
   #   puts experiment(:text_size).alternatives
+  #
+  # @see Vanity::Playground#experiment
   def experiment(name)
     Vanity.playground.experiment(name)
   end

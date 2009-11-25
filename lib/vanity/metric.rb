@@ -1,17 +1,14 @@
 module Vanity
 
-  # A metric is an object with a method called values, which accepts two
-  # arguments, start data and end date, and returns an array of measurements.
+  # A metric is an object that implements two methods: +name+ and +values+.  It
+  # can also respond to addition methods (+track!+, +bounds+, etc), these are
+  # optional.
   #
-  # A metric can also respons to additional methods (track!, bounds, etc).
-  # This class implements a metric, use this as reference to the methods you
-  # can implement in your own metric.
+  # This class implements a basic metric that tracks data and stores it in
+  # Redis.  You can use this as the basis for your metric, or as reference for
+  # the methods your metric must and can implement.
   #
-  # Or just use this metric implementation.  It's fast and fully functional.
-  # 
-  # Startup metrics for pirates: AARRR stands for Acquisition, Activation,
-  # Retention, Referral and Revenue.
-  # http://500hats.typepad.com/500blogs/2007/09/startup-metrics.html
+  # @since 1.1.0
   class Metric
 
     # These methods are available when defining a metric in a file loaded
@@ -29,27 +26,22 @@ module Vanity
 
       # Defines a new metric, using the class Vanity::Metric.
       def metric(name, &block)
-        metric = Metric.new(@playground, name.to_s.downcase.gsub(/\W/, "_"))
-        metric.name = name
+        metric = Metric.new(@playground, name.to_s, name.to_s.downcase.gsub(/\W/, "_"))
         metric.instance_eval &block
         metric
       end
 
     end
+  
+    # Startup metrics for pirates. AARRR stands for:
+    # * Acquisition
+    # * Activation
+    # * Retention
+    # * Referral
+    # * Revenue
+    # Read more: http://500hats.typepad.com/500blogs/2007/09/startup-metrics.html
 
     class << self
-
-      # Helper method to return name for a metric.
-      #
-      # A metric object may have a +name+ method that returns a short
-      # descriptive name.  It may also have no name, or no +name+ method, in
-      # which case the metric identifier will do.
-      # 
-      # Example:
-      #   Vanity.playground.metrics.map { |id, metric| Vanity::Metric.name(id, metric) }
-      def name(id, metric)
-        metric.respond_to?(:name) && metric.name || id.to_s.capitalize.gsub(/_+/, " ")
-      end
 
       # Helper method to return description for a metric.
       #
@@ -57,7 +49,7 @@ module Vanity
       # description.  It may also have no description, or no +description+
       # method, in which case return +nil+.
       # 
-      # Example:
+      # @example
       #   puts Vanity::Metric.description(metric)
       def description(metric)
         metric.description if metric.respond_to?(:description)
@@ -69,16 +61,35 @@ module Vanity
       # bounds.  It may also have no bounds, or no +bounds+ # method, in which
       # case we return +[nil, nil]+.
       # 
-      # Example:
+      # @example
       #   upper = Vanity::Metric.bounds(metric).last
       def bounds(metric)
         metric.respond_to?(:bounds) && metric.bounds || [nil, nil]
       end
 
+      # Returns data set for a given date range.  The data set is an array of
+      # date, value pairs.
+      #
+      # First argument is the metric.  Second argument is the start date, or
+      # number of days to go back in history, defaults to 90 days.  Third
+      # argument is end date, defaults to today.
+      #
+      # @example These are all equivalent:
+      #   Vanity::Metric.data(my_metric) 
+      #   Vanity::Metric.data(my_metric, 90) 
+      #   Vanity::Metric.data(my_metric, Date.today - 90)
+      #   Vanity::Metric.data(my_metric, Date.today - 90, Date.today)
+      def data(metric, *args)
+        first = args.shift || 90
+        to = args.shift || Date.today
+        from = first.respond_to?(:to_date) ? first.to_date : to - first
+        (from..to).zip(metric.values(from, to))
+      end
+
       # Playground uses this to load metric definitions.
       def load(playground, stack, path, id)
         fn = File.join(path, "#{id}.rb")
-        return Metric.new(playground, id) unless File.exist?(fn)
+        return Metric.new(playground, id.to_s.gsub(/_+/, ' ').capitalize, id) unless File.exist?(fn)
 
         fail "Circular dependency detected: #{stack.join('=>')}=>#{fn}" if stack.include?(fn)
         source = File.read(fn)
@@ -88,7 +99,7 @@ module Vanity
           extend Definition
           @playground = playground
           metric = eval source
-          fail LoadError, "Expected #{fn} to define metric #{id}" unless metric.id == id
+          fail LoadError, "Expected #{fn} to define metric #{id}" unless metric.name.downcase.gsub(/\W+/, '_').to_sym == id
           metric
         end
       rescue
@@ -101,16 +112,13 @@ module Vanity
 
     end
 
-    def initialize(playground, id)
-      @playground = playground
-      @id = id.to_sym
+
+    def initialize(playground, name, id)
+      @playground, @name, @id = playground, name.to_s, id.to_sym
       @hooks = []
       redis.setnx key(:created_at), Time.now.to_i
       @created_at = Time.at(redis[key(:created_at)].to_i)
     end
-
-    # Metric identifier.
-    attr_reader :id
 
 
     # -- Tracking --
@@ -119,9 +127,9 @@ module Vanity
     def track!(vanity_id, count = 1)
       timestamp = Time.now
       redis.incrby key(timestamp.to_date, "count"), count
-      @playground.logger.info "vanity tracked #{name || id}"
+      @playground.logger.info "vanity: #{@id} with count #{count}"
       @hooks.each do |hook|
-        hook.call id, timestamp, vanity_id
+        hook.call @id, timestamp, vanity_id
       end
     end
 
@@ -153,9 +161,10 @@ module Vanity
 
     #  -- Reporting --
     
-    # Human readable metric name (first argument you pass when creating a new
-    # metric).
-    attr_accessor :name
+    # Human readable metric name.  All metrics must implement this method.
+    def name
+      @name
+    end
 
     # Time stamp when metric was created.
     attr_reader :created_at
@@ -171,21 +180,10 @@ module Vanity
       @description
     end
 
-    # Sets or returns description. For example
-    #   metric "Yawns/sec" do
-    #     description "Most boring metric ever"
-    #   end
-    #
-    #   puts "Just defined: " + metric(:boring).description
-    def description(text = nil)
-      @description = text if text
-      @description
-    end
-
-    # All metrics implement this value.  Given two arguments, a start date and
-    # an end date, it returns an array of measurements.
-    def values(to, from)
-      redis.mget((to.to_date..from.to_date).map { |date| key(date, "count") }).map(&:to_i)
+    # Given two arguments, a start date and an end date, returns an array of
+    # measurements.  All metrics must implement this method.
+    def values(from, to)
+      redis.mget((from.to_date..to.to_date).map { |date| key(date, "count") }).map(&:to_i)
     end
 
 
@@ -200,7 +198,7 @@ module Vanity
     end
 
     def key(*args)
-      "metrics:#{id}:#{args.join(':')}"
+      "metrics:#{@id}:#{args.join(':')}"
     end
 
   end

@@ -4,10 +4,11 @@ require "openssl"
 require "date"
 require "logger"
 
-# All the cool stuff happens in other places:
-# - Vanity::Helpers
-# - Vanity::Playground
-# - Experiment::AbTest
+# All the cool stuff happens in other places.
+# @see Vanity::Rails
+# @see Vanity::Playground
+# @see Vanity::Metric
+# @see Vanity::Experiment
 module Vanity
   # Version number.
   module Version

@@ -26,6 +26,14 @@ module Vanity
       CGI.escape_html(html)
     end
 
+    # Dumbed down from Rails' simple_format.
+    def simple_format(text, options={})
+      open = "<p #{options.map { |k,v| "#{k}=\"#{CGI.escape_html v}\"" }.join(" ")}>"
+      text = open + text.gsub(/\r\n?/, "\n").   # \r\n and \r -> \n
+        gsub(/\n\n+/, "</p>\n\n#{open}").       # 2+ newline  -> paragraph
+        gsub(/([^\n]\n)(?=[^\n])/, '\1<br />') + # 1 newline   -> br
+        "</p>"
+    end
   end
 
   # Commands available when running Vanity from the command line (see bin/vanity).
