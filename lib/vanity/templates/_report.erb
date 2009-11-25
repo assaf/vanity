@@ -13,11 +13,11 @@
     <div class="vanity">
       <% experiments = Vanity.playground.experiments ; unless experiments.empty? %>
         <h2>Experiments</h2>
-        <%= render Vanity.template("experiments"), experiments: experiments %>
+        <%= render Vanity.template("experiments"), :experiments=>experiments %>
       <% end %>
       <% metrics = Vanity.playground.metrics ; unless metrics.empty? %>
         <h2>Metrics</h2>
-        <%= render Vanity.template("metrics"), metrics: metrics %>
+        <%= render Vanity.template("metrics"), :metrics=>metrics %>
       <% end %>
     </div>
   </body>

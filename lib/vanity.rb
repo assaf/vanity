@@ -20,6 +20,7 @@ module Vanity
   end
 end
 
+require "vanity/backport" if RUBY_VERSION < "1.9"
 require "vanity/playground"
 require "vanity/metric"
 require "vanity/experiment/base"

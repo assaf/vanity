@@ -44,7 +44,7 @@ module Vanity
 
       # Conversion rate calculated as converted/participants, rounded to 3 places.
       def conversion_rate
-        @conversion_rate ||= (participants > 0 ? (converted.to_f/participants.to_f).round(3) : 0.0)
+        @conversion_rate ||= (participants > 0 ? (converted.to_f/participants.to_f * 1000).round / 1000.0 : 0.0)
       end
 
       # The measure we use to order (sort) alternatives and decide which one is better (by calculating z-score).
@@ -414,7 +414,8 @@ module Vanity
       begin
         a = 50.0
         # Returns array of [z-score, percentage]
-        norm_dist = (0.0..3.1).step(0.01).map { |x| [x, a += 1 / Math.sqrt(2 * Math::PI) * Math::E ** (-x ** 2 / 2)] }
+        norm_dist = []
+        (0.0..3.1).step(0.01) { |x| norm_dist << [x, a += 1 / Math.sqrt(2 * Math::PI) * Math::E ** (-x ** 2 / 2)] }
         # We're really only interested in 90%, 95%, 99% and 99.9%.
         Z_TO_PROBABILITY = [90, 95, 99, 99.9].map { |pct| [norm_dist.find { |x,a| a >= pct }.first, pct] }.reverse
       end

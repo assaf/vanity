@@ -34,7 +34,7 @@ task(:clobber) { rm_rf "tmp" }
 begin
   require "yard"
   YARD::Rake::YardocTask.new(:yardoc) do |task|
-    task.files  = ["lib/**/*.rb"]
+    task.files  = FileList["lib/**/*.rb"].exclude("lib/vanity/backport.rb")
     task.options = "--output", "html/api", "--title", "Vanity #{spec.version}", "--main", "README.rdoc", "--files", "CHANGELOG"
   end
 rescue LoadError
