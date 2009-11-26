@@ -169,6 +169,9 @@ module Vanity
     # Time stamp when metric was created.
     attr_reader :created_at
 
+    # Human readable description.  Use two newlines to break paragraphs.
+    attr_accessor :description
+
     # Sets or returns description. For example
     #   metric "Yawns/sec" do
     #     description "Most boring metric ever"

@@ -82,8 +82,6 @@ task :report do
   32.times  { |i| experiment(:age_and_zipcode).send(:count_conversion, i, true) }
 
 
-  Vanity.playground.metric(:cheers).description "Finding ways to make people happy :-)"
-  Vanity.playground.metric(:yawns).description "How many yawns/sec can our video-sharing micro-blogging social network elicit?"
   cheers, yawns = 0, 0
   (Date.today - 80..Date.today).each do |date|
     Timecop.travel date do
