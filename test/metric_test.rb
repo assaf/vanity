@@ -72,6 +72,12 @@ class MetricTest < Test::Unit::TestCase
     assert_not_equal metrics, Vanity.playground.metrics.values
   end
 
+  def test_undefined_metric_in_database
+    metric "Yawns/sec"
+    Vanity.playground.reload!
+    assert Vanity.playground.metrics.empty?
+  end
+
 
   # -- Tracking --
 
@@ -268,11 +274,4 @@ class MetricTest < Test::Unit::TestCase
     @today ||= Date.today
   end
 
-  def metric(*names)
-    names.each do |name|
-      id = name.to_s.downcase.gsub(/\W+/, '_').to_sym
-      Vanity.playground.metrics[id] = Vanity::Metric.new(Vanity.playground, name)
-    end
-  end
-  
 end

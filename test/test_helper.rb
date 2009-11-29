@@ -9,7 +9,6 @@ require "initializer"
 require "lib/vanity/rails"
 require "timecop"
 require "test/mock_redis" # <-- load this when you don't want to use Redis
-#Test::Unit.autorun
 
 class Test::Unit::TestCase
 
@@ -28,9 +27,19 @@ class Test::Unit::TestCase
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
-    Vanity.instance_variable_set :@playground, Vanity::Playground.new
+    Vanity.instance_variable_set :@playground, Vanity::Playground.new(:logger=>Logger.new("/dev/null"), :redis=>MockRedis.new)
   end
 
+  # Defines the specified metrics (one or more names).  Returns metric, or array
+  # of metric (if more than one argument).
+  def metric(*names)
+    metrics = names.map do |name|
+      id = name.to_s.downcase.gsub(/\W+/, '_').to_sym
+      Vanity.playground.metrics[id] ||= Vanity::Metric.new(Vanity.playground, name)
+    end
+    names.size == 1 ? metrics.first : metrics
+  end
+  
   def teardown
     Vanity.context = nil
     FileUtils.rm_rf "tmp"

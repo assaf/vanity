@@ -10,13 +10,13 @@ module Vanity
     DEFAULTS = { :host=>"127.0.0.1", :port=>6379, :db=>0, :load_path=>"experiments" }
 
     # Created new Playground. Unless you need to, use the global Vanity.playground.
-    def initialize
-      @experiments = {}
-      @metrics = {}
-      @host, @port, @db, @load_path = DEFAULTS.values_at(:host, :port, :db, :load_path)
+    def initialize(options = {})
+      @host, @port, @db, @load_path = DEFAULTS.merge(options).values_at(:host, :port, :db, :load_path)
       @namespace = "vanity:#{Vanity::Version::MAJOR}"
-      @logger = Logger.new(STDOUT)
+      @logger = options[:logger] || Logger.new(STDOUT)
       @logger.level = Logger::ERROR
+      @redis = options[:redis]
+      @experiments = {}
       @loading = []
     end
     
@@ -73,15 +73,15 @@ module Vanity
     # Reloads all experiments.
     def reload!
       @experiments.clear
-      @metrics.clear
+      @metrics = nil
     end
 
     # Use this instance to access the Redis database.
     def redis
-      redis = Redis.new(:host=>self.host, :port=>self.port, :db=>self.db,
-                        :password=>self.password, :logger=>self.logger)
-      class << self ; self ; end.send(:define_method, :redis) { redis }
-      redis
+      @redis ||= Redis.new(:host=>self.host, :port=>self.port, :db=>self.db,
+                           :password=>self.password, :logger=>self.logger)
+      class << self ; self ; end.send(:define_method, :redis) { @redis }
+      @redis
     end
 
     # Returns a metric (creating one if doesn't already exist).
@@ -89,15 +89,23 @@ module Vanity
     # @since 1.1.0
     def metric(id)
       id = id.to_sym
-      @metrics[id] ||= Metric.load(self, @loading, File.expand_path("metrics", load_path), id)
+      metrics[id] ||= Metric.load(self, @loading, File.expand_path("metrics", load_path), id)
     end
 
     # Returns hash of metrics (key is metric id).
     #
     # @since 1.1.0
     def metrics
-      redis.keys("metrics:*:created_at").each do |key|
-        metric key[/metrics:(.*):created_at/, 1]
+      unless @metrics
+        @metrics = {}
+        redis.keys("metrics:*:created_at").each do |key|
+          begin
+            id = key[/metrics:(.*):created_at/, 1]
+            metric id
+          rescue LoadError
+            @logger.error "Could not load metric #{id}: #{$!}"
+          end
+        end
       end
       @metrics
     end

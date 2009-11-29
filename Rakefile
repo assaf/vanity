@@ -64,22 +64,12 @@ task :report do
   Vanity.playground.reload!
 
   # Control	182	35	19.23%	N/A
-  182.times { |i| experiment(:null_abc).send(:count_participant, i, nil) }
-  35.times  { |i| experiment(:null_abc).send(:count_conversion, i, nil) }
   # Treatment A	180	45	25.00%	1.33
-  180.times { |i| experiment(:null_abc).send(:count_participant, i, :red) }
-  45.times  { |i| experiment(:null_abc).send(:count_conversion, i, :red) }
   # Treatment B	189	28	14.81%	-1.13
-  189.times { |i| experiment(:null_abc).send(:count_participant, i, :green) }
-  28.times  { |i| experiment(:null_abc).send(:count_conversion, i, :green) }
   # Treatment C	188	61	32.45%	2.94
-  188.times { |i| experiment(:null_abc).send(:count_participant, i, :blue) }
-  61.times  { |i| experiment(:null_abc).send(:count_conversion, i, :blue) }
+  experiment(:null_abc).fake nil=>[182,35], :red=>[180,45], :green=>[189,28], :blue=>[188,61]
 
-  80.times { |i| experiment(:age_and_zipcode).send(:count_participant, i, false) }
-  35.times  { |i| experiment(:age_and_zipcode).send(:count_conversion, i, false) }
-  84.times { |i| experiment(:age_and_zipcode).send(:count_participant, i, true) }
-  32.times  { |i| experiment(:age_and_zipcode).send(:count_conversion, i, true) }
+  experiment(:age_and_zipcode).fake false=>[80,35], true=>[84,32]
 
   cheers, yawns = 0, 0
   (Date.today - 80..Date.today).each do |date|

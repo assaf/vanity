@@ -94,19 +94,39 @@ module Vanity
         @alternatives = [false, true]
       end
 
+
+      # -- Metric --
+    
+      # Tells A/B test which metric we're measuring, or returns metric in use. 
+      #
+      # @example Define A/B test against coolness metric
+      #   ab_test "Background color" do
+      #     measures :coolness
+      #     alternatives "red", "blue", "orange"
+      #   end
+      # @example Find metric for A/B test
+      #   puts "Measures: " + experiment(:background_color).measures.name
+      def measures(metric_id = nil)
+        @metric = @playground.metric(metric_id) if metric_id
+        @metric
+      end
+
+
       # -- Alternatives --
 
-      # Call this method once to set alternative values for this experiment.
-      # Require at least two values.  For example:
+      # Call this method once to set alternative values for this experiment
+      # (requires at least two values).  Call without arguments to obtain
+      # current list of alternatives.
+      #
+      # @example Define A/B test with three alternatives
       #   ab_test "Background color" do
+      #     measures :coolness
       #     alternatives "red", "blue", "orange"
       #   end
       # 
-      # Call without arguments to obtain current list of alternatives.  For example:
+      # @example Find out which alternatives this test uses
       #   alts = experiment(:background_color).alternatives
       #   puts "#{alts.count} alternatives, with the colors: #{alts.map(&:value).join(", ")}"
-      #
-      # If you want to know how well each alternative is doing, use #score.
       def alternatives(*args)
         unless args.empty?
           @alternatives = args.clone
@@ -129,24 +149,25 @@ module Vanity
       end
       private :_alternatives
 
-      # Returns an Alternative with the specified value.  For example, given:
-      #   ab_test "Which color" do
-      #     alternatives :red, :green, :blue
-      #   end
-      # Then:
+      # Returns an Alternative with the specified value.
+      #
+      # @example
       #   alternative(:red) == alternatives[0]
       #   alternative(:blue) == alternatives[2]
       def alternative(value)
         alternatives.find { |alt| alt.value == value }
       end
 
-      # Defines an A/B test with two alternatives: false and true.  For example:
+      # Defines an A/B test with two alternatives: false and true.  This is the
+      # default pair of alternatives, so just syntactic sugar for those who love
+      # being explicit.
+      #
+      # @example
       #   ab_test "More bacon" do
+      #     measures :yummyness 
       #     false_true
       #   end
       #
-      # This is the default pair of alternatives, so just syntactic sugar for
-      # those who love being explicit.
       def false_true
         alternatives false, true
       end
@@ -160,7 +181,7 @@ module Vanity
       # alternative for the same identity, and randomly split alternatives
       # between different identities.
       #
-      # For example:
+      # @example
       #   color = experiment(:which_blue).choose
       def choose
         if active?
@@ -177,38 +198,22 @@ module Vanity
         @alternatives[index.to_i]
       end
 
-      # Tracks a conversion.  You probably want to use the Rails helper method
-      # track! instead.
-      # 
-      # For example:
-      #   experiment(:which_blue).track!
-      def track!
-        return unless active?
-        identity = identity()
-        return if redis[key("participants:#{identity}:show")]
-        index = alternative_for(identity)
-        if redis.sismember(key("alts:#{index}:participants"), identity)
-          redis.sadd key("alts:#{index}:converted"), identity
-          redis.incr key("alts:#{index}:conversions")
-        end
-        check_completion!
-      end
-
       
       # -- Testing --
      
       # Forces this experiment to use a particular alternative.  You'll want to
       # use this from your test cases to test for the different alternatives.
-      # For example:
+      #
+      # @example Setup test to red button
       #   setup do
-      #     experiment(:green_button).select(true)
+      #     experiment(:button_color).select(:red)
       #   end
       #
-      #   def test_shows_green_button
+      #   def test_shows_red_button
       #     . . .
       #   end
       #
-      # Use nil to clear out selection:
+      # @example Use nil to clear selection
       #   teardown do
       #     experiment(:green_button).select(nil)
       #   end
@@ -324,7 +329,7 @@ module Vanity
       # -- Completion --
 
       # Defines how the experiment can choose the optimal outcome on completion.
-     
+      #
       # By default, Vanity will take the best alternative (highest conversion
       # rate) and use that as the outcome.  You experiment may have different
       # needs, maybe you want the least performing alternative, or factor cost
@@ -382,9 +387,44 @@ module Vanity
       def save
         fail "Experiment #{name} needs at least two alternatives" unless alternatives.size >= 2
         super
+        @metric ||= @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
+        @metric.hook &method(:track!)
       end
 
+      # Used for testing.
+      def fake(values)
+        values.each do |value, (participants, conversions)|
+          conversions ||= participants
+          participants.times do |identity|
+            index = @alternatives.index(value)
+            raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
+            redis.sadd key("alts:#{index}:participants"), identity
+          end
+          conversions.times do |identity|
+            index = @alternatives.index(value)
+            raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
+            redis.sadd key("alts:#{index}:converted"), identity
+            redis.incr key("alts:#{index}:conversions")
+          end
+        end
+      end
+
+      # If you are not embarrassed by the first version of your product, you’ve
+      # launched too late.
+      #   -- Reid Hoffman, founder of LinkedIn
+
     protected
+
+      # Called when tracking associated metric.
+      def track!(metric_id, timestamp)
+        return unless active?
+        identity = identity()
+        return if redis[key("participants:#{identity}:show")]
+        index = alternative_for(identity)
+        redis.sadd key("alts:#{index}:converted"), identity if redis.sismember(key("alts:#{index}:participants"), identity)
+        redis.incr key("alts:#{index}:conversions")
+        check_completion!
+      end
 
       # Chooses an alternative for the identity and returns its index. This
       # method always returns the same alternative for a given experiment and
@@ -392,23 +432,6 @@ module Vanity
       # same experiment).
       def alternative_for(identity)
         Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.size
-      end
-
-      # Used for testing Vanity.
-      def count_participant(identity, value)
-        index = @alternatives.index(value)
-        raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-        redis.sadd key("alts:#{index}:participants"), identity
-        self
-      end
-
-      # Used for testing Vanity.
-      def count_conversion(identity, value)
-        index = @alternatives.index(value)
-        raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-        redis.sadd key("alts:#{index}:converted"), identity
-        redis.incr key("alts:#{index}:conversions")
-        self
       end
 
       begin

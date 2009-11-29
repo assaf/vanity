@@ -2,7 +2,7 @@
 class MockRedis
   @@hash = {}
 
-  def initialize(options)
+  def initialize(options = {})
   end
 
   def [](key)
@@ -36,7 +36,7 @@ class MockRedis
   end
 
   def keys(pattern)
-    regexp = Regexp.new(Regexp.escape(pattern).gsub("*", ".*"))
+    regexp = Regexp.new(pattern.split("*").map { |r| Regexp.escape(r) }.join(".*"))
     @@hash.keys.select { |key| key =~ regexp }
   end
 
@@ -68,6 +68,3 @@ class MockRedis
     end
   end
 end
-
-# Use mock redis.
-Object.const_set :Redis, MockRedis

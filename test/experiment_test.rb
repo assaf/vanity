@@ -20,15 +20,15 @@ class ExperimentTest < Test::Unit::TestCase
   end
  
   def test_experiment_keeps_created_timestamp_across_definitions
-    early, late = Time.now - 1.day, Time.now
-    Time.expects(:now).once.returns(early)
-    Vanity.playground.define(:simple, :ab_test) {}
-    assert_equal early.to_i, experiment(:simple).created_at.to_i
+    past = Date.today - 1
+    Timecop.travel past do
+      Vanity.playground.define(:simple, :ab_test) {}
+      assert_equal past.to_time.to_i, experiment(:simple).created_at.to_i
+    end
 
     new_playground
-    Time.expects(:now).once.returns(late)
     Vanity.playground.define(:simple, :ab_test) {}
-    assert_equal early.to_i, experiment(:simple).created_at.to_i
+    assert_equal past.to_time.to_i, experiment(:simple).created_at.to_i
   end
 
   def test_experiment_has_description
