@@ -66,21 +66,21 @@ class AbTestTest < ActionController::TestCase
   def test_explicit_metric
     metric "Coolness"
     ab_test :abcd do
-      measures :coolness
+      metrics :coolness
     end
-    assert_equal Vanity.playground.metric(:coolness), experiment(:abcd).measures
+    assert_equal [Vanity.playground.metric(:coolness)], experiment(:abcd).metrics
   end
 
   def test_implicit_metric
     ab_test :abcd do
     end
-    assert_equal Vanity.playground.metric(:abcd), experiment(:abcd).measures
+    assert_equal [Vanity.playground.metric(:abcd)], experiment(:abcd).metrics
   end
 
   def test_metric_tracking_into_alternative
     metric "Coolness"
     ab_test :abcd do
-      measures :coolness
+      metrics :coolness
     end
     Vanity.playground.track! :coolness
     assert_equal 1, experiment(:abcd).alternatives.sum(&:conversions)

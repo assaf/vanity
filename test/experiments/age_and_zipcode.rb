@@ -6,6 +6,7 @@ the existing form, and option B adds age and zipcode fields.
 We know option B will convert less, but higher quality leads. If we lose less
 than 20% conversions, we're going to switch to option B.
   TEXT
+  metrics :signups
 
   complete_if do
     alternatives.all? { |alt| alt.participants > 100 }

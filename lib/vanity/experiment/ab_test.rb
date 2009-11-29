@@ -101,14 +101,14 @@ module Vanity
       #
       # @example Define A/B test against coolness metric
       #   ab_test "Background color" do
-      #     measures :coolness
+      #     metrics :coolness
       #     alternatives "red", "blue", "orange"
       #   end
       # @example Find metric for A/B test
-      #   puts "Measures: " + experiment(:background_color).measures.name
-      def measures(metric_id = nil)
-        @metric = @playground.metric(metric_id) if metric_id
-        @metric
+      #   puts "Measures: " + experiment(:background_color).metrics.map(&:name)
+      def metrics(*args)
+        @metrics = args.map { |id| @playground.metric(id) } unless args.empty?
+        @metrics
       end
 
 
@@ -120,7 +120,7 @@ module Vanity
       #
       # @example Define A/B test with three alternatives
       #   ab_test "Background color" do
-      #     measures :coolness
+      #     metrics :coolness
       #     alternatives "red", "blue", "orange"
       #   end
       # 
@@ -164,7 +164,7 @@ module Vanity
       #
       # @example
       #   ab_test "More bacon" do
-      #     measures :yummyness 
+      #     metrics :yummyness 
       #     false_true
       #   end
       #
@@ -387,8 +387,14 @@ module Vanity
       def save
         fail "Experiment #{name} needs at least two alternatives" unless alternatives.size >= 2
         super
-        @metric ||= @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
-        @metric.hook &method(:track!)
+        if @metrics.nil? || @metrics.empty?
+          warn "Please use metrics method to explicitly state which metric you are measuring against."
+          metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
+          @metrics = [metric]
+        end
+        @metrics.each do |metric|
+          metric.hook &method(:track!)
+        end
       end
 
       # Used for testing.

@@ -24,6 +24,7 @@ And:
   ab_test "Price options" do
     description "Mirror, mirror on the wall, who's the better price of all?"
     alternatives 19, 25, 29
+    metrics :signups
   end
 
 <b>Step 3:</b> Present the different options to your users:
@@ -36,7 +37,7 @@ And:
     def signup
       @account = Account.new(params[:account])
       if @account.save
-        track! :pricing_options # <- here be conversion!
+        track! :signups
         redirect_to @acccount
       else
         render action: :offer

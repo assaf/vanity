@@ -3,18 +3,23 @@ layout: page
 title: A/B Testing
 ---
 
-"A/B testing":http://en.wikipedia.org/wiki/A/B_testing (or "split testing") are experiments you can run to compare the performance of different alternatives.  A classical example is using an A/B test to compare two landing pages and determine which one leads to more sign ups.  You can test out new features, or changes to existing features, and in-spite of the name, an A/B test can compare more than two alternatives.
+"A/B testing":http://en.wikipedia.org/wiki/A/B_testing (or "split testing") are experiments you can run to compare the performance of different alternatives.  A classical example is using an A/B test to compare two versions of a landing page, to find out which alternative leads to more registrations.
+
+You can use A/B tests to gauge interest in a new feature, response to a feature change, improve the site's design and copy, and so forth.  In spite of the name, you can use A/B tests to check out more than two alternatives.
+
+bq. "If you are not embarrassed by the first version of your product, you’ve launched too late" -- Reid Hoffman, founder of LinkedIn
 
 
 h3. True or False
 
-Let's start with a simple experiment.  We have this idea that a bigger sign-up link will increase the number of people who sign up for our service.  Let's set out to prove it.
+Let's start with a simple experiment.  We have this idea that a bigger sign-up link will increase the number of people who sign up for our service.  Let's see how well our hypothesis holds.
 
-We'll start by defining a new experiment:
+We already have a "metric":metrics.html we're monitoring, and our experiment will measure against it:
 
 <pre>
 ab_test "Big singup link" do
-  description "Testing to see if a bigger sign-up link increases conversion."
+  description "Testing to see if a bigger sign-up link increases number of signups."
+  metrics :signups
 end
 </pre>
 
@@ -27,24 +32,28 @@ Next, we're going to show some of our visitors a bigger sign-up link:
 
 Approximately half the visitors to our site will see this link:
 
+<notextile>
 <a href="#">Sign up</a>
+</notextile>
 
-While the other half will see this one:
+The other half will see this one:
 
+<notextile>
 <a href="#" style="font:14pt;font-weight:bold">Sign up</a>
+</notextile>
 
-We want to measure how effective each link is, so we're going to track new sign ups:
+An A/B test has two parts, we just covered the part which decides which alternative to show.  The second part measures the effectiveness of each alternative.  This happens as result of measuring the metric.
+
+Remember that we're measuring signups, so we already have this in the code:
 
 <pre>
 class SignupController < ApplicationController
   def signup
     Account.create(params[:account])
-    track! :big_signup_link
+    track! :signups
   end
 end
 </pre>
-
-*Note:* You can reference an experiment by its name or identifier, that is, you can call @experiment(:big_signup_link)@ or @experiment("Big singup link")@.  The identifier is all lower case and replaces non-word characters with underscores.  It also matches the experiment's file name, in this case @experiments/big_signup_link.rb@.
 
 
 h3. Interpreting the Results
@@ -88,6 +97,7 @@ To define an experiment with multiple alternatives:
 ab_test "Price options" do
   description "Mirror, mirror on the wall, who's the better price of them all?"
   alternatives 5, 15, 25
+  metrics :signups
 end
 </pre>
 
@@ -161,6 +171,7 @@ This experiment will conclude once it has 1000 participants for each alternative
 <pre>
 ab_test "Self completed" do
   description "This experiment will self-complete."
+  metrics :coolness
   complete_if do
     alternatives.all? { |alt| alt.participants >= 1000 } ||
       (score.choice && score.choice.probability >= 95)
@@ -175,6 +186,7 @@ By default Vanity will choose the alternative with the highest conversion rate. 
 <pre>
 ab_test "Self completed" do
   description "This experiment will self-complete."
+  metrics :coolness
 
   complete_if do
     score(95).choice # only return choice with probability >= 95

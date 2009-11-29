@@ -65,7 +65,7 @@ module Vanity
     def experiments
       Dir[File.join(load_path, "*.rb")].each do |file|
         id = File.basename(file).gsub(/.rb$/, "")
-        experiment id
+        experiment id.to_sym
       end
       @experiments.values
     end

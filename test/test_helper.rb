@@ -10,6 +10,7 @@ require "lib/vanity/rails"
 require "timecop"
 require "test/mock_redis" # <-- load this when you don't want to use Redis
 
+
 class Test::Unit::TestCase
 
   def setup
@@ -27,7 +28,10 @@ class Test::Unit::TestCase
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
-    Vanity.instance_variable_set :@playground, Vanity::Playground.new(:logger=>Logger.new("/dev/null"), :redis=>MockRedis.new)
+    redis = ENV['REDIS'] ? Redis.new(:db=>15) : MockRedis.new
+    logger = Logger.new("/dev/null") if $VERBOSE.nil?
+    playground = Vanity::Playground.new(:logger=>logger, :load_path=>"tmp/experiments", :redis=>redis)
+    Vanity.instance_variable_set :@playground, playground
   end
 
   # Defines the specified metrics (one or more names).  Returns metric, or array
@@ -51,16 +55,6 @@ ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
 Rails.configuration = Rails::Configuration.new
-
-# Using DB 0 for development, don't mess with it when running Vanity test suite.
-Vanity::Playground::DEFAULTS[:db] = 15
-
-# Change the default load path so we can create test files and load them from
-# there and not polluate other directories.  Use local tmp directory to work
-# around permission issues in some places.
-ENV["TMPDIR"] = File.expand_path("tmp")
-Vanity::Playground::DEFAULTS[:load_path] = "tmp/experiments"
-
 
 class Array
   # Not in Ruby 1.8.6.

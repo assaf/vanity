@@ -25,11 +25,18 @@ task :default=>:test
 desc "Run all tests (also default task)"
 Rake::TestTask.new do |task|
   task.test_files = FileList['test/*_test.rb']
-  task.verbose = true
-  #task.warning = true
+  if Rake.application.options.trace
+    #task.warning = true
+    task.verbose = true
+  elsif Rake.application.options.silent
+    task.ruby_opts << "-W0"
+  else
+    task.verbose = true
+  end
 end
 
 task(:clobber) { rm_rf "tmp" }
+
 
 begin
   require "yard"
