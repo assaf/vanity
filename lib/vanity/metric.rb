@@ -89,8 +89,6 @@ module Vanity
       # Playground uses this to load metric definitions.
       def load(playground, stack, path, id)
         fn = File.join(path, "#{id}.rb")
-        return Metric.new(playground, id.to_s.gsub(/_+/, ' ').capitalize, id) unless File.exist?(fn)
-
         fail "Circular dependency detected: #{stack.join('=>')}=>#{fn}" if stack.include?(fn)
         source = File.read(fn)
         stack.push fn
@@ -113,7 +111,10 @@ module Vanity
     end
 
 
-    def initialize(playground, name, id)
+    # Takes playground (need this to access Redis), friendly name and optional
+    # id (can infer from name).
+    def initialize(playground, name, id = nil)
+      id ||= name.to_s.downcase.gsub(/\W+/, '_')
       @playground, @name, @id = playground, name.to_s, id.to_sym
       @hooks = []
       redis.setnx key(:created_at), Time.now.to_i
