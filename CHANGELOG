@@ -1,6 +1,18 @@
 == 1.1.0
 This release introduces metrics.  Metrics are the gateway drug to better software.
 
+It’s as simple as defining a metric:
+
+	metric "Cheers" do
+		description "They love us, don't they?"
+	end
+
+Tracking it from your code:
+
+	track! :cheers
+
+And watching the graph from the Dashboard.
+
 * Added: Metrics.
 * Changed: All tests are green on Ruby 1.8.6, 1.8.7 and 1.9.1.
 * Deprecated: Please call experiment method with experiment identifier (a symbol) and not experiment name.

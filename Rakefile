@@ -81,7 +81,6 @@ task :report do
   84.times { |i| experiment(:age_and_zipcode).send(:count_participant, i, true) }
   32.times  { |i| experiment(:age_and_zipcode).send(:count_conversion, i, true) }
 
-
   cheers, yawns = 0, 0
   (Date.today - 80..Date.today).each do |date|
     Timecop.travel date do

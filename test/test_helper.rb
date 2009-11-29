@@ -15,8 +15,6 @@ class Test::Unit::TestCase
 
   def setup
     FileUtils.mkpath "tmp/experiments/metrics"
-    Vanity.context = mock("Context")
-    Vanity.context.stubs(:vanity_identity).returns(rand)
     nuke_playground
   end
 

@@ -114,10 +114,9 @@ class MetricTest < Test::Unit::TestCase
 
   def test_tracking_runs_hook
     returns = 0
-    Vanity.playground.metric(:many_happy_returns).hook do |metric_id, timestamp, vanity_id|
+    Vanity.playground.metric(:many_happy_returns).hook do |metric_id, timestamp|
       assert_equal :many_happy_returns, metric_id
       assert_in_delta Time.now.to_i, timestamp.to_i, 1
-      assert_equal Vanity.context.vanity_identity, vanity_id
       returns += 1
     end
     Vanity.playground.track! :many_happy_returns

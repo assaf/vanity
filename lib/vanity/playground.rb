@@ -109,8 +109,7 @@ module Vanity
     #
     # @since 1.1.0
     def track!(id, count = 1)
-      vanity_id = Vanity.context.vanity_identity if Vanity.context
-      metric(id).track! vanity_id, count
+      metric(id).track! count
     end
   end
 

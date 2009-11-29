@@ -124,12 +124,12 @@ module Vanity
     # -- Tracking --
 
     # Called to track an action associated with this metric.
-    def track!(vanity_id, count = 1)
+    def track!(count = 1)
       timestamp = Time.now
       redis.incrby key(timestamp.to_date, "count"), count
       @playground.logger.info "vanity: #{@id} with count #{count}"
       @hooks.each do |hook|
-        hook.call @id, timestamp, vanity_id
+        hook.call @id, timestamp
       end
     end
 
@@ -137,7 +137,7 @@ module Vanity
     # called with three arguments: metric id, timestamp and vanity identity.
     #
     # For example:
-    #   hook do |metric_id, timestamp, vanity_id|
+    #   hook do |metric_id, timestamp|
     #     syslog.info metric_id
     #   end
     def hook(&block)
