@@ -14,6 +14,7 @@ require "test/mock_redis" # <-- load this when you don't want to use Redis
 class Test::Unit::TestCase
 
   def setup
+    @redis = ENV['REDIS'] ? Redis.new(:db=>15) : MockRedis.new
     FileUtils.mkpath "tmp/experiments/metrics"
     nuke_playground
   end
@@ -21,16 +22,15 @@ class Test::Unit::TestCase
   # Call this on teardown. It wipes put the playground and any state held in it
   # (mostly experiments), resets vanity ID, and clears Redis of all experiments.
   def nuke_playground
-    Vanity.playground.redis.flushdb
+    @redis.flushdb
     new_playground
   end
 
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
-    redis = ENV['REDIS'] ? Redis.new(:db=>15) : MockRedis.new
     logger = Logger.new("/dev/null") if $VERBOSE.nil?
-    playground = Vanity::Playground.new(:logger=>logger, :load_path=>"tmp/experiments", :redis=>redis)
+    playground = Vanity::Playground.new(:logger=>logger, :load_path=>"tmp/experiments", :redis=>@redis)
     Vanity.instance_variable_set :@playground, playground
   end
 
