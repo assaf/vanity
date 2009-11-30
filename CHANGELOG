@@ -27,6 +27,7 @@ This new usage may become requirement in a future release.
 * Changed: Now throwing NameError instead of LoadError when failing to load experiment/metric.  NameError can be rescued on same line. 
 * Changed: New, easier URL mapping for Dashboard: map.vanity "/vanity", :controller=>:vanity.
 * Changed: All tests are green on Ruby 1.8.6, 1.8.7 and 1.9.1.
+* Changed: Switched to redis-rb from http://github.com/ezmobius/redis-rb.
 * Deprecated: Please call experiment method with experiment identifier (a symbol) and not experiment name.
 
 == 1.0.0 (2009-11-19)

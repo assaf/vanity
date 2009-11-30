@@ -31,14 +31,18 @@ class Redis
     "sadd"      => true,
     "srem"      => true,
     "sismember" => true,
+    "rpoplpush" => true,
     "echo"      => true,
     "getset"    => true,
-    "smove"     => true
+    "smove"     => true,
+    "zadd"      => true,
+    "zrem"      => true,
+    "zscore"    => true
   }
-
+  
   MULTI_BULK_COMMANDS = {
-    "mset"   => true,
-    "msetnx" => true
+    "mset"      => true,
+    "msetnx"    => true
   }
 
   BOOLEAN_PROCESSOR = lambda{|r| r == 1 }
@@ -49,6 +53,8 @@ class Redis
     "sadd"      => BOOLEAN_PROCESSOR,
     "srem"      => BOOLEAN_PROCESSOR,
     "smove"     => BOOLEAN_PROCESSOR,
+    "zadd"      => BOOLEAN_PROCESSOR,
+    "zrem"      => BOOLEAN_PROCESSOR,
     "move"      => BOOLEAN_PROCESSOR,
     "setnx"     => BOOLEAN_PROCESSOR,
     "del"       => BOOLEAN_PROCESSOR,
@@ -97,7 +103,14 @@ class Redis
     "set_move"             => "smove",
     "set_unless_exists"    => "setnx",
     "rename_unless_exists" => "renamenx",
-    "type?"                => "type"
+    "type?"                => "type",
+    "zset_add"             => "zadd",
+    "zset_count"           => 'zcard',
+    "zset_range_by_score"  => 'zrangebyscore',
+    "zset_reverse_range"   => 'zrevrange',
+    "zset_range"           => 'zrange',
+    "zset_delete"          => 'zrem',
+    "zset_score"           => 'zscore'
   }
 
   DISABLED_COMMANDS = {
@@ -155,8 +168,13 @@ class Redis
       secs   = Integer(timeout)
       usecs  = Integer((timeout - secs) * 1_000_000)
       optval = [secs, usecs].pack("l_2")
-      sock.setsockopt Socket::SOL_SOCKET, Socket::SO_RCVTIMEO, optval
-      sock.setsockopt Socket::SOL_SOCKET, Socket::SO_SNDTIMEO, optval
+      begin
+        sock.setsockopt Socket::SOL_SOCKET, Socket::SO_RCVTIMEO, optval
+        sock.setsockopt Socket::SOL_SOCKET, Socket::SO_SNDTIMEO, optval
+      rescue Exception => ex
+        # Solaris, for one, does not like/support socket timeouts.
+        @logger.info "Unable to use raw socket timeouts: #{ex.class.name}: #{ex.message}" if @logger
+      end
     end
     sock
   end

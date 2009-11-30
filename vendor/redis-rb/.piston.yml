@@ -1,0 +1,8 @@
+--- 
+repository_url: git://github.com/ezmobius/redis-rb.git
+lock: false
+repository_class: Piston::Git::Repository
+format: 1
+handler: 
+  commit: 283b58be1fbbed401dba36e1b9f4fa0d8be7904d
+  branch: master
