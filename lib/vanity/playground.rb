@@ -98,12 +98,12 @@ module Vanity
     def metrics
       unless @metrics
         @metrics = {}
-        redis.keys("metrics:*:created_at").each do |key|
+        Dir[File.join(load_path, "metrics/*.rb")].each do |file|
           begin
-            id = key[/metrics:(.*):created_at/, 1]
+            id = File.basename(file).gsub(/.rb$/, "")
             metric id
-          rescue LoadError
-            @logger.error "Could not load metric #{id}: #{$!}"
+          rescue NameError
+            @logger.error "Could not load metric #{$!.name}: #{$!}"
           end
         end
       end

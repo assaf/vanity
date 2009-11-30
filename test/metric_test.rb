@@ -11,7 +11,7 @@ class MetricTest < Test::Unit::TestCase
   end
 
   def test_playground_fails_without_metric_file
-    assert_raises LoadError do
+    assert_raises NameError do
       Vanity.playground.metric(:yawns_sec)
     end
   end
@@ -44,7 +44,7 @@ class MetricTest < Test::Unit::TestCase
     File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
       f.write "fail 'yawn!'"
     end
-    assert_raises LoadError do
+    assert_raises NameError do
       Vanity.playground.metric(:yawns_sec)
     end
   end
@@ -56,7 +56,7 @@ class MetricTest < Test::Unit::TestCase
         end
       RUBY
     end
-    assert_raises LoadError do
+    assert_raises NameError do
       Vanity.playground.metric(:yawns_sec)
     end
   end

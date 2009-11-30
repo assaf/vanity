@@ -17,7 +17,7 @@ th, td { padding: 0.3em 0.5em 0.3em 0.5em; border-bottom: 1px solid #D8D8D8; ver
 th, thead td { border-bottom: none; background-color: #669966; color: #fff; text-align: left }
 
 pre, code { font-family: "Andale Mono", "DejaVu Sans Mono", "Courier New", "Courier", monospace; font-size: 10pt; color: #222 }
-pre { margin: 0.6em 0 0.6em 1em; padding: 0; white-space: pre-wrap; white-space: -moz-pre-wrap !important }
+pre { padding: 0.6em 0 0.6em 1em; white-space: pre-wrap; background: #eef; white-space: -moz-pre-wrap !important }
 pre br { display: none }
 
 h1 { margin: 0 0 1.2em 0 }
@@ -28,6 +28,15 @@ h3 { font-size: 1.2em; margin-top: 2.5em }
 h4 { font-size: 1.0em; margin-top: 1.5em }
 /*line-height: 1.25em; letter-spacing: 0.03em; color: #87C72E; */
 
+h1 .tagline {
+  color: #666;
+  font-size: 15pt;
+  font-weight: normal;
+  display: block;
+  top: -2.2em;
+  left: 290px;
+  position: relative;
+}
 #header .title { font-family: "Alte Haas Grotesk", Verdana; font-weight: bold; font-size: 72pt; color: #1F6684; text-shadow: #ccc 4px 4px 8px }
 #header .banner { 
   position: absolute; top: 1em; left: -2.4em; text-align: center; padding: .2em 0 .3em 0; width: 8em;

@@ -22,14 +22,6 @@ $ gem install rails mocha timecop
 $ rake
 </pre>
 
-Documentation is built using "Jekyll":http://jekyllrb.com/ (these pages) and "Yardoc":http://yardoc.org/ (API).  To build and view documentation: To build the documentation:
-
-<pre>
-$ gem install yardoc jekyll
-$ rake docs
-$ open html/index.html
-</pre>
-
 To clean up after yourself:
 
 <pre>
@@ -41,3 +33,18 @@ To package Vanity as a gem and install on your machine:
 <pre>
 $ rake install
 </pre>
+
+h3. Documentation
+
+Documentation is written in "Textile":http://redcloth.org/textile/writing-paragraph-text/, and converted to HTML using "Jekyll":http://jekyllrb.com/.
+
+API reference is "RDoc":http://rdoc.sourceforge.net/doc/index.html, converted to HTML using "Yardoc":http://yardoc.org/. 
+
+To build and view documentation:
+
+<pre>
+$ gem install yardoc jekyll
+$ rake docs
+$ open html/index.html
+</pre>
+

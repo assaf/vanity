@@ -11,7 +11,7 @@ class PlaygroundTest < Test::Unit::TestCase
   # -- Loading experiments --
 
   def test_fails_if_cannot_load_named_experiment
-    assert_raises LoadError do
+    assert_raises NameError do
       experiment("Green button")
     end
   end
@@ -33,7 +33,7 @@ class PlaygroundTest < Test::Unit::TestCase
     File.open "tmp/experiments/green_button.rb", "w" do |f|
       f.write "fail 'yawn!'"
     end
-    assert_raises LoadError do
+    assert_raises NameError do
       experiment(:green_button)
     end
   end
@@ -42,7 +42,7 @@ class PlaygroundTest < Test::Unit::TestCase
     File.open "tmp/experiments/green_button.rb", "w" do |f|
       f.write ""
     end
-    assert_raises LoadError do
+    assert_raises NameError do
       experiment("Green button")
     end
   end

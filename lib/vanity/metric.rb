@@ -97,11 +97,11 @@ module Vanity
           extend Definition
           @playground = playground
           metric = eval source
-          fail LoadError, "Expected #{fn} to define metric #{id}" unless metric.name.downcase.gsub(/\W+/, '_').to_sym == id
+          fail NameError.new("Expected #{fn} to define metric #{id}", id) unless metric.name.downcase.gsub(/\W+/, '_').to_sym == id
           metric
         end
       rescue
-        error = LoadError.exception($!.message)
+        error = NameError.exception($!.message, id)
         error.set_backtrace $!.backtrace
         raise error
       ensure

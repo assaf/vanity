@@ -177,7 +177,7 @@ class AbTestTest < ActionController::TestCase
   # -- A/B helper methods --
 
   def test_fail_if_no_experiment
-    assert_raise LoadError do
+    assert_raise NameError do
       get :test_render
     end
   end

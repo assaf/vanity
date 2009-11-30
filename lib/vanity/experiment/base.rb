@@ -43,11 +43,11 @@ module Vanity
             extend Definition
             @playground = playground
             experiment = eval source
-            fail LoadError, "Expected #{fn} to define experiment #{id}" unless experiment.id == id
+            fail NameError.new("Expected #{fn} to define experiment #{id}", id) unless experiment.id == id
             experiment
           end
         rescue
-          error = LoadError.exception($!.message)
+          error = NameError.exception($!.message, id)
           error.set_backtrace $!.backtrace
           raise error
         ensure
