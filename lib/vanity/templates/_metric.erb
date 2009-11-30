@@ -1,44 +1,12 @@
 <h3><%=h metric.name %></h3>
 <%= simple_format h(Vanity::Metric.description(metric).to_s), :class=>"description" %>
+<%  data = Vanity::Metric.data(metric)
+    min, max = data.map(&:last).minmax
+   js = data.map { |date,value| "[#{date.to_time.to_i * 1000},#{value}]" }.join(",") %>
 <div class="chart"></div>
 <script id="source" language="javascript" type="text/javascript">
 $(function () {
-    <%  data = Vanity::Metric.data(metric)
-        min, max = data.map(&:last).minmax
-        js = data.map { |date,value| "[#{date.to_time.to_i * 1000},#{value}]" }.join(",")  %>
-    var lines = [{ label: "<%=h metric.name %>", data: [<%= js %>] }];
-    var chart = $("#metric<%= id %> .chart");
-    chart.height(chart.width() / 10);
-    var markings = [];
-    var options = {
-      xaxis: { mode: "time", minTickSize: [7, "day"] },
-      yaxis: { ticks: [<%= min %>, <%= max %> ], autoscaleMargin: null },
-      series: { lines: { show: true, lineWidth: 2, fill: true, fillColor: { colors: ["#fff", "#C6D2DA"] } }, points: { show: true, radius: 0 }, shadowSize: 0 },
-      colors: ["#0077CC"],
-      legend: { position: 'sw', container: "#metric<%= id %> .legend", backgroundOpacity: 0.5 },
-      grid: { markings: markings, borderWidth: 0, backgroundColor: "#fff", hoverable: true } };
-    var plot = $.plot(chart, lines, options);
-    jQuery.each(markings, function(i, mark) { 
-      $('<div style="position:absolute;top:5%;color:#f02020;font-size:smaller"></div>').
-        css({left:plot.pointOffset({x:mark.xaxis.from}).left+4}).text(mark.text).appendTo(chart);
-    });
-    chart.bind("plothover", function (event, pos, item) {
-      if (item) {
-        if (this.previousPoint != item.datapoint) {
-          this.previousPoint = item.datapoint;
-          $("#tooltip").remove();
-          var x = item.datapoint[0].toFixed(2), y = item.datapoint[1].toFixed(2);
-          $('<div id="tooltip">' + new Date(parseInt(x, 10)).toDateString() + ": " + y + " " + item.series.label + '</div>').css( {
-            position: 'absolute', display: 'none',
-            top: item.pageY + 5, left: item.pageX + 5,
-            padding: '2px', border: '1px solid #ff8', 'background-color': '#ffe', opacity: 0.80
-          }).appendTo("body").fadeIn(200);
-        }
-      } else {
-        $("#tooltip").remove();
-        this.previousPoint = null;            
-      }
-    });
-    
+  var metric = Vanity.metric("<%= id %>");
+  metric.plot([{ label: "<%=h metric.name %>", data: [<%= js %>] }]);
 });
 </script>
