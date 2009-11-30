@@ -6,6 +6,7 @@ module Vanity
     # methods to define you experiments, for example:
     #   ab_test "New Banner" do
     #     alternatives :red, :green, :blue
+    #     metrics :signup
     #   end
     module Definition
 

@@ -1,5 +1,14 @@
 module Vanity
   module Rails
+    # Step 1: Add a new resource in config/routes.rb:
+    #   map.vanity "/vanity", :controller=>:vanity
+    #
+    # Step 2: Create a new experiments controller:
+    #   class VanityController < ApplicationController
+    #     include Vanity::Rails::Dashboard
+    #   end
+    #
+    # Step 3: Open your browser to http://localhost:3000/vanity
     module Dashboard
       def index
         render Vanity.template("_report"), :content_type=>Mime::HTML, :layout=>true

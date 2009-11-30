@@ -11,12 +11,12 @@
         <%= "(%d%% better than %s)" % [alt.difference, score.least.name] if alt.difference && alt.difference >= 1 %>
       </td>
       <td class="action">
-        <% if experiment.active? && respond_to?(:chooses_experiments_url) %>
+        <% if experiment.active? && respond_to?(:url_for) %>
           <% if experiment.showing?(alt) %>
             showing
           <% else %>
             <%= link_to_remote "show", :update=>"experiment_#{experiment.id}",
-                  :url=>chooses_experiments_url(:e=>experiment.id, :a=>alt.id), :method=>:post,
+                  :url=>url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id), :method=>:post,
                   :html=>{ :class=>"button", :title=>"Show me this alternative from now on" } %>
           <% end %>
         <% end %>
