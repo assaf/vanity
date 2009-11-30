@@ -1,6 +1,6 @@
 <ul class="metrics">
   <% metrics.sort_by { |id, metric| metric.name }.each do |id, metric| %>
-    <li class="metric" id="metric<%=h id.to_s %>">
+    <li class="metric" id="metric_<%= id %>">
       <%= render Vanity.template("metric"), :id=>id, :metric=>metric %>
     </li>
   <% end %>
