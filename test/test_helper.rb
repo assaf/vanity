@@ -8,30 +8,28 @@ require "action_controller/test_case"
 require "initializer"
 require "lib/vanity/rails"
 require "timecop"
-require "test/mock_redis" # <-- load this when you don't want to use Redis
 
 
 class Test::Unit::TestCase
 
   def setup
-    @redis = ENV['REDIS'] ? Redis.new(:db=>15) : MockRedis.new
     FileUtils.mkpath "tmp/experiments/metrics"
-    nuke_playground
+    new_playground
   end
 
   # Call this on teardown. It wipes put the playground and any state held in it
   # (mostly experiments), resets vanity ID, and clears Redis of all experiments.
   def nuke_playground
-    @redis.flushdb
     new_playground
+    Vanity.playground.redis.flushdb
   end
 
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
     logger = Logger.new("/dev/null") if $VERBOSE.nil?
-    playground = Vanity::Playground.new(:logger=>logger, :load_path=>"tmp/experiments", :redis=>@redis)
-    Vanity.instance_variable_set :@playground, playground
+    Vanity.playground = Vanity::Playground.new(:logger=>logger, :load_path=>"tmp/experiments", :db=>15)
+    Vanity.playground.mock! unless ENV["REDIS"]
   end
 
   # Defines the specified metrics (one or more names).  Returns metric, or array
@@ -47,6 +45,7 @@ class Test::Unit::TestCase
   def teardown
     Vanity.context = nil
     FileUtils.rm_rf "tmp"
+    Vanity.playground.redis.flushdb
   end
 
 end

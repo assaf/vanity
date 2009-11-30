@@ -1,4 +1,4 @@
-== 1.1.0
+== 1.1.0 (2009-11-30)
 This release introduces metrics.  Metrics are the gateway drug to better software.
 
 It’s as simple as defining a metric:
@@ -16,13 +16,14 @@ And watching the graph from the Dashboard.
 You can (should) also use metrics with your A/B tests, for example:
 
   ab_test "Pricing options" do
-	  metrics :accounts
+	  metrics :signup
 		alternatives 15, 25, 29
 	end
 
 This new usage may become requirement in a future release.
 
 * Added: Metrics.
+* Added: Use Vanity.playground.mock! when running tests and you'd rather not access a live Redis server.
 * Changed: A/B tests now using metrics for tracking.
 * Changed: Now throwing NameError instead of LoadError when failing to load experiment/metric.  NameError can be rescued on same line. 
 * Changed: New, easier URL mapping for Dashboard: map.vanity "/vanity", :controller=>:vanity.

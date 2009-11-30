@@ -71,7 +71,7 @@ class UseVanityTest < ActionController::TestCase
   end
 
   def teardown
+    super
     UseVanityController.send(:filter_chain).clear
-    nuke_playground
   end
 end

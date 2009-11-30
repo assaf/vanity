@@ -22,7 +22,7 @@ end
 
 
 task :default=>:test
-desc "Run all tests (also default task)"
+desc "Run all tests using Redis mock (also default task)"
 Rake::TestTask.new do |task|
   task.test_files = FileList['test/*_test.rb']
   if Rake.application.options.trace
@@ -33,6 +33,12 @@ Rake::TestTask.new do |task|
   else
     task.verbose = true
   end
+end
+
+desc "Run all tests using live redis server"
+task "test:redis" do
+  ENV["REDIS"] = "true"
+  task(:test).invoke
 end
 
 task(:clobber) { rm_rf "tmp" }

@@ -21,9 +21,10 @@ module Vanity
 end
 
 require "vanity/backport" if RUBY_VERSION < "1.9"
-require "vanity/playground"
 require "vanity/metric"
 require "vanity/experiment/base"
 require "vanity/experiment/ab_test"
-require "vanity/rails" if defined?(Rails)
+require "vanity/playground"
+Vanity.autoload :MockRedis, "vanity/mock_redis"
 Vanity.autoload :Commands, "vanity/commands"
+require "vanity/rails" if defined?(Rails)

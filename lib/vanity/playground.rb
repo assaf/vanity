@@ -84,6 +84,17 @@ module Vanity
       @redis
     end
 
+    # Switches playground to use MockRedis instead of a live server.
+    # Particularly useful for testing, e.g. if you can't access Redis on your CI
+    # server.  This method has no affect after playground accesses live Redis
+    # server.
+    #
+    # @example Put this in config/environments/test.rb
+    #   config.after_initialize { Vanity.playground.mock! }
+    def mock!
+      @redis ||= MockRedis.new
+    end
+
     # Returns a metric (creating one if doesn't already exist).
     #
     # @since 1.1.0
@@ -124,12 +135,10 @@ module Vanity
   @playground = Playground.new
   class << self
 
-    # Returns the playground instance.
+    # The playground instance.
     #
     # @see Vanity::Playground
-    def playground
-      @playground
-    end
+    attr_accessor :playground
 
     # Returns the Vanity context.  For example, when using Rails this would be
     # the current controller, which can be used to get/set the vanity identity.
