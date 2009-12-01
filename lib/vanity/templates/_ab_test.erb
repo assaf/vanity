@@ -15,9 +15,8 @@
           <% if experiment.showing?(alt) %>
             showing
           <% else %>
-            <%= link_to_remote "show", :update=>"experiment_#{experiment.id}",
-                  :url=>url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id), :method=>:post,
-                  :html=>{ :class=>"button", :title=>"Show me this alternative from now on" } %>
+            <a class="button chooses" title="Show me this alternative from now on" href="#"
+              data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id) %>">show</a>
           <% end %>
         <% end %>
       </td>

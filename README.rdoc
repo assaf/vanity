@@ -80,4 +80,4 @@ Original code, copyright of Assaf Arkin, released under the MIT license.
 
 Documentation available under the Creative Commons Attribution license.
 
-For full list of credits / licenses: http://vanity.labnotes.org/credits.html.
+For full list of credits and licenses: http://vanity.labnotes.org/credits.html.

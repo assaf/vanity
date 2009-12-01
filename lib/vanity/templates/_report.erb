@@ -6,9 +6,10 @@
       .vanity h1 { margin: 1em 0; border-bottom: 3px solid #ccc }
       <%= File.read(Vanity.template("vanity.css")) %>
     </style>
-    <script language="javascript" type="text/javascript"><%= File.read(Vanity.template("jquery.min.js")) %></script>
-    <script language="javascript" type="text/javascript"><%= File.read(Vanity.template("flot.min.js")) %></script>
-    <script language="javascript" type="text/javascript"><%= File.read(Vanity.template("vanity.js")) %></script>
+    <script type="text/javascript"><%= File.read(Vanity.template("jquery.min.js")) %></script>
+    <script type="text/javascript"><%= File.read(Vanity.template("flot.min.js")) %></script>
+    <script type="text/javascript"><%= File.read(Vanity.template("vanity.js")) %></script>
+    <% if respond_to?(:form_authenticity_token) %><script type="text/javascript">document.auth_token = "<%= form_authenticity_token %>"</script><% end %>
   </head>
   <body>
     <div class="vanity">

@@ -159,8 +159,8 @@ module Vanity
 
       # Time stamp when experiment was completed.
       def completed_at
-        time = redis[key(:completed_at)]
-        time && Time.at(time.to_i)
+        @completed_at ||= redis[key(:completed_at)]
+        @completed_at && Time.at(@completed_at.to_i)
       end
       
       # Returns true if experiment active, false if completed.
