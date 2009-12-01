@@ -1,7 +1,7 @@
 module Vanity
   module Rails
     # Step 1: Add a new resource in config/routes.rb:
-    #   map.vanity "/vanity", :controller=>:vanity
+    #   map.vanity "/vanity/:action/:id", :controller=>:vanity
     #
     # Step 2: Create a new experiments controller:
     #   class VanityController < ApplicationController

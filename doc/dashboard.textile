@@ -6,7 +6,7 @@ title: The Dashboard
 *Step 1:* Add a new resource in @config/routes.rb@:
 
 <pre>
-map.vanity "/vanity", :controller=>:vanity
+map.vanity "/vanity/:action/:id", :controller=>:vanity
 </pre>
 
 *Step 2:* Create a new experiments controller:
