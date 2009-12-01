@@ -174,6 +174,7 @@ module Vanity
       def destroy
         redis.del key(:created_at)
         redis.del key(:completed_at)
+        @created_at = @completed_at = nil
       end
 
       # Called by Playground to save the experiment definition.
