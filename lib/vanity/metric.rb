@@ -184,8 +184,8 @@ module Vanity
       @description
     end
 
-    # Given two arguments, a start date and an end date, returns an array of
-    # measurements.  All metrics must implement this method.
+    # Given two arguments, a start date and an end date (inclusive), returns an
+    # array of measurements.  All metrics must implement this method.
     def values(from, to)
       redis.mget((from.to_date..to.to_date).map { |date| key(date, "count") }).map(&:to_i)
     end

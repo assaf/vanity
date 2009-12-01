@@ -19,3 +19,7 @@
 .vanity .metric { margin: 2em 0 }
 .vanity .metric .chart { width:100%; margin: .6em 0 }
 .vanity .metric .legend { float: left; width:20%; padding-right: 1em; overflow: hidden }
+.vanity form#milestones { margin: 1em 0 }
+.vanity form#milestones label { margin-right: .5em }
+.vanity form#milestones input { vertical-align: bottom }
+.vanity .metric .marking.label { position: absolute; bottom: 2em; color: #c66; font-size: 80% }

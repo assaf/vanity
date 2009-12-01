@@ -80,9 +80,17 @@ task :report do
   # Treatment A	180	45	25.00%	1.33
   # Treatment B	189	28	14.81%	-1.13
   # Treatment C	188	61	32.45%	2.94
-  experiment(:null_abc).fake nil=>[182,35], :red=>[180,45], :green=>[189,28], :blue=>[188,61]
+  experiment(:null_abc).instance_eval do
+    fake nil=>[182,35], :red=>[180,45], :green=>[189,28], :blue=>[188,61]
+    @created_at = (Date.today - 40).to_time
+    @completed_at = (Date.today - 35).to_time
+  end
 
-  experiment(:age_and_zipcode).fake false=>[80,35], true=>[84,32]
+  experiment(:age_and_zipcode).instance_eval do
+    fake false=>[80,35], true=>[84,32]
+    @created_at = (Date.today - 30).to_time
+    @completed_at = (Date.today - 15).to_time
+  end
 
   cheers, yawns = 0, 0
   (Date.today - 80..Date.today).each do |date|

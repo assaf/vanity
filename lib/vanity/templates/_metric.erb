@@ -2,11 +2,10 @@
 <%= simple_format h(Vanity::Metric.description(metric).to_s), :class=>"description" %>
 <%  data = Vanity::Metric.data(metric)
     min, max = data.map(&:last).minmax
-   js = data.map { |date,value| "[#{date.to_time.to_i * 1000},#{value}]" }.join(",") %>
+    js = data.map { |date,value| "[#{date.to_time.to_i * 1000},#{value}]" }.join(",") %>
 <div class="chart"></div>
-<script id="source" language="javascript" type="text/javascript">
+<script language="javascript">
 $(function () {
-  var metric = Vanity.metric("<%= id %>");
-  metric.plot([{ label: "<%=h metric.name %>", data: [<%= js %>] }]);
+  Vanity.metric("<%= id %>").plot([{ label: "<%=h metric.name %>", data: [<%= js %>] }]);
 });
 </script>

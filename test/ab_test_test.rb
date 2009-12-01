@@ -266,7 +266,7 @@ class AbTestTest < ActionController::TestCase
     # Treatment A:  180	45 25.00%	1.33
     # treatment B:  189	28 14.81%	-1.13
     # treatment C:  188	61 32.45%	2.94
-    experiment(:abcd).fake :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
+    fake :abcd, :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
 
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }
     assert_equal %w{-1.33 0.00 -2.47 1.58}, z_scores
@@ -294,7 +294,7 @@ class AbTestTest < ActionController::TestCase
 
   def test_scoring_with_one_performer
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
-    experiment(:abcd).fake :b=>[10,8]
+    fake :abcd, :b=>[10,8]
     assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
     assert experiment(:abcd).score.alts.all? { |alt| alt.probability == 0 }
     assert experiment(:abcd).score.alts.all? { |alt| alt.difference.nil? }
@@ -306,7 +306,7 @@ class AbTestTest < ActionController::TestCase
 
   def test_scoring_with_some_performers
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
-    experiment(:abcd).fake :b=>[10,8], :d=>[12,5]
+    fake :abcd, :b=>[10,8], :d=>[12,5]
 
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }.map(&:downcase)
     assert_equal %w{nan 2.01 nan 0.00}, z_scores
@@ -322,7 +322,7 @@ class AbTestTest < ActionController::TestCase
 
   def test_scoring_with_different_probability
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
-    experiment(:abcd).fake :b=>[10,8], :d=>[12,5]
+    fake :abcd, :b=>[10,8], :d=>[12,5]
 
     assert_equal 1, experiment(:abcd).score(90).choice.id
     assert_equal 1, experiment(:abcd).score(95).choice.id
@@ -339,7 +339,7 @@ class AbTestTest < ActionController::TestCase
     # Treatment A:  180	45 25.00%	1.33
     # treatment B:  189	28 14.81%	-1.13
     # treatment C:  188	61 32.45%	2.94
-    experiment(:abcd).fake :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
+    fake :abcd, :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 739 participants in this experiment.
@@ -354,7 +354,7 @@ Option D selected as the best alternative.
 
   def test_conclusion_with_some_performers
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
-    experiment(:abcd).fake :b=>[180, 45], :d=>[188, 61]
+    fake :abcd, :b=>[180, 45], :d=>[188, 61]
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 368 participants in this experiment.
@@ -369,7 +369,7 @@ Option D selected as the best alternative.
 
   def test_conclusion_without_clear_winner
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
-    experiment(:abcd).fake :b=>[180, 58], :d=>[188, 61]
+    fake :abcd, :b=>[180, 58], :d=>[188, 61]
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 368 participants in this experiment.
@@ -383,7 +383,7 @@ Option C did not convert.
 
   def test_conclusion_without_close_performers
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
-    experiment(:abcd).fake :b=>[186, 60], :d=>[188, 61]
+    fake :abcd, :b=>[186, 60], :d=>[188, 61]
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 374 participants in this experiment.
@@ -397,7 +397,7 @@ Option C did not convert.
 
   def test_conclusion_without_equal_performers
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
-    experiment(:abcd).fake :b=>[188, 61], :d=>[188, 61]
+    fake :abcd, :b=>[188, 61], :d=>[188, 61]
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 376 participants in this experiment.
@@ -410,7 +410,7 @@ Option C did not convert.
 
   def test_conclusion_with_one_performers
     ab_test(:abcd) { alternatives :a, :b, :c, :d }
-    experiment(:abcd).fake :b=>[180, 45]
+    fake :abcd, :b=>[180, 45]
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 180 participants in this experiment.
@@ -526,7 +526,7 @@ This experiment did not run long enough to find a clear winner.
   def test_outcome_choosing_best_alternative
     ab_test :quick do
     end
-    experiment(:quick).fake false=>[2,0], true=>10
+    fake :quick, false=>[2,0], true=>10
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
@@ -534,7 +534,7 @@ This experiment did not run long enough to find a clear winner.
   def test_outcome_only_performing_alternative
     ab_test :quick do
     end
-    experiment(:quick).fake true=>2
+    fake :quick, true=>2
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
@@ -542,7 +542,7 @@ This experiment did not run long enough to find a clear winner.
   def test_outcome_choosing_equal_alternatives
     ab_test :quick do
     end
-    experiment(:quick).fake false=>8, true=>8
+    fake :quick, false=>8, true=>8
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
@@ -552,6 +552,10 @@ This experiment did not run long enough to find a clear winner.
 
   def ab_test(name, &block)
     Vanity.playground.define name, :ab_test, &block
+  end
+
+  def fake(name, args)
+    experiment(name).instance_eval { fake args }
   end
 
 end

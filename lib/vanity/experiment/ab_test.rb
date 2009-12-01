@@ -397,6 +397,23 @@ module Vanity
         end
       end
 
+      # Called when tracking associated metric.
+      def track!(metric_id, timestamp)
+        return unless active?
+        identity = identity()
+        return if redis[key("participants:#{identity}:show")]
+        index = alternative_for(identity)
+        redis.sadd key("alts:#{index}:converted"), identity if redis.sismember(key("alts:#{index}:participants"), identity)
+        redis.incr key("alts:#{index}:conversions")
+        check_completion!
+      end
+
+      # If you are not embarrassed by the first version of your product, you’ve
+      # launched too late.
+      #   -- Reid Hoffman, founder of LinkedIn
+
+    protected
+
       # Used for testing.
       def fake(values)
         values.each do |value, (participants, conversions)|
@@ -413,23 +430,6 @@ module Vanity
             redis.incr key("alts:#{index}:conversions")
           end
         end
-      end
-
-      # If you are not embarrassed by the first version of your product, you’ve
-      # launched too late.
-      #   -- Reid Hoffman, founder of LinkedIn
-
-    protected
-
-      # Called when tracking associated metric.
-      def track!(metric_id, timestamp)
-        return unless active?
-        identity = identity()
-        return if redis[key("participants:#{identity}:show")]
-        index = alternative_for(identity)
-        redis.sadd key("alts:#{index}:converted"), identity if redis.sismember(key("alts:#{index}:participants"), identity)
-        redis.incr key("alts:#{index}:conversions")
-        check_completion!
       end
 
       # Chooses an alternative for the identity and returns its index. This

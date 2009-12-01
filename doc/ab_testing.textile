@@ -19,7 +19,7 @@ We already have a "metric":metrics.html we're monitoring, and our experiment wil
 <pre>
 ab_test "Big singup link" do
   description "Testing to see if a bigger sign-up link increases number of signups."
-  metrics :signups
+  metrics :signup
 end
 </pre>
 
@@ -50,7 +50,7 @@ Remember that we're measuring signups, so we already have this in the code:
 class SignupController < ApplicationController
   def signup
     Account.create(params[:account])
-    track! :signups
+    track! :signup
   end
 end
 </pre>
@@ -97,7 +97,7 @@ To define an experiment with multiple alternatives:
 ab_test "Price options" do
   description "Mirror, mirror on the wall, who's the better price of them all?"
   alternatives 5, 15, 25
-  metrics :signups
+  metrics :signup
 end
 </pre>
 

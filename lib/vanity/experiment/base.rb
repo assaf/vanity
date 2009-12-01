@@ -153,7 +153,8 @@ module Vanity
       # Force experiment to complete.
       def complete!
         redis.setnx key(:completed_at), Time.now.to_i
-        # TODO: logging
+        @completed_at = redis[key(:completed_at)]
+        @playground.logger.info "vanity: completed experiment #{id}"
       end
 
       # Time stamp when experiment was completed.
@@ -164,7 +165,7 @@ module Vanity
       
       # Returns true if experiment active, false if completed.
       def active?
-        redis[key(:completed_at)].nil?
+        !redis.exists(key(:completed_at))
       end
 
       # -- Store/validate --

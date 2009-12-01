@@ -36,6 +36,10 @@ module Vanity
       @@hash.values_at(*keys)
     end
 
+    def exists(key)
+      @@hash.has_key?(key)
+    end
+
     def keys(pattern)
       regexp = Regexp.new(pattern.split("*").map { |r| Regexp.escape(r) }.join(".*"))
       @@hash.keys.select { |key| key =~ regexp }
