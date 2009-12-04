@@ -21,14 +21,16 @@ module Vanity
     #   end
     module Definition
       
-      # The playground this metric belongs to.
-      attr_reader :playground
-
       # Defines a new metric, using the class Vanity::Metric.
       def metric(name, &block)
         metric = Metric.new(@playground, name.to_s, name.to_s.downcase.gsub(/\W/, "_"))
         metric.instance_eval &block
         metric
+      end
+
+      def binding(playground)
+        @playground = playground
+        Kernel.binding
       end
 
     end
@@ -95,8 +97,7 @@ module Vanity
         context = Object.new
         context.instance_eval do
           extend Definition
-          @playground = playground
-          metric = eval source
+          metric = eval(source, context.binding(playground), fn)
           fail NameError.new("Expected #{fn} to define metric #{id}", id) unless metric.name.downcase.gsub(/\W+/, '_').to_sym == id
           metric
         end
@@ -127,18 +128,21 @@ module Vanity
     # Called to track an action associated with this metric.
     def track!(count = 1)
       timestamp = Time.now
-      redis.incrby key(timestamp.to_date, "count"), count
-      @playground.logger.info "vanity: #{@id} with count #{count}"
-      @hooks.each do |hook|
-        hook.call @id, timestamp
+      if count > 0
+        redis.incrby key(timestamp.to_date, "count"), count
+        @playground.logger.info "vanity: #{@id} with count #{count}"
+        @hooks.each do |hook|
+          hook.call @id, timestamp, count
+        end
       end
     end
 
     # Metric definitions use this to introduce tracking hook.  The hook is
-    # called with three arguments: metric id, timestamp and vanity identity.
+    # called with metric identifier, timestamp, count and possibly additional
+    # arguments.
     #
     # For example:
-    #   hook do |metric_id, timestamp|
+    #   hook do |metric_id, timestamp, count|
     #     syslog.info metric_id
     #   end
     def hook(&block)

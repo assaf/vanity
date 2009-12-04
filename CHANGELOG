@@ -22,6 +22,8 @@ You can (should) also use metrics with your A/B tests, for example:
 
 This new usage may become requirement in a future release.
 
+Much thanks to Ian Sefferman for fixing issues with Ruby 1.8.7 and Rails support.
+
 * Added: Metrics.
 * Added: Use Vanity.playground.mock! when running tests and you'd rather not access a live Redis server.
 * Changed: A/B tests now using metrics for tracking.

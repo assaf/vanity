@@ -17,7 +17,7 @@ class AbTestController < ActionController::Base
   end
 
   def track
-    track! :simple
+    track! :coolness
     render :text=>""
   end
 end
@@ -25,6 +25,11 @@ end
 
 class AbTestTest < ActionController::TestCase
   tests AbTestController
+
+  def setup
+    super
+    metric "Coolness"
+  end
 
   # --  Experiment definition --
 
@@ -41,12 +46,14 @@ class AbTestTest < ActionController::TestCase
     end
     ab_test :two do
       alternatives "foo", "bar"
+      metrics :coolness
     end
   end
   
   def test_returning_alternative_by_value
     ab_test :abcd do
       alternatives :a, :b, :c, :d
+      metrics :coolness
     end
     assert_equal experiment(:abcd).alternatives[1], experiment(:abcd).alternative(:b)
     assert_equal experiment(:abcd).alternatives[3], experiment(:abcd).alternative(:d)
@@ -55,6 +62,7 @@ class AbTestTest < ActionController::TestCase
   def test_alternative_name
     ab_test :abcd do
       alternatives :a, :b
+      metrics :coolness
     end
     assert_equal "option A", experiment(:abcd).alternative(:a).name
     assert_equal "option B", experiment(:abcd).alternative(:b).name
@@ -64,7 +72,6 @@ class AbTestTest < ActionController::TestCase
   # -- Experiment metric --
 
   def test_explicit_metric
-    metric "Coolness"
     ab_test :abcd do
       metrics :coolness
     end
@@ -93,6 +100,7 @@ class AbTestTest < ActionController::TestCase
     ab_test :foobar do
       alternatives "foo", "bar"
       identify { "6e98ec" }
+      metrics :coolness
     end
     assert value = experiment(:foobar).choose
     assert_match /foo|bar/, value
@@ -105,6 +113,7 @@ class AbTestTest < ActionController::TestCase
     ab_test :foobar do
       alternatives "foo", "bar"
       identify { rand }
+      metrics :coolness
     end
     alts = Array.new(1000) { experiment(:foobar).choose }
     assert_equal %w{bar foo}, alts.uniq.sort
@@ -116,6 +125,7 @@ class AbTestTest < ActionController::TestCase
     ab_test :foobar do
       alternatives "foo", "bar"
       identify { ids.pop }
+      metrics :coolness
     end
     1000.times { experiment(:foobar).choose }
     alts = experiment(:foobar).alternatives
@@ -128,10 +138,11 @@ class AbTestTest < ActionController::TestCase
     ab_test :foobar do
       alternatives "foo", "bar"
       identify { ids.pop }
+      metrics :coolness
     end
     500.times do
       experiment(:foobar).choose
-      metric(:foobar).track!
+      metric(:coolness).track!
     end
     alts = experiment(:foobar).alternatives
     assert_equal 100, alts.map(&:converted).sum
@@ -142,11 +153,12 @@ class AbTestTest < ActionController::TestCase
     ab_test :foobar do
       alternatives "foo", "bar"
       identify { ids.pop }
+      metrics :coolness
     end
     500.times do
       experiment(:foobar).choose
-      metric(:foobar).track!
-      metric(:foobar).track!
+      metric(:coolness).track!
+      metric(:coolness).track!
     end
     alts = experiment(:foobar).alternatives
     assert_equal 100, alts.map(&:converted).sum
@@ -156,11 +168,12 @@ class AbTestTest < ActionController::TestCase
   def test_destroy_experiment
     ab_test :simple do
       identify { "me" }
+      metrics :coolness
       complete_if { alternatives.map(&:converted).sum >= 1 }
       outcome_is { alternative(true) }
     end
     experiment(:simple).choose
-    metric(:simple).track!
+    metric(:coolness).track!
     assert !experiment(:simple).active?
     assert_equal true, experiment(:simple).outcome.value
 
@@ -183,7 +196,9 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_ab_test_chooses_in_render
-    ab_test(:simple) { }
+    ab_test :simple do
+      metrics :coolness
+    end
     responses = Array.new(100) do
       @controller = nil ; setup_controller_request_and_response
       get :test_render
@@ -193,7 +208,9 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_ab_test_chooses_view_helper
-    ab_test(:simple) { }
+    ab_test :simple do
+      metrics :coolness
+    end
     responses = Array.new(100) do
       @controller = nil ; setup_controller_request_and_response
       get :test_view
@@ -203,7 +220,9 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_ab_test_with_capture
-    ab_test(:simple) { }
+    ab_test :simple do
+      metrics :coolness
+    end
     responses = Array.new(100) do
       @controller = nil ; setup_controller_request_and_response
       get :test_capture
@@ -213,7 +232,9 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_ab_test_track
-    ab_test(:simple) { }
+    ab_test :simple do
+      metrics :coolness
+    end
     responses = Array.new(100) do
       @controller.send(:cookies).clear
       get :track
@@ -225,7 +246,10 @@ class AbTestTest < ActionController::TestCase
   # -- Testing with tests --
   
   def test_with_given_choice
-    ab_test(:simple) { alternatives :a, :b, :c }
+    ab_test :simple do
+      alternatives :a, :b, :c
+      metrics :coolness
+    end
     100.times do |i|
       @controller = nil ; setup_controller_request_and_response
       experiment(:simple).chooses(:b)
@@ -235,7 +259,9 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_which_chooses_non_existent_alternative
-    ab_test(:simple) { }
+    ab_test :simple do
+      metrics :coolness
+    end
     assert_raises ArgumentError do
       experiment(:simple).chooses(404)
     end
@@ -245,6 +271,7 @@ class AbTestTest < ActionController::TestCase
     ab_test :simple  do
       identify { rand }
       alternatives :a, :b, :c
+      metrics :coolness
     end
     responses = Array.new(100) { |i|
       @controller = nil ; setup_controller_request_and_response
@@ -260,7 +287,10 @@ class AbTestTest < ActionController::TestCase
   # -- Scoring --
   
   def test_scoring
-    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
     # participating, conversions, rate, z-score
     # Control:      182	35 19.23%	N/A
     # Treatment A:  180	45 25.00%	1.33
@@ -283,7 +313,10 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_scoring_with_no_performers
-    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
     assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
     assert experiment(:abcd).score.alts.all? { |alt| alt.probability == 0 }
     assert experiment(:abcd).score.alts.all? { |alt| alt.difference.nil? }
@@ -293,7 +326,10 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_scoring_with_one_performer
-    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
     fake :abcd, :b=>[10,8]
     assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
     assert experiment(:abcd).score.alts.all? { |alt| alt.probability == 0 }
@@ -305,7 +341,10 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_scoring_with_some_performers
-    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
     fake :abcd, :b=>[10,8], :d=>[12,5]
 
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }.map(&:downcase)
@@ -321,7 +360,10 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_scoring_with_different_probability
-    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
     fake :abcd, :b=>[10,8], :d=>[12,5]
 
     assert_equal 1, experiment(:abcd).score(90).choice.id
@@ -333,7 +375,10 @@ class AbTestTest < ActionController::TestCase
   # -- Conclusion --
 
   def test_conclusion
-    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
     # participating, conversions, rate, z-score
     # Control:      182	35 19.23%	N/A
     # Treatment A:  180	45 25.00%	1.33
@@ -353,7 +398,10 @@ Option D selected as the best alternative.
   end
 
   def test_conclusion_with_some_performers
-    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
     fake :abcd, :b=>[180, 45], :d=>[188, 61]
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
@@ -368,7 +416,10 @@ Option D selected as the best alternative.
   end
 
   def test_conclusion_without_clear_winner
-    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
     fake :abcd, :b=>[180, 58], :d=>[188, 61]
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
@@ -382,7 +433,10 @@ Option C did not convert.
   end
 
   def test_conclusion_without_close_performers
-    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
     fake :abcd, :b=>[186, 60], :d=>[188, 61]
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
@@ -396,7 +450,10 @@ Option C did not convert.
   end
 
   def test_conclusion_without_equal_performers
-    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
     fake :abcd, :b=>[188, 61], :d=>[188, 61]
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
@@ -409,7 +466,10 @@ Option C did not convert.
   end
 
   def test_conclusion_with_one_performers
-    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
     fake :abcd, :b=>[180, 45]
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
@@ -419,7 +479,10 @@ This experiment did not run long enough to find a clear winner.
   end
 
   def test_conclusion_with_no_performers
-    ab_test(:abcd) { alternatives :a, :b, :c, :d }
+    ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are no participants in this experiment yet.
 This experiment did not run long enough to find a clear winner.
@@ -433,6 +496,7 @@ This experiment did not run long enough to find a clear winner.
     ab_test :simple do
       identify { rand }
       complete_if { true }
+      metrics :coolness
     end
     experiment(:simple).choose
     assert !experiment(:simple).active?
@@ -442,6 +506,7 @@ This experiment did not run long enough to find a clear winner.
     ab_test :simple do
       identify { rand }
       complete_if { fail }
+      metrics :coolness
     end
     experiment(:simple).choose
     assert experiment(:simple).active?
@@ -452,6 +517,7 @@ This experiment did not run long enough to find a clear winner.
     ab_test :simple do
       identify { ids.pop }
       complete_if { alternatives.map(&:participants).sum >= 100 }
+      metrics :coolness
     end
     99.times do |i|
       experiment(:simple).choose
@@ -468,12 +534,13 @@ This experiment did not run long enough to find a clear winner.
       identify { ids.pop }
       complete_if { alternatives.map(&:participants).sum >= 100 }
       outcome_is { alternatives[1] }
+      metrics :coolness
     end
     # Run experiment to completion (100 participants)
     results = Set.new
     100.times do
       results << experiment(:simple).choose
-      metric(:simple).track!
+      metric(:coolness).track!
     end
     assert results.include?(true) && results.include?(false)
     assert !experiment(:simple).active?
@@ -481,7 +548,7 @@ This experiment did not run long enough to find a clear winner.
     # Test that we always get the same choice (true)
     100.times do
       assert_equal true, experiment(:simple).choose
-      metric(:simple).track!
+      metric(:coolness).track!
     end
     # We don't get to count the 100 participant's conversion, but that's ok.
     assert_equal 99, experiment(:simple).alternatives.map(&:converted).sum
@@ -494,6 +561,7 @@ This experiment did not run long enough to find a clear winner.
   def test_completion_outcome
     ab_test :quick do
       outcome_is { alternatives[1] }
+      metrics :coolness
     end
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
@@ -502,6 +570,7 @@ This experiment did not run long enough to find a clear winner.
   def test_outcome_is_returns_nil
     ab_test :quick do
       outcome_is { nil }
+      metrics :coolness
     end
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternatives.first, experiment(:quick).outcome
@@ -510,6 +579,7 @@ This experiment did not run long enough to find a clear winner.
   def test_outcome_is_returns_something_else
     ab_test :quick do
       outcome_is { "error" }
+      metrics :coolness
     end
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternatives.first, experiment(:quick).outcome
@@ -518,6 +588,7 @@ This experiment did not run long enough to find a clear winner.
   def test_outcome_is_fails
     ab_test :quick do
       outcome_is { fail }
+      metrics :coolness
     end
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternatives.first, experiment(:quick).outcome
@@ -525,6 +596,7 @@ This experiment did not run long enough to find a clear winner.
 
   def test_outcome_choosing_best_alternative
     ab_test :quick do
+      metrics :coolness
     end
     fake :quick, false=>[2,0], true=>10
     experiment(:quick).complete!
@@ -533,6 +605,7 @@ This experiment did not run long enough to find a clear winner.
 
   def test_outcome_only_performing_alternative
     ab_test :quick do
+      metrics :coolness
     end
     fake :quick, true=>2
     experiment(:quick).complete!
@@ -541,6 +614,7 @@ This experiment did not run long enough to find a clear winner.
 
   def test_outcome_choosing_equal_alternatives
     ab_test :quick do
+      metrics :coolness
     end
     fake :quick, false=>8, true=>8
     experiment(:quick).complete!

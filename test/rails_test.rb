@@ -4,7 +4,7 @@ class UseVanityController < ActionController::Base
   attr_accessor :current_user
 
   def index
-    render :text=>ab_test(:simple)
+    render :text=>ab_test(:pie_or_cake)
   end
 end
 
@@ -14,7 +14,9 @@ class UseVanityTest < ActionController::TestCase
 
   def setup
     super
-    Vanity.playground.define :simple, :ab_test do
+    metric :sugar_high
+    Vanity.playground.define :pie_or_cake, :ab_test do
+      metrics :sugar_high
     end
     UseVanityController.class_eval do
       use_vanity :current_user

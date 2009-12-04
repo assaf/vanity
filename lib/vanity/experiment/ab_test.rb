@@ -398,13 +398,13 @@ module Vanity
       end
 
       # Called when tracking associated metric.
-      def track!(metric_id, timestamp)
+      def track!(metric_id, timestamp, count, *args)
         return unless active?
         identity = identity()
         return if redis[key("participants:#{identity}:show")]
         index = alternative_for(identity)
         redis.sadd key("alts:#{index}:converted"), identity if redis.sismember(key("alts:#{index}:participants"), identity)
-        redis.incr key("alts:#{index}:conversions")
+        redis.incrby key("alts:#{index}:conversions"), count
         check_completion!
       end
 

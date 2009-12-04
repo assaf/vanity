@@ -90,6 +90,16 @@ class MetricTest < Test::Unit::TestCase
     assert yawns = 2 * cheers
   end
 
+  def test_tracking_with_value
+    metric "Yawns/sec", "Cheers/sec", "Looks"
+    Vanity.playground.track! :yawns_sec, 0
+    Vanity.playground.track! :cheers_sec, -1
+    Vanity.playground.track! :looks, 10
+    assert_equal 0, Vanity.playground.metric(:yawns_sec).values(today, today).sum
+    assert_equal 0, Vanity.playground.metric(:cheers_sec).values(today, today).sum
+    assert_equal 10, Vanity.playground.metric(:looks).values(today, today).sum
+  end
+
   def test_tracking_can_tell_the_time
     metric "Yawns/sec"
     Timecop.travel(today - 4) { 4.times { Vanity.playground.track! :yawns_sec } }
@@ -110,14 +120,14 @@ class MetricTest < Test::Unit::TestCase
 
   def test_tracking_runs_hook
     metric "Many Happy Returns"
-    returns = 0
-    Vanity.playground.metric(:many_happy_returns).hook do |metric_id, timestamp|
+    total = 0
+    Vanity.playground.metric(:many_happy_returns).hook do |metric_id, timestamp, count|
       assert_equal :many_happy_returns, metric_id
       assert_in_delta Time.now.to_i, timestamp.to_i, 1
-      returns += 1
+      total += count
     end
-    Vanity.playground.track! :many_happy_returns
-    assert_equal 1, returns
+    Vanity.playground.track! :many_happy_returns, 6
+    assert_equal 6, total
   end
 
   def test_tracking_runs_multiple_hooks

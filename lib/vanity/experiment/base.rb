@@ -10,14 +10,16 @@ module Vanity
     #   end
     module Definition
 
-      # The playground this experiment belongs to.
-      attr_reader :playground
-
       # Defines a new experiment, given the experiment's name, type and
       # definition block.
       def define(name, type, options = nil, &block)
         options ||= {}
-        playground.define(name, type, options, &block)
+        @playground.define(name, type, options, &block)
+      end
+
+      def binding(playground)
+        @playground = playground
+        Kernel.binding
       end
 
     end
@@ -42,8 +44,7 @@ module Vanity
           context = Object.new
           context.instance_eval do
             extend Definition
-            @playground = playground
-            experiment = eval source
+            experiment = eval(source, context.binding(playground), fn)
             fail NameError.new("Expected #{fn} to define experiment #{id}", id) unless experiment.id == id
             experiment
           end

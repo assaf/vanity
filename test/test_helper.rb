@@ -27,7 +27,7 @@ class Test::Unit::TestCase
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
-    logger = Logger.new("/dev/null") if $VERBOSE.nil?
+    logger = Logger.new("/dev/null") unless $VERBOSE
     Vanity.playground = Vanity::Playground.new(:logger=>logger, :load_path=>"tmp/experiments", :db=>15)
     Vanity.playground.mock! unless ENV["REDIS"]
   end
