@@ -1,29 +1,26 @@
 @media print {
   @page {
-    size: letter;
-    margin: 2.5in 2in
+    margin: 1in 1in;
   }
   @page:first {
     @top-left  { content: normal }
     @top-right { content: normal }
   }
   @page:right {
-    margin-left: 2.5in;
+    margin-left: 1.25in;
     font: normal 10pt "Gill Sans" !important;
     @top-left  { content: string(pagetitle); }
     @top-right { content: counter(page); }
   }
   @page:left {
-    margin-right: 2.5in;
+    margin-right: 1.25in;
     font: normal 10pt "Gill Sans" !important;
     @top-left  { content: counter(page); }
     @top-right { content: string(pagetitle); }
   }
 
   title { string-set: doctitle content() }
-
-  body { margin: 0; color: black; background: white; width: auto }
-
+  body { color: black; background: white }
   h1 { string-set: pagetitle content(); page-break-before: always }
   h1:first-child { page-break-before: avoid }
   h1, h2, h3 { color: black }
@@ -32,7 +29,7 @@
   pre br { display: none }
   a:link, a:visited { background: transparent; text-decoration: none }
   
-  #links, #footer { display: none }
-  #content { color: black; width: auto !important; margin: 0; padding: 0; border: 0 }
+  #links, #footer, h1 { display: none }
+  #content { color: black; padding: 0; border: 0 }
 
 }
