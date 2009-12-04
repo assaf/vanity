@@ -1,4 +1,4 @@
-== 1.1.0 (2009-11-30)
+== 1.1.0 (2009-12-4)
 This release introduces metrics.  Metrics are the gateway drug to better software.
 
 It’s as simple as defining a metric:
