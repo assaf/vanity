@@ -15,6 +15,7 @@ A good starting point for improving -- on anything -- is measuring.  Vanity allo
 </blockquote>
 
 
+
 h3.  Defining a Metric
 
 Vanity always loads metrics defined in the @experiments/metrics@ directory.  A metric definition is a Ruby file that looks like this:
@@ -54,6 +55,8 @@ end
 </pre>
 
 Define, track, that's about all you need to know.
+
+!images/signup_metric.png!
 
 
 h3.  How Metrics Work

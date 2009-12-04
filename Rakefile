@@ -92,6 +92,16 @@ task :report do
     @completed_at = (Date.today - 15).to_time
   end
 
+  Vanity.context = Object.new
+  Vanity.context.instance_eval { def vanity_identity ; 0 ; end }
+  signups = 50
+  (Date.today - 90..Date.today).each do |date|
+    Timecop.travel date do
+      signups += rand(15) - 5
+      Vanity.playground.track! :signups, signups
+    end
+  end
+
   cheers, yawns = 0, 0
   (Date.today - 80..Date.today).each do |date|
     Timecop.travel date do
