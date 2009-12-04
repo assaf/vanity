@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module Vanity
   module Experiment
 
@@ -42,9 +43,9 @@ module Vanity
       # Difference from least performing alternative. Populated by AbTest#score.
       attr_accessor :difference
 
-      # Conversion rate calculated as converted/participants, rounded to 3 places.
+      # Conversion rate calculated as converted/participants
       def conversion_rate
-        @conversion_rate ||= (participants > 0 ? (converted.to_f/participants.to_f * 1000).round / 1000.0 : 0.0)
+        @conversion_rate ||= participants > 0 ? (converted.to_f/participants.to_f) : 0.0
       end
 
       # The measure we use to order (sort) alternatives and decide which one is better (by calculating z-score).
@@ -303,7 +304,7 @@ module Vanity
           if best.measure > second.measure
             diff = ((best.measure - second.measure) / second.measure * 100).round
             better = " (%d%% better than %s)" % [diff, second.name] if diff > 0
-            claims << "The best choice is %s: it converted at %.1f%%%s." % [best.name, best.measure * 100, better]
+            claims << "The best choice is %s: it converted at %.10f%%%s." % [best.name, best.measure * 100, better]
             if best.probability >= 90
               claims << "With %d%% probability this result is statistically significant." % score.best.probability
             else
