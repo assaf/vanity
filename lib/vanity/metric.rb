@@ -21,16 +21,18 @@ module Vanity
     #   end
     module Definition
       
+      attr_reader :playground
+
       # Defines a new metric, using the class Vanity::Metric.
       def metric(name, &block)
-        metric = Metric.new(@playground, name.to_s, name.to_s.downcase.gsub(/\W/, "_"))
+        metric = Metric.new(playground, name.to_s, name.to_s.downcase.gsub(/\W/, "_"))
         metric.instance_eval &block
         metric
       end
 
-      def binding(playground)
+      def binding_with(playground)
         @playground = playground
-        Kernel.binding
+        binding
       end
 
     end
@@ -97,7 +99,7 @@ module Vanity
         context = Object.new
         context.instance_eval do
           extend Definition
-          metric = eval(source, context.binding(playground), fn)
+          metric = eval(source, context.binding_with(playground), fn)
           fail NameError.new("Expected #{fn} to define metric #{id}", id) unless metric.name.downcase.gsub(/\W+/, '_').to_sym == id
           metric
         end
