@@ -1,3 +1,7 @@
+== 1.2.0
+* Changed: Decoupled metric name from identifier.  You can now define a metric with more descriptive name, e.g. "Cheers per second (user satisfaction)" and keep their ID simple.  Identifier is matched against the file name (for metrics loaded from experiments/metrics).
+* Changed: Metrics no longer defined on-demand, i.e. calling playground.metric either returns existing metric or raises exception.
+
 == 1.1.1 (2009-12-4)
 * Fixed: Binding issue that shows up on 1.8.6/7.
 

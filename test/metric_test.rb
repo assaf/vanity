@@ -12,7 +12,7 @@ class MetricTest < Test::Unit::TestCase
 
   def test_playground_fails_without_metric_file
     assert_raises NameError do
-      Vanity.playground.metric(:yawns_sec)
+      Vanity.playground.track! :yawns_sec
     end
   end
 
@@ -29,17 +29,6 @@ class MetricTest < Test::Unit::TestCase
     assert_equal "x", Vanity.playground.metric(:yawns_sec).xmts
   end
 
-  def test_metric_loading_handles_name_and_id
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Yawns/sec" do
-        end
-      RUBY
-    end
-    assert metric = Vanity.playground.metric(:yawns_sec)
-    assert_equal "Yawns/sec", metric.name
-  end
-
   def test_metric_loading_errors_bubble_up
     File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
       f.write "fail 'yawn!'"
@@ -49,16 +38,14 @@ class MetricTest < Test::Unit::TestCase
     end
   end
 
-  def test_metric_name_must_match_file_name
-    File.open "tmp/experiments/metrics/yawns_hour.rb", "w" do |f|
+  def test_metric_identifier_from_file
+    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
       f.write <<-RUBY
         metric "yawns/hour" do
         end
       RUBY
     end
-    assert_raises NameError do
-      Vanity.playground.metric(:yawns_sec)
-    end
+    assert Vanity.playground.metric(:yawns_sec)
   end
 
   def test_reloading_metrics
@@ -151,14 +138,14 @@ class MetricTest < Test::Unit::TestCase
 
   # -- Metric name --
   
-  def test_name_from_definition
+  def test_name_can_be_whatever
     File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
       f.write <<-RUBY
-        metric "Yawns/sec" do
+        metric "Yawns per second" do
         end
       RUBY
     end
-    assert_equal "Yawns/sec", Vanity.playground.metric(:yawns_sec).name
+    assert_equal "Yawns per second", Vanity.playground.metric(:yawns_sec).name
   end
 
 

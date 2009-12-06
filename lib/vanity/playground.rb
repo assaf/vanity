@@ -95,12 +95,11 @@ module Vanity
       @redis ||= MockRedis.new
     end
 
-    # Returns a metric (creating one if doesn't already exist).
+    # Returns a metric (raises NameError if no metric with that identifier).
     #
     # @since 1.1.0
     def metric(id)
-      id = id.to_sym
-      metrics[id] ||= Metric.load(self, @loading, File.expand_path("metrics", load_path), id)
+      metrics[id.to_sym] or raise NameErrorm, "No metric #{id}"
     end
 
     # Returns hash of metrics (key is metric id).
@@ -111,8 +110,7 @@ module Vanity
         @metrics = {}
         Dir[File.join(load_path, "metrics/*.rb")].each do |file|
           begin
-            id = File.basename(file).gsub(/.rb$/, "")
-            metric id
+            Metric.load self, @loading, file
           rescue NameError
             @logger.error "Could not load metric #{$!.name}: #{$!}"
           end

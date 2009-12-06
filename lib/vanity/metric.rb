@@ -25,9 +25,11 @@ module Vanity
 
       # Defines a new metric, using the class Vanity::Metric.
       def metric(name, &block)
-        metric = Metric.new(playground, name.to_s, name.to_s.downcase.gsub(/\W/, "_"))
+        id = File.basename(caller.first.split(":").first, ".rb").downcase.gsub(/\W/, "_").to_sym
+        fail "Metric #{id} already defined in playground" if playground.metrics[id]
+        metric = Metric.new(playground, name.to_s, id)
         metric.instance_eval &block
-        metric
+        playground.metrics[id] = metric
       end
 
       def binding_with(playground)
@@ -91,16 +93,16 @@ module Vanity
       end
 
       # Playground uses this to load metric definitions.
-      def load(playground, stack, path, id)
-        fn = File.join(path, "#{id}.rb")
-        fail "Circular dependency detected: #{stack.join('=>')}=>#{fn}" if stack.include?(fn)
-        source = File.read(fn)
-        stack.push fn
+      def load(playground, stack, file)
+        fail "Circular dependency detected: #{stack.join('=>')}=>#{file}" if stack.include?(file)
+        source = File.read(file)
+        stack.push file
+        id = File.basename(file, ".rb").downcase.gsub(/\W/, "_").to_sym
         context = Object.new
         context.instance_eval do
           extend Definition
-          metric = eval(source, context.binding_with(playground), fn)
-          fail NameError.new("Expected #{fn} to define metric #{id}", id) unless metric.name.downcase.gsub(/\W+/, '_').to_sym == id
+          metric = eval(source, context.binding_with(playground), file)
+          fail NameError.new("Expected #{file} to define metric #{id}", id) unless playground.metrics[id]
           metric
         end
       rescue
@@ -117,8 +119,8 @@ module Vanity
     # Takes playground (need this to access Redis), friendly name and optional
     # id (can infer from name).
     def initialize(playground, name, id = nil)
-      id ||= name.to_s.downcase.gsub(/\W+/, '_')
-      @playground, @name, @id = playground, name.to_s, id.to_sym
+      @playground, @name = playground, name.to_s
+      @id = (id || name.to_s.downcase.gsub(/\W+/, '_')).to_sym
       @hooks = []
       redis.setnx key(:created_at), Time.now.to_i
       @created_at = Time.at(redis[key(:created_at)].to_i)
