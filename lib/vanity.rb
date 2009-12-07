@@ -1,6 +1,5 @@
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), "../vendor/redis-rb/lib")
 require "redis"
-require "openssl"
 require "date"
 require "logger"
 

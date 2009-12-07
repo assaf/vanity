@@ -50,7 +50,7 @@ module Vanity
           elsif symbol && object = send(symbol)
             @vanity_identity = object.id
           elsif response # everyday use
-            @vanity_identity = cookies["vanity_id"] || OpenSSL::Random.random_bytes(16).unpack("H*")[0]
+            @vanity_identity = cookies["vanity_id"] || ActiveSupport::SecureRandom.hex(16)
             cookies["vanity_id"] = { :value=>@vanity_identity, :expires=>1.month.from_now }
             @vanity_identity
           else # during functional testing
