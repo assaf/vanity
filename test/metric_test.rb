@@ -1,7 +1,7 @@
 require "test/test_helper"
 
 class Sky < ActiveRecord::Base
-  connection.drop_table :skies
+  connection.drop_table :skies if table_exists?
   connection.create_table :skies do |t|
     t.integer :height
     t.timestamps
