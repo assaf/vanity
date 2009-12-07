@@ -15,10 +15,10 @@ h3. Relevant Links
 
 h3. Building From Source
 
-Vanity test suite requires "Rails":http://rubyonrails.org, "Mocha":http://mocha.rubyforge.org/ and "Timecop":http://github.com/jtrupiano/timecop.  To run the test suite:
+Vanity test suite requires "Rails":http://rubyonrails.org, "Mocha":http://mocha.rubyforge.org/, "Timecop":http://github.com/jtrupiano/timecop and "SQLite3":http://rubyforge.org/projects/sqlite-ruby/.  To run the test suite:
 
 <pre>
-$ gem install rails mocha timecop
+$ gem install rails mocha timecop sqlite3-ruby
 $ rake
 </pre>
 

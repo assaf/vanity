@@ -5,10 +5,18 @@ require "test/unit"
 require "mocha"
 require "action_controller"
 require "action_controller/test_case"
+require "active_record"
 require "initializer"
 require "lib/vanity/rails"
 require "timecop"
 
+
+if $VERBOSE
+  $logger = Logger.new(STDOUT)
+  $logger.level = Logger::DEBUG
+else
+  $logger = Logger.new("/dev/null")
+end
 
 class Test::Unit::TestCase
 
@@ -27,8 +35,7 @@ class Test::Unit::TestCase
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
-    logger = Logger.new("/dev/null") unless $VERBOSE
-    Vanity.playground = Vanity::Playground.new(:logger=>logger, :load_path=>"tmp/experiments", :db=>15)
+    Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments", :db=>15)
     Vanity.playground.mock! unless ENV["REDIS"]
   end
 
@@ -54,6 +61,9 @@ ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
 Rails.configuration = Rails::Configuration.new
+
+ActiveRecord::Base.logger = $logger
+ActiveRecord::Base.establish_connection :adapter=>"sqlite3", :database=>File.expand_path("database.sqlite")
 
 class Array
   # Not in Ruby 1.8.6.

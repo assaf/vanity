@@ -135,9 +135,7 @@ module Vanity
       if count > 0
         redis.incrby key(timestamp.to_date, "count"), count
         @playground.logger.info "vanity: #{@id} with count #{count}"
-        @hooks.each do |hook|
-          hook.call @id, timestamp, count
-        end
+        call_hooks timestamp, count
       end
     end
 
@@ -199,6 +197,45 @@ module Vanity
     end
 
 
+    # -- ActiveRecord support --
+
+    # Use an ActiveRecord model for this metric.
+    #
+    # Obtains historical data from the underlying database table, so you can
+    # introduce this metric and immediately gain access to historical data.
+    # There's no need to call track on these metrics.
+    #
+    # To support experiments that hook into the metric, uses the record's
+    # @after_create@ callback.
+    #
+    # If you are measuring instances, call with the model class.  If you are
+    # measuring values, call with the model class and a value column.
+    #
+    # @example Track sign ups using User model
+    #   metric "Signups" do
+    #     model User
+    #   end
+    # @example Track satisfaction using Survey model
+    #   metric "Satisfaction" do
+    #     model Survey, :rating
+    #   end
+    #
+    # @since 1.2.0
+    def model(klass, measure = nil)
+      klass.after_create do |record|
+        count = measure ? (record.send(measure) || 0) : 1
+        call_hooks record.created_at, count if count > 0
+      end
+      eigenclass = class << self ; self ; end
+      eigenclass.send :define_method, :values do |sdate, edate|
+        options = { :conditions=>{ :created_at=>(sdate.to_time...edate.next_day.to_time) }, :group=>"date(created_at)" }
+        grouped = measure ? klass.sum(measure, options) : klass.count(options)
+        (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date.to_s] || 0) }
+      end
+      eigenclass.send(:define_method, :track!) { |*args| }
+    end
+
+
     # -- Storage --
 
     def destroy!
@@ -211,6 +248,12 @@ module Vanity
 
     def key(*args)
       "metrics:#{@id}:#{args.join(':')}"
+    end
+
+    def call_hooks(timestamp, count)
+      @hooks.each do |hook|
+        hook.call @id, timestamp, count
+      end
     end
 
   end

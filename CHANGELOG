@@ -1,4 +1,20 @@
 == 1.2.0
+This release introduces metrics backed by ActiveRecord.  Use them when your model is already tracking a metric, and you get instant historical data.
+
+Example, track sign ups using User model:
+
+  metric "Signups" do
+    model User
+  end
+
+Example, track satisfaction using Survey model:
+  metric "Satisfaction" do
+    model Survey, :rating
+  end
+
+There's no need to call track! on these metrics.
+
+* Added: Metrics backed by ActiveRecord.
 * Changed: Decoupled metric name from identifier.  You can now define a metric with more descriptive name, e.g. "Cheers per second (user satisfaction)" and keep their ID simple.  Identifier is matched against the file name (for metrics loaded from experiments/metrics).
 * Changed: Metrics no longer defined on-demand, i.e. calling playground.metric either returns existing metric or raises exception.
 

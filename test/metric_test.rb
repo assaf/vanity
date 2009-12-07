@@ -1,7 +1,21 @@
 require "test/test_helper"
 
+class Sky < ActiveRecord::Base
+  connection.drop_table :skies
+  connection.create_table :skies do |t|
+    t.integer :height
+    t.timestamps
+  end
+end
+
 class MetricTest < Test::Unit::TestCase
   
+  def setup
+    super
+    Sky.delete_all
+    Sky.after_create.clear
+  end
+
   # -- Via the playground --
 
   def test_playground_tracks_all_loaded_metrics
@@ -264,6 +278,91 @@ class MetricTest < Test::Unit::TestCase
     assert_equal [today, 0], boredom.last
   end
 
+
+  # -- ActiveRecord support --
+
+  def test_active_record_count
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    Sky.create!
+    assert_equal 1, Sky.count
+    assert_equal 1, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+  end
+
+  def test_active_record_sum
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky, :height
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    Sky.create! :height=>4
+    assert_equal 4, Sky.sum(:height)
+    assert_equal 4, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+  end
+
+  def test_active_record_callback
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky, :height
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    total = 0
+    metric(:sky_is_limit).hook do |metric_id, timestamp, count|
+      assert_equal :sky_is_limit, metric_id
+      assert_in_delta Time.now.to_i, timestamp.to_i, 1
+      total += count
+    end
+    Sky.create! :height=>4
+    assert_equal 4, total
+  end
+
+  def test_active_record_after_create
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    once = nil
+    metric(:sky_is_limit).hook do
+      fail "Metric tracked twice" if once
+      once = true
+    end
+    Sky.create!
+    Sky.last.update_attributes :height=>4
+  end
+
+  def test_active_record_disables_track!
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    once = nil
+    metric(:sky_is_limit).hook do
+      fail "Metric tracked twice" if once
+      once = true
+    end
+    Sky.create!
+    metric(:sky_is_limit).track!
+  end
 
   # -- Helper methods --
 

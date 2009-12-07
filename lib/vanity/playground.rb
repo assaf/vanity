@@ -99,7 +99,7 @@ module Vanity
     #
     # @since 1.1.0
     def metric(id)
-      metrics[id.to_sym] or raise NameErrorm, "No metric #{id}"
+      metrics[id.to_sym] or raise NameError, "No metric #{id}"
     end
 
     # Returns hash of metrics (key is metric id).
