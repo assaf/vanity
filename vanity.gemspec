@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name           = "vanity"
-  spec.version        = "1.1.1"
+  spec.version        = "1.2.0"
   spec.author         = "Assaf Arkin"
   spec.email          = "assaf@labnotes.org"
   spec.homepage       = "http://vanity.labnotes.org"

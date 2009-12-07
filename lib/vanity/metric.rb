@@ -228,7 +228,7 @@ module Vanity
       end
       eigenclass = class << self ; self ; end
       eigenclass.send :define_method, :values do |sdate, edate|
-        options = { :conditions=>{ :created_at=>(sdate.to_time...edate.next_day.to_time) }, :group=>"date(created_at)" }
+        options = { :conditions=>{ :created_at=>(sdate.to_time...(edate + 1).to_time) }, :group=>"date(created_at)" }
         grouped = measure ? klass.sum(measure, options) : klass.count(options)
         (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date.to_s] || 0) }
       end
