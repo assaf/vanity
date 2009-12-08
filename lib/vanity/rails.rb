@@ -2,10 +2,6 @@ require "vanity/rails/helpers"
 require "vanity/rails/testing"
 require "vanity/rails/dashboard"
 
-# Use Rails logger by default.
-Vanity.playground.logger ||= ActionController::Base.logger
-Vanity.playground.load_path = "#{RAILS_ROOT}/experiments"
-
 # Include in controller, add view helper methods.
 ActionController::Base.class_eval do
   extend Vanity::Rails::ClassMethods
@@ -14,5 +10,13 @@ ActionController::Base.class_eval do
 end
 
 Rails.configuration.after_initialize do
-  Vanity.playground.load!
+  # Use Rails logger by default.
+  Vanity.playground.logger ||= ActionController::Base.logger
+  Vanity.playground.load_path = "#{RAILS_ROOT}/experiments"
+
+  # Do this at the very end of initialization, allowing test environment to do
+  # Vanity.playground.mock! before any database access takes place.
+  Rails.configuration.after_initialize do
+    Vanity.playground.load!
+  end
 end

@@ -170,9 +170,8 @@ module Vanity
     #  -- Reporting --
     
     # Human readable metric name.  All metrics must implement this method.
-    def name
-      @name
-    end
+    attr_reader :name
+    alias :to_s :name
 
     # Time stamp when metric was created.
     attr_reader :created_at
@@ -248,8 +247,9 @@ module Vanity
         grouped = column ? scoped.sum(column, query) : scoped.count(query)
         (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date.to_s] || 0) }
       end
-      eigenclass.send :define_method, :track! do |count = 1|
-        call_hooks Time.now, count || 1 if count > 0 || count.nil?
+      eigenclass.send :define_method, :track! do |*args|
+        count = args.first || 1
+        call_hooks Time.now, count if count > 0
       end
     end
 

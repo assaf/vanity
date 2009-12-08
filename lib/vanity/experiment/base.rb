@@ -70,6 +70,7 @@ module Vanity
       # Human readable experiment name (first argument you pass when creating a
       # new experiment).
       attr_reader :name
+      alias :to_s :name
 
       # Unique identifier, derived from name experiment name, e.g. "Green
       # Button" becomes :green_button.
@@ -122,10 +123,6 @@ module Vanity
         @description
       end
 
-      def report
-        fail "Implement me"
-      end
-      
 
       # -- Experiment completion --
 
