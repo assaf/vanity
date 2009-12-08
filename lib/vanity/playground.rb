@@ -79,10 +79,19 @@ module Vanity
       @experiments
     end
 
-    # Reloads all experiments.
+    # Reloads all metrics and experiments.  Rails calls this for each request in
+    # development mode.
     def reload!
       @experiments = nil
       @metrics = nil
+      load!
+    end
+
+    # Loads all metrics and experiments.  Rails calls this during
+    # initialization.
+    def load!
+      experiments
+      metrics
     end
 
     # Use this instance to access the Redis database.

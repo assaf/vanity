@@ -7,6 +7,7 @@ require "action_controller"
 require "action_controller/test_case"
 require "active_record"
 require "initializer"
+Rails.configuration = Rails::Configuration.new
 require "lib/vanity"
 require "timecop"
 
@@ -65,7 +66,6 @@ end
 ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
-Rails.configuration = Rails::Configuration.new
 
 ActiveRecord::Base.logger = $logger
 ActiveRecord::Base.establish_connection :adapter=>"sqlite3", :database=>File.expand_path("database.sqlite")

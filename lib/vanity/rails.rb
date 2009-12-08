@@ -12,3 +12,7 @@ ActionController::Base.class_eval do
   include Vanity::Rails
   helper Vanity::Rails
 end
+
+Rails.configuration.after_initialize do
+  Vanity.playground.load!
+end

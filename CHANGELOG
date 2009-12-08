@@ -21,6 +21,7 @@ There's no need to call track! on these metrics.
 
 * Added: Metrics backed by ActiveRecord.
 * Added: track! and ab_test methods now available from Object (i.e. everywhere).
+* Added: Playground.load!. Now loading all metrics and experiments from Rails initializer.
 * Changed: Decoupled metric name from identifier.  You can now define a metric with more descriptive name, e.g. "Cheers per second (user satisfaction)" and keep their ID simple.  Identifier is matched against the file name (for metrics loaded from experiments/metrics).
 * Changed: Metrics no longer defined on-demand, i.e. calling playground.metric either returns existing metric or raises exception.
 * Changed: Playground.experiments returns hash instead of array.
