@@ -279,7 +279,7 @@ class MetricTest < Test::Unit::TestCase
   end
 
 
-  # -- ActiveRecord support --
+  # -- ActiveRecord --
 
   def test_active_record_count
     File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
@@ -363,6 +363,28 @@ class MetricTest < Test::Unit::TestCase
     Sky.create!
     metric(:sky_is_limit).track!
   end
+
+  def test_acrive_record_conditional
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky, :height, :conditions=>["height > 4"]
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    high_skies = 0
+    metric(:sky_is_limit).hook do |metric_id, timestamp, height|
+      assert height > 4
+      high_skies += height
+    end
+    [nil,5,3,6].each do |height|
+      Sky.create! :height=>height
+    end
+    assert_equal 11, Vanity::Metric.data(metric(:sky_is_limit)).sum(&:last)
+    assert_equal 11, high_skies
+  end
+
 
   # -- Helper methods --
 

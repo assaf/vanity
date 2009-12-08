@@ -219,17 +219,25 @@ module Vanity
     #   metric "Satisfaction" do
     #     model Survey, :rating
     #   end
+    # @example Track only high ratings
+    #   metric "High ratings" do
+    #     model Rating, :conditions=>["stars >= 4"]
+    #   end
     #
     # @since 1.2.0
-    def model(klass, measure = nil)
+    def model(klass, *args)
+      options = args.pop if Hash === args.last
+      conditions = (options && options[:conditions]) || {}
+      scoped = klass.scoped(:conditions=>conditions)
+      column = (options && options[:column]) || args.shift
       klass.after_create do |record|
-        count = measure ? (record.send(measure) || 0) : 1
-        call_hooks record.created_at, count if count > 0
+        count = column ? (record.send(column) || 0) : 1
+        call_hooks record.created_at, count if count > 0 && (conditions.empty? || scoped.exists?(record))
       end
       eigenclass = class << self ; self ; end
       eigenclass.send :define_method, :values do |sdate, edate|
-        options = { :conditions=>{ :created_at=>(sdate.to_time...(edate + 1).to_time) }, :group=>"date(created_at)" }
-        grouped = measure ? klass.sum(measure, options) : klass.count(options)
+        query = { :conditions=>{ :created_at=>(sdate.to_time...(edate + 1).to_time) }, :group=>"date(created_at)" }
+        grouped = column ? scoped.sum(column, query) : scoped.count(query)
         (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date.to_s] || 0) }
       end
       eigenclass.send(:define_method, :track!) { |*args| }
@@ -251,6 +259,7 @@ module Vanity
     end
 
     def call_hooks(timestamp, count)
+      count ||= 1
       @hooks.each do |hook|
         hook.call @id, timestamp, count
       end

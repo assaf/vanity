@@ -12,6 +12,11 @@ Example, track satisfaction using Survey model:
     model Survey, :rating
   end
 
+Example, track only high ratings:
+  metric "High ratings" do
+    model Rating, :conditions=>["stars >= 4"]
+  end
+
 There's no need to call track! on these metrics.
 
 * Added: Metrics backed by ActiveRecord.
