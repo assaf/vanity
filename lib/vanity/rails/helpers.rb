@@ -67,7 +67,7 @@ module Vanity
 
     # This method returns one of the alternative values in the named A/B test.
     #
-    # Examples using ab_test inside controller:
+    # @example A/B two alternatives for a page
     #   def index
     #     if ab_test(:new_page) # true/false test
     #       render action: "new_page"
@@ -75,16 +75,15 @@ module Vanity
     #       render action: "index"
     #     end
     #   end
-    #
+    # @example Similar, alternative value is page name
     #   def index
-    #     render action: ab_test(:new_page) # alternatives are page names
+    #     render action: ab_test(:new_page)
     #   end
-    # 
-    # Examples using ab_test inside view:
+    # @example A/B test inside ERB template (condition) 
     #   <%= if ab_test(:banner) %>100% less complexity!<% end %>
-    #
+    # @example A/B test inside ERB template (value) 
     #   <%= ab_test(:greeting) %> <%= current_user.name %>
-    #
+    # @example A/B test inside ERB template (capture) 
     #   <% ab_test :features do |count| %>
     #     <%= count %> features to choose from!
     #   <% end %>
@@ -98,13 +97,5 @@ module Vanity
       end
     end
 
-    # This method records conversion on the named A/B test. For example:
-    #   def create
-    #     track! :call_to_action
-    #     Acccount.create! params[:account]
-    #   end
-    def track!(name)
-      Vanity.playground.track! name
-    end
   end
 end

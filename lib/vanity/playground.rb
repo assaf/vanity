@@ -43,6 +43,8 @@ module Vanity
 
     # Defines a new experiment. Generally, do not call this directly,
     # use one of the definition methods (ab_test, measure, etc).
+    #
+    # @see Vanity::Experiment
     def define(name, type, options = {}, &block)
       id = name.to_s.downcase.gsub(/\W/, "_").to_sym
       raise "Experiment #{id} already defined once" if @experiments[id]
@@ -55,6 +57,8 @@ module Vanity
 
     # Returns the experiment. You may not have guessed, but this method raises
     # an exception if it cannot load the experiment's definition.
+    #
+    # @see Vanity::Experiment
     def experiment(name)
       id = name.to_s.downcase.gsub(/\W/, "_").to_sym
       warn "Deprecated: pleae call experiment method with experiment identifier (a Ruby symbol)" unless id == name
@@ -62,6 +66,8 @@ module Vanity
     end
 
     # Returns list of all loaded experiments.
+    #
+    # @see Vanity::Experiment
     def experiments
       Dir[File.join(load_path, "*.rb")].each do |file|
         id = File.basename(file).gsub(/.rb$/, "")
@@ -97,6 +103,7 @@ module Vanity
 
     # Returns a metric (raises NameError if no metric with that identifier).
     #
+    # @see Vanity::Metric
     # @since 1.1.0
     def metric(id)
       metrics[id.to_sym] or raise NameError, "No metric #{id}"
@@ -104,6 +111,7 @@ module Vanity
 
     # Returns hash of metrics (key is metric id).
     #
+    # @see Vanity::Metric
     # @since 1.1.0
     def metrics
       unless @metrics
@@ -169,7 +177,9 @@ class Object
   #   puts experiment(:text_size).alternatives
   #
   # @see Vanity::Playground#experiment
+  # @deprecated
   def experiment(name)
+    warn "Deprecated. Please call Vanity.playground.experiment directly."
     Vanity.playground.experiment(name)
   end
 end

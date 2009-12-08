@@ -4,6 +4,7 @@ require "date"
 require "logger"
 
 # All the cool stuff happens in other places.
+# @see Vanity::Helper
 # @see Vanity::Rails
 # @see Vanity::Playground
 # @see Vanity::Metric
@@ -24,6 +25,7 @@ require "vanity/metric"
 require "vanity/experiment/base"
 require "vanity/experiment/ab_test"
 require "vanity/playground"
+require "vanity/helpers"
 Vanity.autoload :MockRedis, "vanity/mock_redis"
 Vanity.autoload :Commands, "vanity/commands"
 require "vanity/rails" if defined?(Rails)

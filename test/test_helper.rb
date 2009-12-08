@@ -7,7 +7,7 @@ require "action_controller"
 require "action_controller/test_case"
 require "active_record"
 require "initializer"
-require "lib/vanity/rails"
+require "lib/vanity"
 require "timecop"
 
 
@@ -47,6 +47,11 @@ class Test::Unit::TestCase
       Vanity.playground.metrics[id] ||= Vanity::Metric.new(Vanity.playground, name)
     end
     names.size == 1 ? metrics.first : metrics
+  end
+
+  # Returns named experiment.
+  def experiment(name)
+    Vanity.playground.experiment(name)
   end
   
   def teardown

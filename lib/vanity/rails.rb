@@ -1,4 +1,3 @@
-require "vanity"
 require "vanity/rails/helpers"
 require "vanity/rails/testing"
 require "vanity/rails/dashboard"
