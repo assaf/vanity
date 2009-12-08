@@ -346,22 +346,25 @@ class MetricTest < Test::Unit::TestCase
     Sky.last.update_attributes :height=>4
   end
 
-  def test_active_record_disables_track!
+  def test_active_record_use_track_for_state_changes
     File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
       f.write <<-RUBY
         metric "Sky is limit" do
-          model Sky
+          model Sky, :conditions=>["height > 3"]
+          Sky.after_save { |sky| track! if sky.height_changed? && sky.height > 3 }
         end
       RUBY
     end
     Vanity.playground.metrics
-    once = nil
+    times = 0
     metric(:sky_is_limit).hook do
-      fail "Metric tracked twice" if once
-      once = true
+      times += 1
     end
     Sky.create!
-    metric(:sky_is_limit).track!
+    (1..5).each do |height|
+      Sky.last.update_attributes! :height=>height
+    end
+    assert_equal 2, times
   end
 
   def test_acrive_record_conditional

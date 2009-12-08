@@ -131,8 +131,9 @@ module Vanity
 
     # Called to track an action associated with this metric.
     def track!(count = 1)
-      timestamp = Time.now
+      count ||= 1
       if count > 0
+        timestamp = Time.now
         redis.incrby key(timestamp.to_date, "count"), count
         @playground.logger.info "vanity: #{@id} with count #{count}"
         call_hooks timestamp, count
@@ -223,6 +224,13 @@ module Vanity
     #   metric "High ratings" do
     #     model Rating, :conditions=>["stars >= 4"]
     #   end
+    # @example Track state changes
+    #   metric "Tickets closed" do
+    #     model Ticket, :conditions=>["state >= 'closed'"]
+    #     Ticket.after_save do |ticket|
+    #       track! if ticket.state_changed? && ticket.sate == 'closed'
+    #     end
+    #   end
     #
     # @since 1.2.0
     def model(klass, *args)
@@ -240,7 +248,9 @@ module Vanity
         grouped = column ? scoped.sum(column, query) : scoped.count(query)
         (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date.to_s] || 0) }
       end
-      eigenclass.send(:define_method, :track!) { |*args| }
+      eigenclass.send :define_method, :track! do |count = 1|
+        call_hooks Time.now, count || 1 if count > 0 || count.nil?
+      end
     end
 
 

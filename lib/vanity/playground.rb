@@ -16,7 +16,6 @@ module Vanity
       @logger = options[:logger] || Logger.new(STDOUT)
       @logger.level = Logger::ERROR
       @redis = options[:redis]
-      @experiments = {}
       @loading = []
     end
     
@@ -47,12 +46,12 @@ module Vanity
     # @see Vanity::Experiment
     def define(name, type, options = {}, &block)
       id = name.to_s.downcase.gsub(/\W/, "_").to_sym
-      raise "Experiment #{id} already defined once" if @experiments[id]
+      raise "Experiment #{id} already defined once" if experiments[id]
       klass = Experiment.const_get(type.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase })
       experiment = klass.new(self, id, name, options)
       experiment.instance_eval &block
       experiment.save
-      @experiments[id] = experiment
+      experiments[id] = experiment
     end
 
     # Returns the experiment. You may not have guessed, but this method raises
@@ -62,23 +61,27 @@ module Vanity
     def experiment(name)
       id = name.to_s.downcase.gsub(/\W/, "_").to_sym
       warn "Deprecated: pleae call experiment method with experiment identifier (a Ruby symbol)" unless id == name
-      @experiments[id] ||= Experiment::Base.load(self, @loading, File.expand_path(load_path), id)
+      experiments[id] ||= Experiment::Base.load(self, @loading, File.expand_path(load_path), id)
     end
 
-    # Returns list of all loaded experiments.
+    # Returns hash of experiments (key is experiment id).
     #
     # @see Vanity::Experiment
     def experiments
-      Dir[File.join(load_path, "*.rb")].each do |file|
-        id = File.basename(file).gsub(/.rb$/, "")
-        experiment id.to_sym
+      unless @experiments
+        @experiments = {}
+        @logger.info "Vanity: loading experiments from #{load_path}"
+        Dir[File.join(load_path, "*.rb")].each do |file|
+          id = File.basename(file).gsub(/.rb$/, "")
+          experiment id.to_sym
+        end
       end
-      @experiments.values
+      @experiments
     end
 
     # Reloads all experiments.
     def reload!
-      @experiments.clear
+      @experiments = nil
       @metrics = nil
     end
 
@@ -116,6 +119,7 @@ module Vanity
     def metrics
       unless @metrics
         @metrics = {}
+        @logger.info "Vanity: loading metrics from #{load_path}/metrics"
         Dir[File.join(load_path, "metrics/*.rb")].each do |file|
           begin
             Metric.load self, @loading, file
