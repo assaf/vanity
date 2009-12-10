@@ -470,6 +470,23 @@ class MetricTest < Test::Unit::TestCase
     assert_equal 11, high_skies
   end
 
+  def test_active_record_hook
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          Sky.after_save { |sky| track! if sky.height_changed? && sky.height > 3 }
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    (1..5).each do |height|
+      Sky.create! :height=>height
+    end
+    Sky.first.update_attributes! :height=>4
+    assert_equal 3, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+  end
+
+
 
   # -- Helper methods --
 

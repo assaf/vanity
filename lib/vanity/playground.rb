@@ -130,11 +130,7 @@ module Vanity
         @metrics = {}
         @logger.info "Vanity: loading metrics from #{load_path}/metrics"
         Dir[File.join(load_path, "metrics/*.rb")].each do |file|
-          begin
-            Metric.load self, @loading, file
-          rescue NameError
-            @logger.error "Could not load metric #{$!.name}: #{$!}"
-          end
+          Metric.load self, @loading, file
         end
       end
       @metrics

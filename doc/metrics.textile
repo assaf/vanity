@@ -84,7 +84,7 @@ You can also use conditions to selectively measure specific records.  Here's a m
 
 <pre>
 metric "Signups to Unlimited" do
-  description "Signups to our All You Can Eat and Burp unlimited plan."
+  description "Signups to our All You Can Eat and Burp Unlimited plan."
   model Account, :conditions=>{ :plan_type=>'unlimited' }
 end
 </pre>
@@ -93,7 +93,7 @@ If you have named scopes, use them instead:
 
 <pre>
 metric "Signups to Unlimited" do
-  description "Signups to our All You Can Eat and Burp unlimited plan."
+  description "Signups to our All You Can Eat and Burp Unlimited plan."
   model Account.unlimited
 end
 </pre>
@@ -106,7 +106,7 @@ This metric tracks any account created or upgraded to unlimited:
 
 <pre>
 metric "Signups (Unlimited)" do
-  description "Signups to our All You Can Eat and Burp unlimited plan (includes upgrades)."
+  description "Signups to our All You Can Eat and Burp Unlimited plan (includes upgrades)."
   Account.after_save do |account|
     track! if account.plan_type_changed? && account.plan_type == 'unlimited'
   end
@@ -134,37 +134,33 @@ This example uses the @Vanity::Metric@ class and redefines one of its methods.
 
 You can, of course, build your own metric implementation.  A metric is any object that implements these two methods:
 
-# @name@ -- Returns the metric's name, which will show up in the dashboard/report.
-# @values@ -- Receives a start date and end date and returns an array of values for all dates in that range (inclusive).
+* @name@ -- Returns the metric's name, which will show up in the dashboard/report.
+* @values@ -- Receives a start date and end date and returns an array of values for all dates in that range (inclusive).
 
 It may also implement these methods:
 
-@description@ -- Returns human readable description.
-@bounds@ -- Returns acceptable upper and lower bounds (@nil@ if unknown).
-@hook@ -- "A/B tests":ab_testing.html use this to manage their own book keeping.
+* @description@ -- Returns human readable description.
+* @bounds@ -- Returns acceptable upper and lower bounds (@nil@ if unknown).
+* @hook@ -- "A/B tests":ab_testing.html use this to manage their own book keeping.
 
 If you wrote your own metric implementation, please consider contributing it to Vanity so we can all benefit from it.  Thanks.
 
 
 h3.  Digging Deeper
 
-The example above uses the @Vanity::Metric@ implementation. Each time you call @track!@ it increases that day's count.
+@Vanity.playground.metrics@ is simply a hash that maps metric identifiers to metric objects.  On startup, Vanity will load all the metrics it finds in @experiments/metrics@ and map them using the metric file name as its identifier (so @experiments/metrics/coolness.rb@ becomes @:coolness@).  In addition, you can populate the hash with your own metrics.
 
-Vanity stores each day's count in a separate key/value pair in the Redis database.  To generate a report it calls the @values@ method that pulls all these counts and uses them to draw pretty charts.
+The metric definition is evaluated in a context that has two methods: @metric@ and @playground@.  The @metric@ method creates a new @Vanity::Metric@ and evaluates the block in the context of that metric, so all methods you see inside a metric definition (@description@, @model@, etc) are executed directly against the metric object.
 
-You can call @track!@ with a value and it will increase the day's count by that value.  For example, you can track how many products are bought each day by calling @track!@ with the number of items in the shopping cart.  For convenience, if you call @track!@ with zero or negative number, nothing happens.
+The base implementation responds to @track!@ and increments a record in the Redis database (an O(1) operation).  It uses one record for each day, accumulating that day's count.  When generating reports, the @values@ method fetches the values of all these keys (an O(n) operation).
 
-Metrics also support hooks.  "A/B tests":ab_testing.html use hooks to manage their own book keeping whenever a metric gets updated.  Whenever you define an A/B experiment, you tell it which metrics to use, and it hooks into them using the @hook@ method.
+You can call @track!@ with a value higher than one, for example, with the number of items in a shopping cart.  It will increment the day's count by that value.  For convenience, you can also call @track!@ with zero or a negative number, nothing will happen in both cases.
 
-This is all handled by the @Vanity::Metric@ implementation.  What if you already have the data available in your database or some other system?  In that case you might want to tweak the default implementation, or write your own.
+Any time you @track!@ a metric, the metric passes its identifier, timestamp and count (if equal to or higher than one) to all its hooks.  "A/B tests":ab_testing.html use hooks to manage their own book keeping.  When you define an experiment and tell it which metric(s) to apply, it hooks into them using the @hook@ method.
+
+When using ActiveRecord, the @model@ method changes the metric definition by rewriting the @values@ method to perform a query, rewriting the @track!@ method to update the hooks, but store nothing, and registers itself as @after_create@ callback on the model.
 
 
 h3.  Metrics That Work
 
 How about some tips & tricks for getting the most out of metrics (you might call them "best practices")?  Got any to share?
-
-
-
-fn1.  When Vanity loads metrics from the @experiments/metrics@ directory, it determines the metric identifier from the file name, and makes sure the identifier and name match.  There are other ways to define metrics that don't have this limitation.
-
-fn2.  This example is a bit short of being fully functional, but something along these lines will show up in a coming release.
