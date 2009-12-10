@@ -117,17 +117,9 @@ end
 
 h3.  Creating Your Own Metric
 
-If you need data from a different source, or different way of slicing it, you can always write your own metric.
+Got other ideas for metrics?  Writing your own metric is fairly simple.
 
-A metric must implement two methods.  The first method, @name@ returns the metric's name, which will show up in the dashboard/report.  The second method, @values@ receives a start date and end date and returns an array of values for all dates in that range (inclusive).
-
-All other methods are optional, you decide whether or not to implement them.  The other methods are:
-
-@description@ -- Returns human readable description.
-@bounds@ -- Returns acceptable upper and lower bounds (@nil@ if unknown).
-@hook@ -- "A/B tests":ab_testing.html use this to manage their own book keeping.
-
-Here's a sample metric.  It's based on the default metric implementation (@Vanity::Metric@) and provides its own @values@ method:
+Here's a metric that implements its very own @values@ method:
 
 <pre>
 metric "Hours in a day" do
@@ -137,6 +129,19 @@ metric "Hours in a day" do
   end
 end
 </pre>
+
+This example uses the @Vanity::Metric@ class and redefines one of its methods.
+
+You can, of course, build your own metric implementation.  A metric is any object that implements these two methods:
+
+# @name@ -- Returns the metric's name, which will show up in the dashboard/report.
+# @values@ -- Receives a start date and end date and returns an array of values for all dates in that range (inclusive).
+
+It may also implement these methods:
+
+@description@ -- Returns human readable description.
+@bounds@ -- Returns acceptable upper and lower bounds (@nil@ if unknown).
+@hook@ -- "A/B tests":ab_testing.html use this to manage their own book keeping.
 
 If you wrote your own metric implementation, please consider contributing it to Vanity so we can all benefit from it.  Thanks.
 

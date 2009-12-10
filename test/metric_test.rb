@@ -260,8 +260,8 @@ class MetricTest < Test::Unit::TestCase
     Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
     Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
     Vanity.playground.track! :yawns_sec
-    boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), Date.today - 5)
-    assert_equal [[today - 5, 0], [today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
+    boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), Date.today - 4)
+    assert_equal [[today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
   end
 
   def test_data_with_duration
@@ -270,14 +270,29 @@ class MetricTest < Test::Unit::TestCase
     Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
     Vanity.playground.track! :yawns_sec
     boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), 5)
-    assert_equal [[today - 5, 0], [today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
+    assert_equal [[today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
   end
 
   def test_data_with_no_dates
     metric "Yawns/sec"
     boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec))
-    assert_equal [today - 90, 0], boredom.first
+    assert_equal 90, boredom.size
+    assert_equal [today - 89, 0], boredom.first
     assert_equal [today, 0], boredom.last
+  end
+
+  def test_data_with_custom_values_method
+    File.open "tmp/experiments/metrics/hours_in_day.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Hours in day" do
+          def values(from, to)
+            (from..to).map { |d| 24 }
+          end
+        end
+      RUBY
+    end
+    data = Vanity::Metric.data(Vanity.playground.metric(:hours_in_day))
+    assert_equal [24] * 90, data.map(&:last)
   end
 
 
