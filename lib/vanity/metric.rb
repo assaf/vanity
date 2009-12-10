@@ -199,54 +199,52 @@ module Vanity
 
     # -- ActiveRecord support --
 
-    # Use an ActiveRecord model for this metric.
+    # Use an ActiveRecord model to get metric data from database table.  Also
+    # forwards @after_create@ callbacks to hooks (updating experiments).
     #
-    # Obtains historical data from the underlying database table, so you can
-    # introduce this metric and immediately gain access to historical data.
-    # There's no need to call track on these metrics.
-    #
-    # To support experiments that hook into the metric, uses the record's
-    # @after_create@ callback.
-    #
-    # If you are measuring instances, call with the model class.  If you are
-    # measuring values, call with the model class and a value column.
+    # Supported options:
+    # :conditions -- Only select records that match this condition
+    # :average -- Metric value is average of this column
+    # :minimum -- Metric value is minimum of this column
+    # :maximum -- Metric value is maximum of this column
+    # :sum -- Metric value is sum of this column
+    # :timestamp -- Use this column to filter/group records (defaults to
+    # +created_at+)
     #
     # @example Track sign ups using User model
     #   metric "Signups" do
-    #     model User
+    #     model Account
     #   end
     # @example Track satisfaction using Survey model
     #   metric "Satisfaction" do
-    #     model Survey, :rating
+    #     model Survey, :average=>:rating
     #   end
     # @example Track only high ratings
     #   metric "High ratings" do
     #     model Rating, :conditions=>["stars >= 4"]
     #   end
-    # @example Track state changes
-    #   metric "Tickets closed" do
-    #     model Ticket, :conditions=>["state >= 'closed'"]
-    #     Ticket.after_save do |ticket|
-    #       track! if ticket.state_changed? && ticket.sate == 'closed'
-    #     end
-    #   end
     #
     # @since 1.2.0
-    def model(klass, *args)
-      options = args.pop if Hash === args.last
-      conditions = (options && options[:conditions]) || {}
+    def model(klass, options = {})
+      conditions = options[:conditions] || {}
       scoped = klass.scoped(:conditions=>conditions)
-      column = (options && options[:column]) || args.shift
+      aggregate = [:average, :minimum, :maximum, :sum].find { |key| options[key] }
+      column = options[aggregate]
+      timestamp = options[:timestamp] || :created_at
+
+      # Hook into model's after_create
       klass.after_create do |record|
         count = column ? (record.send(column) || 0) : 1
-        call_hooks record.created_at, count if count > 0 && (conditions.empty? || scoped.exists?(record))
+        call_hooks record.send(timestamp), count if count > 0 && (conditions.empty? || scoped.exists?(record))
       end
+      # Redefine values method to perform query
       eigenclass = class << self ; self ; end
       eigenclass.send :define_method, :values do |sdate, edate|
-        query = { :conditions=>{ :created_at=>(sdate.to_time...(edate + 1).to_time) }, :group=>"date(created_at)" }
-        grouped = column ? scoped.sum(column, query) : scoped.count(query)
+        query = { :conditions=>{ timestamp=>(sdate.to_time...(edate + 1).to_time) }, :group=>"date(#{klass.connection.quote_column_name timestamp})" }
+        grouped = column ? scoped.calculate(aggregate, column, query) : scoped.count(query)
         (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date.to_s] || 0) }
       end
+      # Redefine track! method to call on hooks
       eigenclass.send :define_method, :track! do |*args|
         count = args.first || 1
         call_hooks Time.now, count if count > 0

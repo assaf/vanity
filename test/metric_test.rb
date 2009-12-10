@@ -299,13 +299,58 @@ class MetricTest < Test::Unit::TestCase
     File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
       f.write <<-RUBY
         metric "Sky is limit" do
-          model Sky, :height
+          model Sky, :sum=>:height
         end
       RUBY
     end
     Vanity.playground.metrics
     Sky.create! :height=>4
-    assert_equal 4, Sky.sum(:height)
+    Sky.create! :height=>2
+    assert_equal 6, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+  end
+
+  def test_active_record_average
+    Sky.aggregates
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky, :average=>:height
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    Sky.create! :height=>4
+    Sky.create! :height=>2
+    assert_equal 3, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+  end
+
+  def test_active_record_minimum
+    Sky.aggregates
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky, :minimum=>:height
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    Sky.create! :height=>4
+    Sky.create! :height=>2
+    assert_equal 2, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+  end
+
+  def test_active_record_maximum
+    Sky.aggregates
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky, :maximum=>:height
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    Sky.create! :height=>4
+    Sky.create! :height=>2
     assert_equal 4, Vanity::Metric.data(metric(:sky_is_limit)).last.last
   end
 
@@ -313,7 +358,7 @@ class MetricTest < Test::Unit::TestCase
     File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
       f.write <<-RUBY
         metric "Sky is limit" do
-          model Sky, :height
+          model Sky, :sum=>:height
         end
       RUBY
     end
@@ -371,7 +416,7 @@ class MetricTest < Test::Unit::TestCase
     File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
       f.write <<-RUBY
         metric "Sky is limit" do
-          model Sky, :height, :conditions=>["height > 4"]
+          model Sky, :sum=>:height, :conditions=>["height > 4"]
         end
       RUBY
     end

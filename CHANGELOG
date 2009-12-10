@@ -4,12 +4,12 @@ This release introduces metrics backed by ActiveRecord.  Use them when your mode
 Example, track sign ups using User model:
 
   metric "Signups" do
-    model User
+    model Account
   end
 
 Example, track satisfaction using Survey model:
   metric "Satisfaction" do
-    model Survey, :rating
+    model Survey, :average=>:rating
   end
 
 Example, track only high ratings:
