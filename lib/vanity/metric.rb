@@ -229,22 +229,22 @@ module Vanity
     #   end
     #
     # @since 1.2.0
-    def model(klass, options = {})
+    def model(class_or_scope, options = {})
       conditions = options[:conditions] || {}
-      scoped = klass.scoped(:conditions=>conditions)
+      scoped = conditions ? class_or_scope.scoped(:conditions=>conditions) : class_or_scope
       aggregate = [:average, :minimum, :maximum, :sum].find { |key| options[key] }
       column = options[aggregate]
       timestamp = options[:timestamp] || :created_at
 
       # Hook into model's after_create
-      klass.after_create do |record|
+      scoped.after_create do |record|
         count = column ? (record.send(column) || 0) : 1
-        call_hooks record.send(timestamp), count if count > 0 && (conditions.empty? || scoped.exists?(record))
+        call_hooks record.send(timestamp), count if count > 0 && scoped.exists?(record)
       end
       # Redefine values method to perform query
       eigenclass = class << self ; self ; end
       eigenclass.send :define_method, :values do |sdate, edate|
-        query = { :conditions=>{ timestamp=>(sdate.to_time...(edate + 1).to_time) }, :group=>"date(#{klass.connection.quote_column_name timestamp})" }
+        query = { :conditions=>{ timestamp=>(sdate.to_time...(edate + 1).to_time) }, :group=>"date(#{scoped.connection.quote_column_name timestamp})" }
         grouped = column ? scoped.calculate(aggregate, column, query) : scoped.count(query)
         (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date.to_s] || 0) }
       end

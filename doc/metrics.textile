@@ -21,21 +21,12 @@ h3.  Defining a Metric
 Vanity always loads metrics defined in the @experiments/metrics@ directory.  A metric definition is a Ruby file that looks like this:
 
 <pre>
-metric "Signup" do
+metric "Signup (Activation)" do
   description "Measures how many people signed up for our awesome service."
 end
 </pre>
 
-The metric name shows up in the dashboard/report.  Vanity matches the metric name, identifier and file name[1].  You can see how the three relate in this table:
-
-|_. Name       |_. ID          |_. Filename                          |
-| Signups      | :signups      | experiments/metrics/signups.rb      |
-| Yawns/sec    | :yawns_sec    | experiments/metrics/yawns_sec.rb    |
-| Cheers a day | :cheers_a_day | experiments/metrics/cheers_a_day.rb |
-
-There's also an optional description if you need to go into more details.
-
-Once you have your metric, feed it data by calling the @track!@ method.  For example:
+That's a basic metric and you feed it data by calling the @track!@ method.  For example:
 
 <pre>
 class AccountsController < ApplicationController
@@ -54,12 +45,103 @@ class AccountsController < ApplicationController
 end
 </pre>
 
-Define, track, that's about all you need to know.
+The metric identifier is the same as the file name.  The above example defines the metric @:signup@ in the file @experiments/metrics/signup.rb@.
+
+Define, track, and you're ready to roll.
 
 !images/signup_metric.png!
 
 
-h3.  How Metrics Work
+h3.  Metrics From Your Database
+
+If you already have the data, why not use it?
+
+This example defines a metric for signups, based on the number of @Account@ records created each day:
+
+<pre>
+metric "Signup (Activation)" do
+  description "Measures how many people signed up for our awesome service."
+  model Account
+end
+</pre>
+
+You don't need to call @track!@ with this metric, all the data already exists.  It's a simple query to count the number of records created, grouped by their timestamp (@created_at@).  Once you define it, you'll see data going back to the last 90 days.
+
+The metric registers itself as @after_create@ callback on the model.  Even though the metric itself doesn't store any information, it needs the callback to update experiments that hook into the metric.
+
+Some metrics need to measure values, not occurrences.  This metric looks at user satisfaction by calculating the average value of the column @rating@:
+
+<pre>
+metric "Satisfaction Survey" do
+  description "Measures how many people signed up for our awesome service."
+  model Survey, :average=>:rating
+end
+</pre>
+
+Aggregates you can use this way are @:average@, @:minimum@, @:maximum@ and @:sum@.
+
+You can also use conditions to selectively measure specific records.  Here's a metric that only looks at unlimited accounts:
+
+<pre>
+metric "Signups to Unlimited" do
+  description "Signups to our All You Can Eat and Burp unlimited plan."
+  model Account, :conditions=>{ :plan_type=>'unlimited' }
+end
+</pre>
+
+If you have named scopes, use them instead:
+
+<pre>
+metric "Signups to Unlimited" do
+  description "Signups to our All You Can Eat and Burp unlimited plan."
+  model Account.unlimited
+end
+</pre>
+
+When you view this metric, the query returns the number of accounts created on any given day that are currently unlimited accounts.  That's an important distinction.  If ten accounts were created over the past week, and today give of them upgraded to unlimited, the metric will show five unlimited accounts (current status) that were created during the past week (their @created_at@ timestamp).
+
+If your metric uses aggregates or conditions with attributes that change over time, and you need to know when the change took place, consider tracking the event itself.
+
+This metric tracks any account created or upgraded to unlimited:
+
+<pre>
+metric "Signups (Unlimited)" do
+  description "Signups to our All You Can Eat and Burp unlimited plan (includes upgrades)."
+  Account.after_save do |account|
+    track! if account.plan_type_changed? && account.plan_type == 'unlimited'
+  end
+end
+</pre>
+
+
+
+h3.  Creating Your Own Metric
+
+If you need data from a different source, or different way of slicing it, you can always write your own metric.
+
+A metric must implement two methods.  The first method, @name@ returns the metric's name, which will show up in the dashboard/report.  The second method, @values@ receives a start date and end date and returns an array of values for all dates in that range (inclusive).
+
+All other methods are optional, you decide whether or not to implement them.  The other methods are:
+
+@description@ -- Returns human readable description.
+@bounds@ -- Returns acceptable upper and lower bounds (@nil@ if unknown).
+@hook@ -- "A/B tests":ab_testing.html use this to manage their own book keeping.
+
+Here's a sample metric.  It's based on the default metric implementation (@Vanity::Metric@) and provides its own @values@ method:
+
+<pre>
+metric "Hours in a day" do
+  description "Measures how many hours in each day."
+  def values(from, to)
+    (from..to).map { |i| 24 }
+  end
+end
+</pre>
+
+If you wrote your own metric implementation, please consider contributing it to Vanity so we can all benefit from it.  Thanks.
+
+
+h3.  Digging Deeper
 
 The example above uses the @Vanity::Metric@ implementation. Each time you call @track!@ it increases that day's count.
 
@@ -70,66 +152,6 @@ You can call @track!@ with a value and it will increase the day's count by that 
 Metrics also support hooks.  "A/B tests":ab_testing.html use hooks to manage their own book keeping whenever a metric gets updated.  Whenever you define an A/B experiment, you tell it which metrics to use, and it hooks into them using the @hook@ method.
 
 This is all handled by the @Vanity::Metric@ implementation.  What if you already have the data available in your database or some other system?  In that case you might want to tweak the default implementation, or write your own.
-
-
-h3.  Writing Your Own Metrics
-
-Metric data can come from different sources: database queries, log files, Google Analytics, etc.  To use external sources you have to write your own metric implementation.
-
-A metric must implement two methods.  The first method, @name@ returns the metric's name, which will show up in the dashboard/report.  The second method, @values@ receives a start date and end date and returns an array of values for all dates in that range (inclusive).
-
-All other methods are optional, you decide whether or not to implement them.  The other methods are:
-
-@description@ -- Returns human readable description.
-@bounds@ -- Returns acceptable upper and lower bounds (@nil@ if unknown).
-@hook@ -- "A/B tests":ab_testing.html use this to manage their own book keeping.
-
-The API is kept simple enough that you can easily write your own metrics.  For example:
-
-<pre>
-# Our metric class, based on an AR model
-class ActiveRecord::Metric
-  def initialize(name, model, column)
-    @name, @model, @column = name, model, column
-  end
-
-  attr_reader :name
-
-  def values(start, end)
-    @model.sum @column, :conditions=>{ :created_at=>start..end },
-      :group=>:created_at
-  end
-end
-
-# Generate metric directly from model.
-class ActiveRecord::Base
-  def self.metric(column)
-    ActiveRecord::Metric.new(human_attribute_name(column), self, column)
-  end
-end
-</pre>
-
-You can also extend @Vanity::Metric@.  Here's an example that extends the base metric definition, so you can easily integrate it with ActiveRecord[2]:
-
-<pre>
-class Vanity::Metric
-  # Use this to associate your metric with an ActiveRecord model.
-  def model(name)
-    name.after_create do
-      track!
-    end
-  end
-</pre>
-
-And you would use it like this:
-
-<pre>
-metric "Signup" do
-  model Person
-end
-</pre>
-
-If you wrote your own metric implementation, please consider contributing it to Vanity so we can all benefit from it.  Thanks.
 
 
 h3.  Metrics That Work

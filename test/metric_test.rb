@@ -366,9 +366,14 @@ class MetricTest < Test::Unit::TestCase
       RUBY
     end
     Vanity.playground.metrics
+    total = 0
+    metric(:sky_is_limit).hook do |metric_id, timestamp, count|
+      total += count
+    end
     Sky.create! :height=>4
     Sky.create! :height=>2
     assert_equal 1, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+    assert_equal 1, total
   end
 
   def test_active_record_callback

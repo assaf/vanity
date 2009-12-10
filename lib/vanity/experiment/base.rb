@@ -105,7 +105,7 @@ module Vanity
       end
 
       def identity
-        @identify_block.call(Vanity.context) or fail "No identity found"
+        @identify_block.call(Vanity.context)
       end
       protected :identity
 
