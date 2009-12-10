@@ -223,6 +223,10 @@ module Vanity
     #   metric "High ratings" do
     #     model Rating, :conditions=>["stars >= 4"]
     #   end
+    # @example Track only high ratings (using scope)
+    #   metric "High ratings" do
+    #     model Rating.high
+    #   end
     #
     # @since 1.2.0
     def model(klass, options = {})

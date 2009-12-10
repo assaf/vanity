@@ -6,6 +6,8 @@ class Sky < ActiveRecord::Base
     t.integer :height
     t.timestamps
   end
+
+  named_scope :high, lambda { { :conditions=>"height >= 4" } }
 end
 
 class MetricTest < Test::Unit::TestCase
@@ -352,6 +354,21 @@ class MetricTest < Test::Unit::TestCase
     Sky.create! :height=>4
     Sky.create! :height=>2
     assert_equal 4, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+  end
+
+  def test_active_record_scope
+    Sky.aggregates
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky.high
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    Sky.create! :height=>4
+    Sky.create! :height=>2
+    assert_equal 1, Vanity::Metric.data(metric(:sky_is_limit)).last.last
   end
 
   def test_active_record_callback
