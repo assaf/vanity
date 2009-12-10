@@ -98,7 +98,6 @@ class ActiveRecord::Base
 end
 
 
-
 class Array
   # Not in Ruby 1.8.6.
   unless method_defined?(:shuffle)
@@ -107,4 +106,21 @@ class Array
       Array.new(size) { copy.delete_at(Kernel.rand(copy.size)) } 
     end
   end
+end
+
+
+# Source: http://gist.github.com/25455
+def context(*args, &block)
+  return super unless (name = args.first) && block
+  parent = Class === self ? self : (defined?(ActiveSupport::TestCase) ? ActiveSupport::TestCase : Test::Unit::TestCase)
+  klass = Class.new(parent) do
+    def self.test(name, &block) 
+      define_method("test_#{name.gsub(/\W/,'_')}", &block) if block
+    end
+    def self.xtest(*args) end
+    def self.setup(&block) define_method(:setup) { super() ; block.call } end
+    def self.teardown(&block) define_method(:teardown) { super() ; block.call } end
+  end
+  parent.const_set name.split(/\W+/).map(&:capitalize).join, klass
+  klass.class_eval &block
 end

@@ -10,488 +10,509 @@ class Sky < ActiveRecord::Base
   named_scope :high, lambda { { :conditions=>"height >= 4" } }
 end
 
-class MetricTest < Test::Unit::TestCase
-  
-  def setup
-    super
-    Sky.delete_all
-    Sky.after_create.clear
-  end
+
+context "Metric" do
 
   # -- Via the playground --
 
-  def test_playground_tracks_all_loaded_metrics
-    metric "Yawns/sec", "Cheers/sec"
-    assert Vanity.playground.metrics.keys.include?(:yawns_sec)
-    assert Vanity.playground.metrics.keys.include?(:cheers_sec)
-  end
+  context "playground" do
 
-  def test_playground_fails_without_metric_file
-    assert_raises NameError do
-      Vanity.playground.track! :yawns_sec
+    test "knows all loaded metrics" do
+      metric "Yawns/sec", "Cheers/sec"
+      assert Vanity.playground.metrics.keys.include?(:yawns_sec)
+      assert Vanity.playground.metrics.keys.include?(:cheers_sec)
     end
-  end
 
-  def test_playground_loads_metric_definition
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Yawns/sec" do
-          def xmts
-            "x"
+    test "loads metric definitions" do
+      File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Yawns/sec" do
+            def xmts
+              "x"
+            end
           end
-        end
-      RUBY
+        RUBY
+      end
+      assert_equal "x", Vanity.playground.metric(:yawns_sec).xmts
     end
-    assert_equal "x", Vanity.playground.metric(:yawns_sec).xmts
-  end
 
-  def test_metric_loading_errors_bubble_up
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write "fail 'yawn!'"
+    test "bubbles up loaded metrics" do
+      File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
+        f.write "fail 'yawn!'"
+      end
+      assert_raises NameError do
+        Vanity.playground.metric(:yawns_sec)
+      end
     end
-    assert_raises NameError do
+
+    test "map identifier from file name" do
+      File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "yawns/hour" do
+          end
+        RUBY
+      end
+      assert Vanity.playground.metric(:yawns_sec)
+    end
+
+    test "fails tracking unknown metric" do
+      assert_raises NameError do
+        Vanity.playground.track! :yawns_sec
+      end
+    end
+
+    test "reloading metrics" do
+      metric "Yawns/sec", "Cheers/sec"
       Vanity.playground.metric(:yawns_sec)
+      Vanity.playground.metric(:cheers_sec)
+      assert 2, Vanity.playground.metrics.size
+      metrics = Vanity.playground.metrics.values
+      Vanity.playground.reload!
+      assert 2, Vanity.playground.metrics.size
+      assert_not_equal metrics, Vanity.playground.metrics.values
     end
-  end
 
-  def test_metric_identifier_from_file
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "yawns/hour" do
-        end
-      RUBY
+    test "ignores undefined metrics in database" do
+      metric "Yawns/sec"
+      Vanity.playground.reload!
+      assert Vanity.playground.metrics.empty?
     end
-    assert Vanity.playground.metric(:yawns_sec)
-  end
 
-  def test_reloading_metrics
-    metric "Yawns/sec", "Cheers/sec"
-    Vanity.playground.metric(:yawns_sec)
-    Vanity.playground.metric(:cheers_sec)
-    assert 2, Vanity.playground.metrics.size
-    metrics = Vanity.playground.metrics.values
-    Vanity.playground.reload!
-    assert 2, Vanity.playground.metrics.size
-    assert_not_equal metrics, Vanity.playground.metrics.values
-  end
-
-  def test_undefined_metric_in_database
-    metric "Yawns/sec"
-    Vanity.playground.reload!
-    assert Vanity.playground.metrics.empty?
   end
 
 
   # -- Tracking --
 
-  def test_tracking_can_count
-    metric "Yawns/sec", "Cheers/sec"
-    4.times { Vanity.playground.track! :yawns_sec }
-    2.times { Vanity.playground.track! :cheers_sec }
-    yawns = Vanity.playground.metric(:yawns_sec).values(today, today).first
-    cheers = Vanity.playground.metric(:cheers_sec).values(today, today).first
-    assert yawns = 2 * cheers
-  end
-
-  def test_tracking_with_value
-    metric "Yawns/sec", "Cheers/sec", "Looks"
-    Vanity.playground.track! :yawns_sec, 0
-    Vanity.playground.track! :cheers_sec, -1
-    Vanity.playground.track! :looks, 10
-    assert_equal 0, Vanity.playground.metric(:yawns_sec).values(today, today).sum
-    assert_equal 0, Vanity.playground.metric(:cheers_sec).values(today, today).sum
-    assert_equal 10, Vanity.playground.metric(:looks).values(today, today).sum
-  end
-
-  def test_tracking_can_tell_the_time
-    metric "Yawns/sec"
-    Timecop.travel(today - 4) { 4.times { Vanity.playground.track! :yawns_sec } }
-    Timecop.travel(today - 2) { 2.times { Vanity.playground.track! :yawns_sec } }
-    1.times { Vanity.playground.track! :yawns_sec }
-    boredom = Vanity.playground.metric(:yawns_sec).values(today - 5, today)
-    assert_equal [0,4,0,2,0,1], boredom
-  end
-
-  def test_tracking_with_count
-    metric "Yawns/sec"
-    Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
-    Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
-    Vanity.playground.track! :yawns_sec
-    boredom = Vanity.playground.metric(:yawns_sec).values(today - 5, today)
-    assert_equal [0,4,0,2,0,1], boredom
-  end
-
-  def test_tracking_runs_hook
-    metric "Many Happy Returns"
-    total = 0
-    Vanity.playground.metric(:many_happy_returns).hook do |metric_id, timestamp, count|
-      assert_equal :many_happy_returns, metric_id
-      assert_in_delta Time.now.to_i, timestamp.to_i, 1
-      total += count
+  context "tracking" do
+    test "can count" do
+      metric "Yawns/sec", "Cheers/sec"
+      4.times { Vanity.playground.track! :yawns_sec }
+      2.times { Vanity.playground.track! :cheers_sec }
+      yawns = Vanity.playground.metric(:yawns_sec).values(today, today).first
+      cheers = Vanity.playground.metric(:cheers_sec).values(today, today).first
+      assert yawns = 2 * cheers
     end
-    Vanity.playground.track! :many_happy_returns, 6
-    assert_equal 6, total
-  end
 
-  def test_tracking_runs_multiple_hooks
-    metric "Many Happy Returns"
-    returns = 0
-    Vanity.playground.metric(:many_happy_returns).hook { returns += 1 }
-    Vanity.playground.metric(:many_happy_returns).hook { returns += 1 }
-    Vanity.playground.metric(:many_happy_returns).hook { returns += 1 }
-    Vanity.playground.track! :many_happy_returns
-    assert_equal 3, returns
-  end
+    test "can tell the time" do
+      metric "Yawns/sec"
+      Timecop.travel(today - 4) { 4.times { Vanity.playground.track! :yawns_sec } }
+      Timecop.travel(today - 2) { 2.times { Vanity.playground.track! :yawns_sec } }
+      1.times { Vanity.playground.track! :yawns_sec }
+      boredom = Vanity.playground.metric(:yawns_sec).values(today - 5, today)
+      assert_equal [0,4,0,2,0,1], boredom
+    end
 
-  def test_destroy_metric_wipes_data
-    metric "Many Happy Returns"
-    Vanity.playground.track! :many_happy_returns, 3
-    assert_equal [3], Vanity.playground.metric(:many_happy_returns).values(today, today)
-    Vanity.playground.metric(:many_happy_returns).destroy!
-    assert_equal [0], Vanity.playground.metric(:many_happy_returns).values(today, today)
+    test "with no value" do
+      metric "Yawns/sec", "Cheers/sec", "Looks"
+      Vanity.playground.track! :yawns_sec, 0
+      Vanity.playground.track! :cheers_sec, -1
+      Vanity.playground.track! :looks, 10
+      assert_equal 0, Vanity.playground.metric(:yawns_sec).values(today, today).sum
+      assert_equal 0, Vanity.playground.metric(:cheers_sec).values(today, today).sum
+      assert_equal 10, Vanity.playground.metric(:looks).values(today, today).sum
+    end
+
+    test "with count" do
+      metric "Yawns/sec"
+      Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
+      Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
+      Vanity.playground.track! :yawns_sec
+      boredom = Vanity.playground.metric(:yawns_sec).values(today - 5, today)
+      assert_equal [0,4,0,2,0,1], boredom
+    end
+
+    test "runs hook" do
+      metric "Many Happy Returns"
+      total = 0
+      Vanity.playground.metric(:many_happy_returns).hook do |metric_id, timestamp, count|
+        assert_equal :many_happy_returns, metric_id
+        assert_in_delta Time.now.to_i, timestamp.to_i, 1
+        total += count
+      end
+      Vanity.playground.track! :many_happy_returns, 6
+      assert_equal 6, total
+    end
+
+    test "runs multiple hooks" do
+      metric "Many Happy Returns"
+      returns = 0
+      Vanity.playground.metric(:many_happy_returns).hook { returns += 1 }
+      Vanity.playground.metric(:many_happy_returns).hook { returns += 1 }
+      Vanity.playground.metric(:many_happy_returns).hook { returns += 1 }
+      Vanity.playground.track! :many_happy_returns
+      assert_equal 3, returns
+    end
+
+    test "destroy wipes metrics" do
+      metric "Many Happy Returns"
+      Vanity.playground.track! :many_happy_returns, 3
+      assert_equal [3], Vanity.playground.metric(:many_happy_returns).values(today, today)
+      Vanity.playground.metric(:many_happy_returns).destroy!
+      assert_equal [0], Vanity.playground.metric(:many_happy_returns).values(today, today)
+    end
   end
 
 
   # -- Metric name --
-  
-  def test_name_can_be_whatever
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Yawns per second" do
-        end
-      RUBY
+
+  context "name" do
+    test "can be whatever" do
+      File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Yawns per second" do
+          end
+        RUBY
+      end
+      assert_equal "Yawns per second", Vanity.playground.metric(:yawns_sec).name
     end
-    assert_equal "Yawns per second", Vanity.playground.metric(:yawns_sec).name
-  end
+  end  
 
 
   # -- Description helper --
 
-  def test_description_for_metric_with_description
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Yawns/sec" do
-          description "Am I that boring?"
-        end
-      RUBY
+  context "description" do
+    test "metric with description" do
+      File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Yawns/sec" do
+            description "Am I that boring?"
+          end
+        RUBY
+      end
+      assert_equal "Am I that boring?", Vanity::Metric.description(Vanity.playground.metric(:yawns_sec))
     end
-    assert_equal "Am I that boring?", Vanity::Metric.description(Vanity.playground.metric(:yawns_sec))
-  end
 
-  def test_description_for_metric_with_no_description
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Yawns/sec" do
-        end
-      RUBY
+    test "metric without description" do
+      File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Yawns/sec" do
+          end
+        RUBY
+      end
+      assert_nil Vanity::Metric.description(Vanity.playground.metric(:yawns_sec))
     end
-    assert_nil Vanity::Metric.description(Vanity.playground.metric(:yawns_sec))
-  end
 
-  def test_description_for_metric_with_no_description_method
-    metric = Object.new
-    assert_nil Vanity::Metric.description(metric)
+    test "metric with no method description" do
+      metric = Object.new
+      assert_nil Vanity::Metric.description(metric)
+    end
   end
 
 
   # -- Metric bounds --
 
-  def test_bounds_helper_for_metric_with_bounds
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Sky is limit" do
-          def bounds
-            [6,12]
+  context "bounds" do
+    test "metric with bounds" do
+      File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Sky is limit" do
+            def bounds
+              [6,12]
+            end
           end
-        end
-      RUBY
+        RUBY
+      end
+      assert_equal [6,12], Vanity::Metric.bounds(Vanity.playground.metric(:sky_is_limit))
     end
-    assert_equal [6,12], Vanity::Metric.bounds(Vanity.playground.metric(:sky_is_limit))
-  end
 
-  def test_bounds_helper_for_metric_with_no_bounds
-    metric "Sky is limit"
-    assert_equal [nil, nil], Vanity::Metric.bounds(Vanity.playground.metric(:sky_is_limit))
-  end
+    test "metric without bounds" do
+      metric "Sky is limit"
+      assert_equal [nil, nil], Vanity::Metric.bounds(Vanity.playground.metric(:sky_is_limit))
+    end
 
-  def test_bounds_helper_for_metric_with_no_bounds_method
-    metric = Object.new
-    assert_equal [nil, nil], Vanity::Metric.bounds(metric)
+    test "metric with no method bounds" do
+      metric = Object.new
+      assert_equal [nil, nil], Vanity::Metric.bounds(metric)
+    end
   end
 
 
   # -- Timestamp --
-  
-  def test_metric_has_created_timestamp
-    metric "Coolness"
-    metric = Vanity.playground.metric(:coolness)
-    assert_instance_of Time, metric.created_at
-    assert_in_delta metric.created_at.to_i, Time.now.to_i, 1
-  end
  
-  def test_metric_keeps_created_timestamp_across_restarts
-    past = Date.today - 1
-    Timecop.travel past do
+  context "created_at" do
+    test "for new metric" do
       metric "Coolness"
-      coolness = Vanity.playground.metric(:coolness)
-      assert_in_delta coolness.created_at.to_i, past.to_time.to_i, 1
+      metric = Vanity.playground.metric(:coolness)
+      assert_instance_of Time, metric.created_at
+      assert_in_delta metric.created_at.to_i, Time.now.to_i, 1
     end
 
-    new_playground
-    metric "Coolness"
-    new_cool = Vanity.playground.metric(:coolness)
-    assert_in_delta new_cool.created_at.to_i, past.to_time.to_i, 1
-  end
+    test "across restarts" do
+      past = Date.today - 1
+      Timecop.travel past do
+        metric "Coolness"
+        coolness = Vanity.playground.metric(:coolness)
+        assert_in_delta coolness.created_at.to_i, past.to_time.to_i, 1
+      end
+
+      new_playground
+      metric "Coolness"
+      new_cool = Vanity.playground.metric(:coolness)
+      assert_in_delta new_cool.created_at.to_i, past.to_time.to_i, 1
+    end
+  end 
 
 
-  # -- Data helper --
+  # -- Data --
 
-  def test_data_with_explicit_dates
-    metric "Yawns/sec"
-    Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
-    Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
-    Vanity.playground.track! :yawns_sec
-    boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), Date.today - 5, Date.today)
-    assert_equal [[today - 5, 0], [today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
-  end
+  context "data" do
+    test "explicit dates" do
+      metric "Yawns/sec"
+      Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
+      Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
+      Vanity.playground.track! :yawns_sec
+      boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), Date.today - 5, Date.today)
+      assert_equal [[today - 5, 0], [today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
+    end
 
-  def test_data_with_start_date
-    metric "Yawns/sec"
-    Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
-    Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
-    Vanity.playground.track! :yawns_sec
-    boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), Date.today - 4)
-    assert_equal [[today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
-  end
+    test "start date only" do
+      metric "Yawns/sec"
+      Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
+      Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
+      Vanity.playground.track! :yawns_sec
+      boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), Date.today - 4)
+      assert_equal [[today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
+    end
 
-  def test_data_with_duration
-    metric "Yawns/sec"
-    Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
-    Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
-    Vanity.playground.track! :yawns_sec
-    boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), 5)
-    assert_equal [[today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
-  end
+    test "start date and duration" do
+      metric "Yawns/sec"
+      Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
+      Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
+      Vanity.playground.track! :yawns_sec
+      boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), 5)
+      assert_equal [[today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
+    end
 
-  def test_data_with_no_dates
-    metric "Yawns/sec"
-    boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec))
-    assert_equal 90, boredom.size
-    assert_equal [today - 89, 0], boredom.first
-    assert_equal [today, 0], boredom.last
-  end
+    test "no data" do
+      metric "Yawns/sec"
+      boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec))
+      assert_equal 90, boredom.size
+      assert_equal [today - 89, 0], boredom.first
+      assert_equal [today, 0], boredom.last
+    end
 
-  def test_data_with_custom_values_method
-    File.open "tmp/experiments/metrics/hours_in_day.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Hours in day" do
-          def values(from, to)
-            (from..to).map { |d| 24 }
+    test "using custom values method" do
+      File.open "tmp/experiments/metrics/hours_in_day.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Hours in day" do
+            def values(from, to)
+              (from..to).map { |d| 24 }
+            end
           end
-        end
-      RUBY
+        RUBY
+      end
+      data = Vanity::Metric.data(Vanity.playground.metric(:hours_in_day))
+      assert_equal [24] * 90, data.map(&:last)
     end
-    data = Vanity::Metric.data(Vanity.playground.metric(:hours_in_day))
-    assert_equal [24] * 90, data.map(&:last)
+
   end
 
 
   # -- ActiveRecord --
 
-  def test_active_record_count
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Sky is limit" do
-          model Sky
-        end
-      RUBY
+  context "ActiveRecord" do
+
+    test "record count" do
+      File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Sky is limit" do
+            model Sky
+          end
+        RUBY
+      end
+      Vanity.playground.metrics
+      Sky.create!
+      assert_equal 1, Sky.count
+      assert_equal 1, Vanity::Metric.data(metric(:sky_is_limit)).last.last
     end
-    Vanity.playground.metrics
-    Sky.create!
-    assert_equal 1, Sky.count
-    assert_equal 1, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+
+    test "record sum" do
+      File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Sky is limit" do
+            model Sky, :sum=>:height
+          end
+        RUBY
+      end
+      Vanity.playground.metrics
+      Sky.create! :height=>4
+      Sky.create! :height=>2
+      assert_equal 6, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+    end
+
+    test "record average" do
+      Sky.aggregates
+      File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Sky is limit" do
+            model Sky, :average=>:height
+          end
+        RUBY
+      end
+      Vanity.playground.metrics
+      Sky.create! :height=>4
+      Sky.create! :height=>2
+      assert_equal 3, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+    end
+
+    test "record minimum" do
+      Sky.aggregates
+      File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Sky is limit" do
+            model Sky, :minimum=>:height
+          end
+        RUBY
+      end
+      Vanity.playground.metrics
+      Sky.create! :height=>4
+      Sky.create! :height=>2
+      assert_equal 2, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+    end
+
+    test "record maximum" do
+      Sky.aggregates
+      File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Sky is limit" do
+            model Sky, :maximum=>:height
+          end
+        RUBY
+      end
+      Vanity.playground.metrics
+      Sky.create! :height=>4
+      Sky.create! :height=>2
+      assert_equal 4, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+    end
+
+    test "with conditions" do
+      File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Sky is limit" do
+            model Sky, :sum=>:height, :conditions=>["height > 4"]
+          end
+        RUBY
+      end
+      Vanity.playground.metrics
+      high_skies = 0
+      metric(:sky_is_limit).hook do |metric_id, timestamp, height|
+        assert height > 4
+        high_skies += height
+      end
+      [nil,5,3,6].each do |height|
+        Sky.create! :height=>height
+      end
+      assert_equal 11, Vanity::Metric.data(metric(:sky_is_limit)).sum(&:last)
+      assert_equal 11, high_skies
+    end
+
+    test "with scope" do
+      Sky.aggregates
+      File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Sky is limit" do
+            model Sky.high
+          end
+        RUBY
+      end
+      Vanity.playground.metrics
+      total = 0
+      metric(:sky_is_limit).hook do |metric_id, timestamp, count|
+        total += count
+      end
+      Sky.create! :height=>4
+      Sky.create! :height=>2
+      assert_equal 1, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+      assert_equal 1, total
+    end
+
+    test "hooks" do
+      File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Sky is limit" do
+            model Sky, :sum=>:height
+          end
+        RUBY
+      end
+      Vanity.playground.metrics
+      total = 0
+      metric(:sky_is_limit).hook do |metric_id, timestamp, count|
+        assert_equal :sky_is_limit, metric_id
+        assert_in_delta Time.now.to_i, timestamp.to_i, 1
+        total += count
+      end
+      Sky.create! :height=>4
+      assert_equal 4, total
+    end
+
+    test "after_create not after_save" do
+      File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Sky is limit" do
+            model Sky
+          end
+        RUBY
+      end
+      Vanity.playground.metrics
+      once = nil
+      metric(:sky_is_limit).hook do
+        fail "Metric tracked twice" if once
+        once = true
+      end
+      Sky.create!
+      Sky.last.update_attributes :height=>4
+    end
+
+    test "with after_save" do
+      File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Sky is limit" do
+            model Sky, :conditions=>["height > 3"]
+            Sky.after_save { |sky| track! if sky.height_changed? && sky.height > 3 }
+          end
+        RUBY
+      end
+      Vanity.playground.metrics
+      times = 0
+      metric(:sky_is_limit).hook do
+        times += 1
+      end
+      Sky.create!
+      (1..5).each do |height|
+        Sky.last.update_attributes! :height=>height
+      end
+      assert_equal 2, times
+    end
+
+    test "do it youself" do
+      File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+        f.write <<-RUBY
+          metric "Sky is limit" do
+            Sky.after_save { |sky| track! if sky.height_changed? && sky.height > 3 }
+          end
+        RUBY
+      end
+      Vanity.playground.metrics
+      (1..5).each do |height|
+        Sky.create! :height=>height
+      end
+      Sky.first.update_attributes! :height=>4
+      assert_equal 3, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+    end
+
   end
 
-  def test_active_record_sum
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Sky is limit" do
-          model Sky, :sum=>:height
-        end
-      RUBY
-    end
-    Vanity.playground.metrics
-    Sky.create! :height=>4
-    Sky.create! :height=>2
-    assert_equal 6, Vanity::Metric.data(metric(:sky_is_limit)).last.last
-  end
-
-  def test_active_record_average
-    Sky.aggregates
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Sky is limit" do
-          model Sky, :average=>:height
-        end
-      RUBY
-    end
-    Vanity.playground.metrics
-    Sky.create! :height=>4
-    Sky.create! :height=>2
-    assert_equal 3, Vanity::Metric.data(metric(:sky_is_limit)).last.last
-  end
-
-  def test_active_record_minimum
-    Sky.aggregates
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Sky is limit" do
-          model Sky, :minimum=>:height
-        end
-      RUBY
-    end
-    Vanity.playground.metrics
-    Sky.create! :height=>4
-    Sky.create! :height=>2
-    assert_equal 2, Vanity::Metric.data(metric(:sky_is_limit)).last.last
-  end
-
-  def test_active_record_maximum
-    Sky.aggregates
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Sky is limit" do
-          model Sky, :maximum=>:height
-        end
-      RUBY
-    end
-    Vanity.playground.metrics
-    Sky.create! :height=>4
-    Sky.create! :height=>2
-    assert_equal 4, Vanity::Metric.data(metric(:sky_is_limit)).last.last
-  end
-
-  def test_active_record_scope
-    Sky.aggregates
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Sky is limit" do
-          model Sky.high
-        end
-      RUBY
-    end
-    Vanity.playground.metrics
-    total = 0
-    metric(:sky_is_limit).hook do |metric_id, timestamp, count|
-      total += count
-    end
-    Sky.create! :height=>4
-    Sky.create! :height=>2
-    assert_equal 1, Vanity::Metric.data(metric(:sky_is_limit)).last.last
-    assert_equal 1, total
-  end
-
-  def test_active_record_callback
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Sky is limit" do
-          model Sky, :sum=>:height
-        end
-      RUBY
-    end
-    Vanity.playground.metrics
-    total = 0
-    metric(:sky_is_limit).hook do |metric_id, timestamp, count|
-      assert_equal :sky_is_limit, metric_id
-      assert_in_delta Time.now.to_i, timestamp.to_i, 1
-      total += count
-    end
-    Sky.create! :height=>4
-    assert_equal 4, total
-  end
-
-  def test_active_record_after_create
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Sky is limit" do
-          model Sky
-        end
-      RUBY
-    end
-    Vanity.playground.metrics
-    once = nil
-    metric(:sky_is_limit).hook do
-      fail "Metric tracked twice" if once
-      once = true
-    end
-    Sky.create!
-    Sky.last.update_attributes :height=>4
-  end
-
-  def test_active_record_use_track_for_state_changes
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Sky is limit" do
-          model Sky, :conditions=>["height > 3"]
-          Sky.after_save { |sky| track! if sky.height_changed? && sky.height > 3 }
-        end
-      RUBY
-    end
-    Vanity.playground.metrics
-    times = 0
-    metric(:sky_is_limit).hook do
-      times += 1
-    end
-    Sky.create!
-    (1..5).each do |height|
-      Sky.last.update_attributes! :height=>height
-    end
-    assert_equal 2, times
-  end
-
-  def test_acrive_record_conditional
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Sky is limit" do
-          model Sky, :sum=>:height, :conditions=>["height > 4"]
-        end
-      RUBY
-    end
-    Vanity.playground.metrics
-    high_skies = 0
-    metric(:sky_is_limit).hook do |metric_id, timestamp, height|
-      assert height > 4
-      high_skies += height
-    end
-    [nil,5,3,6].each do |height|
-      Sky.create! :height=>height
-    end
-    assert_equal 11, Vanity::Metric.data(metric(:sky_is_limit)).sum(&:last)
-    assert_equal 11, high_skies
-  end
-
-  def test_active_record_hook
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
-        metric "Sky is limit" do
-          Sky.after_save { |sky| track! if sky.height_changed? && sky.height > 3 }
-        end
-      RUBY
-    end
-    Vanity.playground.metrics
-    (1..5).each do |height|
-      Sky.create! :height=>height
-    end
-    Sky.first.update_attributes! :height=>4
-    assert_equal 3, Vanity::Metric.data(metric(:sky_is_limit)).last.last
-  end
-
-
-
+  
   # -- Helper methods --
 
   def today
     @today ||= Date.today
+  end
+
+  teardown do
+    Sky.delete_all
+    Sky.after_create.clear
+    Sky.after_save.clear
   end
 
 end
