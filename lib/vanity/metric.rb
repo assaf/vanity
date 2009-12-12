@@ -199,6 +199,8 @@ module Vanity
 
     # -- ActiveRecord support --
 
+    AGGREGATES = [:average, :minimum, :maximum, :sum]
+
     # Use an ActiveRecord model to get metric data from database table.  Also
     # forwards @after_create@ callbacks to hooks (updating experiments).
     #
@@ -229,12 +231,15 @@ module Vanity
     #   end
     #
     # @since 1.2.0
-    def model(class_or_scope, options = {})
-      conditions = options[:conditions] || {}
+    def model(class_or_scope, options = nil)
+      options = (options || {}).clone
+      conditions = options.delete(:conditions)
       scoped = conditions ? class_or_scope.scoped(:conditions=>conditions) : class_or_scope
-      aggregate = [:average, :minimum, :maximum, :sum].find { |key| options[key] }
-      column = options[aggregate]
-      timestamp = options[:timestamp] || :created_at
+      aggregate = AGGREGATES.find { |key| options.has_key?(key) }
+      column = options.delete(aggregate)
+      fail "Cannot use multiple aggregates in a single metric" if AGGREGATES.find { |key| options.has_key?(key) }
+      timestamp = options.delete(:timestamp) || :created_at
+      fail "Unrecognized options: #{options.keys * ", "}" unless options.empty?
 
       # Hook into model's after_create
       scoped.after_create do |record|

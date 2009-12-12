@@ -13,8 +13,11 @@ module Vanity
     def initialize(options = {})
       @host, @port, @db, @load_path = DEFAULTS.merge(options).values_at(:host, :port, :db, :load_path)
       @namespace = "vanity:#{Vanity::Version::MAJOR}"
-      @logger = options[:logger] || Logger.new(STDOUT)
-      @logger.level = Logger::ERROR
+      @logger = options[:logger]
+      unless @logger
+        @logger = Logger.new(STDOUT)
+        @logger.level = Logger::ERROR
+      end
       @redis = options[:redis]
       @loading = []
     end
