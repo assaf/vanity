@@ -1,6 +1,7 @@
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), "../vendor/redis-rb/lib")
 require "redis"
 require "date"
+require "time"
 require "logger"
 
 # All the cool stuff happens in other places.
