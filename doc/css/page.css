@@ -1,14 +1,9 @@
 html { background-color: #fff; color: #111 }
-body {
-  font-size: 12pt;
-  font-family: "Georgia", serif;
-  line-height: 1.5em;
-  width: 35em;
-  margin: 2em auto;
-}
-a:link, a:visited { color: #0044b3; text-decoration: none; }
-a:hover{ text-decoration: underline }
-img { border: 1px solid #eee; padding: 16px }
+body { font-size: 13pt; font-family: "Georgia", serif; line-height: 1.5em; width: 40em; margin: 2em auto }
+a:link { color: #0044b3; text-decoration: none }
+a:visited { text-decoration: none }
+a:hover { text-decoration: underline }
+img { border: 1px solid #eee; padding: 16px; margin: 0 auto; display: block }
 blockquote { padding-left: 2em; padding-right: 2em; margin-left: 0.3em; margin-right: 0; font-style: italic }
 ul { list-style-type: disc; padding-left: 1.2em }
 ul ul { list-style-type: disc; padding-left: 1em }
@@ -20,32 +15,20 @@ pre, code { font-family: "Andale Mono", "DejaVu Sans Mono", "Courier New", "Cour
 pre { padding: 0.6em 0 0.6em 1em; white-space: pre-wrap; background: #eef; white-space: -moz-pre-wrap !important }
 pre br { display: none }
 
-h1 { margin: 0 0 1.2em 0 }
-h1 img { border: none; margin: 0; padding: 0 }
-h2, h3, h3 { font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif; margin: 0 }
+h2, h3, h3, #links, #sidebar { font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif; margin: 0 }
 h2 { font-size: 1.5em }
 h3 { font-size: 1.2em; margin-top: 2.5em }
 h4 { font-size: 1.0em; margin-top: 1.5em }
 /*line-height: 1.25em; letter-spacing: 0.03em; color: #87C72E; */
 
-h1 .tagline {
-  color: #666;
-  font-size: 15pt;
-  font-weight: normal;
-  display: block;
-  top: -2.2em;
-  left: 290px;
-  position: relative;
-}
-#header .title { font-family: "Alte Haas Grotesk", Verdana; font-weight: bold; font-size: 72pt; color: #1F6684; text-shadow: #ccc 4px 4px 8px }
-#header .banner { 
-  position: absolute; top: 1em; left: -2.4em; text-align: center; padding: .2em 0 .3em 0; width: 8em;
-  background: #ff0000; border: 1px solid #fff0f0; color: #ff8; font-size: 18pt; font-weight: bold;
-  -webkit-transform: rotate(-45deg); -moz-transform: rotate(-45deg);
-  -webkit-box-shadow: 2px 2px 8px #ccc; -moz-box-shadow: 2px 2px 8px #ccc; 
-}
+h1, .tagline { font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif }
+h1 { margin: 12pt 0 0 0; font-size: 48pt; font-weight: bold; line-height: 48pt }
+h1 a { color: #000 !important }
+.tagline { margin: -34pt 0 1.5em 8.4em; font-size: 18pt; font-weight: normal; color: #aaa; line-height: 18pt }
 
 .footnote { font-size: 90%; margin-top: 4em }
 .footnote+.footnote { margin-top: .6em }
-#links { position:absolute; right: 0; top: 0; padding: .6em; color: #ccc }
+#links { position: fixed; right: 0; top: 0; padding: .6em; color: #ccc }
+#sidebar { position: fixed; left: 0; top: 10em; padding: .6em }
+#sidebar ul { list-style: none; text-align: right; margin: 0; padding: 0 }
 #footer { font-size: .9em; padding: 0; margin: 3em 0; border-top: 1px solid #ccc; text-align: right }

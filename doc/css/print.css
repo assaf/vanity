@@ -1,20 +1,18 @@
 @media print {
-  @page {
-    margin: 1in 1in;
-  }
+  @page { margin: 1in 1in }
   @page:first {
     @top-left  { content: normal }
     @top-right { content: normal }
   }
   @page:right {
     margin-left: 1.25in;
-    font: normal 10pt "Gill Sans" !important;
+    font: normal 10pt !important;
     @top-left  { content: string(pagetitle); }
     @top-right { content: counter(page); }
   }
   @page:left {
     margin-right: 1.25in;
-    font: normal 10pt "Gill Sans" !important;
+    font: normal 10pt !important;
     @top-left  { content: counter(page); }
     @top-right { content: string(pagetitle); }
   }
@@ -27,9 +25,8 @@
   pre, p, blockquote { page-break-inside: avoid }
   pre, code { font-size: 9pt }
   pre br { display: none }
-  a:link, a:visited { background: transparent; text-decoration: none }
+  a:link, a:visited { background: transparent; text-decoration: none; color: #0044b3 }
   
-  #links, #footer, h1 { display: none }
+  #links, #sidebar, #footer { display: none }
   #content { color: black; padding: 0; border: 0 }
-
 }
