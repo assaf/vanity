@@ -47,9 +47,20 @@ end
 
 The metric identifier is the same as the file name.  The above example defines the metric @:signup@ in the file @experiments/metrics/signup.rb@.
 
-Define, track, and you're ready to roll.
+You can call @track!@ with a value to track.  This example tracks how many items were bought during the day:
+
+<pre>
+def checkout
+  track! :items, @cart.items.count
+  . . .
+end
+</pre>
+
+Calling @track!@ with no value is the same as calling with one, and for convenience you can pass zero and negative numbers, both will be ignored.
 
 !images/signup_metric.png!
+
+Define, track, and you're ready to roll.
 
 
 h3.  Metrics From Your Database
@@ -65,11 +76,11 @@ metric "Signup (Activation)" do
 end
 </pre>
 
-You don't need to call @track!@ with this metric, all the data already exists.  It's a simple query to count the number of records created, grouped by their timestamp (@created_at@).  Once you define it, you'll see data going back to the last 90 days.
+You don't need to call @track!@ with this metric, all the data already exists.  It's a simple query to count the number of records created, grouped by their timestamp (@created_at@).  And since it's querying the database, you'll immediately see historical data for the last 90 days.
 
-The metric registers itself as @after_create@ callback on the model.  Even though the metric itself doesn't store any information, it needs the callback to update experiments that hook into the metric.
+Even though the metric itself doesn't store any information, it needs to update experiments whenever new records are created.  To do that, it registers itself as an @after_create@ callback on the model.
 
-Some metrics need to measure values, not occurrences.  This metric looks at user satisfaction by calculating the average value of the column @rating@:
+Some metrics measure values, not occurrences.  For example, this metric measures user satisfaction by calculating average value from the column @rating@:
 
 <pre>
 metric "Satisfaction Survey" do
@@ -78,9 +89,9 @@ metric "Satisfaction Survey" do
 end
 </pre>
 
-Aggregates you can use this way are @:average@, @:minimum@, @:maximum@ and @:sum@.
+The aggregates you can use this way are: @:average@, @:minimum@, @:maximum@ and @:sum@.
 
-You can also use conditions to selectively measure specific records.  Here's a metric that only looks at unlimited accounts:
+You can use a condition when the metric only applies to some records.  Here's a metric that only measures unlimited accounts:
 
 <pre>
 metric "Signups to Unlimited" do
@@ -89,7 +100,7 @@ metric "Signups to Unlimited" do
 end
 </pre>
 
-If you have named scopes, use them instead:
+If you have named scopes, you'll want to use them instead:
 
 <pre>
 metric "Signups to Unlimited" do
@@ -98,15 +109,15 @@ metric "Signups to Unlimited" do
 end
 </pre>
 
-When you view this metric, the query returns the number of accounts created on any given day that are currently unlimited accounts.  That's an important distinction.  If ten accounts were created over the past week, and today give of them upgraded to unlimited, the metric will show five unlimited accounts (current status) that were created during the past week (their @created_at@ timestamp).
+When you view this metric, it calculates the number of accounts created on any given day that are currently unlimited plans.  So, if ten accounts were created over the past week, and today five of them upgraded to unlimited plan, the metric will show five unlimited accounts (current state) but spread over the past week (their @created_at@ timestamp).
 
-If your metric uses aggregates or conditions with attributes that change over time, and you need to know when the change took place, consider tracking the event itself.
+If your metric uses aggregates or conditions, and the aggregate/conditional attributes change over time, and you need to know when the change took place, consider tracking the event.
 
-This metric tracks any account created or upgraded to unlimited:
+This example tracks when accounts were created or upgraded to unlimited plan:
 
 <pre>
 metric "Signups (Unlimited)" do
-  description "Signups to our All You Can Eat and Burp Unlimited plan (includes upgrades)."
+  description "Signups to our All You Can Eat and Burp Unlimited plan (including upgrades)."
   Account.after_save do |account|
     track! if account.plan_type_changed? && account.plan_type == 'unlimited'
   end
@@ -114,12 +125,11 @@ end
 </pre>
 
 
-
 h3.  Creating Your Own Metric
 
 Got other ideas for metrics?  Writing your own metric is fairly simple.
 
-Here's a metric that implements its very own @values@ method:
+The easiest way to create your own metric is by adding your own @values@ method, for example:
 
 <pre>
 metric "Hours in a day" do
@@ -130,35 +140,39 @@ metric "Hours in a day" do
 end
 </pre>
 
-This example uses the @Vanity::Metric@ class and redefines one of its methods.
+This example is based on @Vanity::Metric@.  You can, of course, base your metric on any other class.
 
-You can, of course, build your own metric implementation.  A metric is any object that implements these two methods:
+For simplicity, a metric is any object that implements these two methods:
 
 * @name@ -- Returns the metric's name, which will show up in the dashboard/report.
 * @values@ -- Receives a start date and end date and returns an array of values for all dates in that range (inclusive).
 
-It may also implement these methods:
+A metric may also implement these methods:
 
 * @description@ -- Returns human readable description.
 * @bounds@ -- Returns acceptable upper and lower bounds (@nil@ if unknown).
 * @hook@ -- "A/B tests":ab_testing.html use this to manage their own book keeping.
 
-If you wrote your own metric implementation, please consider contributing it to Vanity so we can all benefit from it.  Thanks.
+If you wrote your own metric implementation, please consider "contributing it to Vanity":contributing.html so we can all benefit from it.  Thanks.
 
 
 h3.  Digging Deeper
 
-@Vanity.playground.metrics@ is simply a hash that maps metric identifiers to metric objects.  On startup, Vanity will load all the metrics it finds in @experiments/metrics@ and map them using the metric file name as its identifier (so @experiments/metrics/coolness.rb@ becomes @:coolness@).  In addition, you can populate the hash with your own metrics.
+All metrics are listed in @Vanity.playground.metrics@, a hash that maps metric identifier to metric object.  Methods like @track!@ and @metrics@ (see "A/B tests":ab_testing.html) reference metrics using their identifier.
 
-The metric definition is evaluated in a context that has two methods: @metric@ and @playground@.  The @metric@ method creates a new @Vanity::Metric@ and evaluates the block in the context of that metric, so all methods you see inside a metric definition (@description@, @model@, etc) are executed directly against the metric object.
+On startup, Vanity loads all the metrics it finds in the @experiments/metrics@ directory.  The metric identifier is the same as the file name, so @experiments/metrics/coolness.rb@ becomes @:coolness@.
 
-The base implementation responds to @track!@ and increments a record in the Redis database (an O(1) operation).  It uses one record for each day, accumulating that day's count.  When generating reports, the @values@ method fetches the values of all these keys (an O(n) operation).
+You can always populate the hash with your own metrics.
 
-You can call @track!@ with a value higher than one, for example, with the number of items in a shopping cart.  It will increment the day's count by that value.  For convenience, you can also call @track!@ with zero or a negative number, nothing will happen in both cases.
+When Vanity loads a metric, it evaluates the metric definition in a context that has two methods: @metric@ and @playground@.  The @metric@ method creates a new @Vanity::Metric@ object, and evaluates the block in the context of that object, so when you see the metric definition using methods like @description@ or @model@, these are all invoked on the metric object itself.
 
-Any time you @track!@ a metric, the metric passes its identifier, timestamp and count (if equal to or higher than one) to all its hooks.  "A/B tests":ab_testing.html use hooks to manage their own book keeping.  When you define an experiment and tell it which metric(s) to apply, it hooks into them using the @hook@ method.
+A @Vanity::Metric@ object responds to @track!@ and increments a record in the Redis database (an _O(1)_ operation).  It creates one record for each day, accumulating that day's count.  When generating reports, the @values@ method fetches the values of all these keys (also _O(1)_).
 
-When using ActiveRecord, the @model@ method changes the metric definition by rewriting the @values@ method to perform a query, rewriting the @track!@ method to update the hooks, but store nothing, and registers itself as @after_create@ callback on the model.
+You can call @track!@ with a value higher than one, and it will increment the day's count by that value.
+
+Any time you track a metric, the metric passes its identifier, timestamp and count (if more than zero) to all its hooks.  "A/B tests":ab_testing.html use hooks to manage their own book keeping.  When you define an experiment and tell it which metric(s) to use, the experiment registers itself by calling the @hook@ method.
+
+When you call @model@ on a metric, this method changes the metric definition by rewriting the @values@ method to perform a query, rewriting the @track!@ method to update hooks but not Redis, and register an @after_create@ callback that updates the hooks.
 
 
 h3.  Metrics That Work

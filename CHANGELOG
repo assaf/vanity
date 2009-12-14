@@ -1,4 +1,4 @@
-== 1.2.0
+== 1.2.0 (2009-12-14)
 This release introduces metrics backed by ActiveRecord.  Use them when your model is already tracking a metric, and you get instant historical data.
 
 Example, track sign ups using User model:
