@@ -22,5 +22,8 @@ $(function() {
       statsTable.find("li.watchers").append(response.repository.watchers);
       statsTable.find("li.forks").append(response.repository.forks);
     });
+    $.getJSON("http://gemcutter.org/api/v1/gems/vanity.json", function(response) { 
+      statsTable.find("li.downloads").append(response.downloads);
+    });
   }
 });
