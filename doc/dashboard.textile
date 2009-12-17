@@ -19,3 +19,4 @@ end
 
 *Step 3:* Open your browser to "http://localhost:3000/vanity":http://localhost:3000/vanity.
 
+The Dashboard renders complete HTML pages with CSS and all necessary JavaScript libraries.  Thankfully, HTML is forgiving enough that it will render correctly even with your existing application layout.  You can decide to keep your layout, or tell the controller to set @layout false@.
