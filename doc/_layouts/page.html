@@ -5,13 +5,15 @@
     <link href="css/page.css" media="screen" rel="stylesheet" type="text/css">
     <link href="css/print.css" media="print" rel="stylesheet" type="text/css">
     <link href='images/favicon.png' rel='shortcut icon'>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+    <script type="text/javascript" src="site.js"></script>
   </head>
   <body>
     <h1><a href='http://vanity.labnotes.org' title="Mirror, mirror, on the wall &hellip;">Vanity</a></h1>
     <div class="tagline">Experiment<br>Driven Development</div>
     <h2 id='{{ page.title | downcase | replace(' ', '_') }}'>{{ page.title }}</h2>
     <div id="content">{{ content }}</div>
-    <div id="links"<a href="http://github.com/assaf/vanity">Source code<a> | <a href="http://groups.google.com/group/vanity-talk">Google Group</a> | <a href="http://vanity.labnotes.org/api/index.html">API reference</a></div>
+    <div id="links"><a href="http://github.com/assaf/vanity">Source code<a> | <a href="http://groups.google.com/group/vanity-talk">Google Group</a> | <a href="http://vanity.labnotes.org/api/index.html">API reference</a></div>
     <div id="sidebar">
       <ul>
         <li><a href="index.html#intro" title="A/B Testing with Rails in 5 easy steps">2 Minute Demo</a></li>

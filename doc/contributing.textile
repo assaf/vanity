@@ -48,3 +48,11 @@ $ rake docs
 $ open html/index.html
 </pre>
 
+
+h3. Open Issues
+
+<notextile>
+<table id="issues">
+  <tbody></tbody>
+</table>
+</notextile>
