@@ -6,7 +6,7 @@ desc "Push new release to gemcutter and git tag"
 task :push do
   sh "git push"
   puts "Tagging version #{spec.version} .."
-  sh "git tag #{spec.version}"
+  sh "git tag v#{spec.version}"
   sh "git push --tag"
   puts "Building and pushing gem .."
   sh "gem build #{spec.name}.gemspec"
