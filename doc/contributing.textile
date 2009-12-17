@@ -11,6 +11,7 @@ h3. Relevant Links
 * "Source code":http://github.com/assaf/vanity
 * "Continuous integration":http://runcoderun.com/assaf/vanity
 * "Code metrics":http://devver.net/caliper/project?repo=git%3A%2F%2Fgithub.com%2Fassaf%2Fvanity.git
+* "Open Issues":http://github.com/assaf/vanity/issues
 
 
 h3. Building From Source
