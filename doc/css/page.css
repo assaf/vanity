@@ -26,6 +26,7 @@ h1 { margin: 12pt 0 0 0; font-size: 48pt; font-weight: bold; line-height: 48pt }
 h1 a { color: #000 !important }
 .tagline { margin: -34pt 0 1.5em 8.4em; font-size: 18pt; font-weight: normal; color: #aaa; line-height: 18pt }
 
+#sidebar ul#stats { color: #666 }
 table#issues .votes { color: #ccc; float: right }
 
 .footnote { font-size: 90%; margin-top: 4em }
