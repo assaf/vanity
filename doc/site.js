@@ -19,11 +19,10 @@ $(function() {
   var statsTable = $("#sidebar ul#stats");
   if (statsTable.size() > 0) {
     $.getJSON("http://github.com/api/v2/json/repos/show/assaf/vanity?callback=?", function(response) {
-      statsTable.find("li.watchers").append(response.repository.watchers);
-      statsTable.find("li.forks").append(response.repository.forks);
-    });
-    $.getJSON("http://gemcutter.org/api/v1/gems/vanity.json", function(response) { 
-      statsTable.find("li.downloads").append(response.downloads);
-    });
+      statsTable.
+        append( $("<li>").append("Watchers: " + response.repository.watchers) ).
+        append( $("<li>").append("Forks: " + response.repository.forks) ).
+        append( $("<li>").append( $("<a>").attr("href", "http://github.com/assaf/vanity/graphs/traffic").text("Traffic") ) )
+    })
   }
 });
