@@ -11,14 +11,23 @@ module Vanity
 
     # Created new Playground. Unless you need to, use the global Vanity.playground.
     def initialize(options = {})
-      @host, @port, @db, @load_path = DEFAULTS.merge(options).values_at(:host, :port, :db, :load_path)
+      options = options.merge(DEFAULTS)
+      adapter = options[:adapter] || options[:redis] || :redis
+      if adapter.respond_to?(:mget)
+        @redis = adapter
+      elsif adapter == :redis
+        @host, @port, @db = options.values_at(:host, :port, :db)
+      else
+        require "vanity/store/#{adapter}"
+        @redis = Vanity::Store.const_get(adapter.to_s.capitalize).new
+      end
+      @load_path = options[:load_path]
       @namespace = "vanity:#{Vanity::Version::MAJOR}"
       @logger = options[:logger]
       unless @logger
         @logger = Logger.new(STDOUT)
         @logger.level = Logger::ERROR
       end
-      @redis = options[:redis]
       @loading = []
     end
     

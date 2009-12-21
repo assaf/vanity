@@ -19,6 +19,27 @@ else
   $logger = Logger.new("/dev/null")
 end
 
+
+case store = ENV["STORE"]
+when "REDIS"
+  puts "Using real Redis server"
+  $adapter = :redis
+when "AR"
+  puts "Using ActiveRecord store"
+  require "vanity/store/activerecord"
+  $redis = Vanity::Store::ActiveRecord.new
+  $redis.connection.execute "CREATE TABLE vanity_hash (key VARCHAR(255) NOT NULL, value TEXT, PRIMARY KEY('key'))" rescue nil
+  $adapter = :activerecord
+when nil
+  require "vanity/store/mock"
+  $redis = Vanity::Store::Mock.new
+  $adapter = :mock
+else
+  puts "Acceptable values for STORE=[REDIS|AR]"
+  exit!
+end
+
+
 class Test::Unit::TestCase
 
   def setup
@@ -36,8 +57,7 @@ class Test::Unit::TestCase
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
-    Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments", :db=>15)
-    Vanity.playground.mock! unless ENV["REDIS"]
+    Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments", :db=>15, :adapter=>$adapter)
   end
 
   # Defines the specified metrics (one or more names).  Returns metric, or array
