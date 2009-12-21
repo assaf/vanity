@@ -105,7 +105,7 @@ module Vanity
       @redis
     end
 
-    # Switches playground to use MockRedis instead of a live server.
+    # Switches playground to use Vanity::Store::Mock instead of a live server.
     # Particularly useful for testing, e.g. if you can't access Redis on your CI
     # server.  This method has no affect after playground accesses live Redis
     # server.
@@ -113,7 +113,7 @@ module Vanity
     # @example Put this in config/environments/test.rb
     #   config.after_initialize { Vanity.playground.mock! }
     def mock!
-      @redis ||= MockRedis.new
+      @redis ||= Vanity::Store::Mock.new
     end
 
     # Returns a metric (raises NameError if no metric with that identifier).
