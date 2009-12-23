@@ -260,6 +260,40 @@ module Vanity
     end
 
 
+    # -- Google Analytics support --
+
+    # Use Google Analytics metric.
+    # 
+    # @example Page views
+    #   metric "Page views" do
+    #     google_analytics "UA-1828623-6"
+    #   end
+    # @example Visits
+    #   metric "Visits" do
+    #     google_analytics "UA-1828623-6", :visits
+    #   end
+    def google_analytics(web_property_id, metric = :pageviews, filter = nil)
+      gem "garb"
+      require "garb"
+      profile = Garb::Profile.all.find { |p| p.web_property_id == web_property_id }
+      eigenclass = class << self ; self ; end
+      eigenclass.send :define_method, :values do |from, to|
+        report = Garb::Report.new(profile, { :start_date => from, :end_date => to })
+        report.metrics metric
+        report.dimensions :date
+        report.sort :date
+        #report.filter filter
+        # hack because GA data isn't returned if it's 0
+        data = report.results.inject({}) do |hash, result|
+          hash.merge(result.date => result.send(metric).to_i)
+        end
+        (from..to).map { |day| data[day.strftime('%Y%m%d')] || 0 }
+      end
+    rescue Gem::LoadError
+      fail LoadError, "Google Analytics metrics require Garb, please gem install garb first"
+    end
+
+  
     # -- Storage --
 
     def destroy!
