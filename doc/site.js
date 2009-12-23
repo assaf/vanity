@@ -20,9 +20,8 @@ $(function() {
   if (statsTable.size() > 0) {
     $.getJSON("http://github.com/api/v2/json/repos/show/assaf/vanity?callback=?", function(response) {
       statsTable.
-        append( $("<li>").append("Watchers: " + response.repository.watchers) ).
-        append( $("<li>").append("Forks: " + response.repository.forks) ).
-        append( $("<li>").append( $("<a>").attr("href", "http://github.com/assaf/vanity/graphs/traffic").text("Traffic") ) )
+        prepend( $("<li>").append("Forks: " + response.repository.forks) ).
+        prepend( $("<li>").append("Watchers: " + response.repository.watchers) )
     })
   }
 });
