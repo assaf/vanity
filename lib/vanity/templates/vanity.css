@@ -2,6 +2,7 @@
 .vanity .meta { color: #666 }
 .vanity .footer { margin-top: 2em; text-align: right; font-size: 90% }
 .vanity h2, .vanity h3 { margin: 0 0 .3em 0 }
+.vanity .error { color: #ff2020; border: 1px solid #ff2020; background: #fff; padding: .3em }
 
 .vanity .experiments { list-style: none; margin: 0; padding: 0 }
 .vanity .experiment { margin: 1em 0 2em 0; border-bottom: 1px solid #ddd }
