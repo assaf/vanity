@@ -4,9 +4,9 @@ require "vanity/rails/dashboard"
 
 # Include in controller, add view helper methods.
 ActionController::Base.class_eval do
-  extend Vanity::Rails::ClassMethods
-  include Vanity::Rails
-  helper Vanity::Rails
+  extend Vanity::Rails::UseVanity
+  include Vanity::Rails::Filters
+  helper Vanity::Rails::Helpers
 end
 
 Rails.configuration.after_initialize do
