@@ -4,6 +4,7 @@
 * Changed: Rails integration now separates use_vanity method, filters and helpers.
 * Changed: Explicit vanity_context_filter and vanity_reload_filter so you can skip them, or order filters relative to them.
 * Fixed: if metric cannot be loaded (e.g. offline, no db access) show error message for that metric but don't break dashboard.
+* Removed: Vanity.playground.define is deprecated. Bad choice for a method name. If you need this feature, make a suggestion and let's create a better API.
 
 == 1.2.0 (2009-12-14)
 This release introduces metrics backed by ActiveRecord.  Use them when your model is already tracking a metric, and you get instant historical data.

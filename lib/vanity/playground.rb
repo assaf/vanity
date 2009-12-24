@@ -48,6 +48,7 @@ module Vanity
     #
     # @see Vanity::Experiment
     def define(name, type, options = {}, &block)
+      warn "Deprecated: if you need this functionality let's make a better API"
       id = name.to_s.downcase.gsub(/\W/, "_").to_sym
       raise "Experiment #{id} already defined once" if experiments[id]
       klass = Experiment.const_get(type.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase })

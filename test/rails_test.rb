@@ -15,7 +15,7 @@ class UseVanityTest < ActionController::TestCase
   def setup
     super
     metric :sugar_high
-    Vanity.playground.define :pie_or_cake, :ab_test do
+    new_ab_test :pie_or_cake do
       metrics :sugar_high
     end
     UseVanityController.class_eval do

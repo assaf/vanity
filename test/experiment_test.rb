@@ -10,19 +10,28 @@ class ExperimentTest < Test::Unit::TestCase
   # -- Defining experiment --
   
   def test_can_access_experiment_by_id
-    exp = Vanity.playground.define(:ice_cream_flavor, :ab_test) { metrics :happiness }
+    exp = new_ab_test(:ice_cream_flavor) { metrics :happiness }
     assert_equal exp, experiment(:ice_cream_flavor)
   end
 
   def test_fail_when_defining_same_experiment_twice
-    Vanity.playground.define("Ice Cream Flavor", :ab_test) { metrics :happiness }
-    assert_raises RuntimeError do
-      Vanity.playground.define("Ice Cream Flavor", :ab_test) { metrics :happiness }
+    File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
+      f.write <<-RUBY
+        ab_test "Ice Cream Flavor" do
+          metrics :happiness
+        end
+        ab_test "Ice Cream Flavor" do
+          metrics :happiness
+        end
+      RUBY
+    end
+    assert_raises NameError do
+      experiment(:ice_cream_flavor)
     end
   end
 
   def test_uses_playground_namespace_for_experiment
-    Vanity.playground.define(:ice_cream_flavor, :ab_test) { metrics :happiness }
+    new_ab_test(:ice_cream_flavor) { metrics :happiness }
     assert_equal "vanity:#{Vanity::Version::MAJOR}:ice_cream_flavor", experiment(:ice_cream_flavor).send(:key)
     assert_equal "vanity:#{Vanity::Version::MAJOR}:ice_cream_flavor:participants", experiment(:ice_cream_flavor).send(:key, "participants")
   end
@@ -69,8 +78,8 @@ class ExperimentTest < Test::Unit::TestCase
   end
 
   def test_reloading_experiments
-    Vanity.playground.define(:ab, :ab_test) { metrics :happiness }
-    Vanity.playground.define(:cd, :ab_test) { metrics :happiness }
+    new_ab_test(:ab) { metrics :happiness }
+    new_ab_test(:cd) { metrics :happiness }
     assert 2, Vanity.playground.experiments.size
     Vanity.playground.reload!
     assert Vanity.playground.experiments.empty?
@@ -80,20 +89,20 @@ class ExperimentTest < Test::Unit::TestCase
   # -- Attributes --
 
   def test_experiment_mapping_name_to_id
-    experiment = Vanity.playground.define("Ice Cream Flavor/Tastes", :ab_test) { metrics :happiness }
+    experiment = new_ab_test("Ice Cream Flavor/Tastes") { metrics :happiness }
     assert_equal "Ice Cream Flavor/Tastes", experiment.name
     assert_equal :ice_cream_flavor_tastes, experiment.id
   end
 
   def test_saving_experiment_after_definition
-    Vanity.playground.define :ice_cream_flavor, :ab_test do
+    new_ab_test :ice_cream_flavor do
       metrics :happiness
       expects(:save)
     end
   end
 
   def test_experiment_has_created_timestamp
-    Vanity.playground.define(:ice_cream_flavor, :ab_test) { metrics :happiness }
+    new_ab_test(:ice_cream_flavor) { metrics :happiness }
     assert_instance_of Time, experiment(:ice_cream_flavor).created_at
     assert_in_delta experiment(:ice_cream_flavor).created_at.to_i, Time.now.to_i, 1
   end
@@ -101,18 +110,18 @@ class ExperimentTest < Test::Unit::TestCase
   def test_experiment_keeps_created_timestamp_across_definitions
     past = Date.today - 1
     Timecop.travel past do
-      Vanity.playground.define(:ice_cream_flavor, :ab_test) { metrics :happiness }
+      new_ab_test(:ice_cream_flavor) { metrics :happiness }
       assert_equal past.to_time.to_i, experiment(:ice_cream_flavor).created_at.to_i
     end
 
     new_playground
     metric :happiness
-    Vanity.playground.define(:ice_cream_flavor, :ab_test) { metrics :happiness }
+    new_ab_test(:ice_cream_flavor) { metrics :happiness }
     assert_equal past.to_time.to_i, experiment(:ice_cream_flavor).created_at.to_i
   end
 
   def test_experiment_has_description
-    Vanity.playground.define :ice_cream_flavor, :ab_test do
+    new_ab_test :ice_cream_flavor do
       description "Because 31 is not enough ..."
       metrics :happiness
     end

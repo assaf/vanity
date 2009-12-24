@@ -50,6 +50,15 @@ class Test::Unit::TestCase
     names.size == 1 ? metrics.first : metrics
   end
 
+  # Defines an A/B experiment.
+  def new_ab_test(name, &block)
+    id = name.to_s.downcase.gsub(/\W/, "_").to_sym
+    experiment = Vanity::Experiment::AbTest.new(Vanity.playground, id, name)
+    experiment.instance_eval &block
+    experiment.save
+    Vanity.playground.experiments[id] = experiment
+  end
+
   # Returns named experiment.
   def experiment(name)
     Vanity.playground.experiment(name)

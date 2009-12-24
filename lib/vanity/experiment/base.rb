@@ -63,7 +63,7 @@ module Vanity
 
       end
 
-      def initialize(playground, id, name, options, &block)
+      def initialize(playground, id, name, options = nil)
         @playground = playground
         @id, @name = id.to_sym, name
         @options = options || {}
