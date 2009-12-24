@@ -246,14 +246,13 @@ module Vanity
         call_hooks record.send(timestamp), count if count > 0 && scoped.exists?(record)
       end
       # Redefine values method to perform query
-      eigenclass = class << self ; self ; end
-      eigenclass.send :define_method, :values do |sdate, edate|
+      redefine :values do |sdate, edate|
         query = { :conditions=>{ timestamp=>(sdate.to_time...(edate + 1).to_time) }, :group=>"date(#{scoped.connection.quote_column_name timestamp})" }
         grouped = column ? scoped.calculate(aggregate, column, query) : scoped.count(query)
         (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date.to_s] || 0) }
       end
       # Redefine track! method to call on hooks
-      eigenclass.send :define_method, :track! do |*args|
+      redefine :track! do |*args|
         count = args.first || 1
         call_hooks Time.now, count if count > 0
       end
@@ -275,8 +274,7 @@ module Vanity
     def google_analytics(web_property_id, metric = :pageviews, filter = nil)
       gem "garb"
       require "garb"
-      eigenclass = class << self ; self ; end
-      eigenclass.send :define_method, :values do |from, to|
+      redefine :values do |from, to|
         profile = Garb::Profile.all.find { |p| p.web_property_id == web_property_id }
         report = Garb::Report.new(profile, { :start_date => from, :end_date => to })
         report.metrics metric
@@ -287,6 +285,9 @@ module Vanity
           hash.merge(result.date => result.send(metric).to_i)
         end
         (from..to).map { |day| data[day.strftime('%Y%m%d')] || 0 }
+      end
+      redefine :hook do
+        fail "Cannot use hooks with Google Analytics methods"
       end
     rescue Gem::LoadError
       fail LoadError, "Google Analytics metrics require Garb, please gem install garb first"
@@ -312,6 +313,10 @@ module Vanity
       @hooks.each do |hook|
         hook.call @id, timestamp, count
       end
+    end
+
+    def redefine(name, &block)
+      class << self ; self ; end.send :define_method, name, &block
     end
 
   end
