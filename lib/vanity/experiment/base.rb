@@ -64,7 +64,7 @@ module Vanity
         @id, @name = id.to_sym, name
         @options = options || {}
         @namespace = "#{@playground.namespace}:#{@id}"
-        @identify_block = lambda { |context| context.vanity_identity }
+        @identify_block = method(:default_identify)
       end
 
       # Human readable experiment name (first argument you pass when creating a
@@ -104,11 +104,6 @@ module Vanity
         @identify_block = block
       end
 
-      def identity
-        @identify_block.call(Vanity.context)
-      end
-      protected :identity
-
 
       # -- Reporting --
 
@@ -135,19 +130,6 @@ module Vanity
         raise "complete_if already called on this experiment" if @complete_block
         @complete_block = block
       end
-
-      # Derived classes call this after state changes that may lead to
-      # experiment completing.
-      def check_completion!
-        if @complete_block
-          begin
-            complete! if @complete_block.call
-          rescue
-            # TODO: logging
-          end
-        end
-      end
-      protected :check_completion!
 
       # Force experiment to complete.
       def complete!
@@ -184,6 +166,28 @@ module Vanity
 
     protected
 
+      def identity
+        @identify_block.call(Vanity.context)
+      end
+
+      def default_identify(context)
+        raise "No Vanity.context" unless context
+        raise "Vanity.context does not respond to vanity_identity" unless context.respond_to?(:vanity_identity)
+        context.vanity_identity or raise "Vanity.context.vanity_identity - no identity"
+      end
+
+      # Derived classes call this after state changes that may lead to
+      # experiment completing.
+      def check_completion!
+        if @complete_block
+          begin
+            complete! if @complete_block.call
+          rescue
+            # TODO: logging
+          end
+        end
+      end
+      
       # Returns key for this experiment, or with an argument, return a key
       # using the experiment as the namespace.  Examples:
       #   key => "vanity:experiments:green_button"
