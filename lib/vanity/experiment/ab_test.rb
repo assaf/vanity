@@ -200,6 +200,13 @@ module Vanity
         @alternatives[index.to_i]
       end
 
+      # Returns fingerprint (hash) for given alternative.  Can be used to lookup
+      # alternative for experiment without revealing what values are available
+      # (e.g. choosing alternative from HTTP query parameter).
+      def fingerprint(alternative)
+        Digest::MD5.hexdigest("#{id}:#{alternative.id}")[-10,10]
+      end
+
       
       # -- Testing --
      

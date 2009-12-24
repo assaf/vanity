@@ -68,6 +68,31 @@ class AbTestTest < ActionController::TestCase
     assert_equal "option B", experiment(:abcd).alternative(:b).name
   end
 
+  def test_alternative_fingerprint_is_unique
+    ab_test :ab do
+      alternatives :a, :b
+      metrics :coolness
+    end
+    ab_test :cd do
+      alternatives :a, :b
+      metrics :coolness
+    end
+    fingerprints = Vanity.playground.experiments.map { |id, exp| exp.alternatives.map { |alt| exp.fingerprint(alt) } }.flatten
+    assert_equal 4, fingerprints.uniq.size
+  end
+
+  def test_alternative_fingerprint_is_consistent
+    ab_test :ab do
+      alternatives :a, :b
+      metrics :coolness
+    end
+    fingerprints = experiment(:ab).alternatives.map { |alt| experiment(:ab).fingerprint(alt) }
+    fingerprints.each do |fingerprint|
+      assert_match fingerprint, /^[0-9a-f]{10}$/i
+    end
+    assert_equal fingerprints.first, experiment(:ab).fingerprint(experiment(:ab).alternatives.first)
+  end
+
 
   # -- Experiment metric --
 

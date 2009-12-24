@@ -1,4 +1,5 @@
 == 1.3.0
+* Added: Vanity query parameter that you can use to choose a particular alternative, e.g. to tie an advertisement banner with content of the site.
 * Changed: Rails integration now separates use_vanity method, filters and helpers.
 * Changed: Explicit vanity_context_filter and vanity_reload_filter so you can skip them, or order filters relative to them.
 * Fixed: if metric cannot be loaded (e.g. offline, no db access) show error message for that metric but don't break dashboard.

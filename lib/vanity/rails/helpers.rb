@@ -63,6 +63,7 @@ module Vanity
         end
         around_filter :vanity_context_filter
         before_filter :vanity_reload_filter unless ::Rails.configuration.cache_classes
+        before_filter :vanity_query_parameter_filter
       end
 
     end
@@ -76,6 +77,37 @@ module Vanity
         yield
       ensure
         Vanity.context = previous
+      end
+
+      # This filter allows user to choose alternative in experiment using query
+      # parameter.
+      #
+      # Each alternative has a unique fingerprint (run vanity list command to
+      # see them all).  A request with the _vanity query parameter is
+      # intercepted, the alternative is chosen, and the user redirected to the
+      # same request URL sans _vanity parameter.  This only works for GET
+      # requests.
+      # 
+      # For example, if the user requests the page
+      # http://example.com/?_vanity=2907dac4de, the first alternative of the
+      # :null_abc experiment is chosen and the user redirected to
+      # http://example.com/.
+      def vanity_query_parameter_filter
+        if request.get? && params[:_vanity]
+          hashes = Array(params.delete(:_vanity))
+          Vanity.playground.experiments.each do |id, experiment|
+            if experiment.respond_to?(:alternatives)
+              experiment.alternatives.each do |alt|
+                if hash = hashes.delete(experiment.fingerprint(alt)) 
+                  experiment.chooses alt.value
+                  break
+                end
+              end
+            end
+            break if hashes.empty?
+          end
+          redirect_to url_for(params)
+        end
       end
 
       # Before filter to reload Vanity experiments/metrics.  Enabled when
