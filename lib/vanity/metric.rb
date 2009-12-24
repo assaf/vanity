@@ -25,15 +25,14 @@ module Vanity
 
       # Defines a new metric, using the class Vanity::Metric.
       def metric(name, &block)
-        id = File.basename(caller.first.split(":").first, ".rb").downcase.gsub(/\W/, "_").to_sym
-        fail "Metric #{id} already defined in playground" if playground.metrics[id]
-        metric = Metric.new(playground, name.to_s, id)
+        fail "Metric #{@metric_id} already defined in playground" if playground.metrics[@metric_id]
+        metric = Metric.new(playground, name.to_s, @metric_id)
         metric.instance_eval &block
-        playground.metrics[id] = metric
+        playground.metrics[@metric_id] = metric
       end
 
-      def binding_with(playground)
-        @playground = playground
+      def new_binding(playground, id)
+        @playground, @metric_id = playground, id
         binding
       end
 
@@ -101,7 +100,7 @@ module Vanity
         context = Object.new
         context.instance_eval do
           extend Definition
-          metric = eval(source, context.binding_with(playground), file)
+          metric = eval(source, context.new_binding(playground, id), file)
           fail NameError.new("Expected #{file} to define metric #{id}", id) unless playground.metrics[id]
           metric
         end

@@ -88,7 +88,7 @@ class AbTestTest < ActionController::TestCase
     end
     fingerprints = experiment(:ab).alternatives.map { |alt| experiment(:ab).fingerprint(alt) }
     fingerprints.each do |fingerprint|
-      assert_match fingerprint, /^[0-9a-f]{10}$/i
+      assert_match /^[0-9a-f]{10}$/i, fingerprint
     end
     assert_equal fingerprints.first, experiment(:ab).fingerprint(experiment(:ab).alternatives.first)
   end

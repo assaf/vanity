@@ -64,7 +64,7 @@ module Vanity
     def experiment(name)
       id = name.to_s.downcase.gsub(/\W/, "_").to_sym
       warn "Deprecated: pleae call experiment method with experiment identifier (a Ruby symbol)" unless id == name
-      experiments[id] ||= Experiment::Base.load(self, @loading, File.expand_path(load_path), id)
+      experiments[id.to_sym] or raise NameError, "No experiment #{id}"
     end
 
     # Returns hash of experiments (key is experiment id).
@@ -75,8 +75,7 @@ module Vanity
         @experiments = {}
         @logger.info "Vanity: loading experiments from #{load_path}"
         Dir[File.join(load_path, "*.rb")].each do |file|
-          id = File.basename(file).gsub(/.rb$/, "")
-          experiment id.to_sym
+          Experiment::Base.load self, @loading, file
         end
       end
       @experiments
