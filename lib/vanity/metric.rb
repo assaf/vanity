@@ -275,15 +275,14 @@ module Vanity
     def google_analytics(web_property_id, metric = :pageviews, filter = nil)
       gem "garb"
       require "garb"
-      profile = Garb::Profile.all.find { |p| p.web_property_id == web_property_id }
       eigenclass = class << self ; self ; end
       eigenclass.send :define_method, :values do |from, to|
+        profile = Garb::Profile.all.find { |p| p.web_property_id == web_property_id }
         report = Garb::Report.new(profile, { :start_date => from, :end_date => to })
         report.metrics metric
         report.dimensions :date
         report.sort :date
         #report.filter filter
-        # hack because GA data isn't returned if it's 0
         data = report.results.inject({}) do |hash, result|
           hash.merge(result.date => result.send(metric).to_i)
         end
