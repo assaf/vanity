@@ -95,10 +95,15 @@ class ExperimentTest < Test::Unit::TestCase
   end
 
   def test_saving_experiment_after_definition
-    new_ab_test :ice_cream_flavor do
-      metrics :happiness
-      expects(:save)
+    File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
+      f.write <<-RUBY
+        ab_test "Ice Cream Flavor" do
+          metrics :happiness
+          expects(:save)
+        end
+      RUBY
     end
+    Vanity.playground.experiment(:ice_cream_flavor)
   end
 
   def test_experiment_has_created_timestamp
