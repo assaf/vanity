@@ -196,104 +196,6 @@ module Vanity
     end
 
 
-    # -- ActiveRecord support --
-
-    AGGREGATES = [:average, :minimum, :maximum, :sum]
-
-    # Use an ActiveRecord model to get metric data from database table.  Also
-    # forwards @after_create@ callbacks to hooks (updating experiments).
-    #
-    # Supported options:
-    # :conditions -- Only select records that match this condition
-    # :average -- Metric value is average of this column
-    # :minimum -- Metric value is minimum of this column
-    # :maximum -- Metric value is maximum of this column
-    # :sum -- Metric value is sum of this column
-    # :timestamp -- Use this column to filter/group records (defaults to
-    # +created_at+)
-    #
-    # @example Track sign ups using User model
-    #   metric "Signups" do
-    #     model Account
-    #   end
-    # @example Track satisfaction using Survey model
-    #   metric "Satisfaction" do
-    #     model Survey, :average=>:rating
-    #   end
-    # @example Track only high ratings
-    #   metric "High ratings" do
-    #     model Rating, :conditions=>["stars >= 4"]
-    #   end
-    # @example Track only high ratings (using scope)
-    #   metric "High ratings" do
-    #     model Rating.high
-    #   end
-    #
-    # @since 1.2.0
-    def model(class_or_scope, options = nil)
-      options = (options || {}).clone
-      conditions = options.delete(:conditions)
-      scoped = conditions ? class_or_scope.scoped(:conditions=>conditions) : class_or_scope
-      aggregate = AGGREGATES.find { |key| options.has_key?(key) }
-      column = options.delete(aggregate)
-      fail "Cannot use multiple aggregates in a single metric" if AGGREGATES.find { |key| options.has_key?(key) }
-      timestamp = options.delete(:timestamp) || :created_at
-      fail "Unrecognized options: #{options.keys * ", "}" unless options.empty?
-
-      # Hook into model's after_create
-      scoped.after_create do |record|
-        count = column ? (record.send(column) || 0) : 1
-        call_hooks record.send(timestamp), count if count > 0 && scoped.exists?(record)
-      end
-      # Redefine values method to perform query
-      redefine :values do |sdate, edate|
-        query = { :conditions=>{ timestamp=>(sdate.to_time...(edate + 1).to_time) }, :group=>"date(#{scoped.connection.quote_column_name timestamp})" }
-        grouped = column ? scoped.calculate(aggregate, column, query) : scoped.count(query)
-        (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date.to_s] || 0) }
-      end
-      # Redefine track! method to call on hooks
-      redefine :track! do |*args|
-        count = args.first || 1
-        call_hooks Time.now, count if count > 0
-      end
-    end
-
-
-    # -- Google Analytics support --
-
-    # Use Google Analytics metric.
-    # 
-    # @example Page views
-    #   metric "Page views" do
-    #     google_analytics "UA-1828623-6"
-    #   end
-    # @example Visits
-    #   metric "Visits" do
-    #     google_analytics "UA-1828623-6", :visits
-    #   end
-    def google_analytics(web_property_id, metric = :pageviews, filter = nil)
-      gem "garb"
-      require "garb"
-      redefine :values do |from, to|
-        profile = Garb::Profile.all.find { |p| p.web_property_id == web_property_id }
-        report = Garb::Report.new(profile, { :start_date => from, :end_date => to })
-        report.metrics metric
-        report.dimensions :date
-        report.sort :date
-        #report.filter filter
-        data = report.results.inject({}) do |hash, result|
-          hash.merge(result.date => result.send(metric).to_i)
-        end
-        (from..to).map { |day| data[day.strftime('%Y%m%d')] || 0 }
-      end
-      redefine :hook do
-        fail "Cannot use hooks with Google Analytics methods"
-      end
-    rescue Gem::LoadError
-      fail LoadError, "Google Analytics metrics require Garb, please gem install garb first"
-    end
-
-  
     # -- Storage --
 
     def destroy!
@@ -313,10 +215,6 @@ module Vanity
       @hooks.each do |hook|
         hook.call @id, timestamp, count
       end
-    end
-
-    def redefine(name, &block)
-      class << self ; self ; end.send :define_method, name, &block
     end
 
   end
