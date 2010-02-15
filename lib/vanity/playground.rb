@@ -148,6 +148,43 @@ module Vanity
     def track!(id, count = 1)
       metric(id).track! count
     end
+
+
+    # -- Connection management --
+    
+    # Accepts:
+    #   1. A 'hostname:port' string
+    #   2. A 'hostname:port:db' string (to select the Redis db)
+    #   3. An instance of `Redis`
+    def redis=(spec)
+      case spec
+      when String
+        @connection_spec = spec
+        host, port, db = spec.split(':')
+        @redis = Redis.new(:host=>host, :port=>port, :thread_safe=>true, :db=>db)
+      when Redis
+        @connection_spec = nil
+        @redis = spec
+      else
+        raise "I don't know what to do with #{spec.inspect}"
+      end
+    end
+
+    def redis
+      self.redis = "localhost:6379" unless @redis
+      @redis
+    end
+
+    def disconnect!
+      @redis.quit if @redis
+      @redis = nil
+    end
+
+    def reconnect!
+      raise "Connect reconnect without connection specification" unless String === @connection_spec
+      disconnect!
+    end
+    
   end
 
   @playground = Playground.new

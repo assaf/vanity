@@ -20,3 +20,11 @@ Rails.configuration.after_initialize do
     Vanity.playground.load!
   end
 end
+
+if defined?(PhusionPassenger)
+  PhusionPassenger.on_event(:starting_worker_process) do |forked| 
+    if forked 
+      Vanity.playground.reconnect!
+    end 
+  end 
+end
