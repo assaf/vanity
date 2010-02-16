@@ -106,6 +106,7 @@ module Vanity
       #     end
       #   end
       def identify(&block)
+        fail "Missing block" unless block
         @identify_block = block
       end
 

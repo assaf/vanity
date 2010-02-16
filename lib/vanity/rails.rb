@@ -24,7 +24,11 @@ end
 if defined?(PhusionPassenger)
   PhusionPassenger.on_event(:starting_worker_process) do |forked| 
     if forked 
-      Vanity.playground.reconnect!
+      begin
+        Vanity.playground.reconnect!
+      rescue Exception=>ex
+        RAILS_DEFAULT_LOGGER.error "Error reconnecting Redis: #{ex.to_s}" 
+      end
     end 
   end 
 end

@@ -195,7 +195,7 @@ module Vanity
             check_completion!
           end
         else
-          index = redis[key("outcome")] || alternative_for(identify)
+          index = redis[key("outcome")] || alternative_for(identity)
         end
         @alternatives[index.to_i]
       end

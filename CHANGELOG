@@ -24,6 +24,7 @@ Last, define Vanity metrics that tap to Google Analytics metrics.  For example:
 * Changed: Rails integration now separates use_vanity method, filters and helpers.
 * Changed: Explicit vanity_context_filter and vanity_reload_filter so you can skip them, or order filters relative to them.
 * Fixed: if metric cannot be loaded (e.g. offline, no db access) show error message for that metric but don't break dashboard.
+* Fixed: AbTest incorrectly calls identify method instead of identity (issue #2)
 * Removed: Vanity.playground.define is deprecated. Bad choice for a method name. If you need this feature, make a suggestion and let's create a better API.
 
 == 1.2.0 (2009-12-14)
