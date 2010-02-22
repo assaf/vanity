@@ -1,5 +1,5 @@
 == 1.3.0
-This release adds support for Google Analytics and AdWords.
+This release adds support for Google Analytics, AdWords and forking servers (Passenger, Unicorn).
 
 To view Google Analytics metrics from within Vanity, first make sure you are using Garb.  For example, in your Gemfile:
 
@@ -21,6 +21,8 @@ Last, define Vanity metrics that tap to Google Analytics metrics.  For example:
 * Added: Support for Google Analytics metrics, thanks to Tony Pitale's Garb and blog post: http://www.viget.com/extend/user-goal-tracking-in-rails-with-vanity-and-google-analytics/
 * Added: Vanity query parameter that you can use to choose a particular alternative, e.g. to tie an advertisement banner with content of the site.
 * Added: Command line "vanity list" catalogs all ongoing experiments, their alternatives (and fingerprints) and all metrics.
+* Added: Playground.reconnect!, particularly useful when forking (Passenger, Unicorn, etc).
+* Changed: New way to specify connection configuration: Vanity.playground.redis = "localhost:6379". Use this instead of the separate host/port/db attribute.
 * Changed: Rails integration now separates use_vanity method, filters and helpers.
 * Changed: Explicit vanity_context_filter and vanity_reload_filter so you can skip them, or order filters relative to them.
 * Fixed: if metric cannot be loaded (e.g. offline, no db access) show error message for that metric but don't break dashboard.

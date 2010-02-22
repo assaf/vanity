@@ -7,35 +7,45 @@ module Vanity
   #   puts Vanity.playground.map(&:name)
   class Playground
 
-    DEFAULTS = { :host=>"127.0.0.1", :port=>6379, :db=>0, :load_path=>"experiments" }
+    DEFAULTS = {
+      :connection=>"localhost:6379",
+      :load_path=>"experiments",
+      :namespace=>"vanity:#{Vanity::Version::MAJOR}"
+    }
 
-    # Created new Playground. Unless you need to, use the global Vanity.playground.
-    def initialize(options = {})
-      @host, @port, @db, @load_path = DEFAULTS.merge(options).values_at(:host, :port, :db, :load_path)
-      @namespace = "vanity:#{Vanity::Version::MAJOR}"
-      @logger = options[:logger]
+    # Created new Playground. Unless you need to, use the global
+    # Vanity.playground.
+    #
+    # First argument is connection specification (see #redis=), last argument is
+    # a set of options, both are optional.  Supported options are:
+    # - connection -- Connection specification
+    # - namespace -- Namespace to use
+    # - load_path -- Path to load experiments/metrics from
+    # - logger -- Logger to use
+    def initialize(*args)
+      options = args.pop if Hash === args.last
+      @options = DEFAULTS.merge(options || {})
+      if @options.values_at(:host, :port, :db).any?
+        warn "Deprecated: please specify Redis connection as single argument (\"host:port\")"
+        @connection_spec = "#{@options[:host]}:#{@options[:port]}:#{@options[:db]}"
+      elsif @options[:redis]
+        @redis = @options[:redis]
+      else
+        @connection_spec = args.shift || @options[:connection]
+      end
+
+      @namespace = @options[:namespace] || DEFAULTS[:namespace]
+      @load_path = @options[:load_path] || DEFAULTS[:load_path]
+      @logger = @options[:logger]
       unless @logger
         @logger = Logger.new(STDOUT)
         @logger.level = Logger::ERROR
       end
-      @redis = options[:redis]
       @loading = []
     end
-    
-    # Redis host name.  Default is 127.0.0.1
-    attr_accessor :host
-
-    # Redis port number.  Default is 6379.
-    attr_accessor :port
-
-    # Redis database number. Default is 0.
-    attr_accessor :db
-
-    # Redis database password.
-    attr_accessor :password
-
-    # Namespace for database keys.  Default is vanity:n, where n is the major release number, e.g. vanity:1 for 1.0.3.
-    attr_accessor :namespace
+   
+    # Deprecated. Use redis.server instead.
+    attr_accessor :host, :port, :db, :password, :namespace
 
     # Path to load experiment files from.
     attr_accessor :load_path
@@ -97,25 +107,6 @@ module Vanity
       metrics
     end
 
-    # Use this instance to access the Redis database.
-    def redis
-      @redis ||= Redis.new(:host=>self.host, :port=>self.port, :db=>self.db,
-                           :password=>self.password, :logger=>self.logger)
-      class << self ; self ; end.send(:define_method, :redis) { @redis }
-      @redis
-    end
-
-    # Switches playground to use MockRedis instead of a live server.
-    # Particularly useful for testing, e.g. if you can't access Redis on your CI
-    # server.  This method has no affect after playground accesses live Redis
-    # server.
-    #
-    # @example Put this in config/environments/test.rb
-    #   config.after_initialize { Vanity.playground.mock! }
-    def mock!
-      @redis ||= MockRedis.new
-    end
-
     # Returns a metric (raises NameError if no metric with that identifier).
     #
     # @see Vanity::Metric
@@ -151,38 +142,50 @@ module Vanity
 
 
     # -- Connection management --
-    
-    # Accepts:
-    #   1. A 'hostname:port' string
-    #   2. A 'hostname:port:db' string (to select the Redis db)
-    #   3. An instance of `Redis`
-    def redis=(spec)
-      case spec
+   
+    # Tells the playground where to find Redis.  Accepts one of the following:
+    # - "hostname:port"
+    # - ":port"
+    # - "hostname:port:db"
+    # - Instance of Redis connection. 
+    def redis=(spec_or_connection)
+      case spec_or_connection
       when String
-        @connection_spec = spec
-        host, port, db = spec.split(':')
-        @redis = Redis.new(:host=>host, :port=>port, :thread_safe=>true, :db=>db)
+        @connection_spec = spec_or_connection
+        host, port, db = spec_or_connection.split(':').map { |x| x unless x.empty? }
+        @redis = Redis.new(:host=>host, :port=>port, :thread_safe=>true, :db=>db, :thread_safe=>true)
       when Redis
         @connection_spec = nil
-        @redis = spec
+        @redis = spec_or_connection
       else
-        raise "I don't know what to do with #{spec.inspect}"
+        raise "I don't know what to do with #{spec_or_connection.inspect}"
       end
     end
 
     def redis
-      self.redis = "localhost:6379" unless @redis
+      self.redis = @connection_spec unless @redis
       @redis
     end
 
     def disconnect!
-      @redis.quit if @redis
+      @redis.quit if @redis rescue nil
       @redis = nil
     end
 
     def reconnect!
       raise "Connect reconnect without connection specification" unless String === @connection_spec
-      disconnect!
+      disconnect! rescue nil
+    end
+
+    # Switches playground to use MockRedis instead of a live server.
+    # Particularly useful for testing, e.g. if you can't access Redis on your CI
+    # server.  This method has no affect after playground accesses live Redis
+    # server.
+    #
+    # @example Put this in config/environments/test.rb
+    #   config.after_initialize { Vanity.playground.mock! }
+    def mock!
+      @redis ||= MockRedis.new
     end
     
   end

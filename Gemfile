@@ -1,4 +1,4 @@
-source "http://gemcutter.org"
+source "http://rubygems.org/"
 gem "autotest"
 gem "autotest-fsevent"
 gem "autotest-growl"

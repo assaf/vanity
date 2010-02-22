@@ -20,6 +20,7 @@ module Vanity
     PATCH = version[2]
     STRING = "#{MAJOR}.#{MINOR}.#{PATCH}"
   end
+
 end
 
 require "vanity/backport" if RUBY_VERSION < "1.9"

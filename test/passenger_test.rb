@@ -3,7 +3,7 @@ require "phusion_passenger/spawn_manager"
 
 class PassengerTest < Test::Unit::TestCase
   def setup
-    super
+    ActiveRecord::Base.connection.disconnect! # Otherwise AR metric tests fail
     @original = Vanity.playground.redis
     @server = PhusionPassenger::SpawnManager.new
     @server.start
@@ -12,7 +12,8 @@ class PassengerTest < Test::Unit::TestCase
     @app = @server.spawn_application "app_root"=>app_root, "spawn_method"=>"smart-lv2"
   end
 
-  def start_app
+  def test_reconnect
+    sleep 0.1
     socket = TCPSocket.new(*@app.listen_socket_name.split(":"))
     channel = PhusionPassenger::MessageChannel.new(socket)
     request = {"REQUEST_PATH"=>"/", "REQUEST_METHOD"=>"GET", "QUERY_STRING"=>" "}

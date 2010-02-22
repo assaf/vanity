@@ -8,18 +8,14 @@ Vanity will work out of the box on a default configuration.  Assuming you're usi
 If you run a different setup, use the playground object to configure Vanity.  For example:
 
 <pre>
-Vanity.playground.host = "redis.local"
-Vanity.playground.password = "supersecret"
+Vanity.playground.redis = "redis.example.com"
 </pre>
 
 Configuration options are:
 
-|_. name    |_. Is all about ...                    |_. Default     |
-| host      | Redis server host name                | 127.0.0.1     |
-| port      | Redis server port number              | 6379          |
-| db        | Redis database number                 | 0             |
-| password  | Redis database password               | --            |
-| namespace | Namespace for Redis keys              | vanity:1      |
-| load_path | Directory containing experiment files | experiments   |
-| logger    | This should be obvious                | default/Rails |
+|_. name      |_. Is all about ...                    |_. Default      |
+| connection  | Connection configuration              | 127.0.0.1:6379 |
+| namespace   | Namespace for Redis keys              | vanity:1       |
+| load_path   | Directory containing experiment files | experiments    |
+| logger      | This should be obvious                | default/Rails  |
 
