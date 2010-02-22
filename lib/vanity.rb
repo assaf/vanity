@@ -36,4 +36,5 @@ require "vanity/playground"
 require "vanity/helpers"
 Vanity.autoload :MockRedis, "vanity/mock_redis"
 Vanity.autoload :Commands, "vanity/commands"
-require "vanity/rails" if defined?(Rails)
+# Integration with various frameworks.
+require "vanity/frameworks/rails" if defined?(Rails)
