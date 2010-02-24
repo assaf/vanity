@@ -81,3 +81,19 @@ end
 Now open your browser to "http://localhost:3000/vanity":http://localhost:3000/vanity.
 
 The Dashboard renders complete HTML pages with CSS and all necessary JavaScript libraries.  Thankfully, HTML is forgiving enough that it will render correctly even with your existing application layout.  You can decide to keep your layout, or tell the controller to set @layout false@.
+
+
+h3.  Unicorn and Forking Servers
+
+Unicorn forks the master process to create worker processes efficiently.  Since the master processes opens a connection to Redis, all workers end up sharing that connection, resulting in ugly contention issues.
+
+The cure is simple, use the @after_fork@ hook to reconnect each worker process.  Here's the relevant part from my @config/unicorn.rb@:
+
+<pre>
+after_fork do |server, worker|
+  ActiveRecord::Base.establish_connection
+  Vanity.playground.reconnect!
+end
+</pre>
+
+You'll run into this issue with other forking servers.  Vanity can detect when it runs under Passenger and automatically reconnect each forked process.
