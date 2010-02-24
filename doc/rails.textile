@@ -9,32 +9,34 @@ h3.  Configuring Vanity
 
 Start by telling Rails to use the Vanity gem, either using @config.gem "vanity"@ or by adding @gem "vanity"@ to your Gemfile.
 
+You will most likely need to @require "vanity"@ from within @after_initialize@ in order to use it everywhere in your app:
+
+<pre>
+Rails::Initializer.run do |config|
+  . . .
+  config.after_initialize do
+    require "vanity"
+  end
+end
+</pre>
+
 If you have a @config/redis.yml@ file, Vanity will read the configuration for the current environment.  For example:
 
 <pre>
 development: localhost:6379
+test: localhost:6379:15
 production: db.internal:6379
 </pre>
 
-If you want to use Google Analytics, you must also tell Rails to include the @garb@ gem, and login for a new session.  For example:
+If you want to use Google Analytics, you must also tell Rails to include the @garb@ gem, and login for a new session.  You'll want to do that for production, not for development if you like developing offline:
 
 <pre>
-Rails::Initializer.run do |config|
-  config.gem "vanity"
-  config.gem "garb"
-
-  . . .
-
-  require "vanity"
-  Vanity.playground.redis = "::2" # Use localhost, default port, database 2
+config.after_initialize do
   require "garb"
   Garb::Session.login('..ga email..', '..ga pwd..', account_type: "GOOGLE")
 end
 </pre>
 
-*Tip:* You will most likely need to @require "vanity"@ before you can configure it.  Same thing with @garb@.
-
-*Another tip:* You probably want to move @Garb::Session@ to @config/environments/production.rb@, otherwise you won't be able to start Rails in development mode when running offline.
 
 
 h3.  Test Environment
@@ -44,16 +46,18 @@ As your tests run, any metric and experiment data is stored in Redis.  You might
 Easiest it to tell Vanity to avoid accessing Redis altogether.  Just add this to @config/environments/test.rb@:
 
 <pre>
-require "vanity"
-Vanity.playground.test!
+config.after_initialize do
+  Vanity.playground.test!
+end
 </pre>
 
 A bit more convoluted (but you'll learn a couple of things along the way) is to flush the Redis database after each test, or at least once before loading the suite.  Of course, flushing the database will also clear any data you might need in development mode (most people develop and test on the same machine), so you'll want the test environment to use a different database.  Like this:
 
 <pre>
-require "vanity"
-Vanity.playground.redis = "::15" # Different DB
-Vanity.playground.redis.flushdb # Do this before running tests
+config.after_initialize do
+  Vanity.playground.redis = "::15" # Different DB
+  Vanity.playground.redis.flushdb # Do this before running tests
+end
 </pre>
 
 

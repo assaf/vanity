@@ -32,7 +32,13 @@ h3(#intro). A/B Testing with Rails (in 5 easy steps)
 *Step 1:* Start using Vanity in your Rails application:
 
 <pre>
-gem.config "vanity"
+Rails::Initializer.run do |config|
+  gem.config "vanity"
+
+  config.after_initialize do
+    require "vanity"
+  end
+end
 </pre>
 
 And:

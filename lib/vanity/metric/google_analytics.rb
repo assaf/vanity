@@ -48,7 +48,7 @@ module Vanity
 
       class Resource
         def initialize(web_property_id, metric)
-          extend Garb::Resource
+          self.class.send :include, Garb::Resource
           @web_property_id = web_property_id
           metrics metric
           dimensions :date

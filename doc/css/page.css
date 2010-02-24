@@ -1,7 +1,7 @@
-html { background-color: #fff; color: #111 }
+html { background-color: #fff; color: #444 }
 body { font-size: 13pt; font-family: "Georgia", serif; line-height: 1.5em; width: 40em; margin: 2em auto }
-a:link { color: #0044b3; text-decoration: none }
-a:visited { text-decoration: none }
+a:link { color: #4488f7; text-decoration: none }
+a:visited { color: #4488f7; text-decoration: none }
 a:hover { text-decoration: underline }
 img { border: 1px solid #eee; padding: 16px; margin: 0 auto; display: block }
 blockquote { padding-left: 2em; padding-right: 2em; margin-left: 0.3em; margin-right: 0; font-style: italic }
@@ -31,7 +31,8 @@ table#issues .votes { color: #ccc; float: right }
 
 .footnote { font-size: 90%; margin-top: 4em }
 .footnote+.footnote { margin-top: .6em }
-#links { position: fixed; right: 0; top: 0; padding: .6em; color: #ccc }
-#sidebar { position: fixed; left: 0; top: 10em; padding: .6em }
+#links { position: fixed; right: 0; top: 0; padding: .6em; color: #ccc; font-size: 11pt }
+#sidebar { position: fixed; left: 0; top: 2em; padding: .6em; font-size: 11pt }
 #sidebar ul { list-style: none; text-align: right; margin: 0 0 3em 0; padding: 0 }
+#content { clear: both; margin: 4em 0 }
 #footer { font-size: .9em; padding: 0; margin: 3em 0; border-top: 1px solid #ccc; text-align: right }

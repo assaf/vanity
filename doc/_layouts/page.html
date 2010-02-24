@@ -11,8 +11,10 @@
   <body>
     <h1><a href='http://vanity.labnotes.org' title="Mirror, mirror, on the wall &hellip;">Vanity</a></h1>
     <div class="tagline">Experiment<br>Driven Development</div>
-    <h2 id='{{ page.title | downcase | replace(' ', '_') }}'>{{ page.title }}</h2>
-    <div id="content">{{ content }}</div>
+    <div id="content">
+      <h2 id='{{ page.title | downcase | replace(' ', '_') }}'>{{ page.title }}</h2>
+      {{ content }}
+    </div>
     <div id="links"><a href="http://github.com/assaf/vanity">Source code<a> | <a href="http://groups.google.com/group/vanity-talk">Google Group</a> | <a href="http://vanity.labnotes.org/api/index.html">API reference</a></div>
     <div id="sidebar">
       <ul>
