@@ -157,6 +157,9 @@ module Vanity
       when Redis
         @connection_spec = nil
         @redis = spec_or_connection
+      when :mock
+        @connection_spec = nil
+        @redis = MockRedis.new
       else
         raise "I don't know what to do with #{spec_or_connection.inspect}"
       end
@@ -167,8 +170,12 @@ module Vanity
       @redis
     end
 
+    def connected?
+      !@redis.nil?
+    end
+
     def disconnect!
-      @redis.quit if @redis rescue nil
+      @redis.quit if connected? rescue nil
       @redis = nil
     end
 
@@ -177,17 +184,19 @@ module Vanity
       disconnect! rescue nil
     end
 
-    # Switches playground to use MockRedis instead of a live server.
-    # Particularly useful for testing, e.g. if you can't access Redis on your CI
-    # server.  This method has no affect after playground accesses live Redis
-    # server.
+    def mock!
+      warn "Deprecated: use Vanity.playground.test!"
+      test!
+    end
+   
+    # Use this when testing to disable Redis (e.g. if your CI server doesn't
+    # have Redis). 
     #
     # @example Put this in config/environments/test.rb
-    #   config.after_initialize { Vanity.playground.mock! }
-    def mock!
-      @redis ||= MockRedis.new
+    #   config.after_initialize { Vanity.playground.test! }
+    def test!
+      self.redis = :mock
     end
-    
   end
 
   @playground = Playground.new

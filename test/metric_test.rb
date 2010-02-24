@@ -502,7 +502,6 @@ context "Metric" do
 
   end
 
-  
   # -- Helper methods --
 
   def today

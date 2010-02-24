@@ -14,8 +14,8 @@ Vanity.playground.redis = "redis.example.com"
 Configuration options are:
 
 |_. name      |_. Is all about ...                    |_. Default      |
-| connection  | Connection configuration              | 127.0.0.1:6379 |
-| namespace   | Namespace for Redis keys              | vanity:1       |
+| redis       | Connection specification              | 127.0.0.1:6379 |
 | load_path   | Directory containing experiment files | experiments    |
 | logger      | This should be obvious                | default/Rails  |
 
+When "running under Rails":rails.html, Vanity defaults to using the Rails logger, locates the load_path relative to Rails root and will use the @config/redis.yml@ configuration file, if present.

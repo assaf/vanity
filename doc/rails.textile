@@ -1,0 +1,79 @@
+---
+layout: page
+title: Using with Rails
+---
+
+This guide was written for Rails 2.3.5.  If you have any tips for Rails 3.0, please share.
+
+h3.  Configuring Vanity
+
+Start by telling Rails to use the Vanity gem, either using @config.gem "vanity"@ or by adding @gem "vanity"@ to your Gemfile.
+
+If you have a @config/redis.yml@ file, Vanity will read the configuration for the current environment.  For example:
+
+<pre>
+development: localhost:6379
+production: db.internal:6379
+</pre>
+
+If you want to use Google Analytics, you must also tell Rails to include the @garb@ gem, and login for a new session.  For example:
+
+<pre>
+Rails::Initializer.run do |config|
+  config.gem "vanity"
+  config.gem "garb"
+
+  . . .
+
+  require "vanity"
+  Vanity.playground.redis = "::2" # Use localhost, default port, database 2
+  require "garb"
+  Garb::Session.login('..ga email..', '..ga pwd..', account_type: "GOOGLE")
+end
+</pre>
+
+*Tip:* You will most likely need to @require "vanity"@ before you can configure it.  Same thing with @garb@.
+
+*Another tip:* You probably want to move @Garb::Session@ to @config/environments/production.rb@, otherwise you won't be able to start Rails in development mode when running offline.
+
+
+h3.  Test Environment
+
+As your tests run, any metric and experiment data is stored in Redis.  You might not appreciate tests filling up Redis with useless data, and there are two things you can do about it.
+
+Easiest it to tell Vanity to avoid accessing Redis altogether.  Just add this to @config/environments/test.rb@:
+
+<pre>
+require "vanity"
+Vanity.playground.test!
+</pre>
+
+A bit more convoluted (but you'll learn a couple of things along the way) is to flush the Redis database after each test, or at least once before loading the suite.  Of course, flushing the database will also clear any data you might need in development mode (most people develop and test on the same machine), so you'll want the test environment to use a different database.  Like this:
+
+<pre>
+require "vanity"
+Vanity.playground.redis = "::15" # Different DB
+Vanity.playground.redis.flushdb # Do this before running tests
+</pre>
+
+
+h3.  Dashboard
+
+
+Start by adding a new resource in @config/routes.rb@:
+
+<pre>
+map.vanity "/vanity/:action/:id", :controller=>:vanity
+</pre>
+
+Create a new controller for Vanity:
+
+<pre>
+class VanityController < ApplicationController
+  include Vanity::Rails::Dashboard
+end
+</pre>
+
+Now open your browser to "http://localhost:3000/vanity":http://localhost:3000/vanity.
+
+The Dashboard renders complete HTML pages with CSS and all necessary JavaScript libraries.  Thankfully, HTML is forgiving enough that it will render correctly even with your existing application layout.  You can decide to keep your layout, or tell the controller to set @layout false@.

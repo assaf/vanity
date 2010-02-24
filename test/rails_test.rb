@@ -97,53 +97,108 @@ class UseVanityTest < ActionController::TestCase
     assert !experiment(:pie_or_cake).showing?(first)
   end
 
-  # -- Load path
+
+  # -- Load path --
 
   def test_load_path
-    path = run_code(<<-RB)
+    assert_equal File.expand_path("tmp/experiments"), load_rails(<<-RB)
 initializer.after_initialize
 $stdout << Vanity.playground.load_path
     RB
-    assert_equal File.expand_path("experiments"), path
   end
 
   def test_settable_load_path
-    path = run_code(<<-RB)
+    assert_equal File.expand_path("tmp/predictions"), load_rails(<<-RB)
 Vanity.playground.load_path = "predictions"
 initializer.after_initialize
 $stdout << Vanity.playground.load_path
     RB
-    assert_equal File.expand_path("predictions"), path
   end
 
   def test_absolute_load_path
-    path = run_code(<<-RB)
+    assert_equal File.expand_path("/tmp/var"), load_rails(<<-RB)
 Vanity.playground.load_path = "/tmp/var"
 initializer.after_initialize
 $stdout << Vanity.playground.load_path
     RB
-    assert_equal File.expand_path("/tmp/var"), path
   end
 
 
-  def run_code(code)
+  # -- Connection configuration --
+
+  def test_default_connection
+    assert_equal "localhost:6379", load_rails(<<-RB)
+initializer.after_initialize
+$stdout << Vanity.playground.redis.server
+    RB
+  end
+
+  def test_configured_connection
+    assert_equal "127.0.0.1:6379", load_rails(<<-RB)
+Vanity.playground.redis = "127.0.0.1:6379"
+initializer.after_initialize
+$stdout << Vanity.playground.redis.server
+    RB
+  end
+
+  def test_test_connection
+    assert_equal "Vanity::MockRedis", load_rails(<<-RB)
+Vanity.playground.test!
+initializer.after_initialize
+$stdout << Vanity.playground.redis.class
+    RB
+  end
+
+  def test_connection_from_yaml
+    FileUtils.mkpath "tmp/config"
+    yml = File.open("tmp/config/redis.yml", "w")
+    yml << "production: internal.local:6379\n"
+    yml.flush
+    assert_equal "internal.local:6379", load_rails(<<-RB)
+initializer.after_initialize
+$stdout << Vanity.playground.redis.server
+    RB
+  ensure
+    File.unlink yml
+  end
+
+  def test_connection_from_yaml_missing
+    FileUtils.mkpath "tmp/config"
+    yml = File.open("tmp/config/redis.yml", "w")
+    yml << "development: internal.local:6379\n"
+    yml.flush
+    assert_equal "localhost:6379", load_rails(<<-RB)
+initializer.after_initialize
+$stdout << Vanity.playground.redis.server
+    RB
+  ensure
+    File.unlink yml
+  end
+
+
+  def load_rails(code)
     tmp = Tempfile.open("test.rb")
     tmp.write <<-RB
 $:.delete_if { |path| path[/gems\\/vanity-\\d/] }
-$:.unshift File.expand_path("lib")
+$:.unshift File.expand_path("../lib")
 RAILS_ROOT = File.expand_path(".")
+RAILS_ENV = "production"
 require "initializer"
+require "active_support"
 Rails.configuration = Rails::Configuration.new
 initializer = Rails::Initializer.new(Rails.configuration)
 initializer.check_gem_dependencies
-require "lib/vanity"
+require "vanity"
     RB
     tmp.write code
     tmp.flush
-    open("|ruby #{tmp.path}").read
+    Dir.chdir "tmp" do
+      open("|ruby #{tmp.path}").read
+    end
   rescue
     tmp.close!
   end
+
 
   def teardown
     super
