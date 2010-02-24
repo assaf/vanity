@@ -16,24 +16,15 @@ h3. Relevant Links
 
 h3. Building From Source
 
-Vanity test suite requires "Rails":http://rubyonrails.org, "Mocha":http://mocha.rubyforge.org/, "Timecop":http://github.com/jtrupiano/timecop and "SQLite3":http://rubyforge.org/projects/sqlite-ruby/.  To run the test suite:
+To make life easier, you can use Bundler with the included Gemfile to load all the necessary development dependencies.
+
+For example, to install all the dependencies and run the test suite for the first time:
 
 <pre>
-$ gem install rails mocha timecop sqlite3-ruby
-$ rake
+$ bundle install
+$ bundle exec rake test
 </pre>
 
-To clean up after yourself:
-
-<pre>
-$ rake clobber
-</pre>
-
-To package Vanity as a gem and install on your machine:
-
-<pre>
-$ rake install
-</pre>
 
 h3. Documentation
 
@@ -44,7 +35,6 @@ API reference is "RDoc":http://rdoc.sourceforge.net/doc/index.html, converted to
 To build and view documentation:
 
 <pre>
-$ gem install yardoc jekyll
 $ rake docs
 $ open html/index.html
 </pre>

@@ -7,8 +7,8 @@ begin
   js = data.map { |date,value| "['#{date.to_time.httpdate}',#{value}]" }.join(",")
   %{<div class="chart"></div>
     <script type="text/javascript">
-    $(function(){Vanity.metric("#{h id}").plot([{label:"#{h metric.name}", data: [#{js}]}])})
+    $(function(){Vanity.metric("#{h id.to_s}").plot([{label:"#{h metric.name}", data: [#{js}]}])})
     </script>}
 rescue Exception=>ex
-  %{<div class="error">#{h ex}</div>}
+  %{<div class="error">#{h ex.message}</div>}
 end %>

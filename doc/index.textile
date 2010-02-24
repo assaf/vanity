@@ -84,7 +84,7 @@ end
 *Step 5:* Check the report:
 
 <pre>
-vanity --output vanity.html
+vanity report --output vanity.html
 </pre>
 
 !images/price_options.png!

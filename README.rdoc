@@ -11,7 +11,13 @@ http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
 <b>Step 1:</b> Start using Vanity in your Rails application:
 
-  gem.config "vanity"
+  Rails::Initializer.run do |config|
+    gem.config "vanity"
+
+    config.after_initialize do
+      require "vanity"
+    end
+  end
 
 And:
 
@@ -47,21 +53,20 @@ And:
 
 <b>Step 5:</b> Check the report:
 
-  vanity --output vanity.html
+  vanity report --output vanity.html
 
 
 == Building From Source
 
 To run the test suite for the first time:
 
-  $ gem install rails mocha timecop
-  $ rake
+  $ bundle install
+  $ bundle exec rake
 
 You can also +rake test+ if you insist on being explicit.
 
 To build the documentation:
  
-  $ gem install yardoc jekyll
   $ rake docs
   $ open html/index.html
 

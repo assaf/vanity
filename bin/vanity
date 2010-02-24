@@ -15,25 +15,24 @@ options = Struct.new(:output).new
 opts = OptionParser.new("", 24, "  ") do |opts|
   opts.banner = "Usage: #{File.basename($0)} [options] command\n"
   opts.banner << "Commands:\n"
-  opts.banner << "  report  Report on all running experiments/metrics"
-  opts.banner << "  list    List all experiments and metrics"
+  opts.banner << "  list    List all experiments and metrics\n"
+  opts.banner << "  report  Report on all running experiments/metrics\n"
 
   opts.separator ""
-  opts.separator "General options:"
-  opts.on("--path PATH", "Path to experiments directory (default: #{playground.load_path})")  { |v| playground.load_path = v }
-  opts.on("--output FILE", "Write report to this file (default: stdout)")                     { |v| options.output = v }
-
-  opts.separator ""
-  opts.separator "Redis options:"
-  opts.on("--host HOST", "Redis server host (default: #{playground.host})")       { |v| playground.host = v }
-  opts.on("--port PORT", "Redis server port (default: #{playground.port})")       { |v| playground.port = v }
-  opts.on("--db DB", "Redis database (default: #{playground.db})")                { |v| playground.db = v }
-  opts.on("--password PWD", "Redis database password")                            { |v| playground.password = v }
-  opts.on("--namespace NS", "Redis namespace (default: #{playground.namespace})") { |v| playground.namespace = v }
+  opts.separator "Reporting options:"
+  opts.on "--output FILE", "Write report to this file (default: stdout)" do |path|
+    options.output = path
+  end
 
   opts.separator ""
   opts.separator "Common options:"
-  opts.on_tail "-h", "-H", "--help", "Show this message" do
+  opts.on "--load_path PATH", "Path to experiments directory (default: #{playground.load_path})" do |path|
+    playground.load_path = path
+  end
+  opts.on "--redis HOST:PORT:DB", "Redis server host (default: localhost:6379)" do |redis|
+    playground.redis = redis
+  end
+  opts.on_tail "-h", "--help", "Show this message" do
     puts opts.to_s.gsub(/^.*DEPRECATED.*$/s, '')
     exit
   end
