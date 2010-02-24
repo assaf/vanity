@@ -19,7 +19,7 @@ module Vanity
       require "garb"
       options = Hash === args.last ? args.pop : {}
       metric = options.shift || :pageviews
-      @ga_resource = Vanity::Metric::GoogleAnalytics.resource.new(web_property_id, metric)
+      @ga_resource = Vanity::Metric::GoogleAnalytics::Resource.new(web_property_id, metric)
       @ga_mapper = options[:mapper] ||= lambda { |entry| entry.send(@ga_resource.metrics.elements.first).to_i }
       extend GoogleAnalytics
     rescue LoadError
@@ -46,14 +46,9 @@ module Vanity
         fail "Cannot use hooks with Google Analytics methods"
       end
 
-      def self.resource
-        res = Resource.new
-        res.extend Garb::Resource
-        res
-      end
-
       class Resource
         def initialize(web_property_id, metric)
+          extend Garb::Resource
           @web_property_id = web_property_id
           metrics metric
           dimensions :date
