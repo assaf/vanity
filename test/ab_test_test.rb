@@ -70,12 +70,12 @@ class AbTestTest < ActionController::TestCase
 
   def test_alternative_fingerprint_is_unique
     new_ab_test :ab do
-      alternatives :a, :b
       metrics :coolness
+      alternatives :a, :b
     end
     new_ab_test :cd do
-      alternatives :a, :b
       metrics :coolness
+      alternatives :a, :b
     end
     fingerprints = Vanity.playground.experiments.map { |id, exp| exp.alternatives.map { |alt| exp.fingerprint(alt) } }.flatten
     assert_equal 4, fingerprints.uniq.size

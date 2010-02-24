@@ -1,8 +1,13 @@
 #!/usr/bin/env ruby
-path = File.expand_path("../lib", File.dirname(__FILE__))
-$LOAD_PATH.unshift path unless $LOAD_PATH.include?(path)
+# Is there a better way to detect Rails?
+if File.exist?("config/boot.rb") && File.exist?("config/environment.rb")
+  require "config/environment"
+else
+  path = File.expand_path("../lib", File.dirname(__FILE__))
+  $LOAD_PATH.unshift path unless $LOAD_PATH.include?(path)
+  require "vanity"
+end
 
-require "vanity"
 require "optparse"
 
 playground = Vanity.playground

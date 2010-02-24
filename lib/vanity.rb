@@ -27,7 +27,7 @@ require "vanity/backport" if RUBY_VERSION < "1.9"
 # Metrics.
 require "vanity/metric/base"
 require "vanity/metric/active_record"
-require "vanity/metric/google_analytics" if defined?(Garb)
+require "vanity/metric/google_analytics"
 # Experiments.
 require "vanity/experiment/base"
 require "vanity/experiment/ab_test"

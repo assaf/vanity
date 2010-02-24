@@ -1,10 +1,4 @@
 #!/usr/bin/env ruby
-# For more tips & tricks: http://ph7spot.com/musings/getting-started-with-autotest
-require "autotest/growl"
-require "autotest/fsevent"
-require "autotest/restart"
-require "autotest/timestamp"
-
 Autotest.add_hook :initialize do |autotest|
   %w{.git .DS_Store Gemfile bin doc html}.each do |exception|
     autotest.add_exception(exception)
@@ -21,34 +15,9 @@ Autotest.add_hook :initialize do |autotest|
 end
 
 
-# Speak failures via Apple's speech synth
-module Autotest::Speak
-  def self.speak message
-    system %(osascript -e 'say "#{message}"')
-  end
-
-  Autotest.add_hook :red do |at|
-    failures = at.files_to_test.size
-    speak "#{failures} example#{failures == 0 || failures > 1 ? 's' : nil} failed." 
-  end
-
-  Autotest.add_hook :all_good do |at|
-    speak "All specs passed." 
-  end
-end
-
-
 # Don't run entire test suite when going from red to green
 class Autotest
   def tainted
     false
   end
 end
-
-
-Autotest::Growl::show_modified_files = true
-Autotest::Growl::one_notification_per_run = true
-Autotest::Growl::clear_terminal = false
-Autotest::Growl::hide_label = true
-
-$VERBOSE=true

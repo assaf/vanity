@@ -97,6 +97,54 @@ class UseVanityTest < ActionController::TestCase
     assert !experiment(:pie_or_cake).showing?(first)
   end
 
+  # -- Load path
+
+  def test_load_path
+    path = run_code(<<-RB)
+initializer.after_initialize
+$stdout << Vanity.playground.load_path
+    RB
+    assert_equal File.expand_path("experiments"), path
+  end
+
+  def test_settable_load_path
+    path = run_code(<<-RB)
+Vanity.playground.load_path = "predictions"
+initializer.after_initialize
+$stdout << Vanity.playground.load_path
+    RB
+    assert_equal File.expand_path("predictions"), path
+  end
+
+  def test_absolute_load_path
+    path = run_code(<<-RB)
+Vanity.playground.load_path = "/tmp/var"
+initializer.after_initialize
+$stdout << Vanity.playground.load_path
+    RB
+    assert_equal File.expand_path("/tmp/var"), path
+  end
+
+
+  def run_code(code)
+    tmp = Tempfile.open("test.rb")
+    tmp.write <<-RB
+$:.delete_if { |path| path[/gems\\/vanity-\\d/] }
+$:.unshift File.expand_path("lib")
+RAILS_ROOT = File.expand_path(".")
+require "initializer"
+Rails.configuration = Rails::Configuration.new
+initializer = Rails::Initializer.new(Rails.configuration)
+initializer.check_gem_dependencies
+require "lib/vanity"
+    RB
+    tmp.write code
+    tmp.flush
+    open("|ruby #{tmp.path}").read
+  rescue
+    tmp.close!
+  end
+
   def teardown
     super
     UseVanityController.send(:filter_chain).clear

@@ -25,8 +25,10 @@ Last, define Vanity metrics that tap to Google Analytics metrics.  For example:
 * Changed: New way to specify connection configuration: Vanity.playground.redis = "localhost:6379". Use this instead of the separate host/port/db attribute.
 * Changed: Rails integration now separates use_vanity method, filters and helpers.
 * Changed: Explicit vanity_context_filter and vanity_reload_filter so you can skip them, or order filters relative to them.
-* Fixed: if metric cannot be loaded (e.g. offline, no db access) show error message for that metric but don't break dashboard.
+* Fixed: If metric cannot be loaded (e.g. offline, no db access) show error message for that metric but don't break dashboard.
 * Fixed: AbTest incorrectly calls identify method instead of identity (issue #2)
+* Fixed: Running vanity command, automatically detects and loads Rails.
+* Fixed: Vanity now picks up on load_path set from within config/environment.rb.
 * Removed: Vanity.playground.define is deprecated. Bad choice for a method name. If you need this feature, make a suggestion and let's create a better API.
 
 == 1.2.0 (2009-12-14)

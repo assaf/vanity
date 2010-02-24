@@ -192,7 +192,7 @@ if defined?(Rails)
   Rails.configuration.after_initialize do
     # Use Rails logger by default.
     Vanity.playground.logger ||= Rails.logger
-    Vanity.playground.load_path ||= Rails.root + "experiments"
+    Vanity.playground.load_path = Rails.root + Vanity.playground.load_path
     config_file = Rails.root + "config/redis.yml"
     if config_file.exist?
       Vanity.playground.redis = YAML.load_file(config_file)[Rails.env]
