@@ -1,5 +1,5 @@
 html { background-color: #fff; color: #444 }
-body { font-size: 13pt; font-family: "Georgia", serif; line-height: 1.5em; width: 40em; margin: 2em auto }
+body { font-size: 13pt; font-family: "Georgia", serif; line-height: 1.5em; margin: 2em auto }
 a:link { color: #4488f7; text-decoration: none }
 a:visited { color: #4488f7; text-decoration: none }
 a:hover { text-decoration: underline }
@@ -32,7 +32,8 @@ table#issues .votes { color: #ccc; float: right }
 .footnote { font-size: 90%; margin-top: 4em }
 .footnote+.footnote { margin-top: .6em }
 #links { position: fixed; right: 0; top: 0; padding: .6em; color: #ccc; font-size: 11pt }
-#sidebar { position: fixed; left: 0; top: 2em; padding: .6em; font-size: 11pt }
+#header, #content, #footer { width: 630px; margin-left: 210px }
+#sidebar { float: left; width: 140px; margin: 20px; font-size: 11pt }
 #sidebar ul { list-style: none; text-align: right; margin: 0 0 3em 0; padding: 0 }
-#content { clear: both; margin: 4em 0 }
-#footer { font-size: .9em; padding: 0; margin: 3em 0; border-top: 1px solid #ccc; text-align: right }
+#content { padding: 1.35em 0 }
+#footer { clear: both; font-size: .9em; padding: 0; margin-top: 3em; border-top: 1px solid #ccc; text-align: right }
