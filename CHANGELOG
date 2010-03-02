@@ -1,4 +1,4 @@
-== 1.3.0
+== 1.3.0 (2010-03-01)
 This release adds support for Google Analytics, AdWords and forking servers (Passenger, Unicorn).
 
 To view Google Analytics metrics from within Vanity, first make sure you are using Garb.  For example, in your Gemfile:

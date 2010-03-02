@@ -4,9 +4,8 @@ Autotest.add_hook :initialize do |autotest|
     autotest.add_exception(exception)
   end
   autotest.clear_mappings
-  autotest.add_mapping(/test_helper.rb/) do |f, _|
-    autotest.files_matching(/.*_testrb$/)
-  end
+  autotest.add_mapping(/^test.*\/.*_test\.rb$/) { |filename, _| filename }
+  autotest.add_mapping(/test_helper.rb/) { |f, _| autotest.files_matching(/test\/.*_test\.rb$/) }
   autotest.add_mapping(/^lib\/vanity\/(.*)\.rb/) do |filename, _|
     file = File.basename(filename, '.rb')
     dir = File.split(File.dirname(filename)).last

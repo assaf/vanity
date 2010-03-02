@@ -18,7 +18,7 @@ module Vanity
     def google_analytics(web_property_id, *args)
       require "garb"
       options = Hash === args.last ? args.pop : {}
-      metric = options.shift || :pageviews
+      metric = args.shift || :pageviews
       @ga_resource = Vanity::Metric::GoogleAnalytics::Resource.new(web_property_id, metric)
       @ga_mapper = options[:mapper] ||= lambda { |entry| entry.send(@ga_resource.metrics.elements.first).to_i }
       extend GoogleAnalytics
@@ -52,6 +52,9 @@ module Vanity
       end
 
       class Resource
+        # GA profile used for this report.  Populated after calling results. 
+        attr_reader :profile
+
         def initialize(web_property_id, metric)
           self.class.send :include, Garb::Resource
           @web_property_id = web_property_id
