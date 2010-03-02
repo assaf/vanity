@@ -16,7 +16,7 @@ h3. Reading Order
 * "A/B Testing(Everything you need to know)":ab_testing.html
 * "The Dashboard(Setting up and using the Rails dashboard)":dashboard.html
 * "Managing Identity":identity.html
-* "Configuring Vanity":configuring.html
+* "Using with Rails":rails.html
 
 Also:
 

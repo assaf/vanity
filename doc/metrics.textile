@@ -3,6 +3,15 @@ layout: page
 title: Metrics
 ---
 
+<div id="toc">
+# "Defining a Metric":#define
+# "Metrics From Your Database":#ar
+# "Google Analytics":#ga
+# "Creating Your Own Metric":#custom
+# "Digging Deeper":#deeper
+</div>
+
+
 A good starting point for improving -- on anything -- is measuring.  Vanity allows you to measure multiple metrics, best way to tell how well your experiments are doing.
 
 <blockquote>
@@ -16,7 +25,7 @@ A good starting point for improving -- on anything -- is measuring.  Vanity allo
 
 
 
-h3.  Defining a Metric
+h3(#define).  Defining a Metric
 
 Vanity always loads metrics defined in the @experiments/metrics@ directory.  A metric definition is a Ruby file that looks like this:
 
@@ -63,7 +72,7 @@ Calling @track!@ with no value is the same as calling with one, and for convenie
 Define, track, and you're ready to roll.
 
 
-h3.  Metrics From Your Database
+h3(#ar).  Metrics From Your Database
 
 If you already have the data, why not use it?
 
@@ -125,7 +134,7 @@ end
 </pre>
 
 
-h3.  Google Analytics
+h3(#ga).  Google Analytics
 
 You can easily include Google Analytics metrics in your Vanity dashboard.  You'll need, in addition to Vanity, to use "Garb":http://github.com/vigetlabs/garb, a Ruby wrapper for the Google Analytics API.
 
@@ -170,7 +179,7 @@ end
 See "the Garb documentation":http://rdoc.info/projects/vigetlabs/garb and "Google Analytics API":http://code.google.com/apis/analytics/docs/gdata/gdataReferenceDimensionsMetrics.html#bounceRate for more details.
 
 
-h3.  Creating Your Own Metric
+h3(#custom).  Creating Your Own Metric
 
 Got other ideas for metrics?  Writing your own metric is fairly simple.
 
@@ -201,7 +210,7 @@ A metric may also implement these methods:
 If you wrote your own metric implementation, please consider "contributing it to Vanity":contributing.html so we can all benefit from it.  Thanks.
 
 
-h3.  Digging Deeper
+h3(#deeper).  Digging Deeper
 
 All metrics are listed in @Vanity.playground.metrics@, a hash that maps metric identifier to metric object.  Methods like @track!@ and @metrics@ (see "A/B tests":ab_testing.html) reference metrics using their identifier.
 
@@ -218,8 +227,5 @@ You can call @track!@ with a value higher than one, and it will increment the da
 Any time you track a metric, the metric passes its identifier, timestamp and count (if more than zero) to all its hooks.  "A/B tests":ab_testing.html use hooks to manage their own book keeping.  When you define an experiment and tell it which metric(s) to use, the experiment registers itself by calling the @hook@ method.
 
 When you call @model@ on a metric, this method changes the metric definition by rewriting the @values@ method to perform a query, rewriting the @track!@ method to update hooks but not Redis, and register an @after_create@ callback that updates the hooks.
-
-
-h3.  Metrics That Work
 
 How about some tips & tricks for getting the most out of metrics (you might call them "best practices")?  Got any to share?

@@ -3,6 +3,15 @@ layout: page
 title: A/B Testing
 ---
 
+<div id="toc">
+# "True or False":#tf
+# "Interpreting the Results":#interpret
+# "Multiple Alternatives":#multiple
+# "A/B Testing and Code Testing":#test
+# "Let the Experiment Decide":#decide
+</div>
+
+
 "A/B testing":http://en.wikipedia.org/wiki/A/B_testing (or "split testing") are experiments you can run to compare the performance of different alternatives.  A classical example is using an A/B test to compare two versions of a landing page, to find out which alternative leads to more registrations.
 
 You can use A/B tests to gauge interest in a new feature, response to a feature change, improve the site's design and copy, and so forth.  In spite of the name, you can use A/B tests to check out more than two alternatives.
@@ -10,7 +19,7 @@ You can use A/B tests to gauge interest in a new feature, response to a feature 
 bq. "If you are not embarrassed by the first version of your product, you’ve launched too late" -- Reid Hoffman, founder of LinkedIn
 
 
-h3. True or False
+h3(#tf). True or False
 
 Let's start with a simple experiment.  We have this idea that a bigger sign-up link will increase the number of people who sign up for our service.  Let's see how well our hypothesis holds.
 
@@ -56,7 +65,7 @@ end
 </pre>
 
 
-h3. Interpreting the Results
+h3(#interpret). Interpreting the Results
 
 We're going to let the experiment run for a while and track the results using "the dashboard":dashboard.html, or by running the command @vanity report@.
 
@@ -85,7 +94,7 @@ You might want to instead decide on some target probability (which could change 
 You'll want to read more about "A/B testing and statistical significance":http://www.cennydd.co.uk/2009/statistical-significance-other-ab-test-pitfalls/
 
 
-h3.  Multiple Alternatives
+h3(#multiple).  Multiple Alternatives
 
 Your A/B tests can have as many alternatives as you care, with two caveats.  The more alternatives you have the larger the sample size you need, and so the longer it will take to find out the outcome of your experiment.  You want alternatives that are significantly different from each other, testing two pricing options at $5 and $25 is fast, testing all the prices between $5 and $25 at $1 increments will take a long time to reach any conclusive result.
 
@@ -129,7 +138,7 @@ end
 </pre>
 
 
-h3.  A/B Testing and Code Testing
+h3(#test).  A/B Testing and Code Testing
 
 If you're presenting more than one alternative to visitors of your site, you'll want to test more than one alternative.  Don't let A/B testing become A/broken.
 
@@ -162,7 +171,7 @@ You'll also want to test each alternative visually, from your Web browser.  For 
 Once the experiment is over, simply remove its definition from the experiments directory and run the test suite again.  You'll see errors in all the places that touch the experiment (from failing to load it), pointing you to what parts of the code you need to remove/change.
 
 
-h3. Let the Test Decide
+h3(#decide). Let the Experiment Decide
 
 Sample size and probability help you interpret the results, you can also use them to configure an experiment to automatically complete itself.
 

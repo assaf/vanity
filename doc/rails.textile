@@ -3,9 +3,16 @@ layout: page
 title: Using with Rails
 ---
 
-This guide was written for Rails 2.3.5.  If you have any tips for Rails 3.0, please share.
+<div id="toc">
+# "Configuring Vanity":#config
+# "Test Environment":#test
+# "Dashboard":#dashboard
+# "Unicorn and Forking Servers":#fork
+</div>
 
-h3.  Configuring Vanity
+This guide is written for Rails 2.3.5.  If you have any tips for Rails 3.0, please share.
+
+h3(#config).  Configuring Vanity
 
 Start by telling Rails to use the Vanity gem, either using @config.gem "vanity"@ or by adding @gem "vanity"@ to your Gemfile.
 
@@ -38,8 +45,7 @@ end
 </pre>
 
 
-
-h3.  Test Environment
+h3(#test).  Test Environment
 
 As your tests run, any metric and experiment data is stored in Redis.  You might not appreciate tests filling up Redis with useless data, and there are two things you can do about it.
 
@@ -59,8 +65,7 @@ Vanity.playground.redis.flushdb # Do this before running tests
 </pre>
 
 
-h3.  Dashboard
-
+h3(#dashboard).  Dashboard
 
 Start by adding a new resource in @config/routes.rb@:
 
@@ -81,7 +86,7 @@ Now open your browser to "http://localhost:3000/vanity":http://localhost:3000/va
 The Dashboard renders complete HTML pages with CSS and all necessary JavaScript libraries.  Thankfully, HTML is forgiving enough that it will render correctly even with your existing application layout.  You can decide to keep your layout, or tell the controller to set @layout false@.
 
 
-h3.  Unicorn and Forking Servers
+h3(#fork).  Unicorn and Forking Servers
 
 Unicorn forks the master process to create worker processes efficiently.  Since the master processes opens a connection to Redis, all workers end up sharing that connection, resulting in ugly contention issues.
 

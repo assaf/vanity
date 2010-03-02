@@ -3,18 +3,26 @@ layout: page
 title: Contributing
 ---
 
+<div id="toc">
+# "Relevant Links":#link
+# "Building From Source":#building
+# "Documentation":#doc
+# "Open Issues":#open
+</div>
+
 By all means.
 
-h3. Relevant Links
+
+h3(#link). Relevant Links
 
 * "Google Group":http://groups.google.com/group/vanity-talk
 * "Source code":http://github.com/assaf/vanity
 * "Continuous integration":http://runcoderun.com/assaf/vanity
 * "Code metrics":http://devver.net/caliper/project?repo=git%3A%2F%2Fgithub.com%2Fassaf%2Fvanity.git
-* "Open Issues":http://github.com/assaf/vanity/issues
+* "Issues":http://github.com/assaf/vanity/issues
 
 
-h3. Building From Source
+h3(#building). Building From Source
 
 To make life easier, you can use Bundler with the included Gemfile to load all the necessary development dependencies.
 
@@ -26,7 +34,7 @@ $ bundle exec rake test
 </pre>
 
 
-h3. Documentation
+h3(#doc). Documentation
 
 Documentation is written in "Textile":http://redcloth.org/textile/writing-paragraph-text/, and converted to HTML using "Jekyll":http://jekyllrb.com/.
 
@@ -40,7 +48,7 @@ $ open html/index.html
 </pre>
 
 
-h3. Open Issues
+h3(#open). Open Issues
 
 <notextile>
 <table id="issues">
