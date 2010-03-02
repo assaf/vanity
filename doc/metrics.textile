@@ -125,6 +125,51 @@ end
 </pre>
 
 
+h3.  Google Analytics
+
+You can easily include Google Analytics metrics in your Vanity dashboard.  You'll need, in addition to Vanity, to use "Garb":http://github.com/vigetlabs/garb, a Ruby wrapper for the Google Analytics API.
+
+Login to Google Analytics using either username and password, or OAuth authentication token.  Here's a sample @config/environment@ snippet:
+
+<pre>
+Rails::Initializer.run do |config|
+  gems.config "vanity"
+  gems.config "garb"
+ 
+  . . . 
+  config.after_initialize do
+    require "garb"
+    ga = YAML.load_file(Rails.root + "config/ga.yml")
+    Garb::Session.login(ga['email'], ga['password'], account_type: "GOOGLE")
+  end
+end
+</pre>
+
+To define a metric that corresponds to the Google Analytics daily visitors:
+
+<pre>
+metric "Acquisition: Visitors" do
+  description "Unique visitors on any given page, as tracked by Google Analytics"
+  google_analytics "UA-1828623-6", :visitors
+end
+</pre>
+
+The first argument is the GA profile, the second argument the GA metric name (defaults to @pageviews@).
+
+You can use the full Garb API by accessing the report directly, for example:
+
+<pre>
+metric "Activation: Signups" do
+  google_analytics "UA-1828623-6"
+  report.filters do
+    eql(:page_path, 'welcome')
+  end
+end
+</pre>
+
+See "the Garb documentation":http://rdoc.info/projects/vigetlabs/garb and "Google Analytics API":http://code.google.com/apis/analytics/docs/gdata/gdataReferenceDimensionsMetrics.html#bounceRate for more details.
+
+
 h3.  Creating Your Own Metric
 
 Got other ideas for metrics?  Writing your own metric is fairly simple.

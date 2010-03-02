@@ -46,6 +46,11 @@ module Vanity
         fail "Cannot use hooks with Google Analytics methods"
       end
 
+      # Garb report.
+      def report
+        @ga_resource
+      end
+
       class Resource
         def initialize(web_property_id, metric)
           self.class.send :include, Garb::Resource

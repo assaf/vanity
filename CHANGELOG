@@ -15,7 +15,7 @@ Last, define Vanity metrics that tap to Google Analytics metrics.  For example:
 
   metric "Acquisition: Visitors" do
     description "Unique visitors on any given page, as tracked by Google Analytics"
-    google_analytics "UA-10087469-2", :visitors
+    google_analytics "UA-1828623-6", :visitors
   end
 
 * Added: Support for Google Analytics metrics, thanks to Tony Pitale's Garb and blog post: http://www.viget.com/extend/user-goal-tracking-in-rails-with-vanity-and-google-analytics/

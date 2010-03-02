@@ -46,18 +46,16 @@ As your tests run, any metric and experiment data is stored in Redis.  You might
 Easiest it to tell Vanity to avoid accessing Redis altogether.  Just add this to @config/environments/test.rb@:
 
 <pre>
-config.after_initialize do
-  Vanity.playground.test!
-end
+require "vanity"
+Vanity.playground.test!
 </pre>
 
 A bit more convoluted (but you'll learn a couple of things along the way) is to flush the Redis database after each test, or at least once before loading the suite.  Of course, flushing the database will also clear any data you might need in development mode (most people develop and test on the same machine), so you'll want the test environment to use a different database.  Like this:
 
 <pre>
-config.after_initialize do
-  Vanity.playground.redis = "::15" # Different DB
-  Vanity.playground.redis.flushdb # Do this before running tests
-end
+require "vanity"
+Vanity.playground.redis = "::15" # Different DB
+Vanity.playground.redis.flushdb # Do this before running tests
 </pre>
 
 
@@ -74,7 +72,7 @@ Create a new controller for Vanity:
 
 <pre>
 class VanityController < ApplicationController
-  include Vanity::Rails::Dashboard
+include Vanity::Rails::Dashboard
 end
 </pre>
 
