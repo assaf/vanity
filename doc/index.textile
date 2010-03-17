@@ -14,9 +14,8 @@ h3. Reading Order
 * "2 Minute Demo(A/B Testing with Rails in 5 easy steps)":#intro
 * "Metrics":metrics.html
 * "A/B Testing(Everything you need to know)":ab_testing.html
-* "The Dashboard(Setting up and using the Rails dashboard)":dashboard.html
-* "Managing Identity":identity.html
 * "Using with Rails":rails.html
+* "Managing Identity":identity.html
 
 Also:
 

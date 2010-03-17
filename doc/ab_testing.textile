@@ -67,7 +67,7 @@ end
 
 h3(#interpret). Interpreting the Results
 
-We're going to let the experiment run for a while and track the results using "the dashboard":dashboard.html, or by running the command @vanity report@.
+We're going to let the experiment run for a while and track the results using "the dashboard":rails.html#dashboard, or by running the command @vanity report@.
 
 Vanity splits the audience randomly -- using "cookies and other mechanisms":identity.html -- and records who got to see each alternative, and how many in each group converted (in our case, signed up).  Dividing conversions by participants gives you the conversion rate.
 
@@ -164,7 +164,7 @@ def test_price_option
 end
 </pre>
 
-You'll also want to test each alternative visually, from your Web browser.  For that you'll have to install the "the Dashboard":dashboard.html, which lets you pick which alternative is shown to you:
+You'll also want to test each alternative visually, from your Web browser.  For that you'll have to install the "the Dashboard":rails.html#dashboard, which lets you pick which alternative is shown to you:
 
 !images/ab_in_dashboard.png!
 
