@@ -159,7 +159,7 @@ initializer.after_initialize
 $stdout << Vanity.playground.redis.server
     RB
   ensure
-    File.unlink yml
+    File.unlink yml.path
   end
 
   def test_connection_from_yaml_missing
@@ -172,7 +172,7 @@ initializer.after_initialize
 $stdout << Vanity.playground.redis.server
     RB
   ensure
-    File.unlink yml
+    File.unlink yml.path
   end
 
 
