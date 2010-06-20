@@ -24,6 +24,8 @@ task :push=>:build do
 end
 
 
+# Run the test suit.
+
 task :default=>:test
 desc "Run all tests using Redis mock (also default task)"
 Rake::TestTask.new do |task|
@@ -36,6 +38,7 @@ Rake::TestTask.new do |task|
   else
     task.verbose = true
   end
+    task.ruby_opts << "-I."
 end
 
 desc "Run all tests using live redis server"
@@ -44,7 +47,57 @@ task "test:redis" do
   task(:test).invoke
 end
 
+# These are all the backends we're going to test with.
+BACKENDS = %w{redis}
+
+desc "Test using different back-ends"
+task "test:backends", :backend do |t, args|
+  backends = args.backend ? [args.backend] : BACKENDS
+  backends.each do |backend|
+    task("test:#{backend}").invoke
+  end
+end
+
+# Ruby versions we're testing with.
+RUBIES = %w{1.8.7 1.9.1}
+
+# Use rake test:rubies to run all combination of tests (see test:backends) using
+# all the versions of Ruby specified in RUBIES. Or to test a specific version of
+# Ruby, rake test:rubies[1.8.7].
+#
+# This task uses RVM to install all the Ruby versions it needs, and creates a
+# vanity gemset in each one that includes Bundler and all the gems specified in
+# Gemfile. If anything goes south you can always wipe these gemsets or uninstall
+# these Rubies and start over.
+desc "Test using multiple versions of Ruby"
+task "test:rubies", :ruby do |t, args|
+  rubies = args.ruby ? [args.ruby] : RUBIES
+  rubies.each do |ruby|
+    puts "** Setup #{ruby}"
+    sh "env rvm_install_on_use_flag=1 rvm_gemset_create_on_use_flag=1 rvm #{ruby}@vanity rake test:setup"
+    puts
+    puts "** Test using #{ruby}"
+    sh "rvm #{ruby}@vanity -S bundle exec rake test:backends #{'--trace' if Rake.application.options.trace}"
+  end
+end
+
+task "test:setup" do
+  # Intended to be used from test:rubies, within specific RVM context.
+  begin # Make sure we got Bundler installed.
+    require "bundler"
+  rescue LoadError
+    sh "gem install bundler"
+  end
+  begin # Make sure we got all the dependencies
+    sh "bundle exec ruby -e puts > /dev/null"
+  rescue
+    sh "bundle install"
+  end
+end
+
 task(:clobber) { rm_rf "tmp" }
+
+
 
 
 begin

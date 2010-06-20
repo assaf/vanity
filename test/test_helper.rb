@@ -31,7 +31,6 @@ class Test::Unit::TestCase
     new_playground
     Vanity.playground.redis.flushdb
   end
-
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
