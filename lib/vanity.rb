@@ -2,7 +2,6 @@ require "date"
 require "time"
 require "logger"
 
-$LOAD_PATH << File.join(File.dirname(__FILE__), "../vendor/redis-rb/lib")
 autoload :Redis, "redis"
 
 # All the cool stuff happens in other places.

@@ -1,5 +1,7 @@
+begin require "bundler" ; Bundler.setup ; rescue LoadError ; end
 $LOAD_PATH.delete_if { |path| path[/gems\/vanity-\d/] }
 $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
+
 RAILS_ROOT = File.expand_path("..")
 require "test/unit"
 require "mocha"
@@ -35,7 +37,7 @@ class Test::Unit::TestCase
   # or reload an experiment (saved by the previous playground).
   def new_playground
     Vanity.playground = Vanity::Playground.new("::15", :logger=>$logger, :load_path=>"tmp/experiments")
-    #Vanity.playground.mock! unless ENV["REDIS"]
+    Vanity.playground.mock! if ENV["BACKEND"] == "mock"
   end
 
   # Defines the specified metrics (one or more names).  Returns metric, or array
@@ -65,7 +67,7 @@ class Test::Unit::TestCase
   def teardown
     Vanity.context = nil
     FileUtils.rm_rf "tmp"
-    Vanity.playground.redis.flushdb
+    Vanity.playground.redis.flushdb if Vanity.playground.redis
   end
 
 end

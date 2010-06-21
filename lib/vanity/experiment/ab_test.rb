@@ -385,9 +385,7 @@ module Vanity
 
       def destroy
         @alternatives.size.times do |i|
-          redis.del key("alts:#{i}:participants")
-          redis.del key("alts:#{i}:converted")
-          redis.del key("alts:#{i}:conversions")
+          redis.del key("alts:#{i}:participants"), key("alts:#{i}:converted"), key("alts:#{i}:conversions")
         end
         redis.del key(:outcome)
         super

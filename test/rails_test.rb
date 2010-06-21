@@ -127,17 +127,17 @@ $stdout << Vanity.playground.load_path
   # -- Connection configuration --
 
   def test_default_connection
-    assert_equal "localhost:6379", load_rails(<<-RB)
+    assert_equal "redis://localhost:6379/0", load_rails(<<-RB)
 initializer.after_initialize
-$stdout << Vanity.playground.redis.server
+$stdout << Vanity.playground.redis.id
     RB
   end
 
   def test_configured_connection
-    assert_equal "127.0.0.1:6379", load_rails(<<-RB)
+    assert_equal "redis://127.0.0.1:6379/0", load_rails(<<-RB)
 Vanity.playground.redis = "127.0.0.1:6379"
 initializer.after_initialize
-$stdout << Vanity.playground.redis.server
+$stdout << Vanity.playground.redis.id
     RB
   end
 
@@ -154,9 +154,9 @@ $stdout << Vanity.playground.redis.class
     yml = File.open("tmp/config/redis.yml", "w")
     yml << "production: internal.local:6379\n"
     yml.flush
-    assert_equal "internal.local:6379", load_rails(<<-RB)
+    assert_equal "redis://internal.local:6379/0", load_rails(<<-RB)
 initializer.after_initialize
-$stdout << Vanity.playground.redis.server
+$stdout << Vanity.playground.redis.id
     RB
   ensure
     File.unlink yml.path
@@ -167,9 +167,9 @@ $stdout << Vanity.playground.redis.server
     yml = File.open("tmp/config/redis.yml", "w")
     yml << "development: internal.local:6379\n"
     yml.flush
-    assert_equal "localhost:6379", load_rails(<<-RB)
+    assert_equal "redis://localhost:6379/0", load_rails(<<-RB)
 initializer.after_initialize
-$stdout << Vanity.playground.redis.server
+$stdout << Vanity.playground.redis.id
     RB
   ensure
     File.unlink yml.path
@@ -179,6 +179,7 @@ $stdout << Vanity.playground.redis.server
   def load_rails(code)
     tmp = Tempfile.open("test.rb")
     tmp.write <<-RB
+begin require "bundler" ; Bundler.setup ; rescue LoadError ; end
 $:.delete_if { |path| path[/gems\\/vanity-\\d/] }
 $:.unshift File.expand_path("../lib")
 RAILS_ROOT = File.expand_path(".")

@@ -153,20 +153,20 @@ module Vanity
       when String
         @connection_spec = spec_or_connection
         host, port, db = spec_or_connection.split(':').map { |x| x unless x.empty? }
-        @redis = Redis.new(:host=>host, :port=>port, :thread_safe=>true, :db=>db, :thread_safe=>true)
-      when Redis
+        @redis = ::Redis.new(:host=>host, :port=>port, :thread_safe=>true, :db=>db, :thread_safe=>true)
+      when ::Redis
         @connection_spec = nil
         @redis = spec_or_connection
       when :mock
         @connection_spec = nil
-        @redis = MockRedis.new
+        @redis = ::MockRedis.new
       else
         raise "I don't know what to do with #{spec_or_connection.inspect}"
       end
     end
 
     def redis
-      self.redis = @connection_spec unless @redis
+      self.redis = @connection_spec unless @redis || @connection_spec.nil?
       @redis
     end
 

@@ -43,7 +43,7 @@ end
 
 desc "Run all tests using live redis server"
 task "test:redis" do
-  ENV["REDIS"] = "true"
+  ENV["BACKEND"] = "redis"
   task(:test).invoke
 end
 
@@ -74,7 +74,7 @@ task "test:rubies", :ruby do |t, args|
   rubies = args.ruby ? [args.ruby] : RUBIES
   rubies.each do |ruby|
     puts "** Setup #{ruby}"
-    sh "env rvm_install_on_use_flag=1 rvm_gemset_create_on_use_flag=1 rvm #{ruby}@vanity rake test:setup"
+    sh "rvm #{ruby}@vanity rake test:setup"
     puts
     puts "** Test using #{ruby}"
     sh "rvm #{ruby}@vanity -S bundle exec rake test:backends #{'--trace' if Rake.application.options.trace}"
