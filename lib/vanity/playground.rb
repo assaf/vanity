@@ -159,7 +159,7 @@ module Vanity
         @redis = spec_or_connection
       when :mock
         @connection_spec = nil
-        @redis = ::MockRedis.new
+        @redis = MockRedis.new
       else
         raise "I don't know what to do with #{spec_or_connection.inspect}"
       end

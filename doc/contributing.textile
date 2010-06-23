@@ -24,14 +24,17 @@ h3(#link). Relevant Links
 
 h3(#building). Building From Source
 
-To make life easier, you can use Bundler with the included Gemfile to load all the necessary development dependencies.
+To make life easier, the source distribution takes advantage of "RVM":http://rvm.beginrescueend.com/ and "Bundler":http://gembundler.com/ to test Vanity against multiple versions of Ruby and specific dependencies.
 
-For example, to install all the dependencies and run the test suite for the first time:
+For example, to test Vanity with Ruby 1.9.2 you could:
 
 <pre>
+$ rvm 1.9.2@vanity
 $ bundle install
-$ bundle exec rake test
+$ rake test
 </pre>
+
+Before release, we're going to test Vanity against all the Ruby versions and all the back-ends listed in the Rakefile. Please help by running the entire test suite (@rake test:rubies@) when making pull requests. It will take a while to run the first time, as it installs all the dependencies, so please be patient.
 
 
 h3(#doc). Documentation

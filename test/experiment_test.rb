@@ -80,7 +80,7 @@ class ExperimentTest < Test::Unit::TestCase
   def test_reloading_experiments
     new_ab_test(:ab) { metrics :happiness }
     new_ab_test(:cd) { metrics :happiness }
-    assert 2, Vanity.playground.experiments.size
+    assert_equal 2, Vanity.playground.experiments.size
     Vanity.playground.reload!
     assert Vanity.playground.experiments.empty?
   end

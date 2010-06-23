@@ -1,0 +1,8 @@
+---
+layout: page
+title: FAQ
+---
+
+*Q:* Is Vanity just for Rails?
+
+*A:* In spite of what the name says, no.  Vanity can be used with any Ruby project and any Web framework.  It also has nice integration for Rails.

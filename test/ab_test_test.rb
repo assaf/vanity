@@ -359,10 +359,10 @@ class AbTestTest < ActionController::TestCase
     assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
     assert experiment(:abcd).score.alts.all? { |alt| alt.probability == 0 }
     assert experiment(:abcd).score.alts.all? { |alt| alt.difference.nil? }
-    assert 1, experiment(:abcd).score.best.id
+    assert_equal 1, experiment(:abcd).score.best.id
     assert_nil experiment(:abcd).score.choice
-    assert 1, experiment(:abcd).score.base.id
-    assert 1, experiment(:abcd).score.least.id
+    assert_equal 2, experiment(:abcd).score.base.id
+    assert_equal 1, experiment(:abcd).score.least.id
   end
 
   def test_scoring_with_some_performers

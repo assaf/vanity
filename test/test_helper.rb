@@ -1,4 +1,3 @@
-begin require "bundler" ; Bundler.setup ; rescue LoadError ; end
 $LOAD_PATH.delete_if { |path| path[/gems\/vanity-\d/] }
 $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
 
@@ -13,6 +12,7 @@ Rails.configuration = Rails::Configuration.new
 require "phusion_passenger/events"
 require "lib/vanity"
 require "timecop"
+require "redis"
 
 
 if $VERBOSE

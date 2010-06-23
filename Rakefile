@@ -59,7 +59,7 @@ task "test:backends", :backend do |t, args|
 end
 
 # Ruby versions we're testing with.
-RUBIES = %w{1.8.7 1.9.1}
+RUBIES = %w{1.8.7 1.9.1 1.9.2}
 
 # Use rake test:rubies to run all combination of tests (see test:backends) using
 # all the versions of Ruby specified in RUBIES. Or to test a specific version of

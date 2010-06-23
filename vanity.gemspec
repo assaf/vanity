@@ -15,4 +15,6 @@ Gem::Specification.new do |spec|
   spec.extra_rdoc_files = "README.rdoc", "CHANGELOG"
   spec.rdoc_options     = "--title", "Vanity #{spec.version}", "--main", "README.rdoc",
                           "--webcvs", "http://github.com/assaf/#{spec.name}"
+
+  spec.add_dependency "redis", "~>2.0"
 end

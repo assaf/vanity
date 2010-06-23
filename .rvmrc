@@ -1,4 +1,4 @@
 export rvm_install_on_use_flag=1
 export rvm_gemset_create_on_use_flag=1
-export RUBYOPT=rubygems
+export RUBYOPT="rubygems"
 rvm gemset use vanity

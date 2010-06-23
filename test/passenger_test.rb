@@ -20,9 +20,9 @@ class PassengerTest < Test::Unit::TestCase
     channel.write_scalar request.to_a.join("\0")
     response = socket.read.split("\r\n\r\n").last
     socket.close
-
-    server, obj_id = response.split("\n")
-    assert_equal @original.server, server
+    # id: redis connection string. obj_id: diff processes, so diff objects
+    id, obj_id = response.split("\n")
+    assert_equal @original.id, id
     assert_not_equal @original.object_id.to_s, obj_id
   end
 

@@ -65,10 +65,10 @@ context "Metric" do
       metric "Yawns/sec", "Cheers/sec"
       Vanity.playground.metric(:yawns_sec)
       Vanity.playground.metric(:cheers_sec)
-      assert 2, Vanity.playground.metrics.size
+      assert_equal 2, Vanity.playground.metrics.size
       metrics = Vanity.playground.metrics.values
       Vanity.playground.reload!
-      assert 2, Vanity.playground.metrics.size
+      assert_equal 0, Vanity.playground.metrics.size
       assert_not_equal metrics, Vanity.playground.metrics.values
     end
 
