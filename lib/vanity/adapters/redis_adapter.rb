@@ -1,8 +1,7 @@
-require "redis"
-
 module Vanity
   module Adapters
     def self.redis_connection(spec)
+      require "redis"
       RedisAdapter.new(spec)
     end
 

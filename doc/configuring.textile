@@ -18,6 +18,6 @@ Configuration options are:
 | load_path   | Directory containing experiment files | experiments    |
 | logger      | This should be obvious                | default/Rails  |
 
-Database connection information is loaded from @config/vanity.yml@, based on the current environment (@RACK_ENV@ or @RAILS_ENV@).
+Database connection information is loaded from @config/vanity.yml@, based on the current environment (@RACK_ENV@ or @RAILS_ENV@). If your application has no configuration file and does not establish a connection directly, Vanity will automatically connect to the Redis instance running on @localhost@ at port 6379.
 
 When "running under Rails":rails.html, Vanity defaults to using the Rails logger, locates the load_path relative to Rails root and will use the @config/vanity.yml@ configuration file, if present.
