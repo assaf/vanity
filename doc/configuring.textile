@@ -8,14 +8,16 @@ Vanity will work out of the box on a default configuration.  Assuming you're usi
 If you run a different setup, use the playground object to configure Vanity.  For example:
 
 <pre>
-Vanity.playground.redis = "redis.example.com"
+Vanity.playground.load_path = "exp"
+Vanity.playground.establish_connection "redis://db.example.com"
 </pre>
 
 Configuration options are:
 
 |_. name      |_. Is all about ...                    |_. Default      |
-| redis       | Connection specification              | 127.0.0.1:6379 |
 | load_path   | Directory containing experiment files | experiments    |
 | logger      | This should be obvious                | default/Rails  |
 
-When "running under Rails":rails.html, Vanity defaults to using the Rails logger, locates the load_path relative to Rails root and will use the @config/redis.yml@ configuration file, if present.
+Database connection information is loaded from @config/vanity.yml@, based on the current environment (@RACK_ENV@ or @RAILS_ENV@).
+
+When "running under Rails":rails.html, Vanity defaults to using the Rails logger, locates the load_path relative to Rails root and will use the @config/vanity.yml@ configuration file, if present.

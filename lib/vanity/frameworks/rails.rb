@@ -193,11 +193,6 @@ if defined?(Rails)
     # Use Rails logger by default.
     Vanity.playground.logger ||= Rails.logger
     Vanity.playground.load_path = Rails.root + Vanity.playground.load_path
-    config_file = Rails.root + "config/redis.yml"
-    if !Vanity.playground.connected? && config_file.exist?
-      config = YAML.load_file(config_file)[Rails.env.to_s]
-      Vanity.playground.redis = config if config
-    end
 
     # Do this at the very end of initialization, allowing test environment to do
     # Vanity.playground.mock! before any database access takes place.
@@ -213,9 +208,9 @@ if defined?(PhusionPassenger)
   PhusionPassenger.on_event(:starting_worker_process) do |forked| 
     if forked 
       begin
-        Vanity.playground.reconnect!
+        Vanity.playground.establish_connection
       rescue Exception=>ex
-        Rails.logger.error "Error reconnecting Redis: #{ex.to_s}" 
+        Rails.logger.error "Error reconnecting: #{ex.to_s}" 
       end
     end 
   end 

@@ -143,45 +143,89 @@ module Vanity
 
     # -- Connection management --
    
+    def establish_connection(spec = nil)
+      case spec
+      when nil
+        if File.exists?("config/vanity.yml")
+          env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
+          spec = YAML.load_file("config/vanity.yml")[env]
+          fail "No configuration for #{env}" unless spec
+        elsif File.exists?("config/redis.yml")
+          env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
+          spec = "redis://" + YAML.load_file("config/redis.yml")[env].to_s
+          fail "No configuration for #{env}" unless spec
+        else
+          spec = { :adapter=>"redis" }
+        end
+        establish_connection spec
+      when Symbol
+        spec = YAML.load_file("config/vanity.yml")[spec.to_s]
+        establish_connection spec
+      when String
+        uri = URI.parse(spec)
+        params = CGI.parse(uri.query) if uri.query
+        establish_connection "adapter"=>uri.scheme, "username"=>uri.user, "password"=>uri.password,
+          "host"=>uri.host, "port"=>uri.port, "path"=>uri.path, "params"=>params
+      else
+        spec = spec.inject({}) { |hash,(k,v)| hash[k.to_sym] = v ; hash }
+        begin
+          require "vanity/adapters/#{spec[:adapter]}_adapter"
+        rescue LoadError
+          raise "Could not find #{spec[:adapter]} in your load path"
+        end
+        disconnect!
+        @adapter = Adapters.establish_connection(spec)
+      end
+    end
+
+    def connection
+      establish_connection unless @adapter
+      @adapter
+    end
+
+    def connected?
+      @adapter && @adapter.active?
+    end
+
+    def disconnect!
+      @adapter.disconnect! if @adapter
+    end
+
+    def reconnect!
+      establish_connection
+    end
+
+    # Use this when testing to disable Redis (e.g. if your CI server doesn't
+    # have Redis). 
+    #
+    # @example Put this in config/environments/test.rb
+    #   config.after_initialize { Vanity.playground.test! }
+    def test!
+      establish_connection :adapter=>:mock
+    end
+
     # Tells the playground where to find Redis.  Accepts one of the following:
     # - "hostname:port"
     # - ":port"
     # - "hostname:port:db"
     # - Instance of Redis connection. 
     def redis=(spec_or_connection)
+      warn "Deprecated: use establish_connection method instead"
       case spec_or_connection
       when String
-        @connection_spec = spec_or_connection
-        host, port, db = spec_or_connection.split(':').map { |x| x unless x.empty? }
-        @redis = ::Redis.new(:host=>host, :port=>port, :thread_safe=>true, :db=>db, :thread_safe=>true)
+        establish_connection "redis://" + spec_or_connection
       when ::Redis
-        @connection_spec = nil
-        @redis = spec_or_connection
+        @connection = Adapters::RedisAdapter.new(spec_or_connection)
       when :mock
-        @connection_spec = nil
-        @redis = MockRedis.new
+        establish_connection :adapter=>:mock
       else
         raise "I don't know what to do with #{spec_or_connection.inspect}"
       end
     end
 
     def redis
-      self.redis = @connection_spec unless @redis || @connection_spec.nil?
-      @redis
-    end
-
-    def connected?
-      !@redis.nil?
-    end
-
-    def disconnect!
-      @redis.quit if connected? rescue nil
-      @redis = nil
-    end
-
-    def reconnect!
-      raise "Connect reconnect without connection specification" unless String === @connection_spec
-      disconnect! rescue nil
+      warn "Deprecated: use connection method instead"
+      connection
     end
 
     def mock!
@@ -189,14 +233,6 @@ module Vanity
       test!
     end
    
-    # Use this when testing to disable Redis (e.g. if your CI server doesn't
-    # have Redis). 
-    #
-    # @example Put this in config/environments/test.rb
-    #   config.after_initialize { Vanity.playground.test! }
-    def test!
-      self.redis = :mock
-    end
   end
 
   @playground = Playground.new

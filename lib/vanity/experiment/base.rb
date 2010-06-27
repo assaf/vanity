@@ -139,35 +139,35 @@ module Vanity
 
       # Force experiment to complete.
       def complete!
-        redis.setnx key(:completed_at), Time.now.to_i
-        @completed_at = redis[key(:completed_at)]
+        connection.setnx key(:completed_at), Time.now.to_i
+        @completed_at = connection[key(:completed_at)]
         @playground.logger.info "vanity: completed experiment #{id}"
       end
 
       # Time stamp when experiment was completed.
       def completed_at
-        @completed_at ||= redis[key(:completed_at)]
+        @completed_at ||= connection[key(:completed_at)]
         @completed_at && Time.at(@completed_at.to_i)
       end
       
       # Returns true if experiment active, false if completed.
       def active?
-        !redis.exists(key(:completed_at))
+        !connection.exists(key(:completed_at))
       end
 
       # -- Store/validate --
 
       # Get rid of all experiment data.
       def destroy
-        redis.del key(:created_at)
-        redis.del key(:completed_at)
+        connection.del key(:created_at)
+        connection.del key(:completed_at)
         @created_at = @completed_at = nil
       end
 
       # Called by Playground to save the experiment definition.
       def save
-        redis.setnx key(:created_at), Time.now.to_i
-        @created_at = Time.at(redis[key(:created_at)].to_i)
+        connection.setnx key(:created_at), Time.now.to_i
+        @created_at = Time.at(connection[key(:created_at)].to_i)
       end
 
     protected
@@ -202,9 +202,9 @@ module Vanity
         name ? "#{@namespace}:#{name}" : @namespace
       end
 
-      # Shortcut for Vanity.playground.redis
-      def redis
-        @playground.redis
+      # Shortcut for Vanity.playground.connection
+      def connection
+        @playground.connection
       end
       
     end

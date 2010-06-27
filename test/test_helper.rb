@@ -12,7 +12,6 @@ Rails.configuration = Rails::Configuration.new
 require "phusion_passenger/events"
 require "lib/vanity"
 require "timecop"
-require "redis"
 
 
 if $VERBOSE
@@ -31,7 +30,7 @@ class Test::Unit::TestCase
   # (mostly experiments), resets vanity ID, and clears Redis of all experiments.
   def nuke_playground
     new_playground
-    Vanity.playground.redis.flushdb
+    Vanity.playground.connection.flushdb
   end
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
@@ -67,7 +66,7 @@ class Test::Unit::TestCase
   def teardown
     Vanity.context = nil
     FileUtils.rm_rf "tmp"
-    Vanity.playground.redis.flushdb if Vanity.playground.redis
+    Vanity.playground.connection.flushdb if Vanity.playground.connection
   end
 
 end

@@ -121,8 +121,8 @@ module Vanity
       @playground, @name = playground, name.to_s
       @id = (id || name.to_s.downcase.gsub(/\W+/, '_')).to_sym
       @hooks = []
-      redis.setnx key(:created_at), Time.now.to_i
-      @created_at = Time.at(redis[key(:created_at)].to_i)
+      connection.setnx key(:created_at), Time.now.to_i
+      @created_at = Time.at(connection[key(:created_at)].to_i)
     end
 
 
@@ -133,7 +133,7 @@ module Vanity
       count ||= 1
       if count > 0
         timestamp = Time.now
-        redis.incrby key(timestamp.to_date, "count"), count
+        connection.incrby key(timestamp.to_date, "count"), count
         @playground.logger.info "vanity: #{@id} with count #{count}"
         call_hooks timestamp, count
       end
@@ -192,7 +192,7 @@ module Vanity
     # Given two arguments, a start date and an end date (inclusive), returns an
     # array of measurements.  All metrics must implement this method.
     def values(from, to)
-      values = redis.mget(*(from.to_date..to.to_date).map { |date| key(date, "count") }) || []
+      values = connection.mget(*(from.to_date..to.to_date).map { |date| key(date, "count") }) || []
       values.map(&:to_i)
     end
 
@@ -200,11 +200,11 @@ module Vanity
     # -- Storage --
 
     def destroy!
-      redis.del *redis.keys(key("*"))
+      connection.del *connection.keys(key("*"))
     end
 
-    def redis
-      @playground.redis
+    def connection
+      @playground.connection
     end
 
     def key(*args)

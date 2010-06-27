@@ -142,9 +142,9 @@ module Vanity
       def _alternatives
         alts = []
         @alternatives.each_with_index do |value, i|
-          participants = redis.scard(key("alts:#{i}:participants")).to_i
-          converted = redis.scard(key("alts:#{i}:converted")).to_i
-          conversions = redis[key("alts:#{i}:conversions")].to_i
+          participants = connection.scard(key("alts:#{i}:participants")).to_i
+          converted = connection.scard(key("alts:#{i}:converted")).to_i
+          conversions = connection[key("alts:#{i}:conversions")].to_i
           alts << Alternative.new(self, i, value, participants, converted, conversions)
         end
         alts
@@ -188,14 +188,14 @@ module Vanity
       def choose
         if active?
           identity = identity()
-          index = redis[key("participant:#{identity}:show")]
+          index = connection[key("participant:#{identity}:show")]
           unless index
             index = alternative_for(identity)
-            redis.sadd key("alts:#{index}:participants"), identity
+            connection.sadd key("alts:#{index}:participants"), identity
             check_completion!
           end
         else
-          index = redis[key("outcome")] || alternative_for(identity)
+          index = connection[key("outcome")] || alternative_for(identity)
         end
         @alternatives[index.to_i]
       end
@@ -228,11 +228,11 @@ module Vanity
       #   end
       def chooses(value)
         if value.nil?
-          redis.del key("participant:#{identity}:show")
+          connection.del key("participant:#{identity}:show")
         else
           index = @alternatives.index(value)
           raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-          redis[key("participant:#{identity}:show")] = index
+          connection[key("participant:#{identity}:show")] = index
         end
         self
       end
@@ -240,7 +240,7 @@ module Vanity
       # True if this alternative is currently showing (see #chooses).
       def showing?(alternative)
         identity = identity()
-        index = redis[key("participant:#{identity}:show")]
+        index = connection[key("participant:#{identity}:show")]
         index && index.to_i == alternative.id
       end
 
@@ -358,7 +358,7 @@ module Vanity
 
       # Alternative chosen when this experiment completed.
       def outcome
-        outcome = redis[key("outcome")]
+        outcome = connection[key("outcome")]
         outcome && alternatives[outcome.to_i]
       end
 
@@ -377,7 +377,7 @@ module Vanity
           outcome = best.id if best
         end
         # TODO: logging
-        redis.setnx key("outcome"), outcome || 0
+        connection.setnx key("outcome"), outcome || 0
       end
 
       
@@ -385,9 +385,9 @@ module Vanity
 
       def destroy
         @alternatives.size.times do |i|
-          redis.del key("alts:#{i}:participants"), key("alts:#{i}:converted"), key("alts:#{i}:conversions")
+          connection.del key("alts:#{i}:participants"), key("alts:#{i}:converted"), key("alts:#{i}:conversions")
         end
-        redis.del key(:outcome)
+        connection.del key(:outcome)
         super
       end
 
@@ -409,10 +409,10 @@ module Vanity
         return unless active?
         identity = identity() rescue nil
         if identity
-          return if redis[key("participants:#{identity}:show")]
+          return if connection[key("participants:#{identity}:show")]
           index = alternative_for(identity)
-          redis.sadd key("alts:#{index}:converted"), identity if redis.sismember(key("alts:#{index}:participants"), identity)
-          redis.incrby key("alts:#{index}:conversions"), count
+          connection.sadd key("alts:#{index}:converted"), identity if connection.sismember(key("alts:#{index}:participants"), identity)
+          connection.incrby key("alts:#{index}:conversions"), count
           check_completion!
         end
       end
@@ -430,13 +430,13 @@ module Vanity
           participants.times do |identity|
             index = @alternatives.index(value)
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            redis.sadd key("alts:#{index}:participants"), identity
+            connection.sadd key("alts:#{index}:participants"), identity
           end
           conversions.times do |identity|
             index = @alternatives.index(value)
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            redis.sadd key("alts:#{index}:converted"), identity
-            redis.incr key("alts:#{index}:conversions")
+            connection.sadd key("alts:#{index}:converted"), identity
+            connection.incr key("alts:#{index}:conversions")
           end
         end
       end

@@ -27,12 +27,16 @@ Rails::Initializer.run do |config|
 end
 </pre>
 
-If you have a @config/redis.yml@ file, Vanity will read the configuration for the current environment.  For example:
+If you have a @config/vanity.yml@ file, Vanity will read the configuration for the current environment.  For example:
 
 <pre>
-development: localhost:6379
-test: localhost:6379:15
-production: db.internal:6379
+development:
+  adapter: redis
+test:
+  adapter: mock
+production:
+  adapter: redis
+  host: db.local
 </pre>
 
 If you want to use Google Analytics, you must also tell Rails to include the @garb@ gem, and login for a new session.  You'll want to do that for production, not for development if you like developing offline:
@@ -49,19 +53,19 @@ h3(#test).  Test Environment
 
 As your tests run, any metric and experiment data is stored in Redis.  You might not appreciate tests filling up Redis with useless data, and there are two things you can do about it.
 
-Easiest it to tell Vanity to avoid accessing Redis altogether.  Just add this to @config/environments/test.rb@:
+Easiest it to tell Vanity to avoid accessing the database altogether.  Just add this to @config/environments/test.rb@:
 
 <pre>
 require "vanity"
 Vanity.playground.test!
 </pre>
 
-A bit more convoluted (but you'll learn a couple of things along the way) is to flush the Redis database after each test, or at least once before loading the suite.  Of course, flushing the database will also clear any data you might need in development mode (most people develop and test on the same machine), so you'll want the test environment to use a different database.  Like this:
+A bit more convoluted (but you'll learn a couple of things along the way) is to flush the database after each test, or at least once before loading the test suite.  Of course, flushing the database will also clear any data you might need in development mode (most people develop and test on the same machine), so you'll want the test environment to use a different database.  Like this:
 
 <pre>
 require "vanity"
-Vanity.playground.redis = "::15" # Different DB
-Vanity.playground.redis.flushdb # Do this before running tests
+Vanity.playground.establish_connection "redis://localhost/15" # database 15
+Vanity.playground.connection.flushdb # Do this before running tests
 </pre>
 
 
@@ -88,14 +92,14 @@ The Dashboard renders complete HTML pages with CSS and all necessary JavaScript 
 
 h3(#fork).  Unicorn and Forking Servers
 
-Unicorn forks the master process to create worker processes efficiently.  Since the master processes opens a connection to Redis, all workers end up sharing that connection, resulting in ugly contention issues.
+Unicorn forks the master process to create worker processes efficiently.  Since the master processes opens a connection to the database, all workers end up sharing that connection, resulting in ugly contention issues.
 
 The cure is simple, use the @after_fork@ hook to reconnect each worker process.  Here's the relevant part from my @config/unicorn.rb@:
 
 <pre>
 after_fork do |server, worker|
   ActiveRecord::Base.establish_connection
-  Vanity.playground.reconnect!
+  Vanity.playground.establish_connection
 end
 </pre>
 
