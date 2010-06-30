@@ -60,10 +60,16 @@ And:
 
 To run the test suite for the first time:
 
-  $ bundle install
-  $ bundle exec rake
+  $ rake test:setup test
 
-You can also +rake test+ if you insist on being explicit.
+Vanity is tested against multiple Ruby implementations. To run the full test
+suite against all Ruby implementations and bundled adapters:
+
+  $ rake test:rubies
+  $ # only ruby 1.9.2
+  $ rake test:rubies[1.9.2]
+  $ # only redis
+  $ rake test:adapters[redis]
 
 To build the documentation:
  

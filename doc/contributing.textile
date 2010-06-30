@@ -24,17 +24,38 @@ h3(#link). Relevant Links
 
 h3(#building). Building From Source
 
-To make life easier, the source distribution takes advantage of "RVM":http://rvm.beginrescueend.com/ and "Bundler":http://gembundler.com/ to test Vanity against multiple versions of Ruby and specific dependencies.
+Vanity is tested against multiple Ruby implementations, and a variety of database engines. To make life easier, we use "RVM":http://rvm.beginrescueend.com/ and "Bundler":http://gembundler.com/ to set up the test/development environment.
 
-For example, to test Vanity with Ruby 1.9.2 you could:
+To test Vanity for the first time with whichever Ruby implementation you're currently using:
 
 <pre>
-$ rvm 1.9.2@vanity
-$ bundle install
+$ rake test:setup
 $ rake test
 </pre>
 
-Before release, we're going to test Vanity against all the Ruby versions and all the back-ends listed in the Rakefile. Please help by running the entire test suite (@rake test:rubies@) when making pull requests. It will take a while to run the first time, as it installs all the dependencies, so please be patient.
+To test Vanity with all supported adapters, or a specific adapter:
+
+<pre>
+$ rake test:adapters
+$ rake test:adapters[redis]
+</pre>
+
+To test Vanity with all supported Ruby implementations, or a specific implementation:
+
+<pre>
+$ rake test:rubies
+$ rake test:rubies[1.9.2]
+$ # or
+$ rvm 1.9.2@vanity rake test
+</pre>
+
+If you have RVM installed, @rake test:rubies@ will install all the supported Ruby implementations and populate the @vanity@ gemset for you. To test all supported adapters, you will also need to install Redis. If working on the Mac, you can easily install them all using "Homebrew":http://github.com/mxcl/homebrew.
+
+To package Vanity as a gem and install on your machine:
+
+<pre>
+$ rake install
+</pre>
 
 
 h3(#doc). Documentation
@@ -48,6 +69,12 @@ To build and view documentation:
 <pre>
 $ rake docs
 $ open html/index.html
+</pre>
+
+To clean up after yourself:
+
+<pre>
+$ rake clobber
 </pre>
 
 

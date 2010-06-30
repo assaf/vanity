@@ -3,7 +3,7 @@ require "rake/testtask"
 spec = Gem::Specification.load(File.expand_path("vanity.gemspec", File.dirname(__FILE__)))
 
 desc "Build the Gem"
-task :build=>:test do
+task :build do
   sh "gem build #{spec.name}.gemspec"
 end
 
@@ -14,7 +14,7 @@ task :install=>:build do
 end
 
 desc "Push new release to gemcutter and git tag"
-task :push=>:build do
+task :push=>["test:rubies", "build"] do
   sh "git push"
   puts "Tagging version #{spec.version} .."
   sh "git tag v#{spec.version}"
@@ -92,8 +92,6 @@ task "test:setup" do
 end
 
 task(:clobber) { rm_rf "tmp" }
-
-
 
 
 begin
