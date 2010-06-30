@@ -35,8 +35,13 @@ class Test::Unit::TestCase
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
-    Vanity.playground = Vanity::Playground.new("::15", :logger=>$logger, :load_path=>"tmp/experiments")
-    Vanity.playground.mock! if ENV["BACKEND"] == "mock"
+    case ENV["ADAPTER"]
+    when "redis", nil ; spec = "redis:/"
+    when "mock" ; spec = "mock:/"
+    else raise "No support yet for #{ENV["ADAPTER"]}"
+    end
+    Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments")
+    Vanity.playground.establish_connection spec
   end
 
   # Defines the specified metrics (one or more names).  Returns metric, or array

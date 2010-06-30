@@ -1,10 +1,10 @@
 Gem::Specification.new do |spec|
   spec.name           = "vanity"
-  spec.version        = "1.3.0"
+  spec.version        = "1.4.0"
   spec.author         = "Assaf Arkin"
   spec.email          = "assaf@labnotes.org"
   spec.homepage       = "http://vanity.labnotes.org"
-  spec.summary        = "Experience Driven Development framework for Rails"
+  spec.summary        = "Experience Driven Development framework for Ruby"
   spec.description    = "Mirror, mirror on the wall ..."
   spec.post_install_message = "To get started run vanity --help"
 

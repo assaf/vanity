@@ -1,3 +1,5 @@
+require "uri"
+
 module Vanity
 
   # Playground catalogs all your experiments, holds the Vanity configuration.
@@ -8,7 +10,6 @@ module Vanity
   class Playground
 
     DEFAULTS = {
-      :connection=>"localhost:6379",
       :load_path=>"experiments",
       :namespace=>"vanity:#{Vanity::Version::MAJOR}"
     }
@@ -26,12 +27,13 @@ module Vanity
       options = args.pop if Hash === args.last
       @options = DEFAULTS.merge(options || {})
       if @options.values_at(:host, :port, :db).any?
-        warn "Deprecated: please specify Redis connection as single argument (\"host:port\")"
-        @connection_spec = "#{@options[:host]}:#{@options[:port]}:#{@options[:db]}"
+        warn "Deprecated: please specify Redis connection as URL (\"redis:/host:port/db\")"
+        establish_connection :adapter=>"redis", :host=>options[:host], :port=>options[:port], :database=>options[:db]
       elsif @options[:redis]
-        @redis = @options[:redis]
+        @adapter = RedisAdapter.new(:redis=>@options[:redis])
       else
-        @connection_spec = args.shift || @options[:connection]
+        connection_spec = args.shift || @options[:connection]
+        establish_connection "redis:/" + connection_spec if connection_spec
       end
 
       @namespace = @options[:namespace] || DEFAULTS[:namespace]
@@ -142,22 +144,47 @@ module Vanity
 
 
     # -- Connection management --
-   
+ 
+    # This is the preferred way to programmatically create a new connection (or
+    # switch to a new connection). If no connection was established, the
+    # playground will create a new one by calling this method with no arguments.
+    #
+    # With no argument, uses the connection specified in config/vanity.yml file
+    # for the current environment (RACK_ENV, RAILS_ENV or development). If there
+    # is no config/vanity.yml file, picks the configuration from
+    # config/redis.yml, or defaults to Redis on localhost, port 6379.
+    #
+    # If the argument is a symbol, uses the connection specified in
+    # config/vanity.yml for that environment. For example:
+    #   Vanity.playground.establish_connection :production
+    #
+    # If the argument is a string, it is processed as a URL. For example:
+    #   Vanity.playground.establish_connection "redis:/redis.local/5"
+    #
+    # Otherwise, the argument is a hash and specifies the adapter name and any
+    # additional options understood by that adapter (as with config/vanity.yml).
+    # For example:
+    #   Vanity.playground.establish_connection :adapter=>:redis,
+    #                                          :host=>"redis.local"
+    #
+    # @since 1.4.0 
     def establish_connection(spec = nil)
+      disconnect! if @adapter
       case spec
       when nil
         if File.exists?("config/vanity.yml")
           env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
           spec = YAML.load_file("config/vanity.yml")[env]
           fail "No configuration for #{env}" unless spec
+          establish_connection spec
         elsif File.exists?("config/redis.yml")
           env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
-          spec = "redis://" + YAML.load_file("config/redis.yml")[env].to_s
-          fail "No configuration for #{env}" unless spec
+          redis = YAML.load_file("config/redis.yml")[env]
+          fail "No configuration for #{env}" unless redis
+          establish_connection "redis://" + redis
         else
-          spec = { :adapter=>"redis" }
+          establish_connection :adapter=>"redis"
         end
-        establish_connection spec
       when Symbol
         spec = YAML.load_file("config/vanity.yml")[spec.to_s]
         establish_connection spec
@@ -173,33 +200,46 @@ module Vanity
         rescue LoadError
           raise "Could not find #{spec[:adapter]} in your load path"
         end
-        disconnect!
         @adapter = Adapters.establish_connection(spec)
       end
     end
 
+    # Returns the current connection. Establishes new connection is necessary.
+    #
+    # @since 1.4.0
     def connection
-      establish_connection unless @adapter
-      @adapter
+      @adapter || establish_connection
     end
 
+    # Returns true if connection is open.
+    #
+    # @since 1.4.0
     def connected?
       @adapter && @adapter.active?
     end
 
+    # Closes the current connection.
+    #
+    # @since 1.4.0
     def disconnect!
       @adapter.disconnect! if @adapter
     end
 
+    # Closes the current connection and establishes a new one.
+    #
+    # @since 1.3.0
     def reconnect!
       establish_connection
     end
 
     # Use this when testing to disable Redis (e.g. if your CI server doesn't
-    # have Redis). 
+    # have Redis). Alternatively, put the following in config/vanity.yml:
+    #   test:
+    #     adapter: mock
     #
     # @example Put this in config/environments/test.rb
     #   config.after_initialize { Vanity.playground.test! }
+    # @since 1.3.0
     def test!
       establish_connection :adapter=>:mock
     end

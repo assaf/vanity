@@ -139,35 +139,33 @@ module Vanity
 
       # Force experiment to complete.
       def complete!
-        connection.setnx key(:completed_at), Time.now.to_i
-        @completed_at = connection[key(:completed_at)]
+        connection.set_experiment_completed_at @id, Time.now
+        @completed_at = connection.get_experiment_completed_at(@id)
         @playground.logger.info "vanity: completed experiment #{id}"
       end
 
       # Time stamp when experiment was completed.
       def completed_at
-        @completed_at ||= connection[key(:completed_at)]
-        @completed_at && Time.at(@completed_at.to_i)
+        @completed_at ||= connection.get_experiment_completed_at(@id)
       end
       
       # Returns true if experiment active, false if completed.
       def active?
-        !connection.exists(key(:completed_at))
+        !connection.is_experiment_completed?(@id)
       end
 
       # -- Store/validate --
 
       # Get rid of all experiment data.
       def destroy
-        connection.del key(:created_at)
-        connection.del key(:completed_at)
+        connection.destroy_experiment @id
         @created_at = @completed_at = nil
       end
 
       # Called by Playground to save the experiment definition.
       def save
-        connection.setnx key(:created_at), Time.now.to_i
-        @created_at = Time.at(connection[key(:created_at)].to_i)
+        connection.set_experiment_created_at @id, Time.now
+        @created_at = connection.get_experiment_created_at(@id)
       end
 
     protected

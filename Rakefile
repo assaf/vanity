@@ -41,27 +41,23 @@ Rake::TestTask.new do |task|
     task.ruby_opts << "-I."
 end
 
-desc "Run all tests using live redis server"
-task "test:redis" do
-  ENV["BACKEND"] = "redis"
-  task(:test).invoke
-end
-
-# These are all the backends we're going to test with.
-BACKENDS = %w{redis}
+# These are all the adapters we're going to test with.
+ADAPTERS = %w{redis mock}
 
 desc "Test using different back-ends"
-task "test:backends", :backend do |t, args|
-  backends = args.backend ? [args.backend] : BACKENDS
-  backends.each do |backend|
-    task("test:#{backend}").invoke
+task "test:adapters", :adapter do |t, args|
+  adapters = args.adapter ? [args.adapter] : ADAPTERS
+  adapters.each do |adapter|
+    puts "** Testing #{adapter} adapter"
+    sh "rake test ADAPTER=#{adapter} #{'--trace' if Rake.application.options.trace}"
   end
 end
+
 
 # Ruby versions we're testing with.
 RUBIES = %w{1.8.7 1.9.1 1.9.2}
 
-# Use rake test:rubies to run all combination of tests (see test:backends) using
+# Use rake test:rubies to run all combination of tests (see test:adapters) using
 # all the versions of Ruby specified in RUBIES. Or to test a specific version of
 # Ruby, rake test:rubies[1.8.7].
 #
@@ -77,7 +73,7 @@ task "test:rubies", :ruby do |t, args|
     sh "rvm #{ruby}@vanity rake test:setup"
     puts
     puts "** Test using #{ruby}"
-    sh "rvm #{ruby}@vanity -S bundle exec rake test:backends #{'--trace' if Rake.application.options.trace}"
+    sh "rvm #{ruby}@vanity -S bundle exec rake test:adapters #{'--trace' if Rake.application.options.trace}"
   end
 end
 

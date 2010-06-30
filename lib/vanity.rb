@@ -28,13 +28,13 @@ require "vanity/metric/google_analytics"
 # Experiments.
 require "vanity/experiment/base"
 require "vanity/experiment/ab_test"
-# Playground.
-require "vanity/playground"
-require "vanity/helpers"
-Vanity.autoload :Commands, "vanity/commands"
 # Database adapters
 require "vanity/adapters/abstract_adapter"
 require "vanity/adapters/redis_adapter"
 require "vanity/adapters/mock_adapter"
+# Playground.
+require "vanity/playground"
+require "vanity/helpers"
+Vanity.autoload :Commands, "vanity/commands"
 # Integration with various frameworks.
 require "vanity/frameworks/rails" if defined?(Rails)

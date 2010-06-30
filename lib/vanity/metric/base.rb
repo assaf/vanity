@@ -121,8 +121,8 @@ module Vanity
       @playground, @name = playground, name.to_s
       @id = (id || name.to_s.downcase.gsub(/\W+/, '_')).to_sym
       @hooks = []
-      connection.setnx key(:created_at), Time.now.to_i
-      @created_at = Time.at(connection[key(:created_at)].to_i)
+      connection.set_metric_created_at @id, Time.now
+      @created_at = connection.get_metric_created_at(@id)
     end
 
 
@@ -133,7 +133,7 @@ module Vanity
       count ||= 1
       if count > 0
         timestamp = Time.now
-        connection.incrby key(timestamp.to_date, "count"), count
+        connection.metric_track @id, timestamp, count
         @playground.logger.info "vanity: #{@id} with count #{count}"
         call_hooks timestamp, count
       end
@@ -192,7 +192,7 @@ module Vanity
     # Given two arguments, a start date and an end date (inclusive), returns an
     # array of measurements.  All metrics must implement this method.
     def values(from, to)
-      values = connection.mget(*(from.to_date..to.to_date).map { |date| key(date, "count") }) || []
+      values = connection.metric_values(@id, from, to)
       values.map(&:to_i)
     end
 
@@ -200,7 +200,7 @@ module Vanity
     # -- Storage --
 
     def destroy!
-      connection.del *connection.keys(key("*"))
+      connection.destroy_metric @id
     end
 
     def connection

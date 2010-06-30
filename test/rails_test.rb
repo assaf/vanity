@@ -218,7 +218,6 @@ $stdout << Vanity.playground.connection
   def load_rails(code)
     tmp = Tempfile.open("test.rb")
     tmp.write <<-RB
-begin require "bundler" ; Bundler.setup ; rescue LoadError ; end
 $:.delete_if { |path| path[/gems\\/vanity-\\d/] }
 $:.unshift File.expand_path("../lib")
 RAILS_ROOT = File.expand_path(".")

@@ -3,8 +3,13 @@ require "phusion_passenger/spawn_manager"
 
 class PassengerTest < Test::Unit::TestCase
   def setup
+    super
     ActiveRecord::Base.connection.disconnect! # Otherwise AR metric tests fail
     @original = Vanity.playground.connection
+    File.unlink "test/myapp/config/vanity.yml" rescue nil
+    File.open("test/myapp/config/vanity.yml", "w") do |io|
+      io.write "production: #{Vanity.playground.connection}"
+    end
     @server = PhusionPassenger::SpawnManager.new
     @server.start
     Thread.pass until @server.started?
@@ -22,12 +27,13 @@ class PassengerTest < Test::Unit::TestCase
     socket.close
     conn, obj_id = response.split("\n")
     assert_equal @original.to_s, conn
-    assert_not_equal @original.redis.object_id.to_s, obj_id
+    assert_not_equal @original.object_id.to_s, obj_id
   end
 
   def teardown
     super
     @server.stop
+    File.unlink "test/myapp/config/vanity.yml"
   end
 
 end

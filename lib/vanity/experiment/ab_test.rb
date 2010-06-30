@@ -142,10 +142,8 @@ module Vanity
       def _alternatives
         alts = []
         @alternatives.each_with_index do |value, i|
-          participants = connection.scard(key("alts:#{i}:participants")).to_i
-          converted = connection.scard(key("alts:#{i}:converted")).to_i
-          conversions = connection[key("alts:#{i}:conversions")].to_i
-          alts << Alternative.new(self, i, value, participants, converted, conversions)
+          counts = connection.ab_counts(@id, i)
+          alts << Alternative.new(self, i, value, counts[:participants], counts[:converted], counts[:conversions])
         end
         alts
       end
@@ -188,14 +186,14 @@ module Vanity
       def choose
         if active?
           identity = identity()
-          index = connection[key("participant:#{identity}:show")]
+          index = connection.ab_showing(@id, identity)
           unless index
             index = alternative_for(identity)
-            connection.sadd key("alts:#{index}:participants"), identity
+            connection.ab_add_participant @id, index, identity
             check_completion!
           end
         else
-          index = connection[key("outcome")] || alternative_for(identity)
+          index = connection.ab_get_outcome(@id) || alternative_for(identity)
         end
         @alternatives[index.to_i]
       end
@@ -228,11 +226,11 @@ module Vanity
       #   end
       def chooses(value)
         if value.nil?
-          connection.del key("participant:#{identity}:show")
+          connection.ab_not_showing @id, identity
         else
           index = @alternatives.index(value)
           raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-          connection[key("participant:#{identity}:show")] = index
+          connection.ab_show @id, identity, index
         end
         self
       end
@@ -240,8 +238,7 @@ module Vanity
       # True if this alternative is currently showing (see #chooses).
       def showing?(alternative)
         identity = identity()
-        index = connection[key("participant:#{identity}:show")]
-        index && index.to_i == alternative.id
+        connection.ab_showing(@id, identity) == alternative.id
       end
 
 
@@ -358,8 +355,8 @@ module Vanity
 
       # Alternative chosen when this experiment completed.
       def outcome
-        outcome = connection[key("outcome")]
-        outcome && alternatives[outcome.to_i]
+        outcome = connection.ab_get_outcome(@id)
+        outcome && _alternatives[outcome]
       end
 
       def complete!
@@ -377,17 +374,16 @@ module Vanity
           outcome = best.id if best
         end
         # TODO: logging
-        connection.setnx key("outcome"), outcome || 0
+        connection.ab_set_outcome @id, outcome || 0
       end
 
       
       # -- Store/validate --
 
       def destroy
-        @alternatives.size.times do |i|
-          connection.del key("alts:#{i}:participants"), key("alts:#{i}:converted"), key("alts:#{i}:conversions")
-        end
-        connection.del key(:outcome)
+        #@alternatives.size.times do |i|
+        #  connection.del key("alts:#{i}:participants"), key("alts:#{i}:converted"), key("alts:#{i}:conversions")
+        #end
         super
       end
 
@@ -409,10 +405,9 @@ module Vanity
         return unless active?
         identity = identity() rescue nil
         if identity
-          return if connection[key("participants:#{identity}:show")]
+          return if connection.ab_showing(@id, identity)
           index = alternative_for(identity)
-          connection.sadd key("alts:#{index}:converted"), identity if connection.sismember(key("alts:#{index}:participants"), identity)
-          connection.incrby key("alts:#{index}:conversions"), count
+          connection.ab_add_conversion @id, index, identity, count
           check_completion!
         end
       end
@@ -430,13 +425,12 @@ module Vanity
           participants.times do |identity|
             index = @alternatives.index(value)
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            connection.sadd key("alts:#{index}:participants"), identity
+            connection.ab_add_participant @id, index, identity
           end
           conversions.times do |identity|
             index = @alternatives.index(value)
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            connection.sadd key("alts:#{index}:converted"), identity
-            connection.incr key("alts:#{index}:conversions")
+            connection.ab_add_conversion @id, index, identity
           end
         end
       end
