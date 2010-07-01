@@ -17,4 +17,5 @@ Gem::Specification.new do |spec|
                           "--webcvs", "http://github.com/assaf/#{spec.name}"
 
   spec.add_dependency "redis", "~>2.0"
+  spec.add_dependency "redis-namespace", "~>0.7"
 end

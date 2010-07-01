@@ -17,6 +17,7 @@ opts = OptionParser.new("", 24, "  ") do |opts|
   opts.banner << "Commands:\n"
   opts.banner << "  list    List all experiments and metrics\n"
   opts.banner << "  report  Report on all running experiments/metrics\n"
+  opts.banner << "  upgrade Upgrade your database when deploying new release\n"
 
   opts.separator ""
   opts.separator "Reporting options:"
@@ -29,8 +30,12 @@ opts = OptionParser.new("", 24, "  ") do |opts|
   opts.on "--load_path PATH", "Path to experiments directory (default: #{playground.load_path})" do |path|
     playground.load_path = path
   end
-  opts.on "--redis HOST:PORT:DB", "Redis server host (default: localhost:6379)" do |redis|
-    playground.redis = redis
+  opts.on "-d", "--database url", "Database connection URL (e.g. redis:/localhost:6379)" do |conn|
+    playground.establish_connection conn
+  end
+  opts.on "--redis HOST:PORT:DB", "DEPRECATED: Redis server host (default: localhost:6379)" do |redis|
+    host, port, db = redis.split(":")
+    playground.establish_connection "redis:/#{host}:#{port}/#{db}"
   end
   opts.on_tail "-h", "--help", "Show this message" do
     puts opts.to_s.gsub(/^.*DEPRECATED.*$/s, '')
@@ -50,8 +55,15 @@ end
 
 ARGV.each do |cmd|
   case cmd
-  when "report";  Vanity::Commands.report options.output
-  when "list";    Vanity::Commands.list
+  when "report"
+    require "vanity/commands/report"
+    Vanity::Commands.report options.output
+  when "list"
+    require "vanity/commands/list"
+    Vanity::Commands.list
+  when "upgrade"
+    require "vanity/commands/upgrade"
+    Vanity::Commands.upgrade
   else fail "No such command: #{cmd}"
   end
 end

@@ -4,9 +4,9 @@ module Vanity
   # can also respond to addition methods (+track!+, +bounds+, etc), these are
   # optional.
   #
-  # This class implements a basic metric that tracks data and stores it in
-  # Redis.  You can use this as the basis for your metric, or as reference for
-  # the methods your metric must and can implement.
+  # This class implements a basic metric that tracks data and stores it in the
+  # database.  You can use this as the basis for your metric, or as reference
+  # for the methods your metric must and can implement.
   #
   # @since 1.1.0
   class Metric

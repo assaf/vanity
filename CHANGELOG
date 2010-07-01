@@ -1,5 +1,10 @@
 == 1.4.0 (Pending)
 
+Note: Run this command to upgrade your database to 1.4, or you will not have
+access to collected metrics and experiment data:
+
+  vanity upgrade
+
 Connection adapters! We have a new way for managing connections which extends
 to multiple adapters (not just Redis). The easiest is to use the configuration
 file config/vanity.yml. For example:
@@ -24,6 +29,9 @@ To test specific version of Ruby:
 To switch around:
   rvm 1.9.2@vanity
 
+* Added: Adapter API, see Vanity::Adapters::AbstractAdapter and
+  Vanity::Adapters::RedisAdapter.
+* Added: Upgrade command.
 * Change: Vanity.playground.redis and redis= methods are deprecated, use
   connection and establish_connection instead.
 

@@ -27,7 +27,7 @@ end
 # Run the test suit.
 
 task :default=>:test
-desc "Run all tests using Redis mock (also default task)"
+desc "Run all tests"
 Rake::TestTask.new do |task|
   task.test_files = FileList['test/*_test.rb']
   if Rake.application.options.trace
@@ -109,7 +109,7 @@ task(:jekyll) { sh "jekyll", "doc", "html" }
 desc "Create documentation in docs directory (including API)"
 task :docs=>[:jekyll, :yardoc]
 desc "Remove temporary files and directories"
-task(:clobber) { rm_rf "html" }
+task(:clobber) { rm_rf "html" ; rm_rf ".yardoc" }
 
 desc "Publish documentation to vanity.labnotes.org"
 task :publish=>[:clobber, :docs] do

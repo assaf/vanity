@@ -7,7 +7,6 @@ title: Welcome to Vanity
 
 !http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg!
 
-Vanity requires Redis 1.0 or later.
 
 h3. Reading Order
 

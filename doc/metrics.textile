@@ -220,12 +220,12 @@ You can always populate the hash with your own metrics.
 
 When Vanity loads a metric, it evaluates the metric definition in a context that has two methods: @metric@ and @playground@.  The @metric@ method creates a new @Vanity::Metric@ object, and evaluates the block in the context of that object, so when you see the metric definition using methods like @description@ or @model@, these are all invoked on the metric object itself.
 
-A @Vanity::Metric@ object responds to @track!@ and increments a record in the Redis database (an _O(1)_ operation).  It creates one record for each day, accumulating that day's count.  When generating reports, the @values@ method fetches the values of all these keys (also _O(1)_).
+A @Vanity::Metric@ object responds to @track!@ and increments a record in the database (an _O(1)_ operation).  It creates one record for each day, accumulating that day's count.  When generating reports, the @values@ method fetches the values of all these keys (also _O(1)_).
 
 You can call @track!@ with a value higher than one, and it will increment the day's count by that value.
 
 Any time you track a metric, the metric passes its identifier, timestamp and count (if more than zero) to all its hooks.  "A/B tests":ab_testing.html use hooks to manage their own book keeping.  When you define an experiment and tell it which metric(s) to use, the experiment registers itself by calling the @hook@ method.
 
-When you call @model@ on a metric, this method changes the metric definition by rewriting the @values@ method to perform a query, rewriting the @track!@ method to update hooks but not Redis, and register an @after_create@ callback that updates the hooks.
+When you call @model@ on a metric, this method changes the metric definition by rewriting the @values@ method to perform a query, rewriting the @track!@ method to update hooks but not the database, and register an @after_create@ callback that updates the hooks.
 
 How about some tips & tricks for getting the most out of metrics (you might call them "best practices")?  Got any to share?

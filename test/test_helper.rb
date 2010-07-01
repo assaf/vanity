@@ -27,7 +27,7 @@ class Test::Unit::TestCase
   end
 
   # Call this on teardown. It wipes put the playground and any state held in it
-  # (mostly experiments), resets vanity ID, and clears Redis of all experiments.
+  # (mostly experiments), resets vanity ID, and clears database of all experiments.
   def nuke_playground
     new_playground
     Vanity.playground.connection.flushdb
@@ -71,7 +71,7 @@ class Test::Unit::TestCase
   def teardown
     Vanity.context = nil
     FileUtils.rm_rf "tmp"
-    Vanity.playground.connection.flushdb if Vanity.playground.connection
+    Vanity.playground.connection.flushdb if Vanity.playground.connected?
   end
 
 end

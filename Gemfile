@@ -1,7 +1,7 @@
 source "http://rubygems.org/"
 gem "garb"
 gem "rack", "1.0.1"
-gem "redis"
+gem "redis-namespace"
 
 group :development do
   gem "jekyll"
