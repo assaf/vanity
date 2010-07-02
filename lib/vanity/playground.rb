@@ -27,13 +27,13 @@ module Vanity
       options = args.pop if Hash === args.last
       @options = DEFAULTS.merge(options || {})
       if @options.values_at(:host, :port, :db).any?
-        warn "Deprecated: please specify Redis connection as URL (\"redis:/host:port/db\")"
+        warn "Deprecated: please specify Redis connection as URL (\"redis://host:port/db\")"
         establish_connection :adapter=>"redis", :host=>options[:host], :port=>options[:port], :database=>options[:db]
       elsif @options[:redis]
         @adapter = RedisAdapter.new(:redis=>@options[:redis])
       else
         connection_spec = args.shift || @options[:connection]
-        establish_connection "redis:/" + connection_spec if connection_spec
+        establish_connection "redis://" + connection_spec if connection_spec
       end
 
       @namespace = @options[:namespace] || DEFAULTS[:namespace]
@@ -159,7 +159,7 @@ module Vanity
     #   Vanity.playground.establish_connection :production
     #
     # If the argument is a string, it is processed as a URL. For example:
-    #   Vanity.playground.establish_connection "redis:/redis.local/5"
+    #   Vanity.playground.establish_connection "redis://redis.local/5"
     #
     # Otherwise, the argument is a hash and specifies the adapter name and any
     # additional options understood by that adapter (as with config/vanity.yml).
@@ -191,8 +191,8 @@ module Vanity
       when String
         uri = URI.parse(spec)
         params = CGI.parse(uri.query) if uri.query
-        establish_connection "adapter"=>uri.scheme, "username"=>uri.user, "password"=>uri.password,
-          "host"=>uri.host, "port"=>uri.port, "path"=>uri.path, "params"=>params
+        establish_connection :adapter=>uri.scheme, :username=>uri.user, :password=>uri.password,
+          :host=>uri.host, :port=>uri.port, :path=>uri.path, :params=>params
       else
         spec = spec.inject({}) { |hash,(k,v)| hash[k.to_sym] = v ; hash }
         begin
