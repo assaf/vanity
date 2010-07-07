@@ -42,7 +42,7 @@ Rake::TestTask.new do |task|
 end
 
 # These are all the adapters we're going to test with.
-ADAPTERS = %w{redis mock}
+ADAPTERS = %w{redis mongodb mock}
 
 desc "Test using different back-ends"
 task "test:adapters", :adapter do |t, args|

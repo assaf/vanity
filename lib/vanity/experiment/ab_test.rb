@@ -425,12 +425,12 @@ module Vanity
           participants.times do |identity|
             index = @alternatives.index(value)
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            connection.ab_add_participant @id, index, identity
+            connection.ab_add_participant @id, index, "#{index}:#{identity}"
           end
           conversions.times do |identity|
             index = @alternatives.index(value)
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            connection.ab_add_conversion @id, index, identity
+            connection.ab_add_conversion @id, index, "#{index}:#{identity}"
           end
         end
       end

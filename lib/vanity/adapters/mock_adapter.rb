@@ -37,6 +37,7 @@ module Vanity
         @experiments.clear
       end
 
+
       # -- Metrics --
       
       def set_metric_created_at(metric, time)
@@ -63,6 +64,7 @@ module Vanity
         @metrics.delete metric
       end
       
+
       # -- Experiments --
      
       def set_experiment_created_at(experiment, time)

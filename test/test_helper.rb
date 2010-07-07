@@ -35,11 +35,13 @@ class Test::Unit::TestCase
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
-    case ENV["ADAPTER"]
-    when "redis", nil ; spec = "redis:/"
-    when "mock" ; spec = "mock:/"
-    else raise "No support yet for #{ENV["ADAPTER"]}"
-    end
+    adapter = ENV["ADAPTER"] || "redis"
+    # We go destructive on the database at the end of each run, so make sure we
+    # don't use databases you care about. For Redis, we pick database 15
+    # (default is 0).
+    spec = { "redis"=>"redis://localhost/15", "mongodb"=>"mongo://localhost/vanity-test",
+             "mock"=>"mock:/" }[adapter]
+    raise "No support yet for #{adapter}" unless spec
     Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments")
     Vanity.playground.establish_connection spec
   end

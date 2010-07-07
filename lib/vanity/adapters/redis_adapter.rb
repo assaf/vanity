@@ -70,6 +70,7 @@ module Vanity
         @metrics.del *@metrics.keys("#{metric}:*")
       end
 
+
       # -- Experiments --
      
       def set_experiment_created_at(experiment, time)

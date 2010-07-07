@@ -13,8 +13,8 @@ file config/vanity.yml. For example:
 	  adapter: redis
 	test:
 	  adapter: mock
-	heroku:
-	  adapter: activerecord
+	production:
+	  adapter: mongodb
 
 This release switches from older vendored version of the Redis gem to the new
 2.0.x gem that is now required as a separate dependency. If your own code
@@ -31,6 +31,7 @@ To switch around:
 
 * Added: Adapter API, see Vanity::Adapters::AbstractAdapter and
   Vanity::Adapters::RedisAdapter.
+* Added: MongoDB support.
 * Added: Upgrade command.
 * Change: Vanity.playground.redis and redis= methods are deprecated, use
   connection and establish_connection instead.
