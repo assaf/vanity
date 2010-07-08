@@ -12,6 +12,7 @@ title: Using with Rails
 
 This guide is written for Rails 2.3.5.  If you have any tips for Rails 3.0, please share.
 
+
 h3(#config).  Configuring Vanity
 
 Start by telling Rails to use the Vanity gem, either using @config.gem "vanity"@ or by adding @gem "vanity"@ to your Gemfile.
@@ -37,6 +38,10 @@ test:
 production:
   adapter: redis
   host: db.local
+mongodb:
+  adapter: mongo
+  host: db.local
+  database: vanity
 </pre>
 
 If you want to use Google Analytics, you must also tell Rails to include the @garb@ gem, and login for a new session.  You'll want to do that for production, not for development if you like developing offline:

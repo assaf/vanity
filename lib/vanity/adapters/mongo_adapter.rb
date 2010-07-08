@@ -5,6 +5,7 @@ module Vanity
         require "mongo"
         MongodbAdapter.new(spec)
       end
+      alias :mongodb_connection :mongo_connection
     end
 
     class MongodbAdapter < AbstractAdapter
