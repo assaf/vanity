@@ -2,13 +2,20 @@ module Vanity
   module Adapters
 
     class << self
-      # Create and return new connection.
+      # Creates new connection to underlying datastore and returns suitable
+      # adapter (adapter object extends AbstractAdapter and wraps the
+      # connection). Vanity.playgroup.establish_connection uses this.
+      #
+      # @since 1.4.0
       def establish_connection(spec)
         adapter_method = "#{spec[:adapter]}_connection"
         send adapter_method, spec
       end
     end
 
+    # Base class for all adapters. Adapters wrap underlying connection to a
+    # datastore and implement an API that Vanity can use to store/access
+    # metrics, experiments, etc.
     class AbstractAdapter
       # Returns true if connected.
       def active?
@@ -27,6 +34,7 @@ module Vanity
       def flushdb
       end
       
+
       # -- Metrics --
      
       # Store when metric was created (do not write over existing value). 
@@ -54,6 +62,7 @@ module Vanity
       def destroy_metric(metric)
         fail "Not implemented"
       end
+
 
       # -- Experiments --
 

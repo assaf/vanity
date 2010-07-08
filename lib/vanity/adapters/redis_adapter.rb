@@ -1,12 +1,18 @@
 module Vanity
   module Adapters
     class << self
+      # Creates new connection to Redis and returns RedisAdapter.
+      #
+      # @since 1.4.0
       def redis_connection(spec)
         require "redis/namespace"
         RedisAdapter.new(spec)
       end
     end
 
+    # Redis adapter.
+    #
+    # @since 1.4.0
     class RedisAdapter < AbstractAdapter
       def initialize(options)
         @options = options.clone

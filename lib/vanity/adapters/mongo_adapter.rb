@@ -1,6 +1,9 @@
 module Vanity
   module Adapters
     class << self
+      # Creates new connection to MongoDB and returns MongoAdapter.
+      #
+      # @since 1.4.0
       def mongo_connection(spec)
         require "mongo"
         MongodbAdapter.new(spec)
@@ -8,6 +11,9 @@ module Vanity
       alias :mongodb_connection :mongo_connection
     end
 
+    # MongoDB adapter.
+    #
+    # @since 1.4.0
     class MongodbAdapter < AbstractAdapter
       def initialize(options)
         @mongo = Mongo::Connection.new(options[:host], options[:port], :connect=>false)

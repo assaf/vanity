@@ -1,13 +1,18 @@
 module Vanity
   module Adapters
-
     class << self
+      # Creates and returns new MockAdapter.
+      #
+      # @since 1.4.0
       def mock_connection(spec)
         MockAdapter.new(spec)
       end
-
     end
 
+    # Mock adapter. You can use this when running in test environment, staging,
+    # wherever you don't care for collecting metrics. Doesn't store anything.
+    #
+    # @since 1.4.0
     class MockAdapter < AbstractAdapter
       def initialize(options)
         @metrics = @@metrics ||= {}
