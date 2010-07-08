@@ -52,36 +52,32 @@ module Vanity
         URI::Generic.build(:scheme=>"mongo", :userinfo=>userinfo, :host=>@options[:host], :port=>@options[:port], :path=>"/#{@options[:database]}").to_s
       end
 
-      def databse
-        @databse
-      end
-
       def flushdb
-        @metrics.remove
-        @experiments.remove
-        @participants.remove
+        @metrics.drop
+        @experiments.drop
+        @participants.drop
       end
       
 
       # -- Metrics --
       
-      def set_metric_created_at(metric, time)
-        @metrics.insert :_id=>metric, :created_at=>time
-      end
-
-      def get_metric_created_at(metric)
+      def get_metric_last_update_at(metric)
         record = @metrics.find_one(:_id=>metric)
-        record && record["created_at"]
+        record && record["last_update_at"]
       end
 
-      def metric_track(metric, time, count = 1)
-        @metrics.update({ :_id=>metric }, { "$inc"=>{ "data.#{time.to_date}"=>count } })
+      def metric_track(metric, timestamp, identity, values)
+        inc = {}
+        values.each_with_index do |v,i|
+          inc["data.#{timestamp.to_date}.#{i}"] = v
+        end
+        @metrics.update({ :_id=>metric }, { "$inc"=>inc, "$set"=>{ :last_update_at=>Time.now } }, :upsert=>true)
       end
 
       def metric_values(metric, from, to)
         record = @metrics.find_one(:_id=>metric)
         data = record && record["data"] || {}
-        (from.to_date..to.to_date).map { |date| data[date.to_s] || 0 }
+        (from.to_date..to.to_date).map { |date| (data[date.to_s] || {}).values }
       end
 
       def destroy_metric(metric)

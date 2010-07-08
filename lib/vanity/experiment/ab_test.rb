@@ -93,7 +93,6 @@ module Vanity
 
       def initialize(*args)
         super
-        @alternatives = [false, true]
       end
 
 
@@ -130,19 +129,17 @@ module Vanity
       #   alts = experiment(:background_color).alternatives
       #   puts "#{alts.count} alternatives, with the colors: #{alts.map(&:value).join(", ")}"
       def alternatives(*args)
-        unless args.empty?
-          @alternatives = args.clone
-        end
+        @alternatives = args.empty? ? [true, false] : args.clone
         class << self
           define_method :alternatives, instance_method(:_alternatives)
         end
-        alternatives
+        nil
       end
 
       def _alternatives
         alts = []
         @alternatives.each_with_index do |value, i|
-          counts = connection.ab_counts(@id, i)
+          counts = @playground.collecting? ? connection.ab_counts(@id, i) : Hash.new(0)
           alts << Alternative.new(self, i, value, counts[:participants], counts[:converted], counts[:conversions])
         end
         alts
@@ -184,16 +181,22 @@ module Vanity
       # @example
       #   color = experiment(:which_blue).choose
       def choose
-        if active?
-          identity = identity()
-          index = connection.ab_showing(@id, identity)
-          unless index
-            index = alternative_for(identity)
-            connection.ab_add_participant @id, index, identity
-            check_completion!
+        if @playground.collecting?
+          if active?
+            identity = identity()
+            index = connection.ab_showing(@id, identity)
+            unless index
+              index = alternative_for(identity)
+              connection.ab_add_participant @id, index, identity
+              check_completion!
+            end
+          else
+            index = connection.ab_get_outcome(@id) || alternative_for(identity)
           end
         else
-          index = connection.ab_get_outcome(@id) || alternative_for(identity)
+          identity = identity()
+          @showing ||= {}
+          @showing[identity] ||= alternative_for(identity)
         end
         @alternatives[index.to_i]
       end
@@ -225,12 +228,17 @@ module Vanity
       #     experiment(:green_button).select(nil)
       #   end
       def chooses(value)
-        if value.nil?
-          connection.ab_not_showing @id, identity
+        if @playground.collecting?
+          if value.nil?
+            connection.ab_not_showing @id, identity
+          else
+            index = @alternatives.index(value)
+            raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
+            connection.ab_show @id, identity, index
+          end
         else
-          index = @alternatives.index(value)
-          raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-          connection.ab_show @id, identity, index
+          @showing ||= {}
+          @showing[identity] = value.nil? ? nil : @alternatives.index(value)
         end
         self
       end
@@ -238,7 +246,12 @@ module Vanity
       # True if this alternative is currently showing (see #chooses).
       def showing?(alternative)
         identity = identity()
-        connection.ab_showing(@id, identity) == alternative.id
+        if @playground.collecting?
+          connection.ab_showing(@id, identity) == alternative.id
+        else
+          @showing ||= {}
+          @showing[identity] == alternative.id
+        end
       end
 
 
@@ -355,12 +368,13 @@ module Vanity
 
       # Alternative chosen when this experiment completed.
       def outcome
+        return unless @playground.collecting?
         outcome = connection.ab_get_outcome(@id)
         outcome && _alternatives[outcome]
       end
 
       def complete!
-        return unless active?
+        return unless @playground.collecting? && active?
         super
         if @outcome_is
           begin
@@ -381,14 +395,13 @@ module Vanity
       # -- Store/validate --
 
       def destroy
-        #@alternatives.size.times do |i|
-        #  connection.del key("alts:#{i}:participants"), key("alts:#{i}:converted"), key("alts:#{i}:conversions")
-        #end
+        connection.destroy_experiment @id
         super
       end
 
       def save
-        fail "Experiment #{name} needs at least two alternatives" unless alternatives.size >= 2
+        true_false unless @alternatives
+        fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
         super
         if @metrics.nil? || @metrics.empty?
           warn "Please use metrics method to explicitly state which metric you are measuring against."

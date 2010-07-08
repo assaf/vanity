@@ -31,16 +31,12 @@ end
 If you have a @config/vanity.yml@ file, Vanity will read the configuration for the current environment.  For example:
 
 <pre>
-development:
+staging:
   adapter: redis
-test:
-  adapter: mock
+  host: staging.internal
 production:
-  adapter: redis
-  host: db.local
-mongodb:
   adapter: mongo
-  host: db.local
+  host: live.internal
   database: vanity
 </pre>
 
@@ -53,25 +49,7 @@ config.after_initialize do
 end
 </pre>
 
-
-h3(#test).  Test Environment
-
-As your tests run, any metric and experiment data is stored in Redis.  You might not appreciate tests filling up Redis with useless data, and there are two things you can do about it.
-
-Easiest it to tell Vanity to avoid accessing the database altogether.  Just add this to @config/environments/test.rb@:
-
-<pre>
-require "vanity"
-Vanity.playground.test!
-</pre>
-
-A bit more convoluted (but you'll learn a couple of things along the way) is to flush the database after each test, or at least once before loading the test suite.  Of course, flushing the database will also clear any data you might need in development mode (most people develop and test on the same machine), so you'll want the test environment to use a different database.  Like this:
-
-<pre>
-require "vanity"
-Vanity.playground.establish_connection "redis://localhost/15" # database 15
-Vanity.playground.connection.flushdb # Do this before running tests
-</pre>
+There's generally no need to collect metric and experiment data outside production environment.  Under Rails, Vanity turns collection on only if the environment name is "production". You can control this from @config/environments@ by setting @Vanity.playground.collecting@ to true/false. When collection is off, Vanity doesn't connect to the database server, so there's no need to set a database configuration for these environments.
 
 
 h3(#dashboard).  Dashboard

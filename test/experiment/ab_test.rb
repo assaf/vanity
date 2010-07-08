@@ -647,6 +647,50 @@ This experiment did not run long enough to find a clear winner.
   end
 
 
+  # -- No collection --
+
+  def test_no_collection_does_not_track
+    not_collecting!
+    metric "Coolness"
+    new_ab_test :abcd do
+      metrics :coolness
+    end
+    Vanity.playground.track! :coolness
+    assert_equal 0, experiment(:abcd).alternatives.sum(&:conversions)
+  end
+
+  def test_no_collection_and_completion
+    not_collecting!
+    new_ab_test :quick do
+      outcome_is { alternatives[1] }
+      metrics :coolness
+    end
+    experiment(:quick).complete!
+    assert_nil experiment(:quick).outcome
+  end
+
+  def test_no_collection_and_chooses
+    not_collecting!
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+    end
+    assert !experiment(:simple).showing?(experiment(:simple).alternatives[1])
+    experiment(:simple).chooses(:b)
+    assert experiment(:simple).showing?(experiment(:simple).alternatives[1])
+    assert !experiment(:simple).showing?(experiment(:simple).alternatives[2])
+  end
+
+  def test_no_collection_chooses_without_database
+    not_collecting!
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+    end
+    choice = experiment(:simple).choose
+    assert [:a, :b, :c].include?(choice)
+    assert_equal choice, experiment(:simple).choose
+  end
+
+
   # -- Helper methods --
 
   def fake(name, args)

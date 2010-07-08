@@ -30,25 +30,20 @@ module Vanity
       def reconnect!
       end
 
-      # Empty the database.
+      # Empty the database. This is used during tests.
       def flushdb
       end
       
 
       # -- Metrics --
      
-      # Store when metric was created (do not write over existing value). 
-      def set_metric_created_at(metric, time)
-        fail "Not implemented"
-      end
-
-      # Return when metric was created.
-      def get_metric_created_at(metric)
+      # Return when metric was last updated.
+      def get_metric_last_update_at(metric)
         fail "Not implemented"
       end
   
-      # Track metric for given time instance.
-      def metric_track(metric, time, count = 1)
+      # Track metric data.
+      def metric_track(metric, timestamp, identity, values)
         fail "Not implemented"
       end
 

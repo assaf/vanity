@@ -51,6 +51,13 @@ module Vanity
         @ga_resource
       end
 
+      # Unkown (for now).
+      def last_update_at
+      end
+
+      def track!(args = nil)
+      end
+
       class Resource
         # GA profile used for this report.  Populated after calling results. 
         attr_reader :profile

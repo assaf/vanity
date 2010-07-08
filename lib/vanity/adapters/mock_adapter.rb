@@ -45,24 +45,22 @@ module Vanity
 
       # -- Metrics --
       
-      def set_metric_created_at(metric, time)
-        @metrics[metric] ||= {}
-        @metrics[metric][:created_at] ||= time
+      def get_metric_last_update_at(metric)
+        @metrics[metric] && @metrics[metric][:last_update_at]
       end
 
-      def get_metric_created_at(metric)
-        @metrics[metric] && @metrics[metric][:created_at]
-      end
-
-      def metric_track(metric, time, count = 1)
+      def metric_track(metric, timestamp, identity, values)
         @metrics[metric] ||= {}
-        @metrics[metric][time.to_date] ||= 0
-        @metrics[metric][time.to_date] += count
+        current = @metrics[metric][timestamp.to_date] ||= []
+        values.each_with_index do |v,i|
+          current[i] = (current[i] || 0) + v || 0
+        end
+        @metrics[metric][:last_update_at] = Time.now
       end
 
       def metric_values(metric, from, to)
         hash = @metrics[metric] || {}
-        (from.to_date..to.to_date).map { |date| hash[date] || 0 }
+        (from.to_date..to.to_date).map { |date| hash[date] || [] }
       end
 
       def destroy_metric(metric)

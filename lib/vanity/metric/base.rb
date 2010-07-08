@@ -121,23 +121,42 @@ module Vanity
       @playground, @name = playground, name.to_s
       @id = (id || name.to_s.downcase.gsub(/\W+/, '_')).to_sym
       @hooks = []
-      connection.set_metric_created_at @id, Time.now
-      @created_at = connection.get_metric_created_at(@id)
     end
 
 
     # -- Tracking --
 
-    # Called to track an action associated with this metric.
-    def track!(count = 1)
-      count ||= 1
-      if count > 0
-        timestamp = Time.now
-        connection.metric_track @id, timestamp, count
-        @playground.logger.info "vanity: #{@id} with count #{count}"
-        call_hooks timestamp, count
-      end
+    # Called to track an action associated with this metric. Most common is not
+    # passing an argument, and it tracks a count of 1. You can pass a different
+    # value as the argument, or array of value (for multi-series metrics), or
+    # hash with the optional keys timestamp, identity and values.
+    #
+    # Example:
+    #   hits.track!
+    #   foo_and_bar.track! [5,11]
+    def track!(args = nil)
+      return unless @playground.collecting?
+      timestamp, identity, values = track_args(args)
+      connection.metric_track @id, timestamp, identity, values
+      @playground.logger.info "vanity: #{@id} with value #{values.join(", ")}"
+      call_hooks timestamp, identity, values
     end
+
+    # Parses arguments to track! method and return array with timestamp,
+    # identity and array of values.
+    def track_args(args)
+      case args
+      when Hash
+        timestamp, identity, values = args.values_at(:timestamp, :identity, :values)
+      when Array
+        values = args
+      when Numeric
+        values = [args]
+      end
+        identity = Vanity.context.vanity_identity rescue nil
+      [timestamp || Time.now, identity, values || [1]]
+    end
+    protected :track_args
 
     # Metric definitions use this to introduce tracking hook.  The hook is
     # called with metric identifier, timestamp, count and possibly additional
@@ -172,9 +191,6 @@ module Vanity
     attr_reader :name
     alias :to_s :name
 
-    # Time stamp when metric was created.
-    attr_reader :created_at
-
     # Human readable description.  Use two newlines to break paragraphs.
     attr_accessor :description
 
@@ -193,7 +209,14 @@ module Vanity
     # array of measurements.  All metrics must implement this method.
     def values(from, to)
       values = connection.metric_values(@id, from, to)
-      values.map(&:to_i)
+      values.map { |row| row.first.to_i }
+    end
+
+    # Returns date/time of the last update to this metric.
+    #
+    # @since 1.4.0
+    def last_update_at
+      connection.get_metric_last_update_at(@id)
     end
 
 
@@ -211,10 +234,9 @@ module Vanity
       "metrics:#{@id}:#{args.join(':')}"
     end
 
-    def call_hooks(timestamp, count)
-      count ||= 1
+    def call_hooks(timestamp, identity, values)
       @hooks.each do |hook|
-        hook.call @id, timestamp, count
+        hook.call @id, timestamp, values.first || 1
       end
     end
 

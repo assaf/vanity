@@ -193,9 +193,10 @@ if defined?(Rails)
     # Use Rails logger by default.
     Vanity.playground.logger ||= Rails.logger
     Vanity.playground.load_path = Rails.root + Vanity.playground.load_path
+    Vanity.playground.collecting = Rails.env.production?
 
-    # Do this at the very end of initialization, allowing test environment to do
-    # Vanity.playground.mock! before any database access takes place.
+    # Do this at the very end of initialization, allowing you to change
+    # connection adapter, turn collection on/off, etc.
     Rails.configuration.after_initialize do
       Vanity.playground.load!
     end
@@ -208,7 +209,7 @@ if defined?(PhusionPassenger)
   PhusionPassenger.on_event(:starting_worker_process) do |forked| 
     if forked 
       begin
-        Vanity.playground.establish_connection
+        Vanity.playground.establish_connection if Vanity.playground.collecting?
       rescue Exception=>ex
         Rails.logger.error "Error reconnecting: #{ex.to_s}" 
       end

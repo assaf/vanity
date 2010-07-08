@@ -1,5 +1,7 @@
 require "rake/testtask"
 
+# -- Building stuff --
+
 spec = Gem::Specification.load(File.expand_path("vanity.gemspec", File.dirname(__FILE__)))
 
 desc "Build the Gem"
@@ -24,35 +26,7 @@ task :push=>["test:rubies", "build"] do
 end
 
 
-# Run the test suit.
-
-task :default=>:test
-desc "Run all tests"
-Rake::TestTask.new do |task|
-  task.test_files = FileList['test/*_test.rb']
-  if Rake.application.options.trace
-    #task.warning = true
-    task.verbose = true
-  elsif Rake.application.options.silent
-    task.ruby_opts << "-W0"
-  else
-    task.verbose = true
-  end
-    task.ruby_opts << "-I."
-end
-
-# These are all the adapters we're going to test with.
-ADAPTERS = %w{redis mongodb mock}
-
-desc "Test using different back-ends"
-task "test:adapters", :adapter do |t, args|
-  adapters = args.adapter ? [args.adapter] : ADAPTERS
-  adapters.each do |adapter|
-    puts "** Testing #{adapter} adapter"
-    sh "rake test ADAPTER=#{adapter} #{'--trace' if Rake.application.options.trace}"
-  end
-end
-
+# -- Testing stuff --
 
 # Ruby versions we're testing with.
 RUBIES = %w{1.8.7 1.9.1 1.9.2}
@@ -70,6 +44,7 @@ task "test:rubies", :ruby do |t, args|
   rubies = args.ruby ? [args.ruby] : RUBIES
   rubies.each do |ruby|
     puts "** Setup #{ruby}"
+    sh "env rvm_install_on_use_flag=1 rvm_gemset_create_on_use_flag=1 rvm use #{ruby}@vanity"
     sh "rvm #{ruby}@vanity rake test:setup"
     puts
     puts "** Test using #{ruby}"
@@ -91,8 +66,39 @@ task "test:setup" do
   end
 end
 
+# These are all the adapters we're going to test with.
+ADAPTERS = %w{redis mongodb}
+
+desc "Test using different back-ends"
+task "test:adapters", :adapter do |t, args|
+  adapters = args.adapter ? [args.adapter] : ADAPTERS
+  adapters.each do |adapter|
+    puts "** Testing #{adapter} adapter"
+    sh "rake test ADAPTER=#{adapter} #{'--trace' if Rake.application.options.trace}"
+  end
+end
+
+# Run the test suit.
+
+task :default=>:test
+desc "Run all tests"
+Rake::TestTask.new do |task|
+  task.test_files = FileList['test/**/*_test.rb']
+  if Rake.application.options.trace
+    #task.warning = true
+    task.verbose = true
+  elsif Rake.application.options.silent
+    task.ruby_opts << "-W0"
+  else
+    task.verbose = true
+  end
+    task.ruby_opts << "-I."
+end
+
 task(:clobber) { rm_rf "tmp" }
 
+
+# -- Documenting stuff --
 
 begin
   require "yard"
@@ -106,8 +112,13 @@ end
 desc "Jekyll generates the main documentation (sans API)"
 task(:jekyll) { sh "jekyll", "doc", "html" }
 
+file "html/vanity-api-#{spec.version}.zip"=>:yardoc do |t|
+  Dir.chdir "html" do
+    sh "zip vanity-api-#{spec.version}.zip -r api"
+  end
+end
 desc "Create documentation in docs directory (including API)"
-task :docs=>[:jekyll, :yardoc]
+task :docs=>[:jekyll, :yardoc, "html/vanity-api-#{spec.version}.zip"]
 desc "Remove temporary files and directories"
 task(:clobber) { rm_rf "html" ; rm_rf ".yardoc" }
 
@@ -116,6 +127,8 @@ task :publish=>[:clobber, :docs] do
   sh "rsync -cr --del --progress html/ labnotes.org:/var/www/vanity/"
 end
 
+
+# -- Misc --
 
 task :report do
   $LOAD_PATH.unshift "lib"

@@ -55,21 +55,21 @@ module Vanity
 
       # -- Metrics --
       
-      def set_metric_created_at(metric, time)
-        @metrics.setnx "#{metric}:created_at", time.to_i
+      def get_metric_last_update_at(metric)
+        last_update_at = @metrics["#{metric}:last_update_at"]
+        last_update_at && Time.at(last_update_at.to_i)
       end
 
-      def get_metric_created_at(metric)
-        created_at = @metrics["#{metric}:created_at"]
-        created_at && Time.at(created_at.to_i)
-      end
-
-      def metric_track(metric, time, count = 1)
-        @metrics.incrby "#{metric}:#{time.to_date}:count", count
+      def metric_track(metric, timestamp, identity, values)
+        values.each_with_index do |v,i|
+          @metrics.incrby "#{metric}:#{timestamp.to_date}:value:#{i}", v
+        end
+        @metrics["#{metric}:last_update_at"] = Time.now.to_i
       end
 
       def metric_values(metric, from, to)
-        @metrics.mget(*(from.to_date..to.to_date).map { |date| "#{metric}:#{date}:count" }) || []
+        single = @metrics.mget(*(from.to_date..to.to_date).map { |date| "#{metric}:#{date}:value:0" }) || []
+        single.map { |v| [v] }
       end
 
       def destroy_metric(metric)
@@ -145,7 +145,8 @@ module Vanity
 
       def destroy_experiment(experiment)
         @experiments.del "#{experiment}:outcome", "#{experiment}:created_at", "#{experiment}:completed_at"
-        @experiments.del *@experiments.keys("#{experiment}:alts:*")
+        alternatives = @experiments.keys("#{experiment}:alts:*")
+        @experiments.del *alternatives unless alternatives.empty?
       end
 
     end

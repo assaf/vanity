@@ -206,22 +206,36 @@ $stdout << Vanity.playground.connection
     File.unlink yml.path
   end
 
-  def test_test_connection
-    assert_equal "mock:/", load_rails(<<-RB)
-Vanity.playground.test!
+  def test_collection_true_in_production
+    assert_equal "true", load_rails(<<-RB, "production")
 initializer.after_initialize
-$stdout << Vanity.playground.connection
+$stdout << Vanity.playground.collecting?
+    RB
+  end
+
+  def test_collection_false_in_development
+    assert_equal "false", load_rails(<<-RB, "development")
+initializer.after_initialize
+$stdout << Vanity.playground.collecting?
+    RB
+  end
+
+  def test_collection_false_after_test!
+    assert_equal "false", load_rails(<<-RB, "production")
+initializer.after_initialize
+Vanity.playground.test!
+$stdout << Vanity.playground.collecting?
     RB
   end
 
 
-  def load_rails(code)
+  def load_rails(code, env = "production")
     tmp = Tempfile.open("test.rb")
     tmp.write <<-RB
 $:.delete_if { |path| path[/gems\\/vanity-\\d/] }
 $:.unshift File.expand_path("../lib")
 RAILS_ROOT = File.expand_path(".")
-RAILS_ENV = "production"
+RAILS_ENV = "#{env}"
 require "initializer"
 require "active_support"
 Rails.configuration = Rails::Configuration.new

@@ -68,7 +68,6 @@ module Vanity
         @playground = playground
         @id, @name = id.to_sym, name
         @options = options || {}
-        @namespace = "#{@playground.namespace}:#{@id}"
         @identify_block = method(:default_identify)
       end
 
@@ -139,9 +138,10 @@ module Vanity
 
       # Force experiment to complete.
       def complete!
+        @playground.logger.info "vanity: completed experiment #{id}"
+        return unless @playground.collecting?
         connection.set_experiment_completed_at @id, Time.now
         @completed_at = connection.get_experiment_completed_at(@id)
-        @playground.logger.info "vanity: completed experiment #{id}"
       end
 
       # Time stamp when experiment was completed.
@@ -151,7 +151,7 @@ module Vanity
       
       # Returns true if experiment active, false if completed.
       def active?
-        !connection.is_experiment_completed?(@id)
+        !@playground.collecting? || !connection.is_experiment_completed?(@id)
       end
 
       # -- Store/validate --
@@ -164,6 +164,7 @@ module Vanity
 
       # Called by Playground to save the experiment definition.
       def save
+        return unless @playground.collecting?
         connection.set_experiment_created_at @id, Time.now
         @created_at = connection.get_experiment_created_at(@id)
       end
@@ -197,7 +198,7 @@ module Vanity
       #   key => "vanity:experiments:green_button"
       #   key("participants") => "vanity:experiments:green_button:participants"
       def key(name = nil)
-        name ? "#{@namespace}:#{name}" : @namespace
+        "#{@id}:#{name}"
       end
 
       # Shortcut for Vanity.playground.connection
@@ -208,4 +209,3 @@ module Vanity
     end
   end
 end
-

@@ -13,6 +13,7 @@ module Vanity
           else
             puts "Updating #{keys.map { |name| name.split(":")[1] }.uniq.length} metrics"
             keys.each do |key|
+              key << ":value:0" if key[/\d{4}-\d{2}-\d{2}$/] 
               redis.renamenx key, "vanity:#{key}"
             end
           end

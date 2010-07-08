@@ -12,6 +12,7 @@ Rails.configuration = Rails::Configuration.new
 require "phusion_passenger/events"
 require "lib/vanity"
 require "timecop"
+require "webmock/test_unit"
 
 
 if $VERBOSE
@@ -20,18 +21,23 @@ if $VERBOSE
 end
 
 class Test::Unit::TestCase
+  include WebMock
 
   def setup
     FileUtils.mkpath "tmp/experiments/metrics"
     new_playground
+    #WebMock.after_request do |request_signature, response|
+    #  puts "Request #{request_signature} was made and #{response} was returned"
+    #end
   end
 
   # Call this on teardown. It wipes put the playground and any state held in it
   # (mostly experiments), resets vanity ID, and clears database of all experiments.
   def nuke_playground
-    new_playground
     Vanity.playground.connection.flushdb
+    new_playground
   end
+
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
@@ -69,11 +75,21 @@ class Test::Unit::TestCase
   def experiment(name)
     Vanity.playground.experiment(name)
   end
+
+  def today
+    @today ||= Date.today
+  end
+
+  def not_collecting!
+    Vanity.playground.collecting = false
+    Vanity.playground.stubs(:connection).returns(stub(:flushdb=>nil))
+  end
   
   def teardown
     Vanity.context = nil
     FileUtils.rm_rf "tmp"
     Vanity.playground.connection.flushdb if Vanity.playground.connected?
+    WebMock.reset_webmock
   end
 
 end
@@ -133,8 +149,8 @@ def context(*args, &block)
       define_method("test_#{name.gsub(/\W/,'_')}", &block) if block
     end
     def self.xtest(*args) end
-    def self.setup(&block) define_method(:setup) { super() ; block.call } end
-    def self.teardown(&block) define_method(:teardown) { super() ; block.call } end
+    def self.setup(&block) define_method(:setup) { super() ; instance_eval &block } end
+    def self.teardown(&block) define_method(:teardown) { super() ; instance_eval &block } end
   end
   parent.const_set name.split(/\W+/).map(&:capitalize).join, klass
   klass.class_eval &block

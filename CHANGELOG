@@ -5,16 +5,23 @@ access to collected metrics and experiment data:
 
   vanity upgrade
 
+
 Connection adapters! We have a new way for managing connections which extends
 to multiple adapters (not just Redis). The easiest is to use the configuration
 file config/vanity.yml. For example:
 
-  development:
+  production:
 	  adapter: redis
-	test:
-	  adapter: mock
-	production:
+	worker:
 	  adapter: mongodb
+
+Redis is carried forward and we get MongoDB adapter. Instead of using mock
+adapter or calling playground.test!, turn collection off when running outside
+production. Under Rails, collection is turned off in all environment except
+production. You can control it using:
+
+  Vanity.playground.collection = true/false.
+
 
 This release switches from older vendored version of the Redis gem to the new
 2.0.x gem that is now required as a separate dependency. If your own code
@@ -30,11 +37,20 @@ To switch around:
   rvm 1.9.2@vanity
 
 * Added: Adapter API, see Vanity::Adapters::AbstractAdapter and
-  Vanity::Adapters::RedisAdapter.
+Vanity::Adapters::RedisAdapter.
 * Added: MongoDB support.
 * Added: Upgrade command.
+* Added: Metric.last_update_at.
+* Added: Vanity.playground.collecting. You want this to be true only in
+production environment. When false, disables collecting of metric and
+experiment data.
+* Added: Remote metrics. Push data to remote service.
+* Added: Partial support for multi-series metrics. Laying the ground for the
+future.
 * Change: Vanity.playground.redis and redis= methods are deprecated, use
-  connection and establish_connection instead.
+connection and establish_connection instead.
+* Removed: Metric.created_at, derived from experiment and never used.
+
 
 == 1.3.0 (2010-03-01)
 

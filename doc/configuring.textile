@@ -14,10 +14,13 @@ Vanity.playground.establish_connection "redis://db.example.com"
 
 Configuration options are:
 
-|_. name      |_. Is all about ...                    |_. Default      |
-| load_path   | Directory containing experiment files | experiments    |
-| logger      | This should be obvious                | default/Rails  |
+|_. name      |_. Is all about ...                      |_. Default      |
+| load_path   | Directory containing experiment files   | experiments    |
+| logger      | This should be obvious                  | default/Rails  |
+| collecting  | False if you won't want data collected  | true           |
 
 Database connection information is loaded from @config/vanity.yml@, based on the current environment (@RACK_ENV@ or @RAILS_ENV@). If your application has no configuration file and does not establish a connection directly, Vanity will automatically connect to the Redis instance running on @localhost@ at port 6379.
 
-When "running under Rails":rails.html, Vanity defaults to using the Rails logger, locates the load_path relative to Rails root and will use the @config/vanity.yml@ configuration file, if present.
+You want Vanity to collect information in production environment, but there's no point collecting data in other environments, and data collection just makes setting up the environment harder. You can turn collection on off by setting @Vanity.playground.collection@. In environments that have collection off, you don't have to specify any connection configuration.
+
+When "running under Rails":rails.html, Vanity defaults to using the Rails logger, locates the load_path relative to Rails root, uses the @config/vanity.yml@ configuration file (if present) and turns collection on only in production mode.

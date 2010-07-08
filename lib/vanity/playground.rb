@@ -9,10 +9,7 @@ module Vanity
   #   puts Vanity.playground.map(&:name)
   class Playground
 
-    DEFAULTS = {
-      :load_path=>"experiments",
-      :namespace=>"vanity:#{Vanity::Version::MAJOR}"
-    }
+    DEFAULTS = { :load_path=>"experiments" }
 
     # Created new Playground. Unless you need to, use the global
     # Vanity.playground.
@@ -36,14 +33,14 @@ module Vanity
         establish_connection "redis://" + connection_spec if connection_spec
       end
 
-      @namespace = @options[:namespace] || DEFAULTS[:namespace]
+      warn "Deprecated: namespace option no longer supported directly" if @options[:namespace]
       @load_path = @options[:load_path] || DEFAULTS[:load_path]
-      @logger = @options[:logger]
-      unless @logger
+      unless @logger = @options[:logger]
         @logger = Logger.new(STDOUT)
         @logger.level = Logger::ERROR
       end
       @loading = []
+      @collecting = true
     end
    
     # Deprecated. Use redis.server instead.
@@ -117,6 +114,22 @@ module Vanity
       metrics[id.to_sym] or raise NameError, "No metric #{id}"
     end
 
+    # True if collection data (metrics and experiments). You only want to
+    # collect data in production environment, everywhere else run with
+    # collection off.
+    #
+    # @since 1.4.0
+    def collecting?
+      @collecting
+    end
+
+    # Turns data collection on and off.
+    #
+    # @since 1.4.0
+    def collecting=(enabled)
+      @collecting = !!enabled
+    end
+
     # Returns hash of metrics (key is metric id).
     #
     # @see Vanity::Metric
@@ -127,6 +140,14 @@ module Vanity
         @logger.info "Vanity: loading metrics from #{load_path}/metrics"
         Dir[File.join(load_path, "metrics/*.rb")].each do |file|
           Metric.load self, @loading, file
+        end
+        if File.exist?("config/vanity.yml") && remote = YAML.load_file("config/vanity.yml")["metrics"]
+          remote.each do |id, url|
+            fail "Metric #{id} already defined in playground" if metrics[id.to_sym]
+            metric = Metric.new(self, id)
+            metric.remote url
+            metrics[id.to_sym] = metric
+          end
         end
       end
       @metrics
@@ -232,23 +253,15 @@ module Vanity
       establish_connection
     end
 
-    # Use this when testing to disable Redis (e.g. if your CI server doesn't
-    # have Redis). Alternatively, put the following in config/vanity.yml:
-    #   test:
-    #     adapter: mock
-    #
-    # @example Put this in config/environments/test.rb
-    #   config.after_initialize { Vanity.playground.test! }
-    # @since 1.3.0
+    # Deprecated. Use Vanity.playground.collecting = true/false instead.  Under
+    # Rails, collecting is true in production environment, false in all other
+    # environments, which is exactly what you want.
     def test!
-      establish_connection :adapter=>:mock
+      warn "Deprecated: use collecting = false instead"
+      self.collecting = false
     end
 
-    # Tells the playground where to find Redis.  Accepts one of the following:
-    # - "hostname:port"
-    # - ":port"
-    # - "hostname:port:db"
-    # - Instance of Redis connection. 
+    # Deprecated. Use establish_connection or configuration file instead.
     def redis=(spec_or_connection)
       warn "Deprecated: use establish_connection method instead"
       case spec_or_connection
@@ -268,11 +281,6 @@ module Vanity
       connection
     end
 
-    def mock!
-      warn "Deprecated: use Vanity.playground.test!"
-      test!
-    end
-   
   end
 
   @playground = Playground.new

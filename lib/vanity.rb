@@ -1,6 +1,7 @@
 require "date"
 require "time"
 require "logger"
+require "cgi"
 
 # All the cool stuff happens in other places.
 # @see Vanity::Helper
@@ -25,6 +26,7 @@ require "vanity/backport" if RUBY_VERSION < "1.9"
 require "vanity/metric/base"
 require "vanity/metric/active_record"
 require "vanity/metric/google_analytics"
+require "vanity/metric/remote"
 # Experiments.
 require "vanity/experiment/base"
 require "vanity/experiment/ab_test"
