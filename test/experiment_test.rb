@@ -114,7 +114,7 @@ class ExperimentTest < Test::Unit::TestCase
  
   def test_experiment_keeps_created_timestamp_across_definitions
     past = Date.today - 1
-    Timecop.travel past do
+    Timecop.freeze past do
       new_ab_test(:ice_cream_flavor) { metrics :happiness }
       assert_equal past.to_time.to_i, experiment(:ice_cream_flavor).created_at.to_i
     end

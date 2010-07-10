@@ -95,8 +95,8 @@ context "Metric" do
 
     test "can tell the time" do
       metric "Yawns/sec"
-      Timecop.travel(today - 4) { 4.times { Vanity.playground.track! :yawns_sec } }
-      Timecop.travel(today - 2) { 2.times { Vanity.playground.track! :yawns_sec } }
+      Timecop.freeze(today - 4) { 4.times { Vanity.playground.track! :yawns_sec } }
+      Timecop.freeze(today - 2) { 2.times { Vanity.playground.track! :yawns_sec } }
       1.times { Vanity.playground.track! :yawns_sec }
       boredom = Vanity.playground.metric(:yawns_sec).values(today - 5, today)
       assert_equal [0,4,0,2,0,1], boredom
@@ -114,8 +114,8 @@ context "Metric" do
 
     test "with count" do
       metric "Yawns/sec"
-      Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
-      Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
+      Timecop.freeze(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
+      Timecop.freeze(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
       Vanity.playground.track! :yawns_sec
       boredom = Vanity.playground.metric(:yawns_sec).values(today - 5, today)
       assert_equal [0,4,0,2,0,1], boredom
@@ -239,7 +239,7 @@ context "Metric" do
 
     test "across restarts" do
       past = Date.today - 1
-      Timecop.travel past do
+      Timecop.freeze past do
         metric "Coolness"
         coolness = Vanity.playground.metric(:coolness)
         assert_in_delta coolness.created_at.to_i, past.to_time.to_i, 1
@@ -258,8 +258,8 @@ context "Metric" do
   context "data" do
     test "explicit dates" do
       metric "Yawns/sec"
-      Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
-      Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
+      Timecop.freeze(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
+      Timecop.freeze(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
       Vanity.playground.track! :yawns_sec
       boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), Date.today - 5, Date.today)
       assert_equal [[today - 5, 0], [today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
@@ -267,8 +267,8 @@ context "Metric" do
 
     test "start date only" do
       metric "Yawns/sec"
-      Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
-      Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
+      Timecop.freeze(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
+      Timecop.freeze(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
       Vanity.playground.track! :yawns_sec
       boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), Date.today - 4)
       assert_equal [[today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
@@ -276,8 +276,8 @@ context "Metric" do
 
     test "start date and duration" do
       metric "Yawns/sec"
-      Timecop.travel(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
-      Timecop.travel(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
+      Timecop.freeze(today - 4) { Vanity.playground.track! :yawns_sec, 4 }
+      Timecop.freeze(today - 2) { Vanity.playground.track! :yawns_sec, 2 }
       Vanity.playground.track! :yawns_sec
       boredom = Vanity::Metric.data(Vanity.playground.metric(:yawns_sec), 5)
       assert_equal [[today - 4, 4], [today - 3, 0], [today - 2, 2], [today - 1, 0], [today, 1]], boredom
