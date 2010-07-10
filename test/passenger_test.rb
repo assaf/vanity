@@ -19,7 +19,11 @@ class PassengerTest < Test::Unit::TestCase
 
   def test_reconnect
     sleep 0.1
-    socket = TCPSocket.new(*@app.listen_socket_name.split(":"))
+    case @app.listen_socket_type
+    when "tcp" ; socket = TCPSocket.new(*@app.listen_socket_name.split(":"))
+    when "unix"; socket = UNIXSocket.new(@app.listen_socket_name)
+    else fail
+    end
     channel = PhusionPassenger::MessageChannel.new(socket)
     request = {"REQUEST_PATH"=>"/", "REQUEST_METHOD"=>"GET", "QUERY_STRING"=>" "}
     channel.write_scalar request.to_a.join("\0")
