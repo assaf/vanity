@@ -1,16 +1,16 @@
+<!DOCTYPE html>
 <html>
   <head>
-    <meta content='text/html;charset=UTF-8' http-equiv='Content-Type'>
     <title>Vanity &mdash; {{ page.title }}</title>
-    <link href="css/page.css" media="screen" rel="stylesheet" type="text/css">
+    <link href="css/page.css" media="screen,print" rel="stylesheet" type="text/css">
     <link href="css/print.css" media="print" rel="stylesheet" type="text/css">
-    <link href='images/favicon.png' rel='shortcut icon'>
+    <link href="images/favicon.png" rel="shortcut icon">
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
     <script type="text/javascript" src="site.js"></script>
   </head>
   <body>
     <div id="header">
-      <h1><a href='http://vanity.labnotes.org' title="Mirror, mirror, on the wall &hellip;">Vanity</a></h1>
+      <div class="title"><a href="http://vanity.labnotes.org" title="Mirror, mirror, on the wall &hellip;">Vanity</a></div>
       <div class="tagline">Experiment<br>Driven Development</div>
     </div>
     <div id="links"><a href="http://github.com/assaf/vanity">Source code<a> | <a href="http://groups.google.com/group/vanity-talk">Google Group</a> | <a href="http://vanity.labnotes.org/api/index.html">API reference</a></div>
@@ -23,6 +23,7 @@
         <li><a href="identity.html">Managing Identity</a></li>
         <li><a href="configuring.html">Configuring</a></li>
         <li><a href="contributing.html">Contributing</a></li>
+        <li>Download: <a href="vanity-api.zip">API</a>/<a href="vanity.pdf">PDF</a></li>
       </ul> 
       <ul id="stats">
         <li><a href="http://github.com/assaf/vanity/graphs/traffic">Traffic</a></li>
@@ -30,10 +31,10 @@
       </ul>
     </div>
     <div id="content">
-      <h2 id='{{ page.title | downcase | replace(' ', '_') }}'>{{ page.title }}</h2>
+      <h1 id="{{ page.title | downcase | replace(' ', '_') }}">{{ page.title }}</h1>
       {{ content }}
     </div>
-    <div id='footer'><a href="credits.html">Credits / License</a></div>
-    <script type="text/javascript">var _gaq=_gaq||[];_gaq.push(['_setAccount', 'UA-1828623-6'], ['_trackPageview']);(function(){var ga=document.createElement('script');ga.src=('https:'==document.location.protocol?'https://ssl':'http://www')+'.google-analytics.com/ga.js';ga.setAttribute('async', 'true');document.documentElement.firstChild.appendChild(ga);})();</script>
+    <div id="footer"><a href="credits.html">Credits / License</a></div>
+    <script type="text/javascript">var _gaq=_gaq||[];_gaq.push(["_setAccount", "UA-1828623-6"], ["_trackPageview"]);(function(){var ga=document.createElement("script");ga.src=("https:"==document.location.protocol?"https://ssl":"http://www")+".google-analytics.com/ga.js";ga.setAttribute("async", "true");document.documentElement.firstChild.appendChild(ga);})();</script>
   </body>
 </html>

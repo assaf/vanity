@@ -1,0 +1,84 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    RedCloth (4.2.3)
+    actionmailer (2.3.8)
+      actionpack (= 2.3.8)
+    actionpack (2.3.8)
+      activesupport (= 2.3.8)
+      rack (~> 1.1.0)
+    activerecord (2.3.8)
+      activesupport (= 2.3.8)
+    activeresource (2.3.8)
+      activesupport (= 2.3.8)
+    activesupport (2.3.8)
+    addressable (2.1.2)
+    bson (1.0.4)
+    bson_ext (1.0.4)
+    classifier (1.3.3)
+      fast-stemmer (>= 1.0.0)
+    crack (0.1.8)
+    directory_watcher (1.3.2)
+    fast-stemmer (1.0.0)
+    fastthread (1.0.7)
+    garb (0.7.6)
+      activesupport (>= 2.2.0)
+      crack (>= 0.1.6)
+    jekyll (0.6.2)
+      classifier (>= 1.3.1)
+      directory_watcher (>= 1.1.1)
+      liquid (>= 1.9.0)
+      maruku (>= 0.5.9)
+    liquid (2.1.2)
+    maruku (0.6.0)
+      syntax (>= 1.0.0)
+    mocha (0.9.8)
+      rake
+    mongo (1.0.5)
+      bson (>= 1.0.4)
+    passenger (2.2.15)
+      fastthread (>= 1.0.1)
+      rack
+      rake (>= 0.8.1)
+    rack (1.1.0)
+    rails (2.3.8)
+      actionmailer (= 2.3.8)
+      actionpack (= 2.3.8)
+      activerecord (= 2.3.8)
+      activeresource (= 2.3.8)
+      activesupport (= 2.3.8)
+      rake (>= 0.8.3)
+    rake (0.8.7)
+    redis (2.0.4)
+    redis-namespace (0.8.0)
+      redis (< 3.0.0)
+    shoulda (2.11.1)
+    sqlite3-ruby (1.2.5)
+    syntax (1.0.0)
+    timecop (0.3.5)
+    webmock (1.3.2)
+      addressable (>= 2.1.1)
+      crack (>= 0.1.7)
+    yard (0.5.8)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  RedCloth
+  bson_ext
+  garb
+  jekyll
+  mocha
+  mongo
+  passenger
+  rack (= 1.1.0)
+  rails (= 2.3.8)
+  rake
+  redis
+  redis-namespace
+  shoulda
+  sqlite3-ruby (= 1.2.5)
+  timecop
+  webmock
+  yard

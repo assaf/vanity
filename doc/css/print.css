@@ -1,32 +1,60 @@
-@media print {
-  @page { margin: 1in 1in }
-  @page:first {
-    @top-left  { content: normal }
-    @top-right { content: normal }
-  }
-  @page:right {
-    margin-left: 1.25in;
-    font: normal 10pt !important;
-    @top-left  { content: string(pagetitle); }
-    @top-right { content: counter(page); }
-  }
-  @page:left {
-    margin-right: 1.25in;
-    font: normal 10pt !important;
-    @top-left  { content: counter(page); }
-    @top-right { content: string(pagetitle); }
-  }
+@page { margin: 1in 1in }
+@page:first {
+  @top-left  { content: normal }
+  @top-right { content: normal }
+}
+@page:right {
+  margin-left: 1.25in;
+  font: normal 10pt !important;
+  @top-left  { content: string(pagetitle); }
+  @top-right { content: counter(page); }
+}
+@page:left {
+  margin-right: 1.25in;
+  font: normal 10pt !important;
+  @top-left  { content: counter(page); }
+  @top-right { content: string(pagetitle); }
+}
 
-  title { string-set: doctitle content() }
-  body { color: black; background: white }
-  h1 { string-set: pagetitle content(); page-break-before: always }
-  h1:first-child { page-break-before: avoid }
-  h1, h2, h3 { color: black }
-  pre, p, blockquote { page-break-inside: avoid }
-  pre, code { font-size: 9pt }
-  pre br { display: none }
-  a:link, a:visited { background: transparent; text-decoration: none; color: #0044b3 }
-  
-  #links, #sidebar, #footer { display: none }
-  #content { color: black; padding: 0; border: 0 }
+body {
+  color: black;
+  background: white;
+}
+.title, .tagline {
+  display: none;
+}
+h1 {
+  page-break-before: always;
+}
+h1:first-child {
+  page-break-before: avoid;
+}
+h1, h2, h3 {
+  color: black;
+}
+pre, p, blockquote, table {
+  page-break-inside: avoid;
+}
+pre, code {
+  font-size: 9pt;
+  margin: 0;
+}
+pre br {
+  display: none;
+}
+a:link, a:visited {
+  background: transparent;
+  text-decoration: none;
+  color: #0044b3;
+}
+
+#links, #sidebar, #footer {
+  display: none;
+}
+#content {
+  color: black;
+  padding: 0;
+  border: 0;
+  margin-left: 0;
+  width: 100%;
 }
