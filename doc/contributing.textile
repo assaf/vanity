@@ -4,7 +4,7 @@ title: Contributing
 ---
 
 <div id="toc">
-# "Relevant Links":#link
+# "How To Contribute":#contributing
 # "Building From Source":#building
 # "Documentation":#doc
 # "Open Issues":#open
@@ -13,20 +13,24 @@ title: Contributing
 By all means.
 
 
-h3(#link). Relevant Links
+h3(#contributing).  How To Contribute
 
-* "Google Group":http://groups.google.com/group/vanity-talk
-* "Source code":http://github.com/assaf/vanity
-* "Continuous integration":http://runcoderun.com/assaf/vanity
-* "Code metrics":http://devver.net/caliper/project?repo=git%3A%2F%2Fgithub.com%2Fassaf%2Fvanity.git
-* "Issues":http://github.com/assaf/vanity/issues
+Pick on an "open issue":http://github.com/assaf/vanity/issues, "experimental feature":experimental.html, suggestion from the "Google Group":http://groups.google.com/group/vanity-talk, or whatever you feel like contributing.
+
+To contribute new code/changes:
+# Fork the project
+# Make your changes in a topic branch
+# Include tests for the new behavior
+# Make a pull request
+
+Bonus points for helping improve the documentation, writing some examples, and adding more test coverage.
 
 
 h3(#building). Building From Source
 
 Vanity is tested against multiple Ruby implementations, and a variety of database engines. To make life easier, we use "RVM":http://rvm.beginrescueend.com/ and "Bundler":http://gembundler.com/ to set up the test/development environment.
 
-To test Vanity for the first time with whichever Ruby implementation you're currently using:
+To test Vanity for the first time under whichever Ruby implementation you're currently using:
 
 <pre>
 $ rake test:setup
@@ -49,7 +53,7 @@ $ # or
 $ rvm 1.9.2@vanity rake test
 </pre>
 
-If you have RVM installed, @rake test:rubies@ will install all the supported Ruby implementations and populate the @vanity@ gemset for you. To test all supported adapters, you will also need to install Redis and MongoDB. If working on the Mac, you can easily install them all using "Homebrew":http://github.com/mxcl/homebrew.
+If you have RVM installed, @rake test:rubies@ will install all the supported Ruby implementations and populate the @vanity@ gemset for you. To test all supported adapters, you will also need to install Redis and MongoDB. If working on the Mac, you can easily install them using "Homebrew":http://github.com/mxcl/homebrew.
 
 To package Vanity as a gem and install on your machine:
 

@@ -1,24 +1,10 @@
-@page { margin: 1in 1in }
-@page:first {
-  @top-left  { content: normal }
-  @top-right { content: normal }
-}
-@page:right {
-  margin-left: 1.25in;
-  font: normal 10pt !important;
-  @top-left  { content: string(pagetitle); }
-  @top-right { content: counter(page); }
-}
-@page:left {
-  margin-right: 1.25in;
-  font: normal 10pt !important;
-  @top-left  { content: counter(page); }
-  @top-right { content: string(pagetitle); }
-}
-
 body {
-  color: black;
-  background: white;
+  color: #000;
+  background: #fff;
+  width: 220mm;
+  margin: 0;
+  text-rendering: optimizeLegibility;
+  font-size: 14pt;
 }
 .title, .tagline {
   display: none;
@@ -36,11 +22,8 @@ pre, p, blockquote, table {
   page-break-inside: avoid;
 }
 pre, code {
-  font-size: 9pt;
   margin: 0;
-}
-pre br {
-  display: none;
+  font-size: 13pt;
 }
 a:link, a:visited {
   background: transparent;
@@ -56,5 +39,5 @@ a:link, a:visited {
   padding: 0;
   border: 0;
   margin-left: 0;
-  width: 100%;
+  width: 100% !important;
 }

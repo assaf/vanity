@@ -10,23 +10,25 @@ Connection adapters! We have a new way for managing connections which extends
 to multiple adapters (not just Redis). The easiest is to use the configuration
 file config/vanity.yml. For example:
 
-  production:
+  development:
 	  adapter: redis
-	worker:
+	production:
 	  adapter: mongodb
 
-Redis is carried forward and we get MongoDB adapter. Instead of using mock
-adapter or calling playground.test!, turn collection off when running outside
-production. Under Rails, collection is turned off in all environment except
-production. You can control it using:
+We get to keep Redis, add new MongoDB adapter, but lose Mock. It's still there,
+but there's a new way to use Vanity outside production: you can turn data
+collection on/off.
 
-  Vanity.playground.collection = true/false.
+Under Rails, data collection is turned off in all environments except
+production. To turn if on/off:
+
+  Vanity.playground.collecting = true/false.
 
 
-This release switches from older vendored version of the Redis gem to the new
-2.0.x gem that is now required as a separate dependency. If your own code
-relies on the Redis gem, watch out for subtle incompatibilities introduced in
-2.0.
+This release switches to latest Redis gem and uses redis-namespace (what took
+me so long?) If your own code relies on the Redis gem, watch out: there are
+some subtle incompatibilities between 1.x and 2.x.
+
 
 Now using RVM, gemsets and Bundler to test Vanity in different configurations.
 To run the full set of tests in all the supported versions of Ruby:
