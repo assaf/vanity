@@ -50,7 +50,7 @@ h4 { font-size: 1.0em; margin-top: 1.5em }
 .footnote+.footnote { margin-top: .6em }
 #links { position: fixed; right: 0; top: 0; padding: .6em; color: #ccc }
 #header, #content, #footer { width: 40em; margin-left: 210px }
-#sidebar { float: left; width: 140px; margin: 20px; font-size: 11pt }
+#sidebar { float: left; width: 140px; margin: 20px }
 #sidebar ul { list-style: none; text-align: right; margin: 0 0 3em 0; padding: 0 }
 #sidebar ul#stats { color: #666 }
 table#issues .votes { color: #ccc; float: right }
@@ -71,10 +71,10 @@ table#issues .votes { color: #ccc; float: right }
   font-family: "Rough Draft", "Stencil", "Tahoma", "sans-serif";
   content: "Experimental";
   text-transform: uppercase;
-  color: rgba(255,0,0,0.7);
+  color: rgba(255,0,0,0.65);
   font-size: 36pt;
   position: absolute;
-  margin-top: -2em;
+  margin-top: -4em;
   margin-left: 2em;
   -webkit-transform: rotate(-15deg); 
   -moz-transform: rotate(-15deg); 

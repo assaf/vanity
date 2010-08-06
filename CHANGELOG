@@ -1,4 +1,4 @@
-== 1.4.0 (Pending)
+== 1.4.0 (2010-08-06)
 
 Note: Run this command to upgrade your database to 1.4, or you will not have
 access to collected metrics and experiment data:

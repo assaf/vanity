@@ -1,7 +1,6 @@
 source "http://rubygems.org/"
+gemspec :path=>"."
 gem "garb"
-gem "redis"
-gem "redis-namespace"
 
 group :development do
   gem "jekyll"
