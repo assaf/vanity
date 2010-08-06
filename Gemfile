@@ -1,6 +1,6 @@
 source "http://rubygems.org/"
-gemspec :path=>"."
-gem "garb"
+gem "redis", "~>2.0"
+gem "redis-namespace", "~>0.7"
 
 group :development do
   gem "jekyll"
@@ -11,6 +11,7 @@ end
 
 group :test do
   gem "bson_ext"
+  gem "garb"
   gem "mocha"
   gem "mongo"
   gem "passenger"
