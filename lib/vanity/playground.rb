@@ -141,7 +141,7 @@ module Vanity
         Dir[File.join(load_path, "metrics/*.rb")].each do |file|
           Metric.load self, @loading, file
         end
-        if File.exist?("config/vanity.yml") && remote = YAML.load_file("config/vanity.yml")["metrics"]
+        if File.exist?("config/vanity.yml") && remote = YAML.load(ERB.new(File.read("config/vanity.yml")).result)["metrics"]
           remote.each do |id, url|
             fail "Metric #{id} already defined in playground" if metrics[id.to_sym]
             metric = Metric.new(self, id)
@@ -195,19 +195,19 @@ module Vanity
       when nil
         if File.exists?("config/vanity.yml")
           env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
-          spec = YAML.load_file("config/vanity.yml")[env]
+          spec = YAML.load(ERB.new(File.read("config/vanity.yml")).result)[env]
           fail "No configuration for #{env}" unless spec
           establish_connection spec
         elsif File.exists?("config/redis.yml")
           env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
-          redis = YAML.load_file("config/redis.yml")[env]
+          redis = YAML.load(ERB.new(File.read("config/redis.yml")).result)[env]
           fail "No configuration for #{env}" unless redis
           establish_connection "redis://" + redis
         else
           establish_connection :adapter=>"redis"
         end
       when Symbol
-        spec = YAML.load_file("config/vanity.yml")[spec.to_s]
+        spec = YAML.load(ERB.new(File.read("config/vanity.yml")).result)[spec.to_s]
         establish_connection spec
       when String
         uri = URI.parse(spec)

@@ -193,6 +193,24 @@ $stdout << (Vanity.playground.connection rescue $!.message)
     File.unlink "tmp/config/vanity.yml"
   end
 
+  def test_connection_from_yaml_with_erb
+    FileUtils.mkpath "tmp/config"
+    ENV["RAILS_ENV"] = "production"
+    # Pass storage URL through environment like heroku does
+    ENV["REDIS_URL"] = "redis://somehost:6379/15"
+    File.open("tmp/config/vanity.yml", "w") do |io|
+      io.write <<-YML
+production: <%= ENV['REDIS_URL'] %>
+      YML
+    end
+    assert_equal "redis://somehost:6379/15", load_rails(<<-RB)
+initializer.after_initialize
+$stdout << Vanity.playground.connection
+    RB
+  ensure
+    File.unlink "tmp/config/vanity.yml"
+  end
+
   def test_connection_from_redis_yml
     FileUtils.mkpath "tmp/config"
     yml = File.open("tmp/config/redis.yml", "w")
