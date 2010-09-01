@@ -45,7 +45,7 @@ class Test::Unit::TestCase
     # We go destructive on the database at the end of each run, so make sure we
     # don't use databases you care about. For Redis, we pick database 15
     # (default is 0).
-    spec = { "redis"=>"redis://localhost/15", "mongodb"=>"mongo://localhost/vanity-test",
+    spec = { "redis"=>"redis://localhost/15", "mongodb"=>"mongodb://localhost/vanity-test",
              "mock"=>"mock:/" }[adapter]
     raise "No support yet for #{adapter}" unless spec
     Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments")
