@@ -49,7 +49,7 @@ module Vanity
 
       def to_s
         userinfo = @options.values_at(:username, :password).join(":") if @options[:username]
-        URI::Generic.build(:scheme=>"mongo", :userinfo=>userinfo, :host=>@options[:host], :port=>@options[:port], :path=>"/#{@options[:database]}").to_s
+        URI::Generic.build(:scheme=>"mongodb", :userinfo=>userinfo, :host=>@options[:host], :port=>@options[:port], :path=>"/#{@options[:database]}").to_s
       end
 
       def flushdb
