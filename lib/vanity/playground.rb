@@ -9,7 +9,7 @@ module Vanity
   #   puts Vanity.playground.map(&:name)
   class Playground
 
-    DEFAULTS = { :load_path=>"experiments" }
+    DEFAULTS = { :collecting => true, :load_path=>"experiments" }
 
     # Created new Playground. Unless you need to, use the global
     # Vanity.playground.
@@ -40,7 +40,7 @@ module Vanity
         @logger.level = Logger::ERROR
       end
       @loading = []
-      @collecting = true
+      @collecting = @options[:collecting]
     end
    
     # Deprecated. Use redis.server instead.
@@ -283,7 +283,9 @@ module Vanity
 
   end
 
-  @playground = Playground.new
+  # In the case of Rails, use the Rails logger and collect only for
+  # production environment by default.
+  @playground = Playground.new(defined?(Rails) ? { :logger => Rails.logger, :collecting => Rails.env.production? } : {})  
   class << self
 
     # The playground instance.

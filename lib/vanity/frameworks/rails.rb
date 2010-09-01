@@ -190,10 +190,7 @@ end
 # Automatically configure Vanity.  Uses the 
 if defined?(Rails)
   Rails.configuration.after_initialize do
-    # Use Rails logger by default.
-    Vanity.playground.logger ||= Rails.logger
     Vanity.playground.load_path = Rails.root + Vanity.playground.load_path
-    Vanity.playground.collecting = Rails.env.production?
 
     # Do this at the very end of initialization, allowing you to change
     # connection adapter, turn collection on/off, etc.

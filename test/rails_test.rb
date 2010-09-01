@@ -206,15 +206,31 @@ $stdout << Vanity.playground.connection
     File.unlink yml.path
   end
 
-  def test_collection_true_in_production
+  def test_collection_true_in_production_by_default
     assert_equal "true", load_rails(<<-RB, "production")
 initializer.after_initialize
 $stdout << Vanity.playground.collecting?
     RB
   end
 
-  def test_collection_false_in_development
+  def test_collection_false_in_production_when_configured
+    assert_equal "false", load_rails(<<-RB, "production")
+Vanity.playground.collecting = false
+initializer.after_initialize
+$stdout << Vanity.playground.collecting?
+    RB
+  end
+
+  def test_collection_false_in_development_by_default
     assert_equal "false", load_rails(<<-RB, "development")
+initializer.after_initialize
+$stdout << Vanity.playground.collecting?
+    RB
+  end
+
+  def test_collection_true_in_development_when_configured
+    assert_equal "true", load_rails(<<-RB, "development")
+Vanity.playground.collecting = true
 initializer.after_initialize
 $stdout << Vanity.playground.collecting?
     RB
