@@ -2,6 +2,7 @@ require "date"
 require "time"
 require "logger"
 require "cgi"
+require "erb"
 
 # All the cool stuff happens in other places.
 # @see Vanity::Helper
