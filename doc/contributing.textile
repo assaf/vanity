@@ -53,7 +53,7 @@ $ # or
 $ rvm 1.9.2@vanity rake test
 </pre>
 
-If you have RVM installed, @rake test:rubies@ will install all the supported Ruby implementations and populate the @vanity@ gemset for you. To test all supported adapters, you will also need to install Redis and MongoDB. If working on the Mac, you can easily install them using "Homebrew":http://github.com/mxcl/homebrew.
+If you have RVM installed, @rake test:rubies@ will install all the supported Ruby implementations and populate the @vanity@ gemset for you. To test all supported adapters, you will also need to install Redis, MongoDB and Sqlite3. If working on the Mac, you can easily install them using "Homebrew":http://github.com/mxcl/homebrew.
 
 To package Vanity as a gem and install on your machine:
 

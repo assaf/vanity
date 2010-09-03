@@ -1,6 +1,5 @@
 source "http://rubygems.org/"
-gem "redis", "~>2.0"
-gem "redis-namespace", "~>0.7"
+gemspec
 
 group :development do
   gem "jekyll"
@@ -20,5 +19,6 @@ group :test do
   gem "shoulda"
   gem "sqlite3-ruby", "1.2.5" # 1.3.0 doesn't like Ruby 1.9.1
   gem "timecop"
+  #gem "SystemTimer"
   gem "webmock"
 end

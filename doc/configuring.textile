@@ -17,6 +17,12 @@ production:
 
 If there's no configuration file and the application does not create a connection explicitly, Vanity will default to the Redis instance running on @localhost@ at port 6379.
 
+The available database adapters are:
+
+* +redis+ -- This adapter is used by default. Available options are host, port, database (defaults to 0) and password.
+* +mongodb+ -- Available options are host, port, database (defaults to "vanity"), username and password.
+* +active_record+ -- Uses existing ActiveRecord configuration, by you can over-ride by supplying different options. To pick different underlying adapter, set +active_record_adapter+.
+
 You want Vanity to collect information (metrics, experiments, etc) in production, but there's no point collecting data in other environments. You can turn data collection on and off by setting @Vanity.playground.collecting@. Under Rails, collection is turned off in all environments expect production.
 
 You may want to turn data collection on for integration tests, depending on what you're testing. Also, you may need to turn it on if your development server runs more than one process, e.g. if you're using Passenger for development and want to use the Vanity console to pick a particular alternative in an A/B test.

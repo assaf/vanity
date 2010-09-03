@@ -1,3 +1,20 @@
+== 1.4.1 (2010-09-03)
+
+Note: MongoDB URI scheme changed from mongo: to mongodb: to be consistent with
+the rest of the civilized world. If you get an error because Vanity can't find
+the MongoDB adapter, fear not! It's still there, just need to update your
+config/vanity.yml file.
+
+
+Changed MongoDB URI scheme from 'mongo://' to the standard 'mongodb://' and
+renamed the mongodb adapter filename to make it match (JS Boulanger)
+
+Added support for ERB in YAML configuration files (JS Boulanger)
+
+Fixed initialization of playground's Rails defaults such that they can be
+overriden in the environment (JS Boulanger)
+
+
 == 1.4.0 (2010-08-06)
 
 Note: Run this command to upgrade your database to 1.4, or you will not have

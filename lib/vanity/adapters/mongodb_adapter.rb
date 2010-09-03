@@ -18,7 +18,7 @@ module Vanity
       def initialize(options)
         @mongo = Mongo::Connection.new(options[:host], options[:port], :connect=>false)
         @options = options.clone
-        @options[:database] ||= (@options[:path] && @options[:path].split("/")[1])
+        @options[:database] ||= (@options[:path] && @options[:path].split("/")[1]) || "vanity"
         connect!
       end
 
@@ -38,7 +38,7 @@ module Vanity
       end
 
       def connect!
-        @mongo.connect_to_master
+        @mongo.connect
         database = @mongo.db(@options[:database])
         database.authenticate @options[:username], @options[:password], true if @options[:username]
         @metrics = database.collection("vanity.metrics")

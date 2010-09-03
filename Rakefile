@@ -2,7 +2,7 @@ require "rake/testtask"
 
 # -- Building stuff --
 
-spec = Gem::Specification.load(File.expand_path("vanity.gemspec", File.dirname(__FILE__)))
+spec = Gem::Specification.load(Dir["*.gemspec"].first)
 
 desc "Build the Gem"
 task :build do
@@ -29,7 +29,7 @@ end
 # -- Testing stuff --
 
 # Ruby versions we're testing with.
-RUBIES = %w{1.8.7 1.9.1 1.9.2}
+RUBIES = %w{1.8.7 1.9.2}
 
 # Use rake test:rubies to run all combination of tests (see test:adapters) using
 # all the versions of Ruby specified in RUBIES. Or to test a specific version of
@@ -67,7 +67,7 @@ task "test:setup" do
 end
 
 # These are all the adapters we're going to test with.
-ADAPTERS = %w{redis mongodb}
+ADAPTERS = %w{redis mongodb active_record}
 
 desc "Test using different back-ends"
 task "test:adapters", :adapter do |t, args|

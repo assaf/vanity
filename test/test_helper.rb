@@ -48,14 +48,7 @@ class Test::Unit::TestCase
     spec = {
       "redis"=>"redis://localhost/15",
       "mongodb"=>"mongodb://localhost/vanity-test",
-      "mock"=>"mock:/",
-      "active_record"=>{
-        :adapter=>"active_record",
-        :active_record_adapter=>"sqlite3"
-        :database=>"test.sqlite",
-        :pool=>5,
-        :timeout=>5000
-      }
+      "mock"=>"mock:/"
     }[adapter]
     raise "No support yet for #{adapter}" unless spec
     Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments")
