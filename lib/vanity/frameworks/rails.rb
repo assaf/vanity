@@ -161,13 +161,13 @@ module Vanity
     # Step 3: Open your browser to http://localhost:3000/vanity
     module Dashboard
       def index
-        render :template=>Vanity.template("_report"), :content_type=>Mime::HTML, :layout=>true
+        render :file=>Vanity.template("_report"), :content_type=>Mime::HTML, :layout=>false
       end
 
       def chooses
         exp = Vanity.playground.experiment(params[:e])
         exp.chooses(exp.alternatives[params[:a].to_i].value)
-        render :partial=>Vanity.template("experiment"), :locals=>{ :experiment=>exp }
+        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
     end
   end
