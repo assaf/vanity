@@ -57,7 +57,7 @@ module Vanity
       def values(sdate, edate)
         query = { :conditions=>{ @ar_timestamp=>(sdate.to_time...(edate + 1).to_time) },
                   :group=>"date(#{@ar_scoped.connection.quote_column_name @ar_timestamp})" }
-        grouped = @ar_column ? @ar_scoped.calculate(@ar_aggregate, @ar_column, query) : @ar_scoped.count(query)
+        grouped = @ar_column ? @ar_scoped.send(@ar_aggregate, @ar_column, query) : @ar_scoped.count(query)
         (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date.to_s] || 0) }
       end
 

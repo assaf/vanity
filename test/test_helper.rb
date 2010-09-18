@@ -84,7 +84,7 @@ class Test::Unit::TestCase
     Vanity.playground.collecting = false
     Vanity.playground.stubs(:connection).returns(stub(:flushdb=>nil))
   end
-  
+
   def teardown
     Vanity.context = nil
     FileUtils.rm_rf "tmp"
@@ -101,32 +101,6 @@ end
 
 ActiveRecord::Base.logger = $logger
 ActiveRecord::Base.establish_connection :adapter=>"sqlite3", :database=>File.expand_path("database.sqlite")
-# Call this to define aggregate functions not available in SQlite.
-class ActiveRecord::Base
-  def self.aggregates
-    connection.raw_connection.create_aggregate("minimum", 1) do
-      step do |func, value|
-        func[:minimum] = value.to_i unless func[:minimum] && func[:minimum].to_i < value.to_i
-      end
-      finalize { |func| func.result = func[:minimum] }
-    end
-
-    connection.raw_connection.create_aggregate("maximum", 1) do
-      step do |func, value|
-        func[:maximum] = value.to_i unless func[:maximum] && func[:maximum].to_i > value.to_i
-      end
-      finalize { |func| func.result = func[:maximum] }
-    end
-
-    connection.raw_connection.create_aggregate("average", 1) do
-      step do |func, value|
-        func[:total] = func[:total].to_i + value.to_i
-        func[:count] = func[:count].to_i + 1
-      end
-      finalize { |func| func.result = func[:total].to_i / func[:count].to_i }
-    end
-  end
-end
 
 
 class Array
@@ -134,7 +108,7 @@ class Array
   unless method_defined?(:shuffle)
     def shuffle
       copy = clone
-      Array.new(size) { copy.delete_at(Kernel.rand(copy.size)) } 
+      Array.new(size) { copy.delete_at(Kernel.rand(copy.size)) }
     end
   end
 end
@@ -145,7 +119,7 @@ def context(*args, &block)
   return super unless (name = args.first) && block
   parent = Class === self ? self : (defined?(ActiveSupport::TestCase) ? ActiveSupport::TestCase : Test::Unit::TestCase)
   klass = Class.new(parent) do
-    def self.test(name, &block) 
+    def self.test(name, &block)
       define_method("test_#{name.gsub(/\W/,'_')}", &block) if block
     end
     def self.xtest(*args) end

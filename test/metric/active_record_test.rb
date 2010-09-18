@@ -42,7 +42,6 @@ context "ActiveRecord Metric" do
   end
 
   test "record average" do
-    Sky.aggregates
     File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
       f.write <<-RUBY
         metric "Sky is limit" do
@@ -51,13 +50,12 @@ context "ActiveRecord Metric" do
       RUBY
     end
     Vanity.playground.metrics
-    Sky.create! :height=>4
+    Sky.create! :height=>8
     Sky.create! :height=>2
-    assert_equal 3, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+    assert_equal 5, Vanity::Metric.data(metric(:sky_is_limit)).last.last
   end
 
   test "record minimum" do
-    Sky.aggregates
     File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
       f.write <<-RUBY
         metric "Sky is limit" do
@@ -72,7 +70,6 @@ context "ActiveRecord Metric" do
   end
 
   test "record maximum" do
-    Sky.aggregates
     File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
       f.write <<-RUBY
         metric "Sky is limit" do
@@ -108,7 +105,6 @@ context "ActiveRecord Metric" do
   end
 
   test "with scope" do
-    Sky.aggregates
     File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
       f.write <<-RUBY
         metric "Sky is limit" do
