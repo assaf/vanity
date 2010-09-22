@@ -67,7 +67,7 @@ task "test:setup" do
 end
 
 # These are all the adapters we're going to test with.
-ADAPTERS = %w{redis mongodb active_record}
+ADAPTERS = %w{redis mongodb}
 
 desc "Test using different back-ends"
 task "test:adapters", :adapter do |t, args|
