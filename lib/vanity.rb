@@ -3,6 +3,7 @@ require "time"
 require "logger"
 require "cgi"
 require "erb"
+require "yaml"
 
 # All the cool stuff happens in other places.
 # @see Vanity::Helper
