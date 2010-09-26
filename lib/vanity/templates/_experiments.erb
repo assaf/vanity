@@ -1,6 +1,6 @@
 <ul class="experiments">
   <% experiments.sort_by { |id, experiment| experiment.created_at }.reverse.each do |id, experiment| %>
-    <li class="experiment <%= experiment.type %>" id="experiment_<%=h id.to_s %>">
+    <li class="experiment <%= experiment.type %>" id="experiment_<%=vanity_h id.to_s %>">
     <%= render Vanity.template("experiment"), :id=>id, :experiment=>experiment %>
     </li>
   <% end %>

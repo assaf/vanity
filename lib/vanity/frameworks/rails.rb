@@ -137,6 +137,22 @@ module Vanity
           value
         end
       end
+      
+      def vanity_h(text)
+        h(text)
+      end
+      
+      def vanity_html_safe(text)
+        if text.respond_to?(:html_safe!)
+          text.html_safe!
+        else
+          text
+        end
+      end
+      
+      def vanity_simple_format(text, html_options={}) 
+        vanity_html_safe(simple_format(text, html_options))
+      end
     end
 
 

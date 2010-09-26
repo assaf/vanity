@@ -8,6 +8,6 @@
 <form id="milestones">
   <% experiments.each do |id, experiment| %>
     <label><input type="checkbox" name="milestone" data-start="<%= experiment.created_at.httpdate %>"
-      data-end="<%= (experiment.completed_at || Time.now).httpdate %>"><%=h experiment.name %></label>
+      data-end="<%= (experiment.completed_at || Time.now).httpdate %>"><%=vanity_h experiment.name %></label>
   <% end %>
 </form>
