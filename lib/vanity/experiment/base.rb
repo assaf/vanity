@@ -81,7 +81,9 @@ module Vanity
       attr_reader :id
 
       # Time stamp when experiment was created.
-      attr_reader :created_at
+      def created_at
+        @created_at ||= connection.get_experiment_created_at(@id)
+      end
 
       # Time stamp when experiment was completed.
       attr_reader :completed_at
@@ -166,7 +168,6 @@ module Vanity
       def save
         return unless @playground.collecting?
         connection.set_experiment_created_at @id, Time.now
-        @created_at = connection.get_experiment_created_at(@id)
       end
 
     protected
