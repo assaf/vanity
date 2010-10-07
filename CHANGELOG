@@ -6,6 +6,8 @@ the MongoDB adapter, fear not! It's still there, just need to update your
 config/vanity.yml file.
 
 
+Rails 3 support (Adam Keys, Stephen Celis, Brian Leonard, Ryan Carver)
+
 Changed MongoDB URI scheme from 'mongo://' to the standard 'mongodb://' and
 renamed the mongodb adapter filename to make it match (JS Boulanger)
 

@@ -2,6 +2,7 @@ module Vanity
   module Rails #:nodoc:
     def self.load!
       Vanity.playground.load_path = ::Rails.root + Vanity.playground.load_path
+      Vanity.playground.logger ||= Rails.logger
 
       # Do this at the very end of initialization, allowing you to change
       # connection adapter, turn collection on/off, etc.
@@ -146,6 +147,22 @@ module Vanity
         else
           value
         end
+      end
+      
+      def vanity_h(text)
+        h(text)
+      end
+      
+      def vanity_html_safe(text)
+        if text.respond_to?(:html_safe!)
+          text.html_safe!
+        else
+          text
+        end
+      end
+      
+      def vanity_simple_format(text, html_options={}) 
+        vanity_html_safe(simple_format(text, html_options))
       end
     end
 
