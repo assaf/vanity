@@ -1,6 +1,9 @@
+$: << File.dirname(__FILE__) + "/lib"
+require "vanity/version"
+
 Gem::Specification.new do |spec|
   spec.name           = "vanity"
-  spec.version        = "1.4.0"
+  spec.version        = Vanity::VERSION
   spec.author         = "Assaf Arkin"
   spec.email          = "assaf@labnotes.org"
   spec.homepage       = "http://vanity.labnotes.org"

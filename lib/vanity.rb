@@ -12,17 +12,9 @@ require "yaml"
 # @see Vanity::Metric
 # @see Vanity::Experiment
 module Vanity
-  # Version number.
-  module Version
-    version = Gem::Specification.load(File.expand_path("../vanity.gemspec", File.dirname(__FILE__))).version.to_s.split(".").map { |i| i.to_i }
-    MAJOR = version[0]
-    MINOR = version[1]
-    PATCH = version[2]
-    STRING = "#{MAJOR}.#{MINOR}.#{PATCH}"
-  end
-
 end
 
+require "vanity/version"
 require "vanity/backport" if RUBY_VERSION < "1.9"
 # Metrics.
 require "vanity/metric/base"

@@ -18,10 +18,11 @@ h3(#contributing).  How To Contribute
 Pick on an "open issue":http://github.com/assaf/vanity/issues, "experimental feature":experimental.html, suggestion from the "Google Group":http://groups.google.com/group/vanity-talk, or whatever you feel like contributing.
 
 To contribute new code/changes:
-# Fork the project
-# Make your changes in a topic branch
-# Include tests for the new behavior
-# Make a pull request
+# "Fork the project":http://github.com/assaf/vanity
+# Please use a topic branch to make your changes, it's easier to test them that way
+# Fix, patch, enhance, document, improve, sprinkle pixie dust
+# Tests. Please. Run rake test, of if you can, rake test:all (see below)
+# Send a pull request on GitHub
 
 Bonus points for helping improve the documentation, writing some examples, and adding more test coverage.
 
@@ -51,6 +52,12 @@ $ rake test:rubies
 $ rake test:rubies[1.9.2]
 $ # or
 $ rvm 1.9.2@vanity rake test
+</pre>
+
+Before making a release, we run the full suite of tests with all supported Rubies/adapters. Help make Vanity better by running these tests with your changes:
+
+<pre>
+$ rake test:all
 </pre>
 
 If you have RVM installed, @rake test:rubies@ will install all the supported Ruby implementations and populate the @vanity@ gemset for you. To test all supported adapters, you will also need to install Redis, MongoDB and Sqlite3. If working on the Mac, you can easily install them using "Homebrew":http://github.com/mxcl/homebrew.

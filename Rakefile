@@ -16,7 +16,7 @@ task :install=>:build do
 end
 
 desc "Push new release to gemcutter and git tag"
-task :push=>["test:rubies", "build"] do
+task :push=>["test:all", "build"] do
   sh "git push"
   puts "Tagging version #{spec.version} .."
   sh "git tag v#{spec.version}"
@@ -27,6 +27,9 @@ end
 
 
 # -- Testing stuff --
+
+desc "Test everything"
+task "test:all"=>"test:rubies"
 
 # Ruby versions we're testing with.
 RUBIES = %w{1.8.7 1.9.2}

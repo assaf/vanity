@@ -55,33 +55,14 @@ And:
   vanity report --output vanity.html
 
 
-== Building From Source
+== Contributing
 
-To run the test suite for the first time:
-
-  $ rake test:setup test
-
-Vanity is tested against multiple Ruby implementations. To run the full test
-suite against all Ruby implementations and bundled adapters:
-
-  $ rake test:rubies
-  $ # only ruby 1.9.2
-  $ rake test:rubies[1.9.2]
-  $ # only redis
-  $ rake test:adapters[redis]
-
-To build the documentation:
- 
-  $ rake docs
-  $ open html/index.html
-
-To clean up after yourself:
-
-  $ rake clobber
-
-To package Vanity as a gem and install on your machine:
-
-  $ rake install
+* Fork the project
+* Please use a topic branch to make your changes, it's easier to test them that way
+* Fix, patch, enhance, document, improve, sprinkle pixie dust
+* At minimum run rake test, if possible, please run rake test:all
+* Tests. Please. Run rake test, of if you can, rake test:all
+* Send a pull request on GitHub
 
 
 == Credits/License

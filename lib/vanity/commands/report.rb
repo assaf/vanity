@@ -23,7 +23,7 @@ module Vanity
 
     # Escape HTML.
     def vanity_h(html)
-      CGI.escapeHTML(html)
+      CGI.escapeHTML(html.to_s)
     end
     
     def vanity_html_safe(text)
