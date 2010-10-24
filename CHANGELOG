@@ -1,4 +1,4 @@
-== 1.5.0 (2010-10-12)
+== 1.5.0 (2010-10-23)
 
 Note: MongoDB URI scheme changed from mongo: to mongodb: to be consistent with
 the rest of the civilized world. If you get an error because Vanity can't find
