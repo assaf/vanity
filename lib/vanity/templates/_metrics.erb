@@ -2,7 +2,6 @@
   <% metrics.sort_by { |id, metric| metric.name }.each do |id, metric| %>
     <li class="metric" id="metric_<%= id %>">
       <%= render :file=>Vanity.template("_metric"), :locals=>{:id=>id, :metric=>metric} %>
-      <%= render :file=>Vanity.template("_metric"), :locals=>{:id=>id, :metric=>metric} %>
     </li>
   <% end %>
 </ul>
