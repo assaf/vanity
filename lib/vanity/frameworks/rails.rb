@@ -154,8 +154,8 @@ module Vanity
       end
 
       def vanity_html_safe(text)
-        if text.respond_to?(:html_safe!)
-          text.html_safe!
+        if text.respond_to?(:html_safe)
+          text.html_safe
         else
           text
         end
