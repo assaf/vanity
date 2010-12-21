@@ -1,3 +1,8 @@
+== 1.5.1 (2010-12-20)
+
+Fixes some minor bugs in RoR when including the Dashboard (netguru)
+
+
 == 1.5.0 (2010-10-23)
 
 Note: MongoDB URI scheme changed from mongo: to mongodb: to be consistent with

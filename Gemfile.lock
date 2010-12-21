@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vanity (1.5.0.beta)
+    vanity (1.5.0)
       redis (~> 2.0)
       redis-namespace (~> 0.7)
 
