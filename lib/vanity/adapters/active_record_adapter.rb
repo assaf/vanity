@@ -49,7 +49,7 @@ module Vanity
               t.integer :alternative
               t.integer :conversions
             end
-            connection.add_index :vanity_conversions, [:vanity_experiment_id, :alternative]
+            connection.add_index :vanity_conversions, [:vanity_experiment_id, :alternative], :name => "by_experiment_id_and_alternative"
 
             connection.create_table :vanity_participants do |t|
               t.string :experiment_id
@@ -59,10 +59,10 @@ module Vanity
               t.integer :converted
             end
             connection.add_index :vanity_participants, [:experiment_id]
-            connection.add_index :vanity_participants, [:experiment_id, :identity]
-            connection.add_index :vanity_participants, [:experiment_id, :shown]
-            connection.add_index :vanity_participants, [:experiment_id, :seen]
-            connection.add_index :vanity_participants, [:experiment_id, :converted]
+            connection.add_index :vanity_participants, [:experiment_id, :identity], :name => "by_experiment_id_and_identity"
+            connection.add_index :vanity_participants, [:experiment_id, :shown], :name => "by_experiment_id_and_shown"
+            connection.add_index :vanity_participants, [:experiment_id, :seen], :name => "by_experiment_id_and_seen"
+            connection.add_index :vanity_participants, [:experiment_id, :converted], :name => "by_experiment_id_and_converted"
 
             VanitySchema.create(:version => 1)
           end
@@ -124,7 +124,7 @@ module Vanity
         def self.retrieve(experiment, identity, create = true, update_with = nil)
           record = VanityParticipant.first(
                   :conditions =>
-                          {:experiment_id => experiment.to_s, :identity => identity})
+                          {:experiment_id => experiment.to_s, :identity => identity.to_s})
 
           if record
             record.update_attributes(update_with) if update_with
@@ -185,7 +185,7 @@ module Vanity
         dates = (from.to_date..to.to_date).map(&:to_s)
         conditions = [connection.quote_column_name('date') + ' IN (?)', dates]
         order = "#{connection.quote_column_name('date')}"
-        select = "sum(#{connection.quote_column_name('value')}) value, #{connection.quote_column_name('date')}"
+        select = "sum(#{connection.quote_column_name('value')}) AS value, #{connection.quote_column_name('date')}"
         group_by = "#{connection.quote_column_name('date')}"
 
         values = record.vanity_metric_values.all(
