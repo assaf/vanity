@@ -10,6 +10,8 @@ http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
 <b>Step 1:</b> Start using Vanity in your Rails application:
 
+  == Rails 2.x configuration
+
   Rails::Initializer.run do |config|
     gem.config "vanity"
 
@@ -17,6 +19,10 @@ http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
       require "vanity"
     end
   end
+  
+  == Rails 3 configuration
+  
+  gem 'vanity' # in Gemfile, either outside of a group or inside of a bundler group
 
 And:
 
@@ -31,6 +37,8 @@ And:
     alternatives 19, 25, 29
     metrics :signups
   end
+  
+  NOTE: If using a metric as above ("signups"), there needs to be a corresponding ruby file for that metric. Inside the "experiments" directory create a "metrics" directory with a file called "signup.rb". The contents of the file can describe the signup metric, refer to the "Metrics" Vanity documentation page for an example.
 
 <b>Step 3:</b> Present the different options to your users:
 
@@ -53,6 +61,16 @@ And:
 <b>Step 5:</b> Check the report:
 
   vanity report --output vanity.html
+  
+  == Rails 3
+  
+  There is currently an issue with report generation. The vanity-talk Google Group has a couple posts that outline the issue for now. This is one of the posts: http://groups.google.com/group/vanity-talk/browse_thread/thread/343081a72a0cefb6
+  
+  If you are collecting data (in development you need to opt-in to this by setting Vanity.playground.collecting = true in environments/development.rb) you can view experiment results with the vanity dashboard instead of the report. 
+  
+  The vanity dashboard setup instructions with Vanity work for Rails 3.x except the route is different. A Rails 3.x-style route would look like this:
+  
+    `match '/vanity(/:action(/:id(.:format)))', :controller=>:vanity`
 
 
 == Contributing
