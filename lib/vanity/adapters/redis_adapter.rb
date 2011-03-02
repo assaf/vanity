@@ -37,8 +37,8 @@ module Vanity
 
       def connect!
         @redis = @options[:redis] || Redis.new(@options)
-        @metrics = Redis::Namespace.new("vanity:metrics", :redis=>@redis)
-        @experiments = Redis::Namespace.new("vanity:experiments", :redis=>@redis)
+        @metrics = Redis::Namespace.new("#{app_name}:vanity:metrics", :redis=>@redis)
+        @experiments = Redis::Namespace.new("#{app_name}:vanity:experiments", :redis=>@redis)
       end
 
       def to_s
@@ -148,6 +148,16 @@ module Vanity
         alternatives = @experiments.keys("#{experiment}:alts:*")
         @experiments.del *alternatives unless alternatives.empty?
       end
+      
+      private
+        def app_name
+          begin
+            ::Rails.application.class.parent.to_s.downcase
+          rescue Exception
+            # Rails 2.x. is there a better way to get app name?
+            File.basename(RAILS_ROOT)
+          end
+        end
 
     end
   end
