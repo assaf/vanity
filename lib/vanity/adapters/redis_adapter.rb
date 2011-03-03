@@ -37,8 +37,8 @@ module Vanity
 
       def connect!
         @redis = @options[:redis] || Redis.new(@options)
-        @metrics = Redis::Namespace.new("#{app_name}:vanity:metrics", :redis=>@redis)
-        @experiments = Redis::Namespace.new("#{app_name}:vanity:experiments", :redis=>@redis)
+        @metrics = Redis::Namespace.new("vanity:#{app_name}:metrics", :redis=>@redis)
+        @experiments = Redis::Namespace.new("vanity:#{app_name}:experiments", :redis=>@redis)
       end
 
       def to_s

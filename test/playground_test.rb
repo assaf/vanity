@@ -14,7 +14,7 @@ class PlaygroundTest < Test::Unit::TestCase
     end
     experiments = Vanity.playground.instance_variable_get('@adapter').instance_variable_get('@experiments')
     full_namespace = experiments.instance_variable_get('@namespace')
-    app_name_part = full_namespace.split(":").first
+    app_name_part = full_namespace.split(":")[1]
     assert_equal File.basename(RAILS_ROOT), app_name_part
   end
   
@@ -25,7 +25,7 @@ class PlaygroundTest < Test::Unit::TestCase
     end
     metrics = Vanity.playground.instance_variable_get('@adapter').instance_variable_get('@metrics')
     full_namespace = metrics.instance_variable_get('@namespace')
-    app_name_part = full_namespace.split(":").first
+    app_name_part = full_namespace.split(":")[1]
     assert_equal File.basename(RAILS_ROOT), app_name_part
   end
 end
