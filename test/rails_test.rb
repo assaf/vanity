@@ -223,6 +223,23 @@ $stdout << Vanity.playground.connection
   ensure
     File.unlink yml.path
   end
+  
+  def test_collection_from_vanity_yaml
+    FileUtils.mkpath "tmp/config"
+    ENV["RAILS_ENV"] = "development"
+    File.open("tmp/config/vanity.yml", "w") do |io|
+      io.write <<-YML
+development:
+  collecting: false
+      YML
+    end
+    assert !load_rails(<<-RB)
+initializer.after_initialize
+$stdout << Vanity.playground.collecting?
+    RB
+  ensure
+    File.unlink "tmp/config/vanity.yml"
+  end
 
   def test_collection_true_in_production_by_default
     assert_equal "true", load_rails(<<-RB, "production")
@@ -261,7 +278,6 @@ Vanity.playground.test!
 $stdout << Vanity.playground.collecting?
     RB
   end
-
 
   def load_rails(code, env = "production")
     tmp = Tempfile.open("test.rb")
