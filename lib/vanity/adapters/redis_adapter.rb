@@ -16,7 +16,7 @@ module Vanity
     class RedisAdapter < AbstractAdapter
       def initialize(options)
         @options = options.clone
-        @options[:db] ||= @options[:database] || (@options[:path] && @options[:path].split("/")[1].to_i)
+        @options[:db] ||= @options[:database] || (@options[:path] && @options.delete(:path).split("/")[1].to_i)
         @options[:thread_safe] = true
         connect!
       end
