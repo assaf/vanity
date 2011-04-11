@@ -29,7 +29,7 @@ end
 # -- Testing stuff --
 
 desc "Test everything"
-task "test:all"=>"test:rubies"
+task "test:all"=>"test:adapters"
 
 # Ruby versions we're testing with.
 RUBIES = %w{1.8.7 1.9.2}
