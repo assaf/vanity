@@ -1,3 +1,9 @@
+== 1.5.3 (2011-04-11)
+
+Added number of participants and number of converted participants to ab_test
+template (Avishai Weiss).
+
+
 == 1.5.2 (2011-04-11)
 
 Fixed to work with redis-rb 2.2.0 (Kevin Menard).
