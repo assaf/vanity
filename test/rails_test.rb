@@ -233,7 +233,7 @@ development:
   collecting: false
       YML
     end
-    assert !load_rails(<<-RB)
+    assert_equal "false", load_rails(<<-RB)
 initializer.after_initialize
 $stdout << Vanity.playground.collecting?
     RB

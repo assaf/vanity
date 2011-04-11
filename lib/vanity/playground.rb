@@ -21,16 +21,34 @@ module Vanity
     # - load_path -- Path to load experiments/metrics from
     # - logger -- Logger to use
     def initialize(*args)
-      options = args.pop if Hash === args.last
-      @options = DEFAULTS.merge(options || {})
+      options = Hash === args.last ? args.pop : {}
+      # In the case of Rails, use the Rails logger and collect only for
+      # production environment by default.
+      defaults = options[:rails] ? DEFAULTS.merge(:collecting => ::Rails.env.production?, :logger => ::Rails.logger) : DEFAULTS
+      if File.exists?("config/vanity.yml")
+        env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
+        config = YAML.load(ERB.new(File.read("config/vanity.yml")).result)[env]
+        if Hash === config
+          config = config.inject({}) { |h,kv| h[kv.first.to_sym] = kv.last ; h }
+        else
+          config = { :connection=>config }
+        end
+      else
+        config = {}
+      end
+
+      @options = defaults.merge(config).merge(options)
       if @options.values_at(:host, :port, :db).any?
         warn "Deprecated: please specify Redis connection as URL (\"redis://host:port/db\")"
-        establish_connection :adapter=>"redis", :host=>options[:host], :port=>options[:port], :database=>options[:db]
+        establish_connection :adapter=>"redis", :host=>@options[:host], :port=>@options[:port], :database=>@options[:db] || @options[:database]
       elsif @options[:redis]
         @adapter = RedisAdapter.new(:redis=>@options[:redis])
       else
         connection_spec = args.shift || @options[:connection]
-        establish_connection "redis://" + connection_spec if connection_spec
+        if connection_spec
+          connection_spec = "redis://" + connection_spec unless connection_spec[/^\w+:/]
+          establish_connection connection_spec
+        end
       end
 
       warn "Deprecated: namespace option no longer supported directly" if @options[:namespace]
@@ -40,7 +58,7 @@ module Vanity
         @logger.level = Logger::ERROR
       end
       @loading = []
-      @collecting = @options[:collecting]
+      @collecting = !!@options[:collecting]
     end
    
     # Deprecated. Use redis.server instead.
@@ -285,7 +303,7 @@ module Vanity
 
   # In the case of Rails, use the Rails logger and collect only for
   # production environment by default.
-  @playground = Playground.new(defined?(Rails) ? { :logger => Rails.logger, :collecting => Rails.env.production? } : {})  
+  @playground = Playground.new(:rails=>defined?(::Rails))
   class << self
 
     # The playground instance.
