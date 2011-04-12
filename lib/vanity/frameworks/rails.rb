@@ -140,12 +140,22 @@ module Vanity
       #     <%= count %> features to choose from!
       #   <% end %>
       def ab_test(name, &block)
-        value = Vanity.playground.experiment(name).choose
+	@_vanity_experiments ||= {}
+        id = Vanity.playground.experiment(name).choose_id
+	value = Vanity.playground.experiment(name).alternatives[id].value
+ 
+	@_vanity_experiments[name] = id
         if block
           content = capture(value, &block)
           block_called_from_erb?(block) ? concat(content) : content
         else
           value
+        end
+      end
+
+      def bot_resistant_js
+        javascript_tag do
+          render Vanity.template("bot_resistant.js.erb")
         end
       end
 
@@ -184,7 +194,11 @@ module Vanity
       def chooses
         exp = Vanity.playground.experiment(params[:e])
         exp.chooses(exp.alternatives[params[:a].to_i].value)
-        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+        if request.xhr? && exp && exp.bot_resistant?
+          render :status => 200, :nothing => true
+	else
+	  render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+	end
       end
     end
   end

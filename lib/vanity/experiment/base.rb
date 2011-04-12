@@ -69,6 +69,7 @@ module Vanity
         @id, @name = id.to_sym, name
         @options = options || {}
         @identify_block = method(:default_identify)
+        @bot_resistant = false
       end
 
       # Human readable experiment name (first argument you pass when creating a
@@ -124,6 +125,19 @@ module Vanity
         @description = text if text
         @description
       end
+      
+      # -- Robot Detection --
+
+      # Call to indicate that participants should be added via js
+      # Be sure to add the <%= Vanity.participant_js %> to views that use it
+      def be_bot_resistant
+        @bot_resistant = true
+      end
+
+      def bot_resistant?
+        @bot_resistant
+      end
+
 
 
       # -- Experiment completion --

@@ -330,6 +330,9 @@ module Vanity
       path
     end
 
+    def chooses_path
+      "/admin/vanity/chooses"
+    end
   end
 end
 
