@@ -121,12 +121,12 @@ class AbTestTest < ActionController::TestCase
   # -- Bot resistant --
 
   def test_does_not_record_participant_when_bot_resistant
+    Vanity.playground.be_bot_resistant
     ids = (0...10).to_a
     new_ab_test :foobar do
       alternatives "foo", "bar"
       identify { ids.pop }
       metrics :coolness
-      be_bot_resistant
     end
     10.times { experiment(:foobar).choose }
     alts = experiment(:foobar).alternatives

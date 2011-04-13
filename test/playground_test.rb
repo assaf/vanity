@@ -7,4 +7,14 @@ class PlaygroundTest < Test::Unit::TestCase
     assert_equal instance, Vanity.playground
   end
 
+  def test_be_bot_resistant
+    assert !Vanity.playground.bot_resistant? 
+    Vanity.playground.be_bot_resistant
+    assert Vanity.playground.bot_resistant? 
+  end
+
+  def test_chooses_path_sets_default
+    assert_equal Vanity.playground.chooses_path, Vanity::Playground::DEFAULT_CHOOSES_PATH
+  end
+
 end

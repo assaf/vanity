@@ -181,18 +181,13 @@ module Vanity
       # @example
       #   color = experiment(:which_blue).choose
       def choose
-	index = choose_id
-        @alternatives[index]
-      end
-
-      def choose_id
         if @playground.collecting?
           if active?
             identity = identity()
             index = connection.ab_showing(@id, identity)
             unless index
               index = alternative_for(identity)
-              if !bot_resistant?
+              if !@playground.bot_resistant?
         	connection.ab_add_participant @id, index, identity
         	check_completion!
               end
@@ -205,7 +200,7 @@ module Vanity
           @showing ||= {}
           @showing[identity] ||= alternative_for(identity)
         end
-        index.to_i
+        @alternatives[index.to_i]
       end
 
       # Returns fingerprint (hash) for given alternative.  Can be used to lookup
