@@ -140,11 +140,15 @@ module Vanity
       #     <%= count %> features to choose from!
       #   <% end %>
       def ab_test(name, &block)
-	@_vanity_experiments ||= {}
-        id = Vanity.playground.experiment(name).choose_id
-	value = Vanity.playground.experiment(name).alternatives[id].value
- 
-	@_vanity_experiments[name] = id
+        experiment = Vanity.playground.experiment(name)
+        id = experiment.choose_id
+        value = experiment.alternatives[id].value
+	
+        if experiment.bot_resistant?
+          @_vanity_experiments ||= {}
+          @_vanity_experiments[name] = id
+        end
+
         if block
           content = capture(value, &block)
           block_called_from_erb?(block) ? concat(content) : content
@@ -154,6 +158,7 @@ module Vanity
       end
 
       def bot_resistant_js
+	return if @_vanity_experiments.nil?
         javascript_tag do
           render Vanity.template("bot_resistant.js.erb")
         end
