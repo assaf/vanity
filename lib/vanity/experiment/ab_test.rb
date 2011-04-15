@@ -188,8 +188,8 @@ module Vanity
             unless index
               index = alternative_for(identity)
               if !@playground.bot_resistant?
-        	connection.ab_add_participant @id, index, identity
-        	check_completion!
+                connection.ab_add_participant @id, index, identity
+                check_completion!
               end
             end
           else

@@ -104,7 +104,11 @@ module Vanity
     # -- Robot Detection --
 
     # Call to indicate that participants should be added via js
-    # Be sure to add the <%= Vanity.participant_js %> to views that use it
+    # This helps keep robots from participating in the ab test
+    # and skewing results.
+    #
+    # Be sure to add <%= Vanity.participant_js %> to pages that 
+    # have ab tests if you are using the bot_resistant code.
     def be_bot_resistant
       @bot_resistant = true
     end
