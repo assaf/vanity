@@ -198,7 +198,7 @@ module Vanity
       def chooses
         exp = Vanity.playground.experiment(params[:e])
         exp.chooses(exp.alternatives[params[:a].to_i].value)
-        if request.xhr? && exp && exp.bot_resistant?
+        if request.xhr? && Vanity.playground.bot_resistant?
           render :status => 200, :nothing => true
         else
           render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
