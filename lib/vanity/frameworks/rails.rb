@@ -156,7 +156,7 @@ module Vanity
         end
       end
 
-      def bot_resistant_js
+      def vanity_js
         return if @_vanity_experiments.nil?
         javascript_tag do
           render Vanity.template("bot_resistant.js.erb")
@@ -198,11 +198,13 @@ module Vanity
       def chooses
         exp = Vanity.playground.experiment(params[:e])
         exp.chooses(exp.alternatives[params[:a].to_i].value)
-        if request.xhr? && Vanity.playground.bot_resistant?
-          render :status => 200, :nothing => true
-        else
-          render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
-        end
+	render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+      end
+
+      def add_participant
+        exp = Vanity.playground.experiment(params[:e])
+        exp.chooses(exp.alternatives[params[:a].to_i].value)
+	render :status => 200, :nothing => true
       end
     end
   end

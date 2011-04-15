@@ -16,16 +16,14 @@ class RailsDashboardTest < ActionController::TestCase
     end
   end
 
-  def test_chooses_ajax
-    Vanity.playground.be_bot_resistant
-    xhr :post, :chooses, :e => "food", :a => 0
+  def test_add_participant
+    xhr :post, :add_participant, :e => "food", :a => 0
     assert_response :success
     assert @response.body.blank?
   end
 
   def test_chooses
-    post :chooses, :e => "food"
+    xhr :post, :chooses, :e => "food", :a => 0
     assert_response :success
-    assert !@response.body.blank?
   end
 end

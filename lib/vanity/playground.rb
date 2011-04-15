@@ -10,7 +10,7 @@ module Vanity
   class Playground
 
     DEFAULTS = { :collecting => true, :load_path=>"experiments" }
-    DEFAULT_CHOOSES_PATH = '/vanity/chooses'
+    DEFAULT_ADD_PARTICIPANT_PATH = '/vanity/add_participant'
 
     # Created new Playground. Unless you need to, use the global
     # Vanity.playground.
@@ -60,7 +60,7 @@ module Vanity
       end
       @loading = []
       @bot_resistant = false
-      self.chooses_path = DEFAULT_CHOOSES_PATH
+      self.add_participant_path = DEFAULT_ADD_PARTICIPANT_PATH
       @collecting = !!@options[:collecting]
     end
    
@@ -73,7 +73,7 @@ module Vanity
     # Logger.
     attr_accessor :logger
 
-    attr_accessor :chooses_path
+    attr_accessor :add_participant_path
 
     # Defines a new experiment. Generally, do not call this directly,
     # use one of the definition methods (ab_test, measure, etc).
