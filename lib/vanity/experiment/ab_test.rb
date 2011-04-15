@@ -200,7 +200,7 @@ module Vanity
           @showing ||= {}
           @showing[identity] ||= alternative_for(identity)
         end
-        @alternatives[index.to_i]
+        alternatives[index.to_i]
       end
 
       # Returns fingerprint (hash) for given alternative.  Can be used to lookup

@@ -85,7 +85,7 @@ class UseVanityTest < ActionController::TestCase
     10.times do
       @controller = nil ; setup_controller_request_and_response
       get :index, :_vanity=>"aae9ff8081"
-      assert !experiment(:pie_or_cake).choose
+      assert !experiment(:pie_or_cake).choose.value
       assert experiment(:pie_or_cake).showing?(first)
     end
   end

@@ -3,7 +3,7 @@
   <%
     @_vanity_experiments.each do |name, alternative| 
   %>
-    var params = "e=<%= key %>&a=<%= alternative %>&authenticity_token=" + encodeURIComponent("<%= form_authenticity_token %>");
+    var params = "e=<%= name %>&a=<%= alternative.id %>&authenticity_token=" + encodeURIComponent("<%= form_authenticity_token %>");
     if (window.XMLHttpRequest) { // Mozilla, Safari, ...
       httpRequest = new XMLHttpRequest();
       if (httpRequest.overrideMimeType) {

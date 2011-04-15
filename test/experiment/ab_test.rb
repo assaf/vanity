@@ -142,10 +142,10 @@ class AbTestTest < ActionController::TestCase
       identify { "6e98ec" }
       metrics :coolness
     end
-    assert value = experiment(:foobar).choose
+    assert value = experiment(:foobar).choose.value
     assert_match /foo|bar/, value
     1000.times do
-      assert_equal value, experiment(:foobar).choose
+      assert_equal value, experiment(:foobar).choose.value
     end
   end
 
@@ -155,7 +155,7 @@ class AbTestTest < ActionController::TestCase
       identify { rand }
       metrics :coolness
     end
-    alts = Array.new(1000) { experiment(:foobar).choose }
+    alts = Array.new(1000) { experiment(:foobar).choose.value }
     assert_equal %w{bar foo}, alts.uniq.sort
     assert_in_delta alts.select { |a| a == "foo" }.size, 500, 100 # this may fail, such is propability
   end
@@ -579,7 +579,7 @@ This experiment did not run long enough to find a clear winner.
     # Run experiment to completion (100 participants)
     results = Set.new
     100.times do
-      results << experiment(:simple).choose
+      results << experiment(:simple).choose.value
       metric(:coolness).track!
     end
     assert results.include?(true) && results.include?(false)
@@ -587,7 +587,7 @@ This experiment did not run long enough to find a clear winner.
 
     # Test that we always get the same choice (true)
     100.times do
-      assert_equal true, experiment(:simple).choose
+      assert_equal true, experiment(:simple).choose.value
       metric(:coolness).track!
     end
     # We don't get to count the 100 participant's conversion, but that's ok.
@@ -700,9 +700,9 @@ This experiment did not run long enough to find a clear winner.
     new_ab_test :simple do
       alternatives :a, :b, :c
     end
-    choice = experiment(:simple).choose
+    choice = experiment(:simple).choose.value
     assert [:a, :b, :c].include?(choice)
-    assert_equal choice, experiment(:simple).choose
+    assert_equal choice, experiment(:simple).choose.value
   end
 
 
