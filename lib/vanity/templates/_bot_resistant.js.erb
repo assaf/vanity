@@ -6,15 +6,9 @@
     var params = "e=<%= name %>&a=<%= alternative.id %>&authenticity_token=" + encodeURIComponent("<%= form_authenticity_token %>");
     if (window.XMLHttpRequest) { // Mozilla, Safari, ...
       httpRequest = new XMLHttpRequest();
-      if (httpRequest.overrideMimeType) {
-	httpRequest.overrideMimeType('text/xml');
-      }
     } else if (window.ActiveXObject) { // IE
       try { httpRequest = new ActiveXObject("Msxml2.XMLHTTP"); }
-      catch (e) {
-	try { httpRequest = new ActiveXObject("Microsoft.XMLHTTP"); }
-	catch (e) {}
-      }
+      catch (e) { }
     }
     if (httpRequest) {
       httpRequest.open('POST', "<%= Vanity.playground.add_participant_path %>", true);
