@@ -198,13 +198,13 @@ module Vanity
       def chooses
         exp = Vanity.playground.experiment(params[:e])
         exp.chooses(exp.alternatives[params[:a].to_i].value)
-	render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
 
       def add_participant
         exp = Vanity.playground.experiment(params[:e])
         exp.chooses(exp.alternatives[params[:a].to_i].value)
-	render :status => 200, :nothing => true
+        render :status => 200, :nothing => true
       end
     end
   end
