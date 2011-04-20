@@ -256,7 +256,7 @@ module Vanity
       def showing?(alternative)
         identity = identity()
         if @playground.collecting?
-          connection.ab_showing(@id, identity) == alternative.id
+          (connection.ab_showing(@id, identity) || alternative_for(identity)) == alternative.id
         else
           @showing ||= {}
           @showing[identity] == alternative.id
