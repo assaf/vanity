@@ -241,7 +241,9 @@ module Vanity
               check_completion!
             end
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            connection.ab_show @id, identity, index
+            if alternative_for(identity) != index
+              connection.ab_show @id, identity, index
+            end
           end
         else
           @showing ||= {}
