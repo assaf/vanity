@@ -235,6 +235,11 @@ module Vanity
             connection.ab_not_showing @id, identity
           else
             index = @alternatives.index(value)
+            #add them to the experiment unless they are already in it
+            unless index == connection.ab_showing(@id, identity)
+              connection.ab_add_participant @id, index, identity
+              check_completion!
+            end
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
             connection.ab_show @id, identity, index
           end

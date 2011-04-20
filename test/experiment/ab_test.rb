@@ -684,6 +684,32 @@ This experiment did not run long enough to find a clear winner.
     assert_nil experiment(:quick).outcome
   end
 
+  def test_chooses_records_participants
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+    end
+    experiment(:simple).chooses(:b)
+    assert_equal experiment(:simple).alternatives[1].participants, 1
+  end
+
+  def test_chooses_records_participants_only_once
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+    end
+    2.times { experiment(:simple).chooses(:b) }
+    assert_equal experiment(:simple).alternatives[1].participants, 1
+  end
+
+  def test_chooses_records_participants_for_new_alternatives
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+    end
+    experiment(:simple).chooses(:b)
+    experiment(:simple).chooses(:c)
+    assert_equal experiment(:simple).alternatives[1].participants, 1
+    assert_equal experiment(:simple).alternatives[2].participants, 1
+  end
+
   def test_no_collection_and_chooses
     not_collecting!
     new_ab_test :simple do
