@@ -91,8 +91,10 @@ class UseVanityTest < ActionController::TestCase
   end
 
   def test_does_nothing_with_vanity_query_parameter_for_posts
+    experiment(:pie_or_cake).chooses(experiment(:pie_or_cake).alternatives.last.value)
     first = experiment(:pie_or_cake).alternatives.first
-    post :index, :foo=>"bar", :_vanity=>"567"
+    fingerprint = experiment(:pie_or_cake).fingerprint(first)
+    post :index, :foo => "bar", :_vanity => fingerprint
     assert_response :success
     assert !experiment(:pie_or_cake).showing?(first)
   end
