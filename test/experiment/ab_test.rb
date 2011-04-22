@@ -692,6 +692,19 @@ This experiment did not run long enough to find a clear winner.
     assert_equal experiment(:simple).alternatives[1].participants, 1
   end
 
+  def test_chooses_moves_participant_to_new_alternative
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      identify { "1" }
+    end
+    val = experiment(:simple).choose.value
+    alternative = experiment(:simple).alternatives.detect {|a| a.value != val }
+    experiment(:simple).chooses(alternative.value)
+    assert_equal experiment(:simple).choose.value, alternative.value
+    experiment(:simple).chooses(val)
+    assert_equal experiment(:simple).choose.value, val
+  end
+
   def test_chooses_records_participants_only_once
     new_ab_test :simple do
       alternatives :a, :b, :c
