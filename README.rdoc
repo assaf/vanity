@@ -74,7 +74,7 @@ And:
     `match '/vanity(/:action(/:id(.:format)))', :controller=>:vanity`
 
 
-== Registering user with Javascript
+== Registering participants with Javascript
 
 If robots or spiders make up a significant portion of your sites traffic they can affect your conversion rate.  Vanity can optionally add participants to the experiments using asynchronous javascript callbacks, which will keep almost all robots out.  To set this up simply do the following:
 

@@ -73,6 +73,7 @@ module Vanity
     # Logger.
     attr_accessor :logger
 
+    # Path to the add_participant action, necessary if you have called use_js!
     attr_accessor :add_participant_path
 
     # Defines a new experiment. Generally, do not call this directly,
@@ -107,8 +108,18 @@ module Vanity
     # This helps keep robots from participating in the ab test
     # and skewing results.
     #
-    # Be sure to add <%= Vanity.participant_js %> to pages that 
-    # have ab tests if you are using the use_js! code.
+    # If you use this, there are two more steps:
+    # - Set Vanity.playground.add_participant_path = '/path/to/vanity/action',
+    #   this should point to the add_participant path that is added with
+    #   Vanity::Rails::Dashboard, make sure that this action is available
+    #   to all users
+    # - Add <%= vanity_js %> to any page that needs uses an ab_test. vanity_js
+    #   needs to be included after your call to ab_test so that it knows which
+    #   version of the experiment the participant is a member of.  The helper
+    #   will render nothing if the there are no ab_tests running on the current
+    #   page, so adding vanity_js to the bottom of your layouts is a good
+    #   option.  Keep in mind that if you call use_js! and don't include
+    #   vanity_js in your view no participants will be recorded.
     def use_js!
       @use_js = true
     end
