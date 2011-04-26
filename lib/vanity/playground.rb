@@ -10,6 +10,7 @@ module Vanity
   class Playground
 
     DEFAULTS = { :collecting => true, :load_path=>"experiments" }
+    DEFAULT_ADD_PARTICIPANT_PATH = '/vanity/add_participant'
 
     # Created new Playground. Unless you need to, use the global
     # Vanity.playground.
@@ -58,6 +59,8 @@ module Vanity
         @logger.level = Logger::ERROR
       end
       @loading = []
+      @bot_resistant = false
+      self.add_participant_path = DEFAULT_ADD_PARTICIPANT_PATH
       @collecting = !!@options[:collecting]
     end
    
@@ -69,6 +72,8 @@ module Vanity
 
     # Logger.
     attr_accessor :logger
+
+    attr_accessor :add_participant_path
 
     # Defines a new experiment. Generally, do not call this directly,
     # use one of the definition methods (ab_test, measure, etc).
@@ -94,6 +99,24 @@ module Vanity
       warn "Deprecated: pleae call experiment method with experiment identifier (a Ruby symbol)" unless id == name
       experiments[id.to_sym] or raise NameError, "No experiment #{id}"
     end
+
+
+    # -- Robot Detection --
+
+    # Call to indicate that participants should be added via js
+    # This helps keep robots from participating in the ab test
+    # and skewing results.
+    #
+    # Be sure to add <%= Vanity.participant_js %> to pages that 
+    # have ab tests if you are using the bot_resistant code.
+    def be_bot_resistant
+      @bot_resistant = true
+    end
+
+    def bot_resistant?
+      @bot_resistant
+    end
+
 
     # Returns hash of experiments (key is experiment id).
     #
@@ -329,7 +352,6 @@ module Vanity
       path << ".erb" unless name["."]
       path
     end
-
   end
 end
 

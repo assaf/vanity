@@ -118,6 +118,21 @@ class AbTestTest < ActionController::TestCase
     assert_equal 1, experiment(:abcd).alternatives.sum(&:conversions)
   end
 
+  # -- Bot resistant --
+
+  def test_does_not_record_participant_when_bot_resistant
+    Vanity.playground.be_bot_resistant
+    ids = (0...10).to_a
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { ids.pop }
+      metrics :coolness
+    end
+    10.times { experiment(:foobar).choose }
+    alts = experiment(:foobar).alternatives
+    assert_equal 0, alts.map(&:participants).sum
+  end
+
 
   # -- Running experiment --
 
@@ -127,10 +142,10 @@ class AbTestTest < ActionController::TestCase
       identify { "6e98ec" }
       metrics :coolness
     end
-    assert value = experiment(:foobar).choose
+    assert value = experiment(:foobar).choose.value
     assert_match /foo|bar/, value
     1000.times do
-      assert_equal value, experiment(:foobar).choose
+      assert_equal value, experiment(:foobar).choose.value
     end
   end
 
@@ -140,7 +155,7 @@ class AbTestTest < ActionController::TestCase
       identify { rand }
       metrics :coolness
     end
-    alts = Array.new(1000) { experiment(:foobar).choose }
+    alts = Array.new(1000) { experiment(:foobar).choose.value }
     assert_equal %w{bar foo}, alts.uniq.sort
     assert_in_delta alts.select { |a| a == "foo" }.size, 500, 100 # this may fail, such is propability
   end
@@ -564,7 +579,7 @@ This experiment did not run long enough to find a clear winner.
     # Run experiment to completion (100 participants)
     results = Set.new
     100.times do
-      results << experiment(:simple).choose
+      results << experiment(:simple).choose.value
       metric(:coolness).track!
     end
     assert results.include?(true) && results.include?(false)
@@ -572,7 +587,7 @@ This experiment did not run long enough to find a clear winner.
 
     # Test that we always get the same choice (true)
     100.times do
-      assert_equal true, experiment(:simple).choose
+      assert_equal true, experiment(:simple).choose.value
       metric(:coolness).track!
     end
     # We don't get to count the 100 participant's conversion, but that's ok.
@@ -669,6 +684,45 @@ This experiment did not run long enough to find a clear winner.
     assert_nil experiment(:quick).outcome
   end
 
+  def test_chooses_records_participants
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+    end
+    experiment(:simple).chooses(:b)
+    assert_equal experiment(:simple).alternatives[1].participants, 1
+  end
+
+  def test_chooses_moves_participant_to_new_alternative
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      identify { "1" }
+    end
+    val = experiment(:simple).choose.value
+    alternative = experiment(:simple).alternatives.detect {|a| a.value != val }
+    experiment(:simple).chooses(alternative.value)
+    assert_equal experiment(:simple).choose.value, alternative.value
+    experiment(:simple).chooses(val)
+    assert_equal experiment(:simple).choose.value, val
+  end
+
+  def test_chooses_records_participants_only_once
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+    end
+    2.times { experiment(:simple).chooses(:b) }
+    assert_equal experiment(:simple).alternatives[1].participants, 1
+  end
+
+  def test_chooses_records_participants_for_new_alternatives
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+    end
+    experiment(:simple).chooses(:b)
+    experiment(:simple).chooses(:c)
+    assert_equal experiment(:simple).alternatives[1].participants, 1
+    assert_equal experiment(:simple).alternatives[2].participants, 1
+  end
+
   def test_no_collection_and_chooses
     not_collecting!
     new_ab_test :simple do
@@ -685,9 +739,9 @@ This experiment did not run long enough to find a clear winner.
     new_ab_test :simple do
       alternatives :a, :b, :c
     end
-    choice = experiment(:simple).choose
+    choice = experiment(:simple).choose.value
     assert [:a, :b, :c].include?(choice)
-    assert_equal choice, experiment(:simple).choose
+    assert_equal choice, experiment(:simple).choose.value
   end
 
 

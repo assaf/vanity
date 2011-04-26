@@ -124,7 +124,7 @@ module Vanity
         @description = text if text
         @description
       end
-
+ 
 
       # -- Experiment completion --
 

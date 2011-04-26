@@ -6,6 +6,7 @@ require "test/unit"
 require "mocha"
 require "action_controller"
 require "action_controller/test_case"
+require "action_view/test_case"
 require "active_record"
 require "initializer"
 Rails.configuration = Rails::Configuration.new

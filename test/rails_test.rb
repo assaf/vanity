@@ -81,18 +81,20 @@ class UseVanityTest < ActionController::TestCase
 
   def test_sets_choices_from_vanity_query_parameter
     first = experiment(:pie_or_cake).alternatives.first
-    # experiment(:pie_or_cake).fingerprint(first)
+    fingerprint = experiment(:pie_or_cake).fingerprint(first)
     10.times do
       @controller = nil ; setup_controller_request_and_response
-      get :index, :_vanity=>"aae9ff8081"
-      assert !experiment(:pie_or_cake).choose
+      get :index, :_vanity => fingerprint
+      assert_equal experiment(:pie_or_cake).choose, experiment(:pie_or_cake).alternatives.first
       assert experiment(:pie_or_cake).showing?(first)
     end
   end
 
   def test_does_nothing_with_vanity_query_parameter_for_posts
+    experiment(:pie_or_cake).chooses(experiment(:pie_or_cake).alternatives.last.value)
     first = experiment(:pie_or_cake).alternatives.first
-    post :index, :foo=>"bar", :_vanity=>"567"
+    fingerprint = experiment(:pie_or_cake).fingerprint(first)
+    post :index, :foo => "bar", :_vanity => fingerprint
     assert_response :success
     assert !experiment(:pie_or_cake).showing?(first)
   end

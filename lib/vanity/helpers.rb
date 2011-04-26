@@ -34,7 +34,14 @@ module Vanity
     #   end
     # @since 1.2.0
     def ab_test(name, &block)
-      value = Vanity.playground.experiment(name).choose
+      if Vanity.playground.bot_resistant?
+        @_vanity_experiments ||= {}
+        @_vanity_experiments[name] ||= Vanity.playground.experiment(name).choose
+        value = @_vanity_experiments[name].value
+      else
+        value = Vanity.playground.experiment(name).choose.value
+      end
+
       if block
         content = capture(value, &block)
         block_called_from_erb?(block) ? concat(content) : content
