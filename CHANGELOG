@@ -1,3 +1,17 @@
+== Pending
+
+Fix for metrics on rails 3 models (Esteban Pastorino).
+
+Use JavaScript to report participants, useful for ignoring bots on publicly
+accessible pages (dougcole).
+
+To Vanity JavaScript:
+
+1. Vanity.playground.be_bot_resistant
+2. Set Vanity.playground.add_participant_path = '/path/to/vanity/action'
+3. Add <%= vanity_js %> to the bottom of any view that needs to set up an ab_test
+
+
 == 1.5.3 (2011-04-11)
 
 Added number of participants and number of converted participants to ab_test
