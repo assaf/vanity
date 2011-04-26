@@ -34,7 +34,7 @@ module Vanity
     #   end
     # @since 1.2.0
     def ab_test(name, &block)
-      if Vanity.playground.bot_resistant?
+      if Vanity.playground.using_js?
         @_vanity_experiments ||= {}
         @_vanity_experiments[name] ||= Vanity.playground.experiment(name).choose
         value = @_vanity_experiments[name].value

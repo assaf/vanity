@@ -17,8 +17,8 @@ class RailsHelperTest < ActionView::TestCase
     assert [:pie, :cake].include?(ab_test(:pie_or_cake))
   end
 
-  def test_bot_resistant_ab_test_returns_the_same_alternative
-    Vanity.playground.be_bot_resistant
+  def test_ab_test_using_js_returns_the_same_alternative
+    Vanity.playground.use_js!
     result = ab_test(:pie_or_cake)
     assert [:pie, :cake].include?(result)
     10.times do 

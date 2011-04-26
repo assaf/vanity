@@ -140,7 +140,7 @@ module Vanity
       #     <%= count %> features to choose from!
       #   <% end %>
       def ab_test(name, &block)
-        if Vanity.playground.bot_resistant?
+        if Vanity.playground.using_js?
           @_vanity_experiments ||= {}
           @_vanity_experiments[name] ||= Vanity.playground.experiment(name).choose
           value = @_vanity_experiments[name].value
@@ -159,7 +159,7 @@ module Vanity
       def vanity_js
         return if @_vanity_experiments.nil?
         javascript_tag do
-          render Vanity.template("bot_resistant.js.erb")
+          render Vanity.template("vanity.js.erb")
         end
       end
 

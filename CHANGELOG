@@ -7,7 +7,7 @@ accessible pages (dougcole).
 
 To Vanity JavaScript:
 
-1. Vanity.playground.be_bot_resistant
+1. Vanity.playground.use_js!
 2. Set Vanity.playground.add_participant_path = '/path/to/vanity/action'
 3. Add <%= vanity_js %> to the bottom of any view that needs to set up an ab_test
 

@@ -118,10 +118,10 @@ class AbTestTest < ActionController::TestCase
     assert_equal 1, experiment(:abcd).alternatives.sum(&:conversions)
   end
 
-  # -- Bot resistant --
+  # -- use_js! --
 
-  def test_does_not_record_participant_when_bot_resistant
-    Vanity.playground.be_bot_resistant
+  def test_does_not_record_participant_when_using_js
+    Vanity.playground.use_js!
     ids = (0...10).to_a
     new_ab_test :foobar do
       alternatives "foo", "bar"

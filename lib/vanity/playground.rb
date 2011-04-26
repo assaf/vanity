@@ -59,7 +59,7 @@ module Vanity
         @logger.level = Logger::ERROR
       end
       @loading = []
-      @bot_resistant = false
+      @use_js = false
       self.add_participant_path = DEFAULT_ADD_PARTICIPANT_PATH
       @collecting = !!@options[:collecting]
     end
@@ -108,13 +108,13 @@ module Vanity
     # and skewing results.
     #
     # Be sure to add <%= Vanity.participant_js %> to pages that 
-    # have ab tests if you are using the bot_resistant code.
-    def be_bot_resistant
-      @bot_resistant = true
+    # have ab tests if you are using the use_js! code.
+    def use_js!
+      @use_js = true
     end
 
-    def bot_resistant?
-      @bot_resistant
+    def using_js?
+      @use_js
     end
 
 
