@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vanity (1.5.2)
+    vanity (1.5.3)
       redis (~> 2.0)
       redis-namespace (~> 0.7)
 
@@ -43,6 +43,7 @@ GEM
       rake
     mongo (1.0.8)
       bson (>= 1.0.5)
+    mysql (2.8.1)
     passenger (2.2.15)
       fastthread (>= 1.0.1)
       rack
@@ -60,7 +61,6 @@ GEM
     redis-namespace (0.10.0)
       redis (< 3.0.0)
     shoulda (2.11.3)
-    sqlite3-ruby (1.2.5)
     syntax (1.0.0)
     timecop (0.3.5)
     webmock (1.3.4)
@@ -78,12 +78,12 @@ DEPENDENCIES
   jekyll
   mocha
   mongo
+  mysql
   passenger
   rack (= 1.1.0)
   rails (= 2.3.8)
   rake
   shoulda
-  sqlite3-ruby (= 1.2.5)
   timecop
   vanity!
   webmock

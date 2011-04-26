@@ -104,7 +104,7 @@ end
 
 
 ActiveRecord::Base.logger = $logger
-ActiveRecord::Base.establish_connection :adapter=>"sqlite3", :database=>File.expand_path("database.sqlite")
+ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test"
 
 
 class Array
