@@ -187,8 +187,10 @@ module Vanity
             index = connection.ab_showing(@id, identity)
             unless index
               index = alternative_for(identity)
-              connection.ab_add_participant @id, index, identity
-              check_completion!
+              if !@playground.bot_resistant?
+                connection.ab_add_participant @id, index, identity
+                check_completion!
+              end
             end
           else
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
@@ -198,7 +200,7 @@ module Vanity
           @showing ||= {}
           @showing[identity] ||= alternative_for(identity)
         end
-        @alternatives[index.to_i]
+        alternatives[index.to_i]
       end
 
       # Returns fingerprint (hash) for given alternative.  Can be used to lookup
@@ -233,8 +235,16 @@ module Vanity
             connection.ab_not_showing @id, identity
           else
             index = @alternatives.index(value)
+            #add them to the experiment unless they are already in it
+            unless index == connection.ab_showing(@id, identity)
+              connection.ab_add_participant @id, index, identity
+              check_completion!
+            end
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            connection.ab_show @id, identity, index
+            if (connection.ab_showing(@id, identity) && connection.ab_showing(@id, identity) != index) || 
+	       alternative_for(identity) != index
+              connection.ab_show @id, identity, index
+            end
           end
         else
           @showing ||= {}
@@ -247,7 +257,7 @@ module Vanity
       def showing?(alternative)
         identity = identity()
         if @playground.collecting?
-          connection.ab_showing(@id, identity) == alternative.id
+          (connection.ab_showing(@id, identity) || alternative_for(identity)) == alternative.id
         else
           @showing ||= {}
           @showing[identity] == alternative.id
