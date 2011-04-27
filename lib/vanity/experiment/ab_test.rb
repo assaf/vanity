@@ -187,7 +187,7 @@ module Vanity
             index = connection.ab_showing(@id, identity)
             unless index
               index = alternative_for(identity)
-              if !@playground.bot_resistant?
+              if !@playground.using_js?
                 connection.ab_add_participant @id, index, identity
                 check_completion!
               end
