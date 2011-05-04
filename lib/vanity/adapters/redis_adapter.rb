@@ -26,7 +26,13 @@ module Vanity
       end
 
       def disconnect!
-        @redis.quit rescue nil if @redis
+        if redis
+          begin
+            redis.quit
+          rescue Exception => e
+            warn("Error while disconnecting from redis: #{e.message}")
+          end
+        end
         @redis = nil
       end
 
@@ -42,7 +48,7 @@ module Vanity
       end
 
       def to_s
-        @redis.id
+        redis.id
       end
 
       def redis
