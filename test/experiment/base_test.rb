@@ -132,5 +132,19 @@ class ExperimentTest < Test::Unit::TestCase
     new_ab_test(:ice_cream_flavor) { metrics :happiness }
     experiment(:ice_cream_flavor).complete!
   end
+
+  # -- completion -- #
+  
+  # check_completion is called by derived classes, but since it's
+  # part of the base_test I'm testing it here.
+  def test_error_in_check_completion
+    new_ab_test(:ab) { metrics :happiness }
+    e = experiment(:ab)
+    e.complete_if { true }
+    e.stubs(:complete!).raises(RuntimeError, "A forced error")
+    e.expects(:warn)
+    e.stubs(:identity).returns(:b)
+    e.track!(:a, Time.now, 10)
+  end
  
 end
