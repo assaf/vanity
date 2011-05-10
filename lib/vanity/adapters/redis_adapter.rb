@@ -107,6 +107,14 @@ module Vanity
           :conversions  => @experiments["#{experiment}:alts:#{alternative}:conversions"].to_i }
       end
 
+      def ab_canonical_identity(experiment, identity)
+        @experiments.get("#{experiment}:identities:#{identity}:canonical") || identity
+      end
+
+      def ab_alias_participant(experiment, canonical_identity, new_identity)
+        @experiments.set "#{experiment}:identities:#{new_identity}:canonical", canonical_identity
+      end
+
       def ab_show(experiment, identity, alternative)
         @experiments["#{experiment}:participant:#{identity}:show"] = alternative
       end

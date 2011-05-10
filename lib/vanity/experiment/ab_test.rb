@@ -264,6 +264,9 @@ module Vanity
         end
       end
 
+      def alias_participant(canonical_id, new_id)
+        connection.ab_alias_participant(@id, canonical_id, new_id)
+      end
 
       # -- Reporting --
 
@@ -440,6 +443,12 @@ module Vanity
       #   -- Reid Hoffman, founder of LinkedIn
 
     protected
+
+      def identity
+        ident = super
+        ident = (connection.ab_canonical_identity(@id, ident) || ident) if connection.active?
+        ident
+      end
 
       # Used for testing.
       def fake(values)
