@@ -199,6 +199,7 @@ module Vanity
           identity = identity()
           @showing ||= {}
           @showing[identity] ||= alternative_for(identity)
+          index = @showing[identity]
         end
         alternatives[index.to_i]
       end
