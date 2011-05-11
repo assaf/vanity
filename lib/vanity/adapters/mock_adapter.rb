@@ -101,6 +101,18 @@ module Vanity
           :conversions  => alt[:conversions] || 0 }
       end
 
+      def ab_canonical_identity(experiment, identity)
+        @experiments[experiment] ||= {}
+        @experiments[experiment][:identities] ||= {}
+        @experiments[experiment][:identities][identity]
+      end
+
+      def ab_alias_participant(experiment, canonical_identity, new_identity)
+        @experiments[experiment] ||= {}
+        @experiments[experiment][:identities] ||= {}
+        @experiments[experiment][:identities][new_identity] = canonical_identity
+      end
+
       def ab_show(experiment, identity, alternative)
         @experiments[experiment] ||= {}
         @experiments[experiment][:showing] ||= {}

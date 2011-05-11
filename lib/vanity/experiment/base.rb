@@ -111,6 +111,10 @@ module Vanity
         @identify_block = block
       end
 
+      def alias_participant(canonical_id, new_id)
+        # Noop in the base class
+      end
+
 
       # -- Reporting --
 

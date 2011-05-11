@@ -41,15 +41,21 @@ module Vanity
           define_method(:vanity_identity) { block.call(self) }
         else
           define_method :vanity_identity do
-            return @vanity_identity if @vanity_identity
-            if symbol && object = send(symbol)
-              @vanity_identity = object.id
-            elsif response # everyday use
-              @vanity_identity = cookies["vanity_id"] || ActiveSupport::SecureRandom.hex(16)
-              cookies["vanity_id"] = { :value=>@vanity_identity, :expires=>1.month.from_now }
-              @vanity_identity
-            else # during functional testing
-              @vanity_identity = "test"
+            @vanity_identity ||= begin
+              if symbol && object = send(symbol)
+                if cookies["vanity_id"] # If the vanity cookie exists, alias the object.id with this vanity_id
+                  Vanity.playground.experiments.values.each do |experiment|
+                    experiment.alias_participant(cookies["vanity_id"], object.id)
+                  end
+                end
+                object.id
+              elsif response # everyday use
+                (cookies["vanity_id"] || ActiveSupport::SecureRandom.hex(16)).tap do |ident|
+                  cookies["vanity_id"] = { :value=>ident, :expires=>1.month.from_now }
+                end
+              else # during functional testing
+                "test"
+              end
             end
           end
         end

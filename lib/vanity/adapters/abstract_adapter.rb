@@ -83,6 +83,14 @@ module Vanity
         fail "Not implemented"
       end 
 
+      def ab_canonical_identity(experiment, identity)
+        fail "Not implemented"
+      end
+
+      def ab_alias_participant(experiment, canonical_identity, new_identity)
+        fail "Not implemented"
+      end
+
       # Pick particular alternative (by index) to show to this particular
       # participant (by identity).
       def ab_show(experiment, identity, alternative)
