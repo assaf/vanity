@@ -126,6 +126,10 @@ module Vanity
         participant && participant["show"]
       end
 
+      def alternative_assigned_to(experiment, identity)
+        @participants.find_one({ :experiment=>experiment, :identity=>identity }, { :fields=>[:show] })["show"]
+      end
+
       def ab_not_showing(experiment, identity)
         @participants.update({ :experiment=>experiment, :identity=>identity }, { "$unset"=>:show })
       end

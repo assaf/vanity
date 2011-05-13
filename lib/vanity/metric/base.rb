@@ -136,10 +136,10 @@ module Vanity
     #   foo_and_bar.track! [5,11]
     def track!(args = nil)
       return unless @playground.collecting?
-      timestamp, identity, values = track_args(args)
+      timestamp, identity, values, identity_to_track = track_args(args)
       connection.metric_track @id, timestamp, identity, values
       @playground.logger.info "vanity: #{@id} with value #{values.join(", ")}"
-      call_hooks timestamp, identity, values
+      call_hooks timestamp, identity, values, identity_to_track
     end
 
     # Parses arguments to track! method and return array with timestamp,
@@ -147,14 +147,14 @@ module Vanity
     def track_args(args)
       case args
       when Hash
-        timestamp, identity, values = args.values_at(:timestamp, :identity, :values)
+        timestamp, identity, values, identity_to_track = args.values_at(:timestamp, :identity, :values, :identity_to_track)
       when Array
         values = args
       when Numeric
         values = [args]
       end
-        identity = Vanity.context.vanity_identity rescue nil
-      [timestamp || Time.now, identity, values || [1]]
+      identity ||= Vanity.context.vanity_identity rescue nil
+      [timestamp || Time.now, identity, values || [1], identity_to_track]
     end
     protected :track_args
 
@@ -234,9 +234,9 @@ module Vanity
       "metrics:#{@id}:#{args.join(':')}"
     end
 
-    def call_hooks(timestamp, identity, values)
+    def call_hooks(timestamp, identity, values, identity_to_track = nil)
       @hooks.each do |hook|
-        hook.call @id, timestamp, values.first || 1
+        hook.call @id, timestamp, values.first || 1, { :identity_to_track => identity_to_track }
       end
     end
 

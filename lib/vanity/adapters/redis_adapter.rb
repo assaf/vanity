@@ -112,8 +112,12 @@ module Vanity
       end
 
       def ab_showing(experiment, identity)
-        alternative = @experiments["#{experiment}:participant:#{identity}:show"]
+        alternative = alternative_assigned_to(experiment, identity)
         alternative && alternative.to_i
+      end
+
+      def alternative_assigned_to(experiment, identity)
+        @experiments["#{experiment}:participant:#{identity}:show"]
       end
 
       def ab_not_showing(experiment, identity)

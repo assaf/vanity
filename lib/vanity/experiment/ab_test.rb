@@ -241,8 +241,8 @@ module Vanity
               check_completion!
             end
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            if (connection.ab_showing(@id, identity) && connection.ab_showing(@id, identity) != index) || 
-	       alternative_for(identity) != index
+            if (connection.ab_showing(@id, identity) && connection.ab_showing(@id, identity) != index) ||
+                alternative_for(identity) != index
               connection.ab_show @id, identity, index
             end
           end
@@ -429,7 +429,14 @@ module Vanity
         identity = identity() rescue nil
         if identity
           return if connection.ab_showing(@id, identity)
-          index = alternative_for(identity)
+          if args.first.present?
+            identity_to_track = args.first[:identity_to_track]
+            if identity_to_track.present?
+              index = connection.alternative_assigned_to(@id, identity_to_track)
+              identity = identity_to_track
+            end
+          end
+          index ||= alternative_for(identity)
           connection.ab_add_conversion @id, index, identity, count
           check_completion!
         end

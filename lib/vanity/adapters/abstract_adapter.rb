@@ -130,6 +130,9 @@ module Vanity
         fail "Not implemented"
       end
 
+      def alternative_assigned_to(experiment, identity)
+        fail "Not implemented"
+      end
     end
   end
 end

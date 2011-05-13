@@ -63,7 +63,7 @@ module Vanity
       self.add_participant_path = DEFAULT_ADD_PARTICIPANT_PATH
       @collecting = !!@options[:collecting]
     end
-   
+
     # Deprecated. Use redis.server instead.
     attr_accessor :host, :port, :db, :password, :namespace
 
@@ -211,8 +211,12 @@ module Vanity
     #   Vanity.playground.track! :uploaded_video
     #
     # @since 1.1.0
-    def track!(id, count = 1)
-      metric(id).track! count
+    def track!(id, count = 1, identity_to_track = nil)
+      options_for_tracking = count
+      if identity_to_track
+        options_for_tracking = { :value => count, :identity_to_track => identity_to_track }
+      end
+      metric(id).track! options_for_tracking
     end
 
 

@@ -20,6 +20,11 @@ class AbTestController < ActionController::Base
     track! :coolness
     render :text=>""
   end
+
+  def track_and_override_identity_to_user_1
+    track!(:coolness, 1, "user_1")
+    render :text => ""
+  end
 end
 
 
@@ -296,6 +301,28 @@ class AbTestTest < ActionController::TestCase
       get :test_render
       assert "b", @response.body
     end
+  end
+
+  def test_with_given_choice_for_a_particular_identity
+    @controller.current_user = mock("user", :id => "user_1")
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      metrics :coolness
+    end
+    assert_equal 0, experiment(:simple).alternatives[1].participants
+    setup_controller_request_and_response
+    experiment(:simple).chooses(:b)
+    get :test_render
+    assert_equal @controller.vanity_identity, "user_1"
+    assert_equal experiment(:simple).alternatives[1].participants, 1
+
+    for i in 2..102 do
+      @controller = nil ; setup_controller_request_and_response
+      @controller.current_user = mock("user", :id => "user_#{i}")
+      get :track_and_override_identity_to_user_1
+    end
+    assert_equal 1,   experiment(:simple).alternatives[1].participants
+    assert_equal 101, experiment(:simple).alternatives[1].conversions
   end
 
   def test_which_chooses_non_existent_alternative

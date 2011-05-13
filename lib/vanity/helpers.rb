@@ -55,8 +55,8 @@ module Vanity
     # @example
     #   track! :invitation
     # @since 1.2.0
-    def track!(name, count = 1)
-      Vanity.playground.track! name, count
+    def track!(name, count = 1, identity_to_track = nil)
+      Vanity.playground.track! name, count, identity_to_track
     end
   end
 end

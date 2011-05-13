@@ -6,3 +6,4 @@ test/myapp/log/
 html
 *.gem
 .yardoc
+*.sw[nop]

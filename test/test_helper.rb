@@ -104,7 +104,7 @@ end
 
 
 ActiveRecord::Base.logger = $logger
-ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test"
+ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test", :host => "localhost", :user => "root", :password => ""
 
 
 class Array
