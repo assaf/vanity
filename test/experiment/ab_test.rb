@@ -339,7 +339,7 @@ class AbTestTest < ActionController::TestCase
     fake :abcd, :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
 
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }
-    assert_equal %w{-1.33 0.00 -2.47 1.58}, z_scores
+    assert_equal %w{-1.33 0.00 -2.46 1.58}, z_scores
     probabilities = experiment(:abcd).score.alts.map(&:probability)
     assert_equal [90, 0, 99, 90], probabilities
 
@@ -481,7 +481,7 @@ Option C did not convert.
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
 There are 374 participants in this experiment.
-The best choice is option D: it converted at 32.4%.
+The best choice is option D: it converted at 32.4% (1% better than option B).
 This result is not statistically significant, suggest you continue this experiment.
 Option B converted at 32.3%.
 Option A did not convert.

@@ -44,9 +44,9 @@ module Vanity
       # Difference from least performing alternative. Populated by AbTest#score.
       attr_accessor :difference
 
-      # Conversion rate calculated as converted/participants, rounded to 3 places.
+      # Conversion rate calculated as converted/participants
       def conversion_rate
-        @conversion_rate ||= (participants > 0 ? (converted.to_f/participants.to_f * 1000).round / 1000.0 : 0.0)
+        @conversion_rate ||= (participants > 0 ? converted.to_f/participants.to_f  : 0.0)
       end
 
       # The measure we use to order (sort) alternatives and decide which one is better (by calculating z-score).
