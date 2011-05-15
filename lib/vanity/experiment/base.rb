@@ -188,8 +188,8 @@ module Vanity
         if @complete_block
           begin
             complete! if @complete_block.call
-          rescue
-            # TODO: logging
+          rescue => e
+            warn "Error in Vanity::Experiment::Base: #{e.message}" 
           end
         end
       end

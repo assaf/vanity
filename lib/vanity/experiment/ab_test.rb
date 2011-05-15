@@ -390,8 +390,8 @@ module Vanity
           begin
             result = @outcome_is.call
             outcome = result.id if result && result.experiment == self
-          rescue
-            # TODO: logging
+          rescue => e
+            warn "Error in AbTest#complete!: #{e.message}" 
           end
         else
           best = score.best
