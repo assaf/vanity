@@ -131,16 +131,16 @@ module Vanity
       end
 
       def ab_add_participant(experiment, alternative, identity)
-        @participants.update({ :experiment=>experiment, :identity=>identity }, { "$set"=>{ :seen=>alternative } }, :upsert=>true)
+        @participants.update({ :experiment=>experiment, :identity=>identity }, { "$push"=>{ :seen=>alternative } }, :upsert=>true)
       end
 
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
         if implicit
-          @participants.update({ :experiment=>experiment, :identity=>identity }, { "$set"=>{ :seen=>alternative } }, :upsert=>true)
+          @participants.update({ :experiment=>experiment, :identity=>identity }, { "$push"=>{ :seen=>alternative } }, :upsert=>true)
         else
           participating = @participants.find_one(:experiment=>experiment, :identity=>identity, :seen=>alternative)
         end
-        @participants.update({ :experiment=>experiment, :identity=>identity }, { "$set"=>{ :converted=>alternative } }, :upsert=>true) if implicit || participating
+        @participants.update({ :experiment=>experiment, :identity=>identity }, { "$push"=>{ :converted=>alternative } }, :upsert=>true) if implicit || participating
         @experiments.update({ :_id=>experiment }, { "$inc"=>{ "conversions.#{alternative}"=>count } }, :upsert=>true)
       end
 
