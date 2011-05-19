@@ -58,7 +58,7 @@ module Vanity
         query = { :conditions=>{ @ar_timestamp=>(sdate.to_time...(edate + 1).to_time) },
                   :group=>"date(#{@ar_scoped.connection.quote_column_name @ar_timestamp})" }
         grouped = @ar_column ? @ar_scoped.send(@ar_aggregate, @ar_column, query) : @ar_scoped.count(query)
-        (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date.to_s] || 0) }
+        (sdate..edate).inject([]) { |ordered, date| ordered << (grouped.detect{|k, v| k == date} || 0) }
       end
 
       # This track! method stores nothing, but calls the hooks.
