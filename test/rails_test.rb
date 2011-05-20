@@ -23,6 +23,17 @@ class UseVanityTest < ActionController::TestCase
     end
   end
 
+  def test_chooses_sets_alternatives_for_rails_tests
+    experiment(:pie_or_cake).chooses(true)
+    get :index
+    assert_equal 'true', @response.body
+ 
+    experiment(:pie_or_cake).chooses(false)
+    get :index
+    assert_equal 'false', @response.body
+  end
+
+
   def test_vanity_cookie_is_persistent
     get :index
     assert cookie = @response["Set-Cookie"].find { |c| c[/^vanity_id=/] }
