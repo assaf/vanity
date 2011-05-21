@@ -44,7 +44,9 @@ module Vanity
         @metrics = database.collection("vanity.metrics")
         @experiments = database.collection("vanity.experiments")
         @participants = database.collection("vanity.participants")
+        @identities = database.collection("vanity.identities")
         @participants.create_index [[:experiment, 1], [:identity, 1]], :unique=>true
+        @identities.create_index [[:experiment, 1], [:identity, 1]], :unique=>true
       end
 
       def to_s
@@ -56,6 +58,7 @@ module Vanity
         @metrics.drop
         @experiments.drop
         @participants.drop
+        @identities.drop
       end
       
 
@@ -115,6 +118,15 @@ module Vanity
         { :participants => @participants.find({ :experiment=>experiment, :seen=>alternative }, { :fields=>[] }).count,
           :converted    => @participants.find({ :experiment=>experiment, :converted=>alternative }, { :fields=>[] }).count,
           :conversions  => conversions && conversions[alternative.to_s] || 0 }
+      end
+
+      def ab_canonical_identity(experiment, identity)
+        record = @identities.find_one(:experiment=>experiment, :identity=>identity)
+        (record && record['canonical']) || identity
+      end
+
+      def ab_alias_participant(experiment, canonical_identity, new_identity)
+        @identities.update({ :experiment=>experiment, :identity=>new_identity }, { "$set"=>{ :canonical=>canonical_identity } }, :upsert=>true)
       end
 
       def ab_show(experiment, identity, alternative)

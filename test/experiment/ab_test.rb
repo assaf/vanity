@@ -226,6 +226,36 @@ class AbTestTest < ActionController::TestCase
     assert_equal 0, experiment(:simple).alternatives.map(&:converted).sum
   end
 
+  def test_returns_the_same_alternative_after_aliasing_identity
+    ids = ['canonical'] + (1..100).to_a.shuffle
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { ids.shift }
+      metrics :coolness
+    end
+    assert value = experiment(:foobar).choose.value
+    100.times do
+      experiment(:foobar).alias_participant(0, ids.first)
+      assert_equal value, experiment(:foobar).choose.value
+    end
+  end
+
+  def test_records_aliased_converted_participant_only_once
+    ids = (['canonical'] + (1..100).to_a.shuffle).map {|a| [a,a]}.flatten
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { ids.shift }
+      metrics :coolness
+    end
+    experiment(:foobar).choose
+    metric(:coolness).track!
+    100.times do
+      experiment(:foobar).alias_participant('canonical', ids.first)
+      experiment(:foobar).choose
+      metric(:coolness).track!
+    end
+    assert_equal 1, experiment(:foobar).alternatives.map(&:converted).sum
+  end
 
   # -- A/B helper methods --
 

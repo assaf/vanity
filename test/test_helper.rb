@@ -86,7 +86,7 @@ class Test::Unit::TestCase
 
   def not_collecting!
     Vanity.playground.collecting = false
-    Vanity.playground.stubs(:connection).returns(stub(:flushdb=>nil))
+    Vanity.playground.stubs(:connection).returns(stub(:flushdb=>nil, :'active?'=>false))
   end
 
   def teardown
