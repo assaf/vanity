@@ -22,7 +22,7 @@ class AbTestController < ActionController::Base
   end
 
   def track_and_override_identity_to_user_1
-    track!(:coolness, 1, "user_1")
+    track!(:coolness, { :increment_count => 1, :identity => "user_1" })
     render :text => ""
   end
 end
