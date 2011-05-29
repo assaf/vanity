@@ -1,15 +1,32 @@
-== Pending
+== 1.6.0 (2011-05-29)
+
+If robots or spiders make up a significant portion of your sites traffic they
+can affect your conversion rate.  Vanity can optionally add participants to the
+experiments using asynchronous JavaScript callbacks, which will keep almost all
+robots out.  To set this up simply do the following:
+
+1. Vanity.playground.use_js!
+2. Set Vanity.playground.add_participant_path = '/path/to/vanity/action'
+3. Add <%= Vanity.vanity_js %> to the bottom of any view that needs to set up
+	 an ab_test
+
 
 Fix for metrics on rails 3 models (Esteban Pastorino).
 
 Use JavaScript to report participants, useful for ignoring bots on publicly
-accessible pages (dougcole).
+accessible pages (Doug Cole).
 
-To Vanity JavaScript:
+AbTest#choose returns an Alternative rather than just the value (Doug Cole).
 
-1. Vanity.playground.use_js!
-2. Set Vanity.playground.add_participant_path = '/path/to/vanity/action'
-3. Add <%= vanity_js %> to the bottom of any view that needs to set up an ab_test
+Add warnings instead of swallowing errors (Anthony Eden).
+
+Fixing broken test for mongodb adapter (Joshua Krall).
+
+Fix returning correct experiment when in test mode and manually set via
+#chooses (Ryan Sonnek).
+
+Don't round the conversion rate before using it, it affects the test results,
+making them less accurate (Doug Cole).
 
 
 == 1.5.3 (2011-04-11)
