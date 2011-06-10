@@ -1,5 +1,5 @@
 <h3><%=vanity_h experiment.name %> <span class="type">(<%= experiment.class.friendly_name %>)</span></h3>
 <%= experiment.description.to_s.split(/\n\s*\n/).map { |para| vanity_html_safe(%{<p class="description">#{vanity_h para}</p>}) }.join.html_safe %>
 <%= render :file => Vanity.template("_" + experiment.type), :locals => {:experiment => experiment} %>
-<p class="meta">Started <%= experiment.created_at.strftime("%a, %b %d") %>
+<p class="meta">Started <%= experiment.created_at.try(:strftime, "%a, %b %d") %>
   <%= " | Completed #{experiment.completed_at.strftime("%a, %b %d")}" unless experiment.active? %></p>
