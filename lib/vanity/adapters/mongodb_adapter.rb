@@ -18,7 +18,12 @@ module Vanity
       attr_reader :mongo
 
       def initialize(options)
-        @mongo = Mongo::Connection.new(options[:host], options[:port], :connect=>false)
+        if options[:hosts]
+          args = *options[:hosts].map{|host| [host, options[:port]] }
+          @mongo = Mongo::ReplSetConnection.new(args, {:connect => false})
+        elsif options[:host]
+          @mongo = Mongo::Connection.new(options[:host], options[:port], :connect => false)
+        end
         @options = options.clone
         @options[:database] ||= (@options[:path] && @options[:path].split("/")[1]) || "vanity"
         connect!
