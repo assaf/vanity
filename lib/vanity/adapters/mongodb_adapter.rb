@@ -15,6 +15,8 @@ module Vanity
     #
     # @since 1.4.0
     class MongodbAdapter < AbstractAdapter
+      attr_reader :mongo
+
       def initialize(options)
         @mongo = Mongo::Connection.new(options[:host], options[:port], :connect=>false)
         @options = options.clone
@@ -49,7 +51,7 @@ module Vanity
 
       def to_s
         userinfo = @options.values_at(:username, :password).join(":") if @options[:username]
-        URI::Generic.build(:scheme=>"mongodb", :userinfo=>userinfo, :host=>@options[:host], :port=>@options[:port], :path=>"/#{@options[:database]}").to_s
+        URI::Generic.build(:scheme=>"mongodb", :userinfo=>userinfo, :host=>(@mongo.host || @options[:host]), :port=>(@mongo.port || @options[:port]), :path=>"/#{@options[:database]}").to_s
       end
 
       def flushdb
