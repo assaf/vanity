@@ -19,8 +19,8 @@ module Vanity
 
       def initialize(options)
         if options[:hosts]
-          args = *options[:hosts].map{|host| [host, options[:port]] }
-          @mongo = Mongo::ReplSetConnection.new(args, {:connect => false})
+          args = (options[:hosts].map{|host| [host, options[:port]] } << {:connect => false})
+          @mongo = Mongo::ReplSetConnection.new(*args)
         else
           @mongo = Mongo::Connection.new(options[:host], options[:port], :connect => false)
         end
