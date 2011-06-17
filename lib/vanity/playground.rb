@@ -319,7 +319,7 @@ module Vanity
 
     # Deprecated. Use establish_connection or configuration file instead.
     def redis=(spec_or_connection)
-      warn "Deprecated: use establish_connection method instead"
+      # warn "Deprecated: use establish_connection method instead"
       case spec_or_connection
       when String
         establish_connection "redis://" + spec_or_connection
