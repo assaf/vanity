@@ -258,7 +258,7 @@ module Vanity
           env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
           redis = YAML.load(ERB.new(File.read("config/redis.yml")).result)[env]
           fail "No configuration for #{env}" unless redis
-          establish_connection "redis://" + redis
+          establish_connection "redis://" + redis["host"]
         else
           establish_connection :adapter=>"redis"
         end
@@ -319,7 +319,7 @@ module Vanity
 
     # Deprecated. Use establish_connection or configuration file instead.
     def redis=(spec_or_connection)
-      # warn "Deprecated: use establish_connection method instead"
+      warn "Deprecated: use establish_connection method instead"
       case spec_or_connection
       when String
         establish_connection "redis://" + spec_or_connection
