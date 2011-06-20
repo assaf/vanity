@@ -699,6 +699,7 @@ This experiment did not run long enough to find a clear winner.
   def test_chooses_records_participants
     new_ab_test :simple do
       alternatives :a, :b, :c
+      metrics :coolness
     end
     experiment(:simple).chooses(:b)
     assert_equal experiment(:simple).alternatives[1].participants, 1
@@ -707,6 +708,7 @@ This experiment did not run long enough to find a clear winner.
   def test_chooses_moves_participant_to_new_alternative
     new_ab_test :simple do
       alternatives :a, :b, :c
+      metrics :coolness
       identify { "1" }
     end
     val = experiment(:simple).choose.value
@@ -720,6 +722,7 @@ This experiment did not run long enough to find a clear winner.
   def test_chooses_records_participants_only_once
     new_ab_test :simple do
       alternatives :a, :b, :c
+      metrics :coolness
     end
     2.times { experiment(:simple).chooses(:b) }
     assert_equal experiment(:simple).alternatives[1].participants, 1
@@ -728,6 +731,7 @@ This experiment did not run long enough to find a clear winner.
   def test_chooses_records_participants_for_new_alternatives
     new_ab_test :simple do
       alternatives :a, :b, :c
+      metrics :coolness
     end
     experiment(:simple).chooses(:b)
     experiment(:simple).chooses(:c)
@@ -739,6 +743,7 @@ This experiment did not run long enough to find a clear winner.
     not_collecting!
     new_ab_test :simple do
       alternatives :a, :b, :c
+      metrics :coolness
     end
     assert !experiment(:simple).showing?(experiment(:simple).alternatives[1])
     experiment(:simple).chooses(:b)
@@ -750,6 +755,7 @@ This experiment did not run long enough to find a clear winner.
     not_collecting!
     new_ab_test :simple do
       alternatives :a, :b, :c
+      metrics :coolness
     end
     choice = experiment(:simple).choose.value
     assert [:a, :b, :c].include?(choice)
