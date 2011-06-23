@@ -154,15 +154,13 @@ $stdout << Vanity.playground.connection
     RB
   end
 
-  def test_connection_from_yaml
+  def test_connection_from_yaml_with_redis_connection_string
     FileUtils.mkpath "tmp/config"
     ENV["RAILS_ENV"] = "production"
     File.open("tmp/config/vanity.yml", "w") do |io|
       io.write <<-YML
 production:
-  adapter: redis
-  host: somehost
-  database: 15
+  adapter: "redis://somehost:6379/15"
       YML
     end
     assert_equal "redis://somehost:6379/15", load_rails(<<-RB)
@@ -280,14 +278,6 @@ $stdout << Vanity.playground.collecting?
     assert_equal "true", load_rails(<<-RB, "development")
 Vanity.playground.collecting = true
 initializer.after_initialize
-$stdout << Vanity.playground.collecting?
-    RB
-  end
-
-  def test_collection_false_after_test!
-    assert_equal "false", load_rails(<<-RB, "production")
-initializer.after_initialize
-Vanity.playground.test!
 $stdout << Vanity.playground.collecting?
     RB
   end
