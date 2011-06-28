@@ -82,6 +82,40 @@ If robots or spiders make up a significant portion of your sites traffic they ca
 * Set Vanity.playground.add_participant_path = '/path/to/vanity/action', this should point to the add_participant path that is added with Vanity::Rails::Dashboard, make sure that this action is available to all users
 * Add <%= vanity_js %> to any page that needs uses an ab_test. vanity_js needs to be included after your call to ab_test so that it knows which version of the experiment the participant is a member of.  The helper will render nothing if the there are no ab_tests running on the current page, so adding vanity_js to the bottom of your layouts is a good option.  Keep in mind that if you call use_js! and don't include vanity_js in your view no participants will be recorded.
 
+== Testing emails in rails 3
+
+Sometimes you may be delivering emails to users in the background or without the context of the request. ActionMailler inherits from AbstractController (just like ActionController does). This let's you include the modules that same way in your mailer.  Example:
+
+  class Notifications < ActionMailer::Base
+    extend Vanity::Rails::UseVanity
+    include Vanity::Rails::Filters
+    helper Vanity::Rails::Helpers
+
+    use_vanity :user
+    def user
+      @user
+    end
+
+    def simple_ab_test(options = {})
+      @user = User.find(options[:user])
+      
+      previous, Vanity.context = Vanity.context, self
+      
+      if Rails.env == "test"
+        Vanity.playground.reload! 
+        Vanity.playground.experiment(:my_example_experiment).chooses(options[:alternative])
+      end
+      
+      body_text =  ab_test(:my_example_experiment)
+      
+      mail(:to => "test@example.com",:from => "support@example.com",:subject => "A/B Subject" ) do |fmt|
+        fmt.text { render :text => body_text}
+      end
+    ensure
+      Vanity.context = previous
+    end
+  end
+
 == Contributing
 
 * Fork the project
