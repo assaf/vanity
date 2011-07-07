@@ -39,7 +39,7 @@ module Vanity
       end
 
       @options = defaults.merge(config).merge(options)
-      if @options.values_at(:host, :port, :db).any?
+      if @options[:host] == 'redis' && @options.values_at(:host, :port, :db).any?
         warn "Deprecated: please specify Redis connection as URL (\"redis://host:port/db\")"
         establish_connection :adapter=>"redis", :host=>@options[:host], :port=>@options[:port], :database=>@options[:db] || @options[:database]
       elsif @options[:redis]
