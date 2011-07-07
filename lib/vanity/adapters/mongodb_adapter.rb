@@ -15,11 +15,23 @@ module Vanity
     #
     # @since 1.4.0
     class MongodbAdapter < AbstractAdapter
+      attr_reader :mongo
+
       def initialize(options)
-        @mongo = Mongo::Connection.new(options[:host], options[:port], :connect=>false)
+        setup_connection(options)
         @options = options.clone
         @options[:database] ||= (@options[:path] && @options[:path].split("/")[1]) || "vanity"
         connect!
+      end
+
+      def setup_connection(options = {})
+        if options[:hosts]
+          args = (options[:hosts].map{|host| [host, options[:port]] } << {:connect => false})
+          @mongo = Mongo::ReplSetConnection.new(*args)
+        else
+          @mongo = Mongo::Connection.new(options[:host], options[:port], :connect => false)
+        end
+        @mongo
       end
 
       def active?
@@ -38,6 +50,7 @@ module Vanity
       end
 
       def connect!
+        @mongo ||= setup_connection(@options)
         @mongo.connect
         database = @mongo.db(@options[:database])
         database.authenticate @options[:username], @options[:password], true if @options[:username]
@@ -45,11 +58,12 @@ module Vanity
         @experiments = database.collection("vanity.experiments")
         @participants = database.collection("vanity.participants")
         @participants.create_index [[:experiment, 1], [:identity, 1]], :unique=>true
+        @mongo
       end
 
       def to_s
         userinfo = @options.values_at(:username, :password).join(":") if @options[:username]
-        URI::Generic.build(:scheme=>"mongodb", :userinfo=>userinfo, :host=>@options[:host], :port=>@options[:port], :path=>"/#{@options[:database]}").to_s
+        URI::Generic.build(:scheme=>"mongodb", :userinfo=>userinfo, :host=>(@mongo.host || @options[:host]), :port=>(@mongo.port || @options[:port]), :path=>"/#{@options[:database]}").to_s
       end
 
       def flushdb
