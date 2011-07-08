@@ -13,6 +13,7 @@ group :test do
   gem "garb"
   gem "mocha"
   gem "mongo"
+  gem "bson_ext"
   gem "mysql"
   gem "passenger"
   gem "rails", "2.3.8"
