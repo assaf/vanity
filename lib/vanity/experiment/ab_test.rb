@@ -137,10 +137,14 @@ module Vanity
         nil
       end
 
-      def _alternatives
+      def _alternatives(options={})
         alts = []
         @alternatives.each_with_index do |value, i|
-          counts = @playground.collecting? ? connection.ab_counts(@id, i) : Hash.new(0)
+          counts = Hash.new(0)
+          if @playground.collecting? && !options[:skip_counts]
+            counts = connection.ab_counts(@id, i)
+          end
+          
           alts << Alternative.new(self, i, value, counts[:participants], counts[:converted], counts[:conversions])
         end
         alts
@@ -202,7 +206,7 @@ module Vanity
           @showing[identity] ||= alternative_for(identity)
           index = @showing[identity]
         end
-        alternatives[index.to_i]
+        alternatives(:skip_counts => true)[index.to_i]
       end
 
       # Returns fingerprint (hash) for given alternative.  Can be used to lookup
