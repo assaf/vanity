@@ -22,12 +22,16 @@ module Vanity
     end
 
     # Escape HTML.
-    def h(html)
-      CGI.escapeHTML(html)
+    def vanity_h(html)
+      CGI.escapeHTML(html.to_s)
+    end
+    
+    def vanity_html_safe(text)
+      text
     end
 
     # Dumbed down from Rails' simple_format.
-    def simple_format(text, options={})
+    def vanity_simple_format(text, options={})
       open = "<p #{options.map { |k,v| "#{k}=\"#{CGI.escapeHTML v}\"" }.join(" ")}>"
       text = open + text.gsub(/\r\n?/, "\n").   # \r\n and \r -> \n
         gsub(/\n\n+/, "</p>\n\n#{open}").       # 2+ newline  -> paragraph

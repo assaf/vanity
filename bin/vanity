@@ -1,8 +1,13 @@
 #!/usr/bin/env ruby
-path = File.expand_path("../lib", File.dirname(__FILE__))
-$LOAD_PATH.unshift path unless $LOAD_PATH.include?(path)
+# Is there a better way to detect Rails?
+if File.exist?("config/boot.rb") && File.exist?("config/environment.rb")
+  require "config/environment"
+else
+  path = File.expand_path("../lib", File.dirname(__FILE__))
+  $LOAD_PATH.unshift path unless $LOAD_PATH.include?(path)
+  require "vanity"
+end
 
-require "vanity"
 require "optparse"
 
 playground = Vanity.playground
@@ -10,24 +15,29 @@ options = Struct.new(:output).new
 opts = OptionParser.new("", 24, "  ") do |opts|
   opts.banner = "Usage: #{File.basename($0)} [options] command\n"
   opts.banner << "Commands:\n"
-  opts.banner << "  report  Report on all running experiments"
+  opts.banner << "  list    List all experiments and metrics\n"
+  opts.banner << "  report  Report on all running experiments/metrics\n"
+  opts.banner << "  upgrade Upgrade your database when deploying new release\n"
 
   opts.separator ""
-  opts.separator "General options:"
-  opts.on("--path PATH", "Path to experiments directory (default: #{playground.load_path})")  { |v| playground.load_path = v }
-  opts.on("--output FILE", "Write report to this file (default: stdout)")                     { |v| options.output = v }
-
-  opts.separator ""
-  opts.separator "Redis options:"
-  opts.on("--host HOST", "Redis server host (default: #{playground.host})")       { |v| playground.host = v }
-  opts.on("--port PORT", "Redis server port (default: #{playground.port})")       { |v| playground.port = v }
-  opts.on("--db DB", "Redis database (default: #{playground.db})")                { |v| playground.db = v }
-  opts.on("--password PWD", "Redis database password")                            { |v| playground.password = v }
-  opts.on("--namespace NS", "Redis namespace (default: #{playground.namespace})") { |v| playground.namespace = v }
+  opts.separator "Reporting options:"
+  opts.on "--output FILE", "Write report to this file (default: stdout)" do |path|
+    options.output = path
+  end
 
   opts.separator ""
   opts.separator "Common options:"
-  opts.on_tail "-h", "-H", "--help", "Show this message" do
+  opts.on "--load_path PATH", "Path to experiments directory (default: #{playground.load_path})" do |path|
+    playground.load_path = path
+  end
+  opts.on "-d", "--database url", "Database connection URL (e.g. redis:/localhost:6379)" do |conn|
+    playground.establish_connection conn
+  end
+  opts.on "--redis HOST:PORT:DB", "DEPRECATED: Redis server host (default: localhost:6379)" do |redis|
+    host, port, db = redis.split(":")
+    playground.establish_connection "redis:/#{host}:#{port}/#{db}"
+  end
+  opts.on_tail "-h", "--help", "Show this message" do
     puts opts.to_s.gsub(/^.*DEPRECATED.*$/s, '')
     exit
   end
@@ -46,7 +56,14 @@ end
 ARGV.each do |cmd|
   case cmd
   when "report"
+    require "vanity/commands/report"
     Vanity::Commands.report options.output
+  when "list"
+    require "vanity/commands/list"
+    Vanity::Commands.list
+  when "upgrade"
+    require "vanity/commands/upgrade"
+    Vanity::Commands.upgrade
   else fail "No such command: #{cmd}"
   end
 end

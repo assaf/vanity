@@ -2,7 +2,6 @@ Vanity is an Experiment Driven Development framework for Rails.
 
 * All about Vanity: http://vanity.labnotes.org
 * On github: http://github.com/assaf/vanity
-* Vanity requires Redis 1.0 or later.
 
 http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
@@ -11,7 +10,19 @@ http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
 <b>Step 1:</b> Start using Vanity in your Rails application:
 
-  gem.config "vanity"
+  == Rails 2.x configuration
+
+  Rails::Initializer.run do |config|
+    gem.config "vanity"
+
+    config.after_initialize do
+      require "vanity"
+    end
+  end
+  
+  == Rails 3 configuration
+  
+  gem 'vanity' # in Gemfile, either outside of a group or inside of a bundler group
 
 And:
 
@@ -26,6 +37,8 @@ And:
     alternatives 19, 25, 29
     metrics :signups
   end
+  
+  NOTE: If using a metric as above ("signups"), there needs to be a corresponding ruby file for that metric. Inside the "experiments" directory create a "metrics" directory with a file called "signup.rb". The contents of the file can describe the signup metric, refer to the "Metrics" Vanity documentation page for an example.
 
 <b>Step 3:</b> Present the different options to your users:
 
@@ -47,31 +60,36 @@ And:
 
 <b>Step 5:</b> Check the report:
 
-  vanity --output vanity.html
+  vanity report --output vanity.html
+  
+
+== Rails 3
+  
+  There is currently an issue with report generation. The vanity-talk Google Group has a couple posts that outline the issue for now. This is one of the posts: http://groups.google.com/group/vanity-talk/browse_thread/thread/343081a72a0cefb6
+  
+  If you are collecting data (in development you need to opt-in to this by setting Vanity.playground.collecting = true in environments/development.rb) you can view experiment results with the vanity dashboard instead of the report. 
+  
+  The vanity dashboard setup instructions with Vanity work for Rails 3.x except the route is different. A Rails 3.x-style route would look like this:
+  
+    `match '/vanity(/:action(/:id(.:format)))', :controller=>:vanity`
 
 
-== Building From Source
+== Registering participants with Javascript
 
-To run the test suite for the first time:
+If robots or spiders make up a significant portion of your sites traffic they can affect your conversion rate.  Vanity can optionally add participants to the experiments using asynchronous javascript callbacks, which will keep almost all robots out.  To set this up simply do the following:
 
-  $ gem install rails mocha timecop
-  $ rake
+* Add Vanity.playground.use_js!
+* Set Vanity.playground.add_participant_path = '/path/to/vanity/action', this should point to the add_participant path that is added with Vanity::Rails::Dashboard, make sure that this action is available to all users
+* Add <%= vanity_js %> to any page that needs uses an ab_test. vanity_js needs to be included after your call to ab_test so that it knows which version of the experiment the participant is a member of.  The helper will render nothing if the there are no ab_tests running on the current page, so adding vanity_js to the bottom of your layouts is a good option.  Keep in mind that if you call use_js! and don't include vanity_js in your view no participants will be recorded.
 
-You can also +rake test+ if you insist on being explicit.
+== Contributing
 
-To build the documentation:
- 
-  $ gem install yardoc jekyll
-  $ rake docs
-  $ open html/index.html
-
-To clean up after yourself:
-
-  $ rake clobber
-
-To package Vanity as a gem and install on your machine:
-
-  $ rake install
+* Fork the project
+* Please use a topic branch to make your changes, it's easier to test them that way
+* Fix, patch, enhance, document, improve, sprinkle pixie dust
+* At minimum run rake test, if possible, please run rake test:all
+* Tests. Please. Run rake test, of if you can, rake test:all
+* Send a pull request on GitHub
 
 
 == Credits/License

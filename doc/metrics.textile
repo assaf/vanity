@@ -3,6 +3,15 @@ layout: page
 title: Metrics
 ---
 
+<div id="toc">
+# "Defining a Metric":#define
+# "Metrics From Your Database":#ar
+# "Google Analytics":#ga
+# "Creating Your Own Metric":#custom
+# "Digging Deeper":#deeper
+</div>
+
+
 A good starting point for improving -- on anything -- is measuring.  Vanity allows you to measure multiple metrics, best way to tell how well your experiments are doing.
 
 <blockquote>
@@ -15,26 +24,18 @@ A good starting point for improving -- on anything -- is measuring.  Vanity allo
 </blockquote>
 
 
-h3.  Defining a Metric
+
+h3(#define).  Defining a Metric
 
 Vanity always loads metrics defined in the @experiments/metrics@ directory.  A metric definition is a Ruby file that looks like this:
 
 <pre>
-metric "Signup" do
+metric "Signup (Activation)" do
   description "Measures how many people signed up for our awesome service."
 end
 </pre>
 
-The metric name shows up in the dashboard/report.  Vanity matches the metric name, identifier and file name[1].  You can see how the three relate in this table:
-
-|_. Name       |_. ID          |_. Filename                          |
-| Signups      | :signups      | experiments/metrics/signups.rb      |
-| Yawns/sec    | :yawns_sec    | experiments/metrics/yawns_sec.rb    |
-| Cheers a day | :cheers_a_day | experiments/metrics/cheers_a_day.rb |
-
-There's also an optional description if you need to go into more details.
-
-Once you have your metric, feed it data by calling the @track!@ method.  For example:
+That's a basic metric and you feed it data by calling the @track!@ method.  For example:
 
 <pre>
 class AccountsController < ApplicationController
@@ -53,88 +54,178 @@ class AccountsController < ApplicationController
 end
 </pre>
 
-Define, track, that's about all you need to know.
+The metric identifier is the same as the file name.  The above example defines the metric @:signup@ in the file @experiments/metrics/signup.rb@.
 
-
-h3.  How Metrics Work
-
-The example above uses the @Vanity::Metric@ implementation. Each time you call @track!@ it increases that day's count.
-
-Vanity stores each day's count in a separate key/value pair in the Redis database.  To generate a report it calls the @values@ method that pulls all these counts and uses them to draw pretty charts.
-
-You can call @track!@ with a value and it will increase the day's count by that value.  For example, you can track how many products are bought each day by calling @track!@ with the number of items in the shopping cart.  For convenience, if you call @track!@ with zero or negative number, nothing happens.
-
-Metrics also support hooks.  "A/B tests":ab_testing.html use hooks to manage their own book keeping whenever a metric gets updated.  Whenever you define an A/B experiment, you tell it which metrics to use, and it hooks into them using the @hook@ method.
-
-This is all handled by the @Vanity::Metric@ implementation.  What if you already have the data available in your database or some other system?  In that case you might want to tweak the default implementation, or write your own.
-
-
-h3.  Writing Your Own Metrics
-
-Metric data can come from different sources: database queries, log files, Google Analytics, etc.  To use external sources you have to write your own metric implementation.
-
-A metric must implement two methods.  The first method, @name@ returns the metric's name, which will show up in the dashboard/report.  The second method, @values@ receives a start date and end date and returns an array of values for all dates in that range (inclusive).
-
-All other methods are optional, you decide whether or not to implement them.  The other methods are:
-
-@description@ -- Returns human readable description.
-@bounds@ -- Returns acceptable upper and lower bounds (@nil@ if unknown).
-@hook@ -- "A/B tests":ab_testing.html use this to manage their own book keeping.
-
-The API is kept simple enough that you can easily write your own metrics.  For example:
+You can call @track!@ with a value to track.  This example tracks how many items were bought during the day:
 
 <pre>
-# Our metric class, based on an AR model
-class ActiveRecord::Metric
-  def initialize(name, model, column)
-    @name, @model, @column = name, model, column
-  end
-
-  attr_reader :name
-
-  def values(start, end)
-    @model.sum @column, :conditions=>{ :created_at=>start..end },
-      :group=>:created_at
-  end
+def checkout
+  track! :items, @cart.items.count
+  . . .
 end
+</pre>
 
-# Generate metric directly from model.
-class ActiveRecord::Base
-  def self.metric(column)
-    ActiveRecord::Metric.new(human_attribute_name(column), self, column)
+Calling @track!@ with no value is the same as calling with one, and for convenience you can pass zero and negative numbers, both will be ignored.
+
+!images/signup_metric.png!
+
+Define, track, and you're ready to roll.
+
+
+h3(#ar).  Metrics From Your Database
+
+If you already have the data, why not use it?
+
+This example defines a metric for signups, based on the number of @Account@ records created each day:
+
+<pre>
+metric "Signup (Activation)" do
+  description "Measures how many people signed up for our awesome service."
+  model Account
+end
+</pre>
+
+You don't need to call @track!@ with this metric, all the data already exists.  It's a simple query to count the number of records created, grouped by their timestamp (@created_at@).  And since it's querying the database, you'll immediately see historical data for the last 90 days.
+
+Even though the metric itself doesn't store any information, it needs to update experiments whenever new records are created.  To do that, it registers itself as an @after_create@ callback on the model.
+
+Some metrics measure values, not occurrences.  For example, this metric measures user satisfaction by calculating average value from the column @rating@:
+
+<pre>
+metric "Satisfaction Survey" do
+  description "Measures how many people signed up for our awesome service."
+  model Survey, :average=>:rating
+end
+</pre>
+
+The aggregates you can use this way are: @:average@, @:minimum@, @:maximum@ and @:sum@.
+
+You can use a condition when the metric only applies to some records.  Here's a metric that only measures unlimited accounts:
+
+<pre>
+metric "Signups to Unlimited" do
+  description "Signups to our All You Can Eat and Burp Unlimited plan."
+  model Account, :conditions=>{ :plan_type=>'unlimited' }
+end
+</pre>
+
+If you have named scopes, you'll want to use them instead:
+
+<pre>
+metric "Signups to Unlimited" do
+  description "Signups to our All You Can Eat and Burp Unlimited plan."
+  model Account.unlimited
+end
+</pre>
+
+When you view this metric, it calculates the number of accounts created on any given day that are currently unlimited plans.  So, if ten accounts were created over the past week, and today five of them upgraded to unlimited plan, the metric will show five unlimited accounts (current state) but spread over the past week (their @created_at@ timestamp).
+
+If your metric uses aggregates or conditions, and the aggregate/conditional attributes change over time, and you need to know when the change took place, consider tracking the event.
+
+This example tracks when accounts were created or upgraded to unlimited plan:
+
+<pre>
+metric "Signups (Unlimited)" do
+  description "Signups to our All You Can Eat and Burp Unlimited plan (including upgrades)."
+  Account.after_save do |account|
+    track! if account.plan_type_changed? && account.plan_type == 'unlimited'
   end
 end
 </pre>
 
-You can also extend @Vanity::Metric@.  Here's an example that extends the base metric definition, so you can easily integrate it with ActiveRecord[2]:
+
+h3(#ga).  Google Analytics
+
+You can easily include Google Analytics metrics in your Vanity dashboard.  You'll need, in addition to Vanity, to use "Garb":http://github.com/vigetlabs/garb, a Ruby wrapper for the Google Analytics API.
+
+Login to Google Analytics using either username and password, or OAuth authentication token.  Here's a sample @config/environment@ snippet:
 
 <pre>
-class Vanity::Metric
-  # Use this to associate your metric with an ActiveRecord model.
-  def model(name)
-    name.after_create do
-      track!
-    end
+Rails::Initializer.run do |config|
+  gems.config "vanity"
+  gems.config "garb"
+ 
+  . . . 
+  config.after_initialize do
+    require "garb"
+    ga = YAML.load_file(Rails.root + "config/ga.yml")
+    Garb::Session.login(ga['email'], ga['password'], account_type: "GOOGLE")
   end
-</pre>
-
-And you would use it like this:
-
-<pre>
-metric "Signup" do
-  model Person
 end
 </pre>
 
-If you wrote your own metric implementation, please consider contributing it to Vanity so we can all benefit from it.  Thanks.
+To define a metric that corresponds to the Google Analytics daily visitors:
+
+<pre>
+metric "Acquisition: Visitors" do
+  description "Unique visitors on any given page, as tracked by Google Analytics"
+  google_analytics "UA-1828623-6", :visitors
+end
+</pre>
+
+The first argument is the GA profile, the second argument the GA metric name (defaults to @pageviews@).
+
+You can use the full Garb API by accessing the report directly, for example:
+
+<pre>
+metric "Activation: Signups" do
+  google_analytics "UA-1828623-6"
+  report.filters do
+    eql(:page_path, 'welcome')
+  end
+end
+</pre>
+
+See "the Garb documentation":http://rdoc.info/projects/vigetlabs/garb and "Google Analytics API":http://code.google.com/apis/analytics/docs/gdata/gdataReferenceDimensionsMetrics.html#bounceRate for more details.
 
 
-h3.  Metrics That Work
+h3(#custom).  Creating Your Own Metric
+
+Got other ideas for metrics?  Writing your own metric is fairly simple.
+
+The easiest way to create your own metric is by adding your own @values@ method, for example:
+
+<pre>
+metric "Hours in a day" do
+  description "Measures how many hours in each day."
+  def values(from, to)
+    (from..to).map { |i| 24 }
+  end
+end
+</pre>
+
+This example is based on @Vanity::Metric@.  You can, of course, base your metric on any other class.
+
+For simplicity, a metric is any object that implements these two methods:
+
+* @name@ -- Returns the metric's name, which will show up in the dashboard/report.
+* @values@ -- Receives a start date and end date and returns an array of values for all dates in that range (inclusive).
+
+A metric may also implement these methods:
+
+* @description@ -- Returns human readable description.
+* @bounds@ -- Returns acceptable upper and lower bounds (@nil@ if unknown).
+* @hook@ -- "A/B tests":ab_testing.html use this to manage their own book keeping.
+
+If you wrote your own metric implementation, please consider "contributing it to Vanity":contributing.html so we can all benefit from it.  Thanks.
+
+
+h3(#deeper).  Digging Deeper
+
+All metrics are listed in @Vanity.playground.metrics@, a hash that maps metric identifier to metric object.  Methods like @track!@ and @metrics@ (see "A/B tests":ab_testing.html) reference metrics using their identifier.
+
+On startup, Vanity loads all the metrics it finds in the @experiments/metrics@ directory.  The metric identifier is the same as the file name, so @experiments/metrics/coolness.rb@ becomes @:coolness@.
+
+You can always populate the hash with your own metrics.
+
+When Vanity loads a metric, it evaluates the metric definition in a context that has two methods: @metric@ and @playground@.  The @metric@ method creates a new @Vanity::Metric@ object, and evaluates the block in the context of that object, so when you see the metric definition using methods like @description@ or @model@, these are all invoked on the metric object itself.
+
+A @Vanity::Metric@ object responds to @track!@ and increments a record in the database (an _O(1)_ operation).  It creates one record for each day, accumulating that day's count.  When generating reports, the @values@ method fetches the values of all these keys (also _O(1)_).
+
+You can call @track!@ with a value higher than one, and it will increment the day's count by that value.
+
+Any time you track a metric, the metric passes its identifier, timestamp and count (if more than zero) to all its hooks.  "A/B tests":ab_testing.html use hooks to manage their own book keeping.  When you define an experiment and tell it which metric(s) to use, the experiment registers itself by calling the @hook@ method.
+
+When you call @model@ on a metric, this method changes the metric definition by rewriting the @values@ method to perform a query, rewriting the @track!@ method to update hooks but not the database, and register an @after_create@ callback that updates the hooks.
 
 How about some tips & tricks for getting the most out of metrics (you might call them "best practices")?  Got any to share?
-
-
-
-fn1.  When Vanity loads metrics from the @experiments/metrics@ directory, it determines the metric identifier from the file name, and makes sure the identifier and name match.  There are other ways to define metrics that don't have this limitation.
-
-fn2.  This example is a bit short of being fully functional, but something along these lines will show up in a coming release.

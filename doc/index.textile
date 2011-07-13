@@ -5,18 +5,16 @@ title: Welcome to Vanity
 
 "Vanity":http://github.com/assaf/vanity is an Experiment Driven Development framework for Rails.
 
-!http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg!
+!images/sidebar_test.png!
 
-Vanity requires Redis 1.0 or later.
 
 h3. Reading Order
 
 * "2 Minute Demo(A/B Testing with Rails in 5 easy steps)":#intro
 * "Metrics":metrics.html
 * "A/B Testing(Everything you need to know)":ab_testing.html
-* "The Dashboard(Setting up and using the Rails dashboard)":dashboard.html
+* "Using with Rails":rails.html
 * "Managing Identity":identity.html
-* "Configuring Vanity":configuring.html
 
 Also:
 
@@ -32,7 +30,13 @@ h3(#intro). A/B Testing with Rails (in 5 easy steps)
 *Step 1:* Start using Vanity in your Rails application:
 
 <pre>
-gem.config "vanity"
+Rails::Initializer.run do |config|
+  gem.config "vanity"
+
+  config.after_initialize do
+    require "vanity"
+  end
+end
 </pre>
 
 And:
@@ -78,9 +82,10 @@ end
 *Step 5:* Check the report:
 
 <pre>
-vanity --output vanity.html
+vanity report --output vanity.html
 </pre>
 
 !images/price_options.png!
 
 Read more about "A/B Testing ...":ab_testing.html
+

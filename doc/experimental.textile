@@ -1,0 +1,31 @@
+---
+layout: page
+title: Experimental Features
+---
+
+<div id="toc">
+# "Multi-series Metrics":#multi-series
+</div>
+
+<div class="experimental">Experimental</div>
+
+Everything on this page is work-in-progress towards some future release. Interested in picking up any of these features and developing them further?
+
+
+h3(#multi-series).  Multi-series Metrics
+
+Vanity 1.4 introduces some changes to the API to allow support for multi-series metrics. The intent is to allow more data to be captured and displayed using less metrics (i.e. charts).
+
+First change to the @track!@ method, which now accepts a single value, array of values, or hash. Since incrementing the metric by one is quite common, this is still the default behavior when calling @track!@ with no arguments.
+
+Next proposed change would allow the metric to define multiple columns. Those can be addressed by name or index, for example:
+
+<pre>
+metric :purchase do
+  columns :count, :total
+end
+metric(:purchase).track! p.items.length. p.total
+metric(:purchase).track! :total=>p.total, :count=>p.items.length
+</pre>
+
+The metric's @values@ method will have to be changed to return an array of arrays, or new method introduced to keep the API backward compatible. And, of course, UI modified to display multiple series in a single graph.

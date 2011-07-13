@@ -1,0 +1,89 @@
+---
+layout: page
+title: Using with Rails
+---
+
+<div id="toc">
+# "Configuring Vanity":#config
+# "Test Environment":#test
+# "Dashboard":#dashboard
+# "Unicorn and Forking Servers":#fork
+</div>
+
+This guide is written for Rails 2.3.5.  If you have any tips for Rails 3.0, please share.
+
+
+h3(#config).  Configuring Vanity
+
+Start by telling Rails to use the Vanity gem, either using @config.gem "vanity"@ or by adding @gem "vanity"@ to your Gemfile.
+
+You will most likely need to @require "vanity"@ from within @after_initialize@ in order to use it everywhere in your app:
+
+<pre>
+Rails::Initializer.run do |config|
+  . . .
+  config.after_initialize do
+    require "vanity"
+  end
+end
+</pre>
+
+If you have a @config/vanity.yml@ file, Vanity will read the configuration for the current environment.  For example:
+
+<pre>
+staging:
+  adapter: redis
+  host: staging.internal
+production:
+  adapter: mongo
+  host: live.internal
+  database: vanity
+</pre>
+
+If you want to use Google Analytics, you must also tell Rails to include the @garb@ gem, and login for a new session.  You'll want to do that for production, not for development if you like developing offline:
+
+<pre>
+config.after_initialize do
+  require "garb"
+  Garb::Session.login('..ga email..', '..ga pwd..', account_type: "GOOGLE")
+end
+</pre>
+
+There's generally no need to collect metric and experiment data outside production environment.  Under Rails, Vanity turns collection on only if the environment name is "production". You can control this from @config/environments@ by setting @Vanity.playground.collecting@ to true/false. When collection is off, Vanity doesn't connect to the database server, so there's no need to set a database configuration for these environments.
+
+
+h3(#dashboard).  Dashboard
+
+Start by adding a new resource in @config/routes.rb@:
+
+<pre>
+map.vanity "/vanity/:action/:id", :controller=>:vanity
+</pre>
+
+Create a new controller for Vanity:
+
+<pre>
+class VanityController < ApplicationController
+include Vanity::Rails::Dashboard
+end
+</pre>
+
+Now open your browser to "http://localhost:3000/vanity":http://localhost:3000/vanity.
+
+The Dashboard renders complete HTML pages with CSS and all necessary JavaScript libraries.  Thankfully, HTML is forgiving enough that it will render correctly even with your existing application layout.  You can decide to keep your layout, or tell the controller to set @layout false@.
+
+
+h3(#fork).  Unicorn and Forking Servers
+
+Unicorn forks the master process to create worker processes efficiently.  Since the master processes opens a connection to the database, all workers end up sharing that connection, resulting in ugly contention issues.
+
+The cure is simple, use the @after_fork@ hook to reconnect each worker process.  Here's the relevant part from my @config/unicorn.rb@:
+
+<pre>
+after_fork do |server, worker|
+  ActiveRecord::Base.establish_connection
+  Vanity.playground.establish_connection
+end
+</pre>
+
+You'll run into this issue with other forking servers.  Vanity can detect when it runs under Passenger and automatically reconnect each forked process.

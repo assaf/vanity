@@ -15,7 +15,7 @@ If you have a better way of tracking visitors, e.g. using sign in, you'll want t
 
 You can choose either option using the @use_vanity@ method.  In the first case, just call @use_vanity@ from within the @ApplicationController@.  In the second case, you'll want to pass @use_vanity@ either a block that returns an identity value, or the name of a method that returns an object which provides the identity.
 
-Sounds complications?  These two examples are equivalent:
+Sounds complicated?  These two examples are equivalent:
 
 <pre>
 class ApplicationController < ActionController::Base

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require "digest/md5"
+
 module Vanity
   module Experiment
 
@@ -45,7 +47,7 @@ module Vanity
 
       # Conversion rate calculated as converted/participants
       def conversion_rate
-        @conversion_rate ||= participants > 0 ? (converted.to_f/participants.to_f) : 0.0
+        @conversion_rate ||= (participants > 0 ? converted.to_f/participants.to_f  : 0.0)
       end
 
       # The measure we use to order (sort) alternatives and decide which one is better (by calculating z-score).
@@ -92,7 +94,6 @@ module Vanity
 
       def initialize(*args)
         super
-        @alternatives = [false, true]
       end
 
 
@@ -129,22 +130,18 @@ module Vanity
       #   alts = experiment(:background_color).alternatives
       #   puts "#{alts.count} alternatives, with the colors: #{alts.map(&:value).join(", ")}"
       def alternatives(*args)
-        unless args.empty?
-          @alternatives = args.clone
-        end
+        @alternatives = args.empty? ? [true, false] : args.clone
         class << self
           define_method :alternatives, instance_method(:_alternatives)
         end
-        alternatives
+        nil
       end
 
       def _alternatives
         alts = []
         @alternatives.each_with_index do |value, i|
-          participants = redis.scard(key("alts:#{i}:participants")).to_i
-          converted = redis.scard(key("alts:#{i}:converted")).to_i
-          conversions = redis[key("alts:#{i}:conversions")].to_i
-          alts << Alternative.new(self, i, value, participants, converted, conversions)
+          counts = @playground.collecting? ? connection.ab_counts(@id, i) : Hash.new(0)
+          alts << Alternative.new(self, i, value, counts[:participants], counts[:converted], counts[:conversions])
         end
         alts
       end
@@ -185,18 +182,34 @@ module Vanity
       # @example
       #   color = experiment(:which_blue).choose
       def choose
-        if active?
-          identity = identity()
-          index = redis[key("participant:#{identity}:show")]
-          unless index
-            index = alternative_for(identity)
-            redis.sadd key("alts:#{index}:participants"), identity
-            check_completion!
+        if @playground.collecting?
+          if active?
+            identity = identity()
+            index = connection.ab_showing(@id, identity)
+            unless index
+              index = alternative_for(identity)
+              if !@playground.using_js?
+                connection.ab_add_participant @id, index, identity
+                check_completion!
+              end
+            end
+          else
+            index = connection.ab_get_outcome(@id) || alternative_for(identity)
           end
         else
-          index = redis[key("outcome")] || alternative_for(identify)
+          identity = identity()
+          @showing ||= {}
+          @showing[identity] ||= alternative_for(identity)
+          index = @showing[identity]
         end
-        @alternatives[index.to_i]
+        alternatives[index.to_i]
+      end
+
+      # Returns fingerprint (hash) for given alternative.  Can be used to lookup
+      # alternative for experiment without revealing what values are available
+      # (e.g. choosing alternative from HTTP query parameter).
+      def fingerprint(alternative)
+        Digest::MD5.hexdigest("#{id}:#{alternative.id}")[-10,10]
       end
 
       
@@ -219,12 +232,25 @@ module Vanity
       #     experiment(:green_button).select(nil)
       #   end
       def chooses(value)
-        if value.nil?
-          redis.del key("participant:#{identity}:show")
+        if @playground.collecting?
+          if value.nil?
+            connection.ab_not_showing @id, identity
+          else
+            index = @alternatives.index(value)
+            #add them to the experiment unless they are already in it
+            unless index == connection.ab_showing(@id, identity)
+              connection.ab_add_participant @id, index, identity
+              check_completion!
+            end
+            raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
+            if (connection.ab_showing(@id, identity) && connection.ab_showing(@id, identity) != index) || 
+	       alternative_for(identity) != index
+              connection.ab_show @id, identity, index
+            end
+          end
         else
-          index = @alternatives.index(value)
-          raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-          redis[key("participant:#{identity}:show")] = index
+          @showing ||= {}
+          @showing[identity] = value.nil? ? nil : @alternatives.index(value)
         end
         self
       end
@@ -232,8 +258,12 @@ module Vanity
       # True if this alternative is currently showing (see #chooses).
       def showing?(alternative)
         identity = identity()
-        index = redis[key("participant:#{identity}:show")]
-        index && index.to_i == alternative.id
+        if @playground.collecting?
+          (connection.ab_showing(@id, identity) || alternative_for(identity)) == alternative.id
+        else
+          @showing ||= {}
+          @showing[identity] == alternative.id
+        end
       end
 
 
@@ -350,43 +380,40 @@ module Vanity
 
       # Alternative chosen when this experiment completed.
       def outcome
-        outcome = redis[key("outcome")]
-        outcome && alternatives[outcome.to_i]
+        return unless @playground.collecting?
+        outcome = connection.ab_get_outcome(@id)
+        outcome && _alternatives[outcome]
       end
 
       def complete!
-        return unless active?
+        return unless @playground.collecting? && active?
         super
         if @outcome_is
           begin
             result = @outcome_is.call
             outcome = result.id if result && result.experiment == self
-          rescue
-            # TODO: logging
+          rescue => e
+            warn "Error in AbTest#complete!: #{e.message}" 
           end
         else
           best = score.best
           outcome = best.id if best
         end
         # TODO: logging
-        redis.setnx key("outcome"), outcome || 0
+        connection.ab_set_outcome @id, outcome || 0
       end
 
       
       # -- Store/validate --
 
       def destroy
-        @alternatives.size.times do |i|
-          redis.del key("alts:#{i}:participants")
-          redis.del key("alts:#{i}:converted")
-          redis.del key("alts:#{i}:conversions")
-        end
-        redis.del key(:outcome)
+        connection.destroy_experiment @id
         super
       end
 
       def save
-        fail "Experiment #{name} needs at least two alternatives" unless alternatives.size >= 2
+        true_false unless @alternatives
+        fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
         super
         if @metrics.nil? || @metrics.empty?
           warn "Please use metrics method to explicitly state which metric you are measuring against."
@@ -401,12 +428,13 @@ module Vanity
       # Called when tracking associated metric.
       def track!(metric_id, timestamp, count, *args)
         return unless active?
-        identity = identity()
-        return if redis[key("participants:#{identity}:show")]
-        index = alternative_for(identity)
-        redis.sadd key("alts:#{index}:converted"), identity if redis.sismember(key("alts:#{index}:participants"), identity)
-        redis.incrby key("alts:#{index}:conversions"), count
-        check_completion!
+        identity = identity() rescue nil
+        if identity
+          return if connection.ab_showing(@id, identity)
+          index = alternative_for(identity)
+          connection.ab_add_conversion @id, index, identity, count
+          check_completion!
+        end
       end
 
       # If you are not embarrassed by the first version of your product, you’ve
@@ -422,13 +450,12 @@ module Vanity
           participants.times do |identity|
             index = @alternatives.index(value)
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            redis.sadd key("alts:#{index}:participants"), identity
+            connection.ab_add_participant @id, index, "#{index}:#{identity}"
           end
           conversions.times do |identity|
             index = @alternatives.index(value)
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            redis.sadd key("alts:#{index}:converted"), identity
-            redis.incr key("alts:#{index}:conversions")
+            connection.ab_add_conversion @id, index, "#{index}:#{identity}"
           end
         end
       end

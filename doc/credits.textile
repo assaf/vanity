@@ -3,12 +3,16 @@ layout: page
 title: Credits
 ---
 
+Made better by:
+Adam Keys
+Brian Leonard
+JS Boulanger
+Ryan Carver
+Stephen Celis
 
 Experiment Driven Development conceived by "Nathaniel Talbott":http://blog.talbott.ws.
 
 A/B tests, influenced by Patrick McKenzie's awesome "A/Bingo":http://www.bingocardcreator.com/abingo.
-
-"Redis client library":http://github.com/ezmobius/redis-rb, copyright of "Ezra Zygmuntowicz":http://brainspl.at, released under the "MIT license":http://github.com/ezmobius/redis-rb/blob/master/LICENSE.
 
 "jQuery":http://jquery.com, copyright of John Resig, released under the "MIT license":http://dev.jquery.com/browser/trunk/jquery/MIT-LICENSE.txt.
 

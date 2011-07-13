@@ -24,20 +24,3 @@ class Date
   end
 end
 
-class Symbol
-  unless method_defined?(:to_proc)
-    # Backported from Ruby 1.9.
-    def to_proc
-      Proc.new { |*args| args.shift.__send__(self, *args) }
-    end
-  end
-end
-
-class Array
-  unless method_defined?(:minmax)
-    # Backported from Ruby 1.9.
-    def minmax
-      [min, max]
-    end
-  end
-end 

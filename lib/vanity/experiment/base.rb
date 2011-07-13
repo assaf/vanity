@@ -10,16 +10,22 @@ module Vanity
     #   end
     module Definition
 
+      attr_reader :playground
+
       # Defines a new experiment, given the experiment's name, type and
       # definition block.
       def define(name, type, options = nil, &block)
-        options ||= {}
-        @playground.define(name, type, options, &block)
+        fail "Experiment #{@experiment_id} already defined in playground" if playground.experiments[@experiment_id]
+        klass = Experiment.const_get(type.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase })
+        experiment = klass.new(playground, @experiment_id, name, options)
+        experiment.instance_eval &block
+        experiment.save
+        playground.experiments[@experiment_id] = experiment
       end
 
-      def binding(playground)
-        @playground = playground
-        Kernel.binding
+      def new_binding(playground, id)
+        @playground, @experiment_id = playground, id
+        binding
       end
 
     end
@@ -36,16 +42,16 @@ module Vanity
         end
 
         # Playground uses this to load experiment definitions.
-        def load(playground, stack, path, id)
-          fn = File.join(path, "#{id}.rb")
-          fail "Circular dependency detected: #{stack.join('=>')}=>#{fn}" if stack.include?(fn)
-          source = File.read(fn)
-          stack.push fn
+        def load(playground, stack, file)
+          fail "Circular dependency detected: #{stack.join('=>')}=>#{file}" if stack.include?(file)
+          source = File.read(file)
+          stack.push file
+          id = File.basename(file, ".rb").downcase.gsub(/\W/, "_").to_sym
           context = Object.new
           context.instance_eval do
             extend Definition
-            experiment = eval(source, context.binding(playground), fn)
-            fail NameError.new("Expected #{fn} to define experiment #{id}", id) unless experiment.id == id
+            experiment = eval(source, context.new_binding(playground, id), file)
+            fail NameError.new("Expected #{file} to define experiment #{id}", id) unless playground.experiments[id]
             experiment
           end
         rescue
@@ -58,24 +64,26 @@ module Vanity
 
       end
 
-      def initialize(playground, id, name, options, &block)
+      def initialize(playground, id, name, options = nil)
         @playground = playground
         @id, @name = id.to_sym, name
         @options = options || {}
-        @namespace = "#{@playground.namespace}:#{@id}"
-        @identify_block = lambda { |context| context.vanity_identity }
+        @identify_block = method(:default_identify)
       end
 
       # Human readable experiment name (first argument you pass when creating a
       # new experiment).
       attr_reader :name
+      alias :to_s :name
 
       # Unique identifier, derived from name experiment name, e.g. "Green
       # Button" becomes :green_button.
       attr_reader :id
 
       # Time stamp when experiment was created.
-      attr_reader :created_at
+      def created_at
+        @created_at ||= connection.get_experiment_created_at(@id)
+      end
 
       # Time stamp when experiment was completed.
       attr_reader :completed_at
@@ -99,13 +107,9 @@ module Vanity
       #     end
       #   end
       def identify(&block)
+        fail "Missing block" unless block
         @identify_block = block
       end
-
-      def identity
-        @identify_block.call(Vanity.context) or fail "No identity found"
-      end
-      protected :identity
 
 
       # -- Reporting --
@@ -120,11 +124,7 @@ module Vanity
         @description = text if text
         @description
       end
-
-      def report
-        fail "Implement me"
-      end
-      
+ 
 
       # -- Experiment completion --
 
@@ -138,68 +138,75 @@ module Vanity
         @complete_block = block
       end
 
-      # Derived classes call this after state changes that may lead to
-      # experiment completing.
-      def check_completion!
-        if @complete_block
-          begin
-            complete! if @complete_block.call
-          rescue
-            # TODO: logging
-          end
-        end
-      end
-      protected :check_completion!
-
       # Force experiment to complete.
       def complete!
-        redis.setnx key(:completed_at), Time.now.to_i
-        @completed_at = redis[key(:completed_at)]
         @playground.logger.info "vanity: completed experiment #{id}"
+        return unless @playground.collecting?
+        connection.set_experiment_completed_at @id, Time.now
+        @completed_at = connection.get_experiment_completed_at(@id)
       end
 
       # Time stamp when experiment was completed.
       def completed_at
-        @completed_at ||= redis[key(:completed_at)]
-        @completed_at && Time.at(@completed_at.to_i)
+        @completed_at ||= connection.get_experiment_completed_at(@id)
       end
       
       # Returns true if experiment active, false if completed.
       def active?
-        !redis.exists(key(:completed_at))
+        !@playground.collecting? || !connection.is_experiment_completed?(@id)
       end
 
       # -- Store/validate --
 
       # Get rid of all experiment data.
       def destroy
-        redis.del key(:created_at)
-        redis.del key(:completed_at)
+        connection.destroy_experiment @id
         @created_at = @completed_at = nil
       end
 
       # Called by Playground to save the experiment definition.
       def save
-        redis.setnx key(:created_at), Time.now.to_i
-        @created_at = Time.at(redis[key(:created_at)].to_i)
+        return unless @playground.collecting?
+        connection.set_experiment_created_at @id, Time.now
       end
 
     protected
 
+      def identity
+        @identify_block.call(Vanity.context)
+      end
+
+      def default_identify(context)
+        raise "No Vanity.context" unless context
+        raise "Vanity.context does not respond to vanity_identity" unless context.respond_to?(:vanity_identity)
+        context.vanity_identity or raise "Vanity.context.vanity_identity - no identity"
+      end
+
+      # Derived classes call this after state changes that may lead to
+      # experiment completing.
+      def check_completion!
+        if @complete_block
+          begin
+            complete! if @complete_block.call
+          rescue => e
+            warn "Error in Vanity::Experiment::Base: #{e.message}" 
+          end
+        end
+      end
+      
       # Returns key for this experiment, or with an argument, return a key
       # using the experiment as the namespace.  Examples:
       #   key => "vanity:experiments:green_button"
       #   key("participants") => "vanity:experiments:green_button:participants"
       def key(name = nil)
-        name ? "#{@namespace}:#{name}" : @namespace
+        "#{@id}:#{name}"
       end
 
-      # Shortcut for Vanity.playground.redis
-      def redis
-        @playground.redis
+      # Shortcut for Vanity.playground.connection
+      def connection
+        @playground.connection
       end
       
     end
   end
 end
-

@@ -1,0 +1,8 @@
+.bundle
+database.sqlite
+dump.rdb
+test/myapp/log/
+*.rbc
+html
+*.gem
+.yardoc

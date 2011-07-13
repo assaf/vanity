@@ -3,6 +3,15 @@ layout: page
 title: A/B Testing
 ---
 
+<div id="toc">
+# "True or False":#tf
+# "Interpreting the Results":#interpret
+# "Multiple Alternatives":#multiple
+# "A/B Testing and Code Testing":#test
+# "Let the Experiment Decide":#decide
+</div>
+
+
 "A/B testing":http://en.wikipedia.org/wiki/A/B_testing (or "split testing") are experiments you can run to compare the performance of different alternatives.  A classical example is using an A/B test to compare two versions of a landing page, to find out which alternative leads to more registrations.
 
 You can use A/B tests to gauge interest in a new feature, response to a feature change, improve the site's design and copy, and so forth.  In spite of the name, you can use A/B tests to check out more than two alternatives.
@@ -10,7 +19,7 @@ You can use A/B tests to gauge interest in a new feature, response to a feature 
 bq. "If you are not embarrassed by the first version of your product, you’ve launched too late" -- Reid Hoffman, founder of LinkedIn
 
 
-h3. True or False
+h3(#tf). True or False
 
 Let's start with a simple experiment.  We have this idea that a bigger sign-up link will increase the number of people who sign up for our service.  Let's see how well our hypothesis holds.
 
@@ -56,9 +65,9 @@ end
 </pre>
 
 
-h3. Interpreting the Results
+h3(#interpret). Interpreting the Results
 
-We're going to let the experiment run for a while and track the results using "the dashboard":dashboard.html, or by running the command @vanity report@.
+We're going to let the experiment run for a while and track the results using "the dashboard":rails.html#dashboard, or by running the command @vanity report@.
 
 Vanity splits the audience randomly -- using "cookies and other mechanisms":identity.html -- and records who got to see each alternative, and how many in each group converted (in our case, signed up).  Dividing conversions by participants gives you the conversion rate.
 
@@ -70,7 +79,7 @@ Vanity will show the conversion rate for each alternative, and how that conversi
 
 It takes only a handful of visits before you'll see one alternative clearly performing better than all others.  That's a sign that you should continue running the experiment.  You see, small sample size tend to give out random results.
 
-To get actionable results, you want a large enough sample, more specifically, you want to look at the probability.  Vanity picks the top two alternatives and "calculates a z-score":http://20bits.com/articles/statistical-analysis-and-ab-testing/ to determine the probability that the best alternative performed better than second best.  If presents that probability which should tell you when is a good time to wrap up the experiment.
+To get actionable results, you want a large enough sample, more specifically, you want to look at the probability.  Vanity picks the top two alternatives and "calculates a z-score":http://20bits.com/articles/statistical-analysis-and-ab-testing/ to determine the probability that the best alternative performed better than second best.  It presents that probability which should tell you when is a good time to wrap up the experiment.
 
 This is the part that gets most people confused about A/B testing.  Let's say we ran an experiment with two alternatives and we notice that option B performs 50% better than option A (A * 150% = B).  We calculate from the z-score a 90% probability.
 
@@ -85,7 +94,7 @@ You might want to instead decide on some target probability (which could change 
 You'll want to read more about "A/B testing and statistical significance":http://www.cennydd.co.uk/2009/statistical-significance-other-ab-test-pitfalls/
 
 
-h3.  Multiple Alternatives
+h3(#multiple).  Multiple Alternatives
 
 Your A/B tests can have as many alternatives as you care, with two caveats.  The more alternatives you have the larger the sample size you need, and so the longer it will take to find out the outcome of your experiment.  You want alternatives that are significantly different from each other, testing two pricing options at $5 and $25 is fast, testing all the prices between $5 and $25 at $1 increments will take a long time to reach any conclusive result.
 
@@ -129,7 +138,7 @@ end
 </pre>
 
 
-h3.  A/B Testing and Code Testing
+h3(#test).  A/B Testing and Code Testing
 
 If you're presenting more than one alternative to visitors of your site, you'll want to test more than one alternative.  Don't let A/B testing become A/broken.
 
@@ -155,14 +164,14 @@ def test_price_option
 end
 </pre>
 
-You'll also want to test each alternative visually, from your Web browser.  For that you'll have to install the "the Dashboard":dashboard.html, which lets you pick which alternative is shown to you:
+You'll also want to test each alternative visually, from your Web browser.  For that you'll have to install the "the Dashboard":rails.html#dashboard, which lets you pick which alternative is shown to you:
 
 !images/ab_in_dashboard.png!
 
 Once the experiment is over, simply remove its definition from the experiments directory and run the test suite again.  You'll see errors in all the places that touch the experiment (from failing to load it), pointing you to what parts of the code you need to remove/change.
 
 
-h3. Let the Test Decide
+h3(#decide). Let the Experiment Decide
 
 Sample size and probability help you interpret the results, you can also use them to configure an experiment to automatically complete itself.
 
