@@ -17,6 +17,13 @@ module Vanity
       attr_reader :mongo
 
       def initialize(options)
+	if File.exists?("config/mongoid.yml")
+	  env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
+	  mongoid_options = YAML.load(ERB.new(File.read("config/mongoid.yml")).result)[env]
+	  mongoid_options = mongoid_options.inject({}) { |h,kv| h[kv.first.to_sym] = kv.last ; h }
+	  options.merge!(mongoid_options)
+	end
+
 	setup_connection(options)
 	@options = options.clone
 	@options[:database] ||= (@options[:path] && @options[:path].split("/")[1]) || "vanity"
@@ -25,8 +32,7 @@ module Vanity
 
       def setup_connection(options = {})
 	if options[:hosts]
-	  args = (options[:hosts].map{|host| [host, options[:port]] } << {:connect => false})
-	  @mongo = Mongo::ReplSetConnection.new(*args)
+	  @mongo = Mongo::ReplSetConnection.new(*options[:hosts])
 	else
 	  @mongo = Mongo::Connection.new(options[:host], options[:port], :connect => false)
 	end
@@ -34,7 +40,8 @@ module Vanity
       end
 
       def is_experiment_completed?(experiment)
-	!!@experiments.find_one(:_id=>experiment, :completed_at=>{ "$exists"=>true })
+	experiment = @experiments.find_one(:_id=>experiment)
+	!!(experiment && experiment['completed_at'])
       end
     end
   end
