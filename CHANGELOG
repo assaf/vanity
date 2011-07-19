@@ -28,6 +28,23 @@ Fix returning correct experiment when in test mode and manually set via
 Don't round the conversion rate before using it, it affects the test results,
 making them less accurate (Doug Cole).
 
+Fixed loading config from yml when using other than redis adapter (Arttu Tervo)
+
+Default to localhost unless host in config file (Arttu Tervo)
+
+Fixed mongo connection adapter connect! when called after disconnect! (Arttu
+Tervo)
+
+Use mongo replica set connection if multiple hosts were given in YAML
+configuration file (Arttu Tervo)
+
+Cookie domain from rails configuration (Arttu Tervo)
+
+Add bson_ext to Gemfile to load C extension for mongodb ruby driver, and
+prevent Notice messages as the tests run (tenaciousflea)
+
+Update redis-namespace dependency to 1.0 (Ville Lautanala)
+
 
 == 1.5.3 (2011-04-11)
 
