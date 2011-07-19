@@ -58,6 +58,8 @@ module Vanity
         @experiments = database.collection("vanity.experiments")
         @participants = database.collection("vanity.participants")
         @participants.create_index [[:experiment, 1], [:identity, 1]], :unique=>true
+        @participants.create_index [[:experiment, 1], [:seen, 1]]
+        @participants.create_index [[:experiment, 1], [:converted, 1]]
         @mongo
       end
 
@@ -126,8 +128,8 @@ module Vanity
       def ab_counts(experiment, alternative)
         record = @experiments.find_one({ :_id=>experiment }, { :fields=>[:conversions] })
         conversions = record && record["conversions"]
-        { :participants => @participants.find({ :experiment=>experiment, :seen=>alternative }, { :fields=>[] }).count,
-          :converted    => @participants.find({ :experiment=>experiment, :converted=>alternative }, { :fields=>[] }).count,
+        { :participants => @participants.find({ :experiment=>experiment, :seen=>alternative }).count,
+          :converted    => @participants.find({ :experiment=>experiment, :converted=>alternative }).count,
           :conversions  => conversions && conversions[alternative.to_s] || 0 }
       end
 
