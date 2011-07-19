@@ -21,6 +21,9 @@ class UseVanityTest < ActionController::TestCase
     UseVanityController.class_eval do
       use_vanity :current_user
     end
+    if ::Rails.respond_to?(:application) # Rails 3 configuration
+      ::Rails.application.config.session_options[:domain] = '.foo.bar'
+    end
   end
 
   def test_chooses_sets_alternatives_for_rails_tests
@@ -110,6 +113,10 @@ class UseVanityTest < ActionController::TestCase
     assert !experiment(:pie_or_cake).showing?(first)
   end
 
+  def test_cookie_domain_from_rails_configuration
+    get :index
+    assert_equal cookies["vanity_id"][:domain], '.foo.bar' if ::Rails.respond_to?(:application)
+  end
 
   # -- Load path --
 
