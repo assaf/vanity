@@ -136,10 +136,14 @@ module Vanity
         nil
       end
 
-      def _alternatives
+      def _alternatives(options={})
         alts = []
         @alternatives.each_with_index do |value, i|
-          counts = @playground.collecting? ? connection.ab_counts(@id, i) : Hash.new(0)
+          counts = Hash.new(0)
+          if @playground.collecting? && !options[:skip_counts]
+            counts = connection.ab_counts(@id, i)
+          end
+          
           alts << Alternative.new(self, i, value, counts[:participants], counts[:converted], counts[:conversions])
         end
         alts
@@ -201,7 +205,7 @@ module Vanity
           @showing[identity] ||= alternative_for(identity)
           index = @showing[identity]
         end
-        alternatives[index.to_i]
+        alternatives(:skip_counts => true)[index.to_i]
       end
 
       # Returns fingerprint (hash) for given alternative.  Can be used to lookup
@@ -333,7 +337,7 @@ module Vanity
           if best.measure > second.measure
             diff = ((best.measure - second.measure) / second.measure * 100).round
             better = " (%d%% better than %s)" % [diff, second.name] if diff > 0
-            claims << "The best choice is %s: it converted at %.1f%%%s." % [best.name, best.measure * 100, better]
+            claims << "The best choice is %s: it converted at %.10f%%%s." % [best.name, best.measure * 100, better]
             if best.probability >= 90
               claims << "With %d%% probability this result is statistically significant." % score.best.probability
             else
