@@ -545,7 +545,7 @@ This experiment did not run long enough to find a clear winner.
   def test_completion_if_fails
     new_ab_test :simple do
       identify { rand }
-      complete_if { fail }
+      complete_if { fail "Testing complete_if raises exception" }
       metrics :coolness
     end
     experiment(:simple).choose
@@ -639,7 +639,7 @@ This experiment did not run long enough to find a clear winner.
 
   def test_outcome_is_fails
     new_ab_test :quick do
-      outcome_is { fail }
+      outcome_is { fail "Testing outcome_is raising exception" }
       metrics :coolness
     end
     experiment(:quick).complete!

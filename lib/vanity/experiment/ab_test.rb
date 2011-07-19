@@ -390,9 +390,9 @@ module Vanity
         if @outcome_is
           begin
             result = @outcome_is.call
-            outcome = result.id if result && result.experiment == self
-          rescue => e
-            warn "Error in AbTest#complete!: #{e.message}" 
+            outcome = result.id if Alternative === result && result.experiment == self
+          rescue 
+            warn "Error in AbTest#complete!: #{$!}"
           end
         else
           best = score.best
