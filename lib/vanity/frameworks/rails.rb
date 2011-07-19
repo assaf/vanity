@@ -46,7 +46,11 @@ module Vanity
               @vanity_identity = object.id
             elsif response # everyday use
               @vanity_identity = cookies["vanity_id"] || ActiveSupport::SecureRandom.hex(16)
-              cookies["vanity_id"] = { :value=>@vanity_identity, :expires=>1.month.from_now }
+              cookie_options = { :value=>@vanity_identity, :expires=>1.month.from_now }
+              if ::Rails.respond_to?(:application)
+                cookie_options[:domain] = ::Rails.application.config.session_options[:domain] if ::Rails.application.config.session_options[:domain]
+              end
+              cookies["vanity_id"] = cookie_options
               @vanity_identity
             else # during functional testing
               @vanity_identity = "test"
