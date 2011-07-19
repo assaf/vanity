@@ -80,6 +80,8 @@ module Vanity
       # Button" becomes :green_button.
       attr_reader :id
 
+      attr_reader :playground
+
       # Time stamp when experiment was created.
       def created_at
         @created_at ||= connection.get_experiment_created_at(@id)
