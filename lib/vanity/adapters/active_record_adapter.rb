@@ -22,48 +22,53 @@ module Vanity
 
           # Migrate
           unless VanitySchema.find_by_version(1)
-            connection.create_table :vanity_metrics do |t|
-              t.string :metric_id
-              t.datetime :updated_at
+            unless connection.tables.include?('vanity_metrics')
+              connection.create_table :vanity_metrics do |t|
+                t.string :metric_id
+                t.datetime :updated_at
+              end
+              connection.add_index :vanity_metrics, [:metric_id]
             end
-            connection.add_index :vanity_metrics, [:metric_id]
-
-            connection.create_table :vanity_metric_values do |t|
-              t.integer :vanity_metric_id
-              t.integer :index
-              t.integer :value
-              t.string :date
+            unless connection.tables.include?('vanity_metric_values')
+              connection.create_table :vanity_metric_values do |t|
+                t.integer :vanity_metric_id
+                t.integer :index
+                t.integer :value
+                t.string :date
+              end
+              connection.add_index :vanity_metric_values, [:vanity_metric_id]
             end
-            connection.add_index :vanity_metric_values, [:vanity_metric_id]
-
-            connection.create_table :vanity_experiments do |t|
-              t.string :experiment_id
-              t.integer :outcome
-              t.datetime :created_at
-              t.datetime :completed_at
+            unless connection.tables.include?('vanity_experiments')
+              connection.create_table :vanity_experiments do |t|
+                t.string :experiment_id
+                t.integer :outcome
+                t.datetime :created_at
+                t.datetime :completed_at
+              end
+              connection.add_index :vanity_experiments, [:experiment_id]
             end
-            connection.add_index :vanity_experiments, [:experiment_id]
-
-            connection.create_table :vanity_conversions do |t|
-              t.integer :vanity_experiment_id
-              t.integer :alternative
-              t.integer :conversions
+            unless connection.tables.include?('vanity_conversions')
+              connection.create_table :vanity_conversions do |t|
+                t.integer :vanity_experiment_id
+                t.integer :alternative
+                t.integer :conversions
+              end
+              connection.add_index :vanity_conversions, [:vanity_experiment_id, :alternative], :name => "by_experiment_id_and_alternative"
             end
-            connection.add_index :vanity_conversions, [:vanity_experiment_id, :alternative], :name => "by_experiment_id_and_alternative"
-
-            connection.create_table :vanity_participants do |t|
-              t.string :experiment_id
-              t.string :identity
-              t.integer :shown
-              t.integer :seen
-              t.integer :converted
+            unless connection.tables.include?('vanity_participants')
+              connection.create_table :vanity_participants do |t|
+                t.string :experiment_id
+                t.string :identity
+                t.integer :shown
+                t.integer :seen
+                t.integer :converted
+              end
+              connection.add_index :vanity_participants, [:experiment_id]
+              connection.add_index :vanity_participants, [:experiment_id, :identity], :name => "by_experiment_id_and_identity"
+              connection.add_index :vanity_participants, [:experiment_id, :shown], :name => "by_experiment_id_and_shown"
+              connection.add_index :vanity_participants, [:experiment_id, :seen], :name => "by_experiment_id_and_seen"
+              connection.add_index :vanity_participants, [:experiment_id, :converted], :name => "by_experiment_id_and_converted"
             end
-            connection.add_index :vanity_participants, [:experiment_id]
-            connection.add_index :vanity_participants, [:experiment_id, :identity], :name => "by_experiment_id_and_identity"
-            connection.add_index :vanity_participants, [:experiment_id, :shown], :name => "by_experiment_id_and_shown"
-            connection.add_index :vanity_participants, [:experiment_id, :seen], :name => "by_experiment_id_and_seen"
-            connection.add_index :vanity_participants, [:experiment_id, :converted], :name => "by_experiment_id_and_converted"
-
             VanitySchema.create(:version => 1)
           end
         end

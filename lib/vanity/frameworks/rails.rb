@@ -57,9 +57,13 @@ module Vanity
             end
           end
         end
-        around_filter :vanity_context_filter
-        before_filter :vanity_reload_filter unless ::Rails.configuration.cache_classes
-        before_filter :vanity_query_parameter_filter
+        if respond_to?("around_filter")
+          around_filter :vanity_context_filter
+        end
+        if respond_to?("before_filter")
+          before_filter :vanity_reload_filter unless ::Rails.configuration.cache_classes
+          before_filter :vanity_query_parameter_filter
+        end
       end
       protected :use_vanity
     end
