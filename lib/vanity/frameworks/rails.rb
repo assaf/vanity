@@ -206,10 +206,10 @@ module Vanity
       end
 
       def add_participant
-	if params[:e].nil? || params[:e].empty?
-	  render :status => 404, :nothing => true
-	  return
-	end
+        if params[:e].nil? || params[:e].empty?
+          render :status => 404, :nothing => true
+          return
+        end
         exp = Vanity.playground.experiment(params[:e])
         exp.chooses(exp.alternatives[params[:a].to_i].value)
         render :status => 200, :nothing => true

@@ -243,7 +243,7 @@ module Vanity
             end
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
             if (connection.ab_showing(@id, identity) && connection.ab_showing(@id, identity) != index) || 
-	       alternative_for(identity) != index
+         alternative_for(identity) != index
               connection.ab_show @id, identity, index
             end
           end

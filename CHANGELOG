@@ -1,4 +1,4 @@
-== 1.6.0 (2011-05-29)
+== 1.6.0 (2011-07-18)
 
 If robots or spiders make up a significant portion of your sites traffic they
 can affect your conversion rate.  Vanity can optionally add participants to the
@@ -8,7 +8,7 @@ robots out.  To set this up simply do the following:
 1. Vanity.playground.use_js!
 2. Set Vanity.playground.add_participant_path = '/path/to/vanity/action'
 3. Add <%= Vanity.vanity_js %> to the bottom of any view that needs to set up
-	 an ab_test
+   an ab_test
 
 
 Fix for metrics on rails 3 models (Esteban Pastorino).
@@ -107,9 +107,9 @@ to multiple adapters (not just Redis). The easiest is to use the configuration
 file config/vanity.yml. For example:
 
   development:
-	  adapter: redis
-	production:
-	  adapter: mongodb
+    adapter: redis
+  production:
+    adapter: mongodb
 
 We get to keep Redis, add new MongoDB adapter, but lose Mock. It's still there,
 but there's a new way to use Vanity outside production: you can turn data
@@ -165,7 +165,7 @@ Next, authenticate using your account credentials.  For example, in your
 config/environments/production.rb:
 
   require "garb"
-	Garb::Session.login('..email..', '..password..', account_type: "GOOGLE") rescue nil
+  Garb::Session.login('..email..', '..password..', account_type: "GOOGLE") rescue nil
 
 Last, define Vanity metrics that tap to Google Analytics metrics.  For example:
 
@@ -227,22 +227,22 @@ This release introduces metrics.  Metrics are the gateway drug to better softwar
 
 It’s as simple as defining a metric:
 
-	metric "Cheers" do
-		description "They love us, don't they?"
-	end
+  metric "Cheers" do
+    description "They love us, don't they?"
+  end
 
 Tracking it from your code:
 
-	track! :cheers
+  track! :cheers
 
 And watching the graph from the Dashboard.
 
 You can (should) also use metrics with your A/B tests, for example:
 
   ab_test "Pricing options" do
-	  metrics :signup
-		alternatives 15, 25, 29
-	end
+    metrics :signup
+    alternatives 15, 25, 29
+  end
 
 This new usage may become requirement in a future release.
 
@@ -261,8 +261,8 @@ Much thanks to Ian Sefferman for fixing issues with Ruby 1.8.7 and Rails support
 This release changes the way you define a new experiment.  You can use a method suitable for the type of experiment you want to define, or call the generic define method (previously: experiment method).  For example:
 
   ab_test "My A/B test" do
-	  alternatives :a, :b
-	end
+    alternatives :a, :b
+  end
 
 The experiment method is no longer overloaded: it looks up an experiment (loading its definition if necessary), but does not define an experiment.  The ab_test method is overloaded, though this may change in the future.
 
