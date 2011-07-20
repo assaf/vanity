@@ -1,3 +1,8 @@
+== 1.6.1 (2011-07-20)
+
+Fixed cookie domain setting.
+
+
 == 1.6.0 (2011-07-18)
 
 If robots or spiders make up a significant portion of your sites traffic they

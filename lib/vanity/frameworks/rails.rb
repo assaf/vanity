@@ -49,7 +49,7 @@ module Vanity
               cookie = { :value=>@vanity_identity, :expires=>1.month.from_now }
               # Useful if application and admin console are on separate domains.
               # This only works in Rails 3.x.
-              cookie_options[:domain] ||= ::Rails.application.config.session_options[:domain] if ::Rails.respond_to?(:application)
+              cookie[:domain] ||= ::Rails.application.config.session_options[:domain] if ::Rails.respond_to?(:application)
               cookies["vanity_id"] = cookie
               @vanity_identity
             else # during functional testing
