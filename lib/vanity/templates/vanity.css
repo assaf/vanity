@@ -14,7 +14,7 @@
 .vanity .ab_test caption { caption-side: bottom; padding: .5em; background: transparent; text-align: left }
 .vanity .ab_test td.option { width: 5em; white-space: nowrap; overflow: hidden }
 .vanity .ab_test td.value { width: 8em; white-space: nowrap; overflow: hidden }
-.vanity .ab_test td.action { width: 6em; overflow: hidden; text-align: center }
+.vanity .ab_test td.action { width: 6em; overflow: hidden; text-align: right }
 
 .vanity .metrics { list-style: none; margin: 0; padding: 0; border-bottom: 1px solid #ddd }
 .vanity .metric { margin: 2em 0 }
