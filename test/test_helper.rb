@@ -22,14 +22,11 @@ if $VERBOSE
 end
 
 class Test::Unit::TestCase
-  include WebMock
+  include WebMock::API
 
   def setup
     FileUtils.mkpath "tmp/experiments/metrics"
     new_playground
-    #WebMock.after_request do |request_signature, response|
-    #  puts "Request #{request_signature} was made and #{response} was returned"
-    #end
   end
 
   # Call this on teardown. It wipes put the playground and any state held in it
@@ -93,7 +90,7 @@ class Test::Unit::TestCase
     Vanity.context = nil
     FileUtils.rm_rf "tmp"
     Vanity.playground.connection.flushdb if Vanity.playground.connected?
-    WebMock.reset_webmock
+    WebMock.reset!
   end
 
 end

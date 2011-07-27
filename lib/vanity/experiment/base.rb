@@ -80,6 +80,8 @@ module Vanity
       # Button" becomes :green_button.
       attr_reader :id
 
+      attr_reader :playground
+
       # Time stamp when experiment was created.
       def created_at
         @created_at ||= connection.get_experiment_created_at(@id)
@@ -188,8 +190,8 @@ module Vanity
         if @complete_block
           begin
             complete! if @complete_block.call
-          rescue => e
-            warn "Error in Vanity::Experiment::Base: #{e.message}" 
+          rescue
+            warn "Error in Vanity::Experiment::Base: #{$!}"
           end
         end
       end

@@ -21,6 +21,9 @@ class UseVanityTest < ActionController::TestCase
     UseVanityController.class_eval do
       use_vanity :current_user
     end
+    if ::Rails.respond_to?(:application) # Rails 3 configuration
+      ::Rails.application.config.session_options[:domain] = '.foo.bar'
+    end
   end
 
   def test_chooses_sets_alternatives_for_rails_tests
@@ -125,6 +128,11 @@ class UseVanityTest < ActionController::TestCase
     assert_equal experiment(:pie_or_cake).alternatives[0].converted, 1
   end
   
+  def test_cookie_domain_from_rails_configuration
+    get :index
+    assert_equal cookies["vanity_id"][:domain], '.foo.bar' if ::Rails.respond_to?(:application)
+  end
+
   # -- Load path --
 
   def test_load_path
@@ -182,6 +190,55 @@ production:
     assert_equal "redis://somehost:6379/15", load_rails(<<-RB)
 initializer.after_initialize
 $stdout << Vanity.playground.connection
+    RB
+  ensure
+    File.unlink "tmp/config/vanity.yml"
+  end
+
+  def test_mongo_connection_from_yaml
+    FileUtils.mkpath "tmp/config"
+    File.open("tmp/config/vanity.yml", "w") do |io|
+      io.write <<-YML
+mongodb:
+  adapter: mongodb
+  host: localhost
+  port: 27017
+  database: vanity_test
+      YML
+    end
+
+    ENV["RAILS_ENV"] = "mongodb"
+    assert_equal "mongodb://localhost:27017/vanity_test", load_rails(<<-RB)
+initializer.after_initialize
+$stdout << Vanity.playground.connection
+    RB
+  ensure
+    File.unlink "tmp/config/vanity.yml"
+  end
+
+  def test_mongodb_replica_set_connection
+    FileUtils.mkpath "tmp/config"
+    File.open("tmp/config/vanity.yml", "w") do |io|
+      io.write <<-YML
+mongodb:
+  adapter: mongodb
+  hosts:
+    - localhost
+  port: 27017
+  database: vanity_test
+      YML
+    end
+
+    ENV["RAILS_ENV"] = "mongodb"
+    assert_equal "mongodb://localhost:27017/vanity_test", load_rails(<<-RB)
+initializer.after_initialize
+$stdout << Vanity.playground.connection
+    RB
+
+    ENV["RAILS_ENV"] = "mongodb"
+    assert_equal "Mongo::ReplSetConnection", load_rails(<<-RB)
+initializer.after_initialize
+$stdout << Vanity.playground.connection.mongo.class
     RB
   ensure
     File.unlink "tmp/config/vanity.yml"

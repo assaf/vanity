@@ -10,8 +10,10 @@ class RailsDashboardTest < ActionController::TestCase
 
   def setup
     Vanity.playground.collecting = true
+    metric :sugar_high
     new_ab_test :food do
       alternatives :apple, :orange
+      metrics :sugar_high
       identify { '1' }
     end
   end

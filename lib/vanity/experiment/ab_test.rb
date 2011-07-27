@@ -6,12 +6,11 @@ module Vanity
     # One of several alternatives in an A/B test (see AbTest#alternatives).
     class Alternative
 
-      def initialize(experiment, id, value, participants, converted, conversions)
+      def initialize(experiment, id, value) #, participants, converted, conversions)
         @experiment = experiment
         @id = id
         @name = "option #{(@id + 65).chr}"
         @value = value
-        @participants, @converted, @conversions = participants, converted, conversions
       end
 
       # Alternative id, only unique for this experiment.
@@ -27,13 +26,22 @@ module Vanity
       attr_reader :experiment
 
       # Number of participants who viewed this alternative.
-      attr_reader :participants
+      def participants
+        load_counts unless @participants
+        @participants
+      end
 
       # Number of participants who converted on this alternative (a participant is counted only once).
-      attr_reader :converted
+      def converted
+        load_counts unless @converted
+        @converted
+      end
 
       # Number of conversions for this alternative (same participant may be counted more than once).
-      attr_reader :conversions
+      def conversions
+        load_counts unless @conversions
+        @conversions
+      end
 
       # Z-score for this alternative, related to 2nd-best performing alternative. Populated by AbTest#score.
       attr_accessor :z_score
@@ -71,25 +79,32 @@ module Vanity
         "#{name}: #{value} #{converted}/#{participants}"
       end
 
+      def load_counts
+        if @experiment.playground.collecting?
+          @participants, @converted, @conversions = @experiment.playground.connection.ab_counts(@experiment.id, id).values_at(:participants, :converted, :conversions)
+        else
+          @participants = @converted = @conversions = 0
+        end
+      end
     end
 
 
-    # The meat.
-    class AbTest < Base
-      class << self
+      # The meat.
+      class AbTest < Base
+        class << self
 
-        # Convert z-score to probability.
-        def probability(score)
-          score = score.abs
-          probability = AbTest::Z_TO_PROBABILITY.find { |z,p| score >= z }
-          probability ? probability.last : 0
+          # Convert z-score to probability.
+          def probability(score)
+            score = score.abs
+            probability = AbTest::Z_TO_PROBABILITY.find { |z,p| score >= z }
+            probability ? probability.last : 0
+          end
+
+          def friendly_name
+            "A/B Test" 
+          end
+
         end
-
-        def friendly_name
-          "A/B Test" 
-        end
-
-      end
 
       def initialize(*args)
         super
@@ -139,8 +154,7 @@ module Vanity
       def _alternatives
         alts = []
         @alternatives.each_with_index do |value, i|
-          counts = @playground.collecting? ? connection.ab_counts(@id, i) : Hash.new(0)
-          alts << Alternative.new(self, i, value, counts[:participants], counts[:converted], counts[:conversions])
+          alts << Alternative.new(self, i, value)
         end
         alts
       end
@@ -243,7 +257,7 @@ module Vanity
             end
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
             if (connection.ab_showing(@id, identity) && connection.ab_showing(@id, identity) != index) || 
-	       alternative_for(identity) != index
+         alternative_for(identity) != index
               connection.ab_show @id, identity, index
             end
           end
@@ -390,9 +404,9 @@ module Vanity
         if @outcome_is
           begin
             result = @outcome_is.call
-            outcome = result.id if result && result.experiment == self
-          rescue => e
-            warn "Error in AbTest#complete!: #{e.message}" 
+            outcome = result.id if Alternative === result && result.experiment == self
+          rescue 
+            warn "Error in AbTest#complete!: #{$!}"
           end
         else
           best = score.best
