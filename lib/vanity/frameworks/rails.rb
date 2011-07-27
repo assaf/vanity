@@ -44,6 +44,10 @@ module Vanity
             return @vanity_identity if @vanity_identity
             if symbol && object = send(symbol)
               @vanity_identity = object.id
+            elsif request.get? && params[:_identity]
+              @vanity_identity = params[:_identity]
+              cookies["vanity_id"] = { :value=>@vanity_identity, :expires=>1.month.from_now }
+              @vanity_identity
             elsif response # everyday use
               @vanity_identity = cookies["vanity_id"] || ActiveSupport::SecureRandom.hex(16)
               cookies["vanity_id"] = { :value=>@vanity_identity, :expires=>1.month.from_now }
@@ -56,11 +60,33 @@ module Vanity
         around_filter :vanity_context_filter
         before_filter :vanity_reload_filter unless ::Rails.configuration.cache_classes
         before_filter :vanity_query_parameter_filter
+        after_filter :vanity_track_filter
       end
       protected :use_vanity
     end
 
-
+    module UseVanityMailer
+      def use_vanity_mailer(symbol = nil)
+        # Context is the instance of ActionMailer::Base
+        Vanity.context = self
+        if symbol && (@object = symbol)
+          class << self
+            define_method :vanity_identity do
+              @vanity_identity = (String === @object ? @object : @object.id)
+            end
+          end
+        else
+          class << self
+            define_method :vanity_identity do
+              @vanity_identity = @vanity_identity || ActiveSupport::SecureRandom.hex(16)
+            end
+          end
+        end
+      end
+      protected :use_vanity_mailer
+    end
+    
+    
     # Vanity needs these filters.  They are includes in ActionController and
     # automatically added when you use #use_vanity in your controller.
     module Filters
@@ -108,7 +134,15 @@ module Vanity
       def vanity_reload_filter
         Vanity.playground.reload!
       end
-
+      
+      # Filter to track metrics
+      # pass _track param along to call track! on that alternative
+      def vanity_track_filter
+        if request.get? && params[:_track]
+          track! params[:_track]
+        end
+      end
+      
       protected :vanity_context_filter, :vanity_query_parameter_filter, :vanity_reload_filter
     end
 
@@ -154,6 +188,18 @@ module Vanity
         else
           value
         end
+      end
+      
+      # Generate url with the identity of the current user and the metric to track on click
+      def vanity_track_url_for(identity, metric, options = {})
+        options = options.merge(:_identity => identity, :_track => metric)
+        url_for(options)
+      end
+      
+      # Generate url with the fingerprint for the current Vanity experiment
+      def vanity_tracking_image(identity, metric, options = {})
+        options = options.merge(:controller => :vanity, :action => :image, :_identity => identity, :_track => metric)
+        image_tag(url_for(options), :width => "1px", :height => "1px", :alt => "")
       end
 
       def vanity_js
@@ -202,13 +248,20 @@ module Vanity
       end
 
       def add_participant
-	if params[:e].nil? || params[:e].empty?
-	  render :status => 404, :nothing => true
-	  return
-	end
+      	if params[:e].nil? || params[:e].empty?
+      	  render :status => 404, :nothing => true
+      	  return
+      	end
         exp = Vanity.playground.experiment(params[:e])
         exp.chooses(exp.alternatives[params[:a].to_i].value)
         render :status => 200, :nothing => true
+      end
+    end
+    
+    module TrackingImage
+      def image
+        # send image
+        send_file(File.expand_path("../images/x.gif", File.dirname(__FILE__)), :type => 'image/gif', :stream => false, :disposition => 'inline')
       end
     end
   end
@@ -237,6 +290,14 @@ if defined?(ActionController)
   end
 end
 
+if defined?(ActionMailer)
+  # Include in mailer, add view helper methods.
+  ActionMailer::Base.class_eval do
+    include Vanity::Rails::UseVanityMailer
+    include Vanity::Rails::Filters
+    helper Vanity::Rails::Helpers
+  end
+end
 
 # Automatically configure Vanity.
 if defined?(Rails)
