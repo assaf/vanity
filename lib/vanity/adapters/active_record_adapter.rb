@@ -142,7 +142,7 @@ module Vanity
         options[:adapter] = options[:active_record_adapter] if options[:active_record_adapter]
 
         VanityRecord.establish_connection(options)
-        VanityRecord.define_schema
+        #VanityRecord.define_schema
       end
 
       def active?
