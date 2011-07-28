@@ -85,7 +85,17 @@ class UseVanityTest < ActionController::TestCase
     get :index
     assert_equal "576", @controller.send(:vanity_identity)
   end
-
+  
+  def test_vanity_identity_set_with_indentity_paramater
+    get :index, :_identity => "id_from_params"
+    assert_equal "id_from_params", @controller.send(:vanity_identity)
+    
+    @request.cookies['vanity_id'] = "old_id"
+    get :index, :_identity => "id_from_params"
+    assert_equal "id_from_params", @controller.send(:vanity_identity)
+    assert cookies['vanity_id'], "id_from_params"
+  end
+  
   # query parameter filter
 
   def test_redirects_and_loses_vanity_query_parameter
@@ -113,6 +123,11 @@ class UseVanityTest < ActionController::TestCase
     assert !experiment(:pie_or_cake).showing?(first)
   end
 
+  def test_track_param_tracks_a_metric
+    get :index, :_identity => "123", :_track => "sugar_high"
+    assert_equal experiment(:pie_or_cake).alternatives[0].converted, 1
+  end
+  
   def test_cookie_domain_from_rails_configuration
     get :index
     assert_equal cookies["vanity_id"][:domain], '.foo.bar' if ::Rails.respond_to?(:application)
