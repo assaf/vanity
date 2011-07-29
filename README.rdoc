@@ -21,12 +21,17 @@ http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
   end
   
   == Rails 3 configuration
+
+Add to your Gemfile:
+    
+  gem "vanity"
+
+If using a relational database, run the generator and migrations to create the database schema:
+
+  $ rails generate vanity
+  $ rake db:migrate
   
-  gem 'vanity' # in Gemfile, either outside of a group or inside of a bundler group
-  rails generate vanity
-  rake db:migrate
-  
-And:
+Add to your application controller:
 
   class ApplicationController < ActionController::Base
     use_vanity :current_user

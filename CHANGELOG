@@ -1,3 +1,29 @@
+== 1.7.0 (Pending)
+
+1.7.0 adds support for ActionMailer, for example:
+
+	class UserMailer < ActionMailer::Base 
+		def invite_email(user)
+			use_vanity_mailer user
+			mail :to => user.email, :subject => ab_test(:invite_subject)
+		end
+	end
+
+See the documentation for more details.
+
+
+With 1.7.0 and moving forward, if you need to setup a database schema
+(relational databases only), please use the generator:
+
+  $ rails generate vanity
+  $ rake db:migrate
+
+
+Rails generator for AR migrations (Zaid Zawaideh)
+
+A/B testing in ActionMailer (Joseph Sofaer)
+
+
 == 1.6.1 (2011-07-20)
 
 Fixed cookie domain setting.
