@@ -1,0 +1,129 @@
+---
+layout: page
+title: Testing Emails
+---
+
+<div id="toc">
+# "Configuring ActionMailer":#config
+# "Testing email subject lines":#subject
+# "Testing email content":#content
+</div>
+
+h3(#config).  Configuring ActionMailer
+
+First setup Rails to send email. For example, if you are using GMail you can setup your SMTP settings like this:
+
+<pre>
+ActionMailer::Base.smtp_settings = {
+  :address => "smtp.gmail.com",
+  :port => "587",
+  :domain => "gmail.com",
+  :authentication => :plain,
+  :user_name => "your-email@gmail.com",
+  :password => "your-pass"
+}
+</pre>
+
+
+h3(#subject).  Testing email subject lines
+
+In your @RAILS_ROOT/experiments/@ folder create an experiment file. For example:
+
+<pre>
+ab_test "Invite subject" do
+  description "Optimize invite subject line"
+  alternatives "Join now!", "You're invited to an exclusive event."
+  metrics :open
+end
+</pre>
+
+In your @RAILS_ROOT/experiments/metrics/@ folder create a metric file for the metric you are testing. For example:
+
+<pre>
+metric "Open (Activation)" do
+  description "Measures how many recipients opened an email."
+end
+</pre>
+
+Create an ActionMailer class, for example:
+
+<pre>
+class UserMailer < ActionMailer::Base 
+  def invite_email(user)
+    use_vanity_mailer user
+    mail :to => user.email, :subject =>ab_test(:invite_subject)
+  end
+end
+</pre>
+
+We set the identity of the "user" in the @use_vanity_mailer@ method. This can take a string or an object that responds to id. If it's nil then it will set it as a random number. Setting the appropriate context is important to have each user consistently get the same alternative in our experiment.
+
+Now we need to include a tracking image in the email content.  We pass in the vanity identity which we set when we called @use_vanity_mailer(user)@ and the metric we are tracking.
+
+<pre>
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    </head>
+    <body>
+      <h1>Hey Joseph</h1>
+      <p>
+        <%= vanity_tracking_image(Vanity.context.vanity_identity, :open, :host => "127.0.0.1:3000") %>
+      </p>
+    </body>
+  </html>
+</pre>
+
+Last, we have to include the @TrackingImage@ module into our @VanityController@.  This is the same place that you can include the @Dashboard@.
+
+@Vanity::Rails::TrackingImage@ will add a image method that will render a blank image.
+
+<pre>
+class VanityController < ApplicationController
+  include Vanity::Rails::Dashboard
+  include Vanity::Rails::TrackingImage
+end
+</pre>
+
+
+h3(#subject).  Testing email content
+
+In your @RAILS_ROOT/experiments/@ folder create a new experiment file:
+
+<pre>
+ab_test "Invite text" do
+  description "Optimize invite text"
+  alternatives "A friend of yours invited you to use Vanity", "Vanity is the latest and greatest in a/b testing technology"
+  metrics :click
+end
+</pre>
+
+In your @RAILS_ROOT/experiments/metrics/@ folder create a metric file for the metric you are testing:
+
+<pre>
+metric "Click (Acquisition)" do
+  description "Measures clickthough on email."
+end
+</pre>
+
+A/B test your email content:
+
+<pre>
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    </head>
+    <body>
+      <h1>Hi!</h1>
+      <p>
+        <%= link_to ab_test(:invite_text), vanity_track_url_for(Vanity.context.vanity_identity, :click, :controller => "home", :action => "index", :host => "127.0.0.1:3000") %>
+      </p>
+    </body>
+  </html>
+</pre>
+
+Here we use the text from the "invite_text" experiment and then use the @vanity_track_url_for@ helper to add the identity and the metric to track into the url so that Vanity can track the click-throughs.
+
+Remember: By default, Vanity only collects data in production mode.

@@ -115,7 +115,7 @@ end
 desc "Jekyll generates the main documentation (sans API)"
 task(:jekyll) { sh "jekyll", "doc", "html" }
 file "html/vanity.pdf"=>:jekyll do |t|
-  pages = %w{index metrics ab_testing rails identity configuring contributing}.map{ |p| "html/#{p}.html" }
+  pages = %w{index metrics ab_testing rails email identity configuring contributing}.map{ |p| "html/#{p}.html" }
   args = %w{--disable-javascript --outline --title Vanity --header-html doc/_layouts/_header.html --print-media-type}
   args.concat %w{--margin-left 20 --margin-right 20 --margin-top 20 --margin-bottom 20 --header-spacing 5}
   args.concat pages << t.name
