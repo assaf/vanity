@@ -47,7 +47,7 @@ class Test::Unit::TestCase
     spec = {
       "redis"=>"redis://localhost/15",
       "mongodb"=>"mongodb://localhost/vanity",
-      "mysql"=> { "active_record"=> { "adapter"=>"mysql2", "database"=>"vanity" } },
+      "mysql"=> { "adapter"=>"active_record", "active_record_adapter"=>"mysql", "database"=>"vanity_test" },
       "mock"=>"mock:/"
     }[adapter]
     raise "No support yet for #{adapter}" unless spec

@@ -3,7 +3,7 @@ module Vanity
     class << self
       # Creates new ActiveRecord connection and returns ActiveRecordAdapter.
       def active_record_connection(spec)
-        require 'active_record'
+        require "active_record"
         ActiveRecordAdapter.new(spec)
       end
     end
