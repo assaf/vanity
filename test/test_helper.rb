@@ -39,13 +39,13 @@ class Test::Unit::TestCase
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
-    adapter = ENV["ADAPTER"] || "redis"
+    adapter = ENV["DB"] || "redis"
     # We go destructive on the database at the end of each run, so make sure we
     # don't use databases you care about. For Redis, we pick database 15
     # (default is 0).
     spec = {
       "redis"=>"redis://localhost/15",
-      "mongodb"=>"mongodb://localhost/vanity-test",
+      "mongodb"=>"mongodb://localhost/vanity",
       "mock"=>"mock:/"
     }[adapter]
     raise "No support yet for #{adapter}" unless spec

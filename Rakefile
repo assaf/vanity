@@ -70,14 +70,14 @@ task "test:setup" do
 end
 
 # These are all the adapters we're going to test with.
-ADAPTERS = %w{redis mongodb}
+ADAPTERS = %w{redis mongodb mysql}
 
 desc "Test using different back-ends"
 task "test:adapters", :adapter do |t, args|
   adapters = args.adapter ? [args.adapter] : ADAPTERS
   adapters.each do |adapter|
     puts "** Testing #{adapter} adapter"
-    sh "rake test ADAPTER=#{adapter} #{'--trace' if Rake.application.options.trace}"
+    sh "rake test DB=#{adapter} #{'--trace' if Rake.application.options.trace}"
   end
 end
 
