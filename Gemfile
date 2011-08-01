@@ -14,7 +14,7 @@ group :test do
   gem "mocha"
   gem "mongo"
   gem "bson_ext"
-  gem "mysql"
+  gem "mysql2"
   gem "passenger", "~>2.0"
   gem "rails", "~>2.3.8"
   gem "rack"

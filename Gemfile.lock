@@ -47,7 +47,7 @@ GEM
     mocha (0.9.12)
     mongo (1.3.1)
       bson (>= 1.3.1)
-    mysql (2.8.1)
+    mysql2 (0.3.6)
     passenger (2.2.15)
       fastthread (>= 1.0.1)
       rack
@@ -83,7 +83,7 @@ DEPENDENCIES
   jekyll
   mocha
   mongo
-  mysql
+  mysql2
   passenger (~> 2.0)
   rack
   rails (~> 2.3.8)

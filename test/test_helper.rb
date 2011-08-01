@@ -21,6 +21,7 @@ if $VERBOSE
   $logger.level = Logger::DEBUG
 end
 
+
 class Test::Unit::TestCase
   include WebMock::API
 
@@ -46,6 +47,7 @@ class Test::Unit::TestCase
     spec = {
       "redis"=>"redis://localhost/15",
       "mongodb"=>"mongodb://localhost/vanity",
+      "mysql"=> { "active_record"=> { "adapter"=>"mysql2", "database"=>"vanity" } },
       "mock"=>"mock:/"
     }[adapter]
     raise "No support yet for #{adapter}" unless spec
