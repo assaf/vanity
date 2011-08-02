@@ -207,8 +207,7 @@ mongodb:
       YML
     end
 
-    ENV["RAILS_ENV"] = "mongodb"
-    assert_equal "mongodb://localhost:27017/vanity_test", load_rails(<<-RB)
+    assert_equal "mongodb://localhost:27017/vanity_test", load_rails(<<-RB, "mongodb")
 initializer.after_initialize
 $stdout << Vanity.playground.connection
     RB
@@ -229,14 +228,12 @@ mongodb:
       YML
     end
 
-    ENV["RAILS_ENV"] = "mongodb"
-    assert_equal "mongodb://localhost:27017/vanity_test", load_rails(<<-RB)
+    assert_equal "mongodb://localhost:27017/vanity_test", load_rails(<<-RB, "mongodb")
 initializer.after_initialize
 $stdout << Vanity.playground.connection
     RB
 
-    ENV["RAILS_ENV"] = "mongodb"
-    assert_equal "Mongo::ReplSetConnection", load_rails(<<-RB)
+    assert_equal "Mongo::ReplSetConnection", load_rails(<<-RB, "mongodb")
 initializer.after_initialize
 $stdout << Vanity.playground.connection.mongo.class
     RB
@@ -262,14 +259,13 @@ $stdout << Vanity.playground.connection
 
   def test_connection_from_yaml_missing
     FileUtils.mkpath "tmp/config"
-    ENV["RAILS_ENV"] = "development"
     File.open("tmp/config/vanity.yml", "w") do |io|
       io.write <<-YML
 production:
   adapter: redis
       YML
     end
-    assert_equal "No configuration for development", load_rails(<<-RB)
+    assert_equal "No configuration for development", load_rails(<<-RB, "development")
 initializer.after_initialize
 $stdout << (Vanity.playground.connection rescue $!.message)
     RB
@@ -298,7 +294,7 @@ $stdout << Vanity.playground.connection
   def test_connection_from_redis_yml
     FileUtils.mkpath "tmp/config"
     yml = File.open("tmp/config/redis.yml", "w")
-    yml << "development: internal.local:6379\n"
+    yml << "production: internal.local:6379\n"
     yml.flush
     assert_equal "redis://internal.local:6379/0", load_rails(<<-RB)
 initializer.after_initialize
@@ -310,10 +306,9 @@ $stdout << Vanity.playground.connection
   
   def test_collection_from_vanity_yaml
     FileUtils.mkpath "tmp/config"
-    ENV["RAILS_ENV"] = "development"
     File.open("tmp/config/vanity.yml", "w") do |io|
       io.write <<-YML
-development:
+production:
   collecting: false
       YML
     end
@@ -369,7 +364,7 @@ $stdout << Vanity.playground.collecting?
 $:.delete_if { |path| path[/gems\\/vanity-\\d/] }
 $:.unshift File.expand_path("../lib")
 RAILS_ROOT = File.expand_path(".")
-RAILS_ENV = "#{env}"
+RAILS_ENV = ENV['RACK_ENV'] = "#{env}"
 require "initializer"
 require "active_support"
 Rails.configuration = Rails::Configuration.new

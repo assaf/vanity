@@ -1,5 +1,6 @@
 $LOAD_PATH.delete_if { |path| path[/gems\/vanity-\d/] }
 $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
+ENV["RACK_ENV"] = "test"
 
 RAILS_ROOT = File.expand_path("..")
 require "test/unit"
@@ -48,9 +49,11 @@ class Test::Unit::TestCase
       "redis"=>"redis://localhost/15",
       "mongodb"=>"mongodb://localhost/vanity",
       "mysql"=> { "adapter"=>"active_record", "active_record_adapter"=>"mysql", "database"=>"vanity_test" },
+      "postgres"=> { "adapter"=>"active_record", "active_record_adapter"=>"postgresql", "database"=>"vanity_test", "username"=>"postgres" },
       "mock"=>"mock:/"
     }[adapter]
     raise "No support yet for #{adapter}" unless spec
+
     Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments")
     Vanity.playground.establish_connection spec
   end
@@ -104,6 +107,12 @@ end
 
 ActiveRecord::Base.logger = $logger
 ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test"
+
+if ENV["DB"] == "mysql" || ENV["DB"] == "postgres"
+  require "generators/templates/vanity_migration"
+  VanityMigration.down rescue nil
+  VanityMigration.up
+end
 
 
 class Array

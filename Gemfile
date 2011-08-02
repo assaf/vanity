@@ -16,6 +16,7 @@ group :test do
   gem "bson_ext"
   gem "mysql"
   gem "passenger", "~>2.0"
+  gem "postgres"
   gem "rails", "~>2.3.8"
   gem "rack"
   gem "shoulda"
