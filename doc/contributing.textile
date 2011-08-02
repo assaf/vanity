@@ -21,7 +21,7 @@ To contribute new code/changes:
 # "Fork the project":http://github.com/assaf/vanity
 # Please use a topic branch to make your changes, it's easier to test them that way
 # Fix, patch, enhance, document, improve, sprinkle pixie dust
-# Tests. Please. Run rake test, of if you can, rake test:all (see below)
+# Tests. Please. Run @rake@ and if possible CI (see below)
 # Send a pull request on GitHub
 
 Bonus points for helping improve the documentation, writing some examples, and adding more test coverage.
@@ -35,32 +35,27 @@ To test Vanity for the first time under whichever Ruby implementation you're cur
 
 <pre>
 $ rake test:setup
-$ rake test
+$ rake
 </pre>
 
-To test Vanity with all supported adapters, or a specific adapter:
+To test Vanity with specific database adapter:
 
 <pre>
-$ rake test:adapters
-$ rake test:adapters[redis]
+$ rake DB=redis
+$ rake DB=mongodb
+$ rake DB=mysql
 </pre>
 
-To test Vanity with all supported Ruby implementations, or a specific implementation:
 
-<pre>
-$ rake test:rubies
-$ rake test:rubies[1.9.2]
-$ # or
-$ rvm 1.9.2@vanity rake test
-</pre>
+Before making a release, we run the full test suite against multiple Ruby VMs
+and using multiple database adapters.  Doing this on your own is easier than it
+sounds:
 
-Before making a release, we run the full suite of tests with all supported Rubies/adapters. Help make Vanity better by running these tests with your changes:
+# "Fork the project":http://github.com/assaf/vanity
+# Go to "Travis CI":http://travis-ci.org/, setup a new account if you don't already have one
+# "In your profile page":http://travis-ci.org/profile, tell Travis to build your fork
+# @git push@ your changes into your fork and "watch Travis":http://travis-ci.org/ run the tests
 
-<pre>
-$ rake test:all
-</pre>
-
-If you have RVM installed, @rake test:rubies@ will install all the supported Ruby implementations and populate the @vanity@ gemset for you. To test all supported adapters, you will also need to install Redis, MongoDB and Sqlite3. If working on the Mac, you can easily install them using "Homebrew":http://github.com/mxcl/homebrew.
 
 To package Vanity as a gem and install on your machine:
 
