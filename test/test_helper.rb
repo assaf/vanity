@@ -26,6 +26,20 @@ end
 class Test::Unit::TestCase
   include WebMock::API
 
+  adapter = ENV["DB"] || "redis"
+  # We go destructive on the database at the end of each run, so make sure we
+  # don't use databases you care about. For Redis, we pick database 15
+  # (default is 0).
+  DATABASE = {
+    "redis"=>"redis://localhost/15",
+    "mongodb"=>"mongodb://localhost/vanity",
+    "mysql"=> { "adapter"=>"active_record", "active_record_adapter"=>"mysql", "database"=>"vanity_test" },
+    "postgres"=> { "adapter"=>"active_record", "active_record_adapter"=>"postgresql", "database"=>"vanity_test", "username"=>"postgres" },
+    "mock"=>"mock:/"
+  }[adapter]
+  raise "No support yet for #{adapter}" unless DATABASE
+
+
   def setup
     FileUtils.mkpath "tmp/experiments/metrics"
     new_playground
@@ -41,21 +55,8 @@ class Test::Unit::TestCase
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
-    adapter = ENV["DB"] || "redis"
-    # We go destructive on the database at the end of each run, so make sure we
-    # don't use databases you care about. For Redis, we pick database 15
-    # (default is 0).
-    spec = {
-      "redis"=>"redis://localhost/15",
-      "mongodb"=>"mongodb://localhost/vanity",
-      "mysql"=> { "adapter"=>"active_record", "active_record_adapter"=>"mysql", "database"=>"vanity_test" },
-      "postgres"=> { "adapter"=>"active_record", "active_record_adapter"=>"postgresql", "database"=>"vanity_test", "username"=>"postgres" },
-      "mock"=>"mock:/"
-    }[adapter]
-    raise "No support yet for #{adapter}" unless spec
-
     Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments")
-    Vanity.playground.establish_connection spec
+    Vanity.playground.establish_connection DATABASE
   end
 
   # Defines the specified metrics (one or more names).  Returns metric, or array

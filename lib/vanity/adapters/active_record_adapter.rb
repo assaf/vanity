@@ -77,8 +77,9 @@ module Vanity
       end
 
       def initialize(options)
-        options[:adapter] = options[:active_record_adapter] if options[:active_record_adapter]
-        VanityRecord.establish_connection(options)
+        @options = options.inject({}) { |h,kv| h[kv.first.to_s] = kv.last ; h }
+        @options["adapter"] = @options["active_record_adapter"] if @options["active_record_adapter"]
+        VanityRecord.establish_connection(@options)
       end
 
       def active?
@@ -234,6 +235,10 @@ module Vanity
         VanityParticipant.delete_all(:experiment_id => experiment.to_s)
         record = VanityExperiment.find_by_experiment_id(experiment.to_s)
         record && record.destroy
+      end
+
+      def to_s
+        @options.to_s
       end
     end
   end

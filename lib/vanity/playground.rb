@@ -268,11 +268,6 @@ module Vanity
           :host=>uri.host, :port=>uri.port, :path=>uri.path, :params=>params
       else
         spec = spec.inject({}) { |hash,(k,v)| hash[k.to_sym] = v ; hash }
-        begin
-          require "vanity/adapters/#{spec[:adapter]}_adapter"
-        rescue LoadError
-          raise "Could not find #{spec[:adapter]} in your load path"
-        end
         @adapter = Adapters.establish_connection(spec)
       end
     end
