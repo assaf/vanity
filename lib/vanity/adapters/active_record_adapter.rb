@@ -67,25 +67,17 @@ module Vanity
         # passed to create if creating, or will be used to
         # update the found participant.
         def self.retrieve(experiment, identity, create = true, update_with = nil)
-          record = VanityParticipant.first(
-                  :conditions =>
-                          {:experiment_id => experiment.to_s, :identity => identity.to_s})
-
-          if record
+          if record = VanityParticipant.first(:conditions=>{ :experiment_id=>experiment.to_s, :identity=>identity.to_s })
             record.update_attributes(update_with) if update_with
           elsif create
-            record = VanityParticipant.create(
-                    {:experiment_id => experiment.to_s,
-                     :identity => identity}.merge(update_with || {}))
+            record = VanityParticipant.create({ :experiment_id=>experiment.to_s, :identity=>identity }.merge(update_with || {}))
           end
-
           record
         end
       end
 
       def initialize(options)
         options[:adapter] = options[:active_record_adapter] if options[:active_record_adapter]
-
         VanityRecord.establish_connection(options)
       end
 

@@ -20,7 +20,7 @@ class PassengerTest < Test::Unit::TestCase
   def test_reconnect
     # When using AR adapter, we're not responsible to reconnect, and we're going
     # to get the same "connect" (AR connection handler) either way.
-    return if Vanity::Adapters::ActiveRecordAdapter === Vanity.playground.connection
+    return if defined?(Vanity::Adapters::ActiveRecordAdapter) && Vanity::Adapters::ActiveRecordAdapter === Vanity.playground.connection
 
     sleep 0.1
     case @app.listen_socket_type

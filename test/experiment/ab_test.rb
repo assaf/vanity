@@ -735,7 +735,6 @@ This experiment did not run long enough to find a clear winner.
     end
     experiment(:simple).chooses(:b)
     experiment(:simple).chooses(:c)
-    assert_equal experiment(:simple).alternatives[1].participants, 1
     assert_equal experiment(:simple).alternatives[2].participants, 1
   end
 
