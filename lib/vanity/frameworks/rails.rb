@@ -324,7 +324,7 @@ if defined?(PhusionPassenger)
   PhusionPassenger.on_event(:starting_worker_process) do |forked|
     if forked
       begin
-        Vanity.playground.establish_connection if Vanity.playground.collecting?
+        Vanity.playground.reconnect! if Vanity.playground.collecting?
       rescue Exception=>ex
         Rails.logger.error "Error reconnecting: #{ex.to_s}"
       end

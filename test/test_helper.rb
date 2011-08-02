@@ -107,7 +107,6 @@ end
 
 
 ActiveRecord::Base.logger = $logger
-ActiveRecord::Base.verification_timeout = 10
 ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test"
 
 if ENV["DB"] == "mysql" || ENV["DB"] == "postgres"
