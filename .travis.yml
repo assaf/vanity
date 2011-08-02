@@ -6,6 +6,7 @@ gemfile:
 env:
 - DB=mongodb
 - DB=redis
+- DB=mysql
 before_script:
 - "mysql -e 'create database vanity_test;' >/dev/null"
 - "psql -c 'create database vanity_test;' -U postgres >/dev/null"
