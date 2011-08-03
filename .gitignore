@@ -8,3 +8,4 @@ html
 bin
 .yardoc
 .DS_Store
+.idea
