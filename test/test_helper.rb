@@ -1,6 +1,8 @@
+GC.disable
 $LOAD_PATH.delete_if { |path| path[/gems\/vanity-\d/] }
 $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
 ENV["RACK_ENV"] = "test"
+ENV["DB"] ||= "redis"
 
 RAILS_ROOT = File.expand_path("..")
 require "test/unit"
@@ -26,7 +28,6 @@ end
 class Test::Unit::TestCase
   include WebMock::API
 
-  adapter = ENV["DB"] || "redis"
   # We go destructive on the database at the end of each run, so make sure we
   # don't use databases you care about. For Redis, we pick database 15
   # (default is 0).
@@ -36,8 +37,7 @@ class Test::Unit::TestCase
     "mysql"=> { "adapter"=>"active_record", "active_record_adapter"=>"mysql", "database"=>"vanity_test" },
     "postgres"=> { "adapter"=>"active_record", "active_record_adapter"=>"postgresql", "database"=>"vanity_test", "username"=>"postgres" },
     "mock"=>"mock:/"
-  }[adapter]
-  raise "No support yet for #{adapter}" unless DATABASE
+  }[ENV["DB"]] or raise "No support yet for #{ENV["DB"]}"
 
 
   def setup
