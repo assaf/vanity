@@ -23,6 +23,8 @@ Rails generator for AR migrations (Zaid Zawaideh)
 
 A/B testing in ActionMailer (Joseph Sofaer)
 
+Fix hung passenger processes when using Redis client (Chris Griego)
+
 
 == 1.6.1 (2011-07-20)
 
