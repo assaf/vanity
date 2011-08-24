@@ -28,7 +28,7 @@ module Vanity
       def disconnect!
         if redis
           begin
-            redis.quit
+            redis.client.disconnect
           rescue Exception => e
             warn("Error while disconnecting from redis: #{e.message}")
           end
