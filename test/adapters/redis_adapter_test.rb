@@ -6,7 +6,7 @@ class RedisAdapterTest < Test::Unit::TestCase
       assert_nothing_raised do
         Redis.any_instance.stubs(:connect!)
         mocked_redis = stub("Redis")
-        mocked_redis.expects(:quit).raises(RuntimeError)
+        mocked_redis.expects(:client).raises(RuntimeError)
         redis_adapter = Vanity::Adapters::RedisAdapter.new({})
         redis_adapter.expects(:warn).with("Error while disconnecting from redis: RuntimeError")
         redis_adapter.stubs(:redis).returns(mocked_redis)
