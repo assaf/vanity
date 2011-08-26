@@ -1,0 +1,3 @@
+test:
+  adapter: "mysql"    
+  database: "vanity_test"

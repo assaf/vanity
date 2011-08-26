@@ -1,4 +1,4 @@
-require 'test/test_helper'
+require File.expand_path("test/test_helper")
 
 class RedisAdapterTest < Test::Unit::TestCase
   def test_warn_on_disconnect_error

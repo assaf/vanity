@@ -1,20 +1,16 @@
-GC.disable
-$LOAD_PATH.delete_if { |path| path[/gems\/vanity-\d/] }
-$LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
+Dir.chdir File.expand_path(File.dirname(__FILE__) + "/..")
+require "bundler"
+Bundler.setup :default, :test
+
+$:.unshift File.dirname(__FILE__) + "/../lib/"
 ENV["RACK_ENV"] = "test"
 ENV["DB"] ||= "redis"
 
-RAILS_ROOT = File.expand_path("..")
-require "test/unit"
+require "minitest/autorun"
+require "minitest/unit"
 require "mocha"
-require "action_controller"
-require "action_controller/test_case"
-require "action_view/test_case"
-require "active_record"
-require "initializer"
-Rails.configuration = Rails::Configuration.new
 require "phusion_passenger/events"
-require "lib/vanity"
+require "vanity"
 require "timecop"
 require "webmock/test_unit"
 
@@ -23,6 +19,11 @@ if $VERBOSE
   $logger = Logger.new(STDOUT)
   $logger.level = Logger::DEBUG
 end
+
+
+# Setup and initialize rails application (MyApp::Application).
+require File.dirname(__FILE__) + "/myapp/config/application"
+require "rails/test_help"
 
 
 class Test::Unit::TestCase
@@ -99,15 +100,12 @@ class Test::Unit::TestCase
     WebMock.reset!
   end
 
+  def app
+    ::Rails.application
+  end
+
 end
 
-ActionController::Routing::Routes.draw do |map|
-  map.connect ':controller/:action/:id'
-end
-
-
-ActiveRecord::Base.logger = $logger
-ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test"
 
 if ENV["DB"] == "mysql" || ENV["DB"] == "postgres"
   require "generators/templates/vanity_migration"
@@ -142,3 +140,17 @@ def context(*args, &block)
   parent.const_set name.split(/\W+/).map(&:capitalize).join, klass
   klass.class_eval &block
 end
+
+
+# Growl notification when done running tests.
+MiniTest::Unit.after_tests do
+  runner = MiniTest::Unit.runner
+  if runner.failures + runner.errors > 0
+    message = "FAILED! #{runner.test_count} tests, #{runner.assertion_count} assertions, #{runner.failures} failures, #{runner.errors} errors, #{runner.skips} skips"
+  else
+    message = "Success! #{runner.test_count} tests, #{runner.assertion_count} assertions, #{runner.skips} skips"
+  end
+  system "growlnotify", "-m", message
+end
+
+

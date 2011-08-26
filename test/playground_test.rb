@@ -1,4 +1,4 @@
-require "test/test_helper"
+require File.expand_path("test/test_helper")
 
 class PlaygroundTest < Test::Unit::TestCase
 

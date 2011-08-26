@@ -34,3 +34,4 @@ require "vanity/playground"
 require "vanity/helpers"
 # Integration with various frameworks.
 require "vanity/frameworks/rails" if defined?(Rails)
+require "vanity/railtie" if defined?(Rails::Railtie)

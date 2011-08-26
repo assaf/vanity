@@ -1,4 +1,4 @@
-require "test/test_helper"
+require File.expand_path("test/test_helper")
 
 class UseVanityController < ActionController::Base
   attr_accessor :current_user
@@ -21,9 +21,7 @@ class UseVanityTest < ActionController::TestCase
     UseVanityController.class_eval do
       use_vanity :current_user
     end
-    if ::Rails.respond_to?(:application) # Rails 3 configuration
-      ::Rails.application.config.session_options[:domain] = '.foo.bar'
-    end
+    ::Rails.application.config.session_options[:domain] = '.foo.bar'
   end
 
   def test_chooses_sets_alternatives_for_rails_tests
@@ -137,7 +135,7 @@ class UseVanityTest < ActionController::TestCase
 
   def test_load_path
     assert_equal File.expand_path("tmp/experiments"), load_rails(<<-RB)
-initializer.after_initialize
+Rails.application.after_initialize
 $stdout << Vanity.playground.load_path
     RB
   end
@@ -363,14 +361,8 @@ $stdout << Vanity.playground.collecting?
     tmp.write <<-RB
 $:.delete_if { |path| path[/gems\\/vanity-\\d/] }
 $:.unshift File.expand_path("../lib")
-RAILS_ROOT = File.expand_path(".")
 RAILS_ENV = ENV['RACK_ENV'] = "#{env}"
-require "initializer"
-require "active_support"
-Rails.configuration = Rails::Configuration.new
-initializer = Rails::Initializer.new(Rails.configuration)
-initializer.check_gem_dependencies
-require "vanity"
+require "test/myapp/config/application"
     RB
     tmp.write code
     tmp.flush
@@ -384,6 +376,6 @@ require "vanity"
 
   def teardown
     super
-    UseVanityController.send(:filter_chain).clear
+    UseVanityController.before_filters.clear
   end
 end
