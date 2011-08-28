@@ -5,5 +5,6 @@ test/myapp/log/
 *.rbc
 html
 *.gem
+bin
 .yardoc
 .DS_Store

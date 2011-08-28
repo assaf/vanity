@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vanity (1.6.1)
+    vanity (1.7.0)
       redis (~> 2.0)
       redis-namespace (~> 1.0.0)
 
@@ -63,7 +63,7 @@ GEM
       activesupport (= 2.3.12)
       rake (>= 0.8.3)
     rake (0.9.2)
-    redis (2.2.1)
+    redis (2.2.2)
     redis-namespace (1.0.3)
       redis (< 3.0.0)
     shoulda (2.11.3)
