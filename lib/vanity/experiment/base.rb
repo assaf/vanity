@@ -181,7 +181,7 @@ module Vanity
       def default_identify(context)
         raise "No Vanity.context" unless context
         raise "Vanity.context does not respond to vanity_identity" unless context.respond_to?(:vanity_identity)
-        context.vanity_identity or raise "Vanity.context.vanity_identity - no identity"
+        context.send(:vanity_identity) or raise "Vanity.context.vanity_identity - no identity"
       end
 
       # Derived classes call this after state changes that may lead to
