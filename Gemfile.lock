@@ -9,6 +9,7 @@ GEM
   remote: http://rubygems.org/
   specs:
     RedCloth (4.2.7)
+    SystemTimer (1.2.3)
     actionmailer (2.3.12)
       actionpack (= 2.3.12)
     actionpack (2.3.12)
@@ -101,6 +102,7 @@ PLATFORMS
 
 DEPENDENCIES
   RedCloth
+  SystemTimer (= 1.2.3)
   bson_ext
   garb
   jekyll
