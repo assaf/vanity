@@ -26,9 +26,9 @@ module Vanity
       # In the case of Rails, use the Rails logger and collect only for
       # production environment by default.
       defaults = options[:rails] ? DEFAULTS.merge(:collecting => ::Rails.env.production?, :logger => ::Rails.logger) : DEFAULTS
-      if File.exists?("config/vanity.yml")
+      if config_file_exists?
         env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
-        config = YAML.load(ERB.new(File.read("config/vanity.yml")).result)[env]
+        config = load_config_file[env]
         if Hash === config
           config = config.inject({}) { |h,kv| h[kv.first.to_sym] = kv.last ; h }
         else
@@ -193,7 +193,7 @@ module Vanity
         Dir[File.join(load_path, "metrics/*.rb")].each do |file|
           Metric.load self, @loading, file
         end
-        if File.exist?("config/vanity.yml") && remote = YAML.load(ERB.new(File.read("config/vanity.yml")).result)["metrics"]
+        if config_file_exists? && remote = load_config_file["metrics"]
           remote.each do |id, url|
             fail "Metric #{id} already defined in playground" if metrics[id.to_sym]
             metric = Metric.new(self, id)
@@ -245,21 +245,21 @@ module Vanity
       disconnect! if @adapter
       case spec
       when nil
-        if File.exists?("config/vanity.yml")
+        if config_file_exists?
           env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
-          spec = YAML.load(ERB.new(File.read("config/vanity.yml")).result)[env]
+          spec = load_config_file[env]
           fail "No configuration for #{env}" unless spec
           establish_connection spec
-        elsif File.exists?("config/redis.yml")
+        elsif config_file_exists?("redis.yml")
           env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
-          redis = YAML.load(ERB.new(File.read("config/redis.yml")).result)[env]
+          redis = load_config_file("redis.yml")[env]
           fail "No configuration for #{env}" unless redis
           establish_connection "redis://" + redis
         else
           establish_connection :adapter=>"redis"
         end
       when Symbol
-        spec = YAML.load(ERB.new(File.read("config/vanity.yml")).result)[spec.to_s]
+        spec = load_config_file[spec.to_s]
         establish_connection spec
       when String
         uri = URI.parse(spec)
@@ -270,6 +270,18 @@ module Vanity
         spec = spec.inject({}) { |hash,(k,v)| hash[k.to_sym] = v ; hash }
         @adapter = Adapters.establish_connection(spec)
       end
+    end
+
+    def config_file_root
+      (defined?(::Rails) ? ::Rails.root : Pathname.new(".")) + "config"
+    end
+
+    def config_file_exists?(basename = "vanity.yml")
+      File.exists?(config_file_root + basename)
+    end
+
+    def load_config_file(basename = "vanity.yml")
+      YAML.load(ERB.new(File.read(config_file_root + basename)).result)
     end
 
     # Returns the current connection. Establishes new connection is necessary.
