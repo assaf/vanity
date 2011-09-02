@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.description    = "Mirror, mirror on the wall ..."
   spec.post_install_message = "To get started run vanity --help"
 
-  spec.files          = Dir["{bin,lib,vendor,test}/**/*", "CHANGELOG", "MIT-LICENSE", "README.rdoc", "Rakefile", "Gemfile", "*.gemspec"]
+  spec.files          = Dir["{bin,generators,lib,vendor,test}/**/*", "CHANGELOG", "MIT-LICENSE", "README.rdoc", "Rakefile", "Gemfile", "*.gemspec"]
   spec.executable     = "vanity"
 
   spec.extra_rdoc_files = "README.rdoc", "CHANGELOG"
