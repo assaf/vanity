@@ -78,8 +78,10 @@ module Vanity
 
       def initialize(options)
         @options = options.inject({}) { |h,kv| h[kv.first.to_s] = kv.last ; h }
-        @options["adapter"] = @options["active_record_adapter"] if @options["active_record_adapter"]
-        VanityRecord.establish_connection(@options)
+        if @options["active_record_adapter"] && (@options["active_record_adapter"] != "default")
+          @options["adapter"] = @options["active_record_adapter"]
+          VanityRecord.establish_connection(@options)
+        end
       end
 
       def active?
