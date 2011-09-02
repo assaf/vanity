@@ -61,6 +61,7 @@ module Vanity
             end
           end
         end
+        protected :vanity_identity
         around_filter :vanity_context_filter
         before_filter :vanity_reload_filter unless ::Rails.configuration.cache_classes
         before_filter :vanity_query_parameter_filter
