@@ -42,6 +42,8 @@ module Vanity
       @ar_column = options.delete(@ar_aggregate)
       fail "Cannot use multiple aggregates in a single metric" if AGGREGATES.find { |key| options.has_key?(key) }
       @ar_timestamp = options.delete(:timestamp) || :created_at
+      @ar_timestamp, @ar_timestamp_table = @ar_timestamp.to_s.split('.').reverse
+      @ar_timestamp_table ||= @ar_scoped.table_name
       fail "Unrecognized options: #{options.keys * ", "}" unless options.empty?
       @ar_scoped.after_create self
       extend ActiveRecord
@@ -55,8 +57,8 @@ module Vanity
 
       # This values method queries the database.
       def values(sdate, edate)
-        query = { :conditions=>{ @ar_timestamp=>(sdate.to_time...(edate + 1).to_time) },
-                  :group=>"date(#{@ar_scoped.connection.quote_column_name @ar_timestamp})" }
+        query = { :conditions=> { @ar_timestamp_table => { @ar_timestamp => (sdate.to_time...(edate + 1).to_time) } },
+                  :group=>"date(#{@ar_scoped.quoted_table_name}.#{@ar_scoped.connection.quote_column_name @ar_timestamp})" }
         grouped = @ar_column ? @ar_scoped.send(@ar_aggregate, @ar_column, query) : @ar_scoped.count(query)
         (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date.to_s] || 0) }
       end

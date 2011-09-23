@@ -123,6 +123,34 @@ context "ActiveRecord Metric" do
     assert_equal 1, total
   end
 
+  test "with timestamp" do
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky, :timestamp => :created_at
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    Sky.create!
+    assert_equal 1, Sky.count
+    assert_equal 1, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+  end
+
+  test "with timestamp and table" do
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky, :timestamp => 'skies.created_at'
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    Sky.create!
+    assert_equal 1, Sky.count
+    assert_equal 1, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+  end
+
   test "hooks" do
     File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
       f.write <<-RUBY
