@@ -10,6 +10,7 @@ Database connection information is loaded from @config/vanity.yml@, based on the
 <pre>
 development:
   adapter: redis
+  connection: redis://localhost:6379/0
 production:
   adapter: mongodb
   database: analytics
@@ -19,7 +20,7 @@ If there's no configuration file and the application does not create a connectio
 
 The available database adapters are:
 
-* +redis+ -- This adapter is used by default. Available options are host, port, database (defaults to 0) and password.
+* +redis+ -- This adapter is used by default. Available options are connection and password. host, port, database (defaults to 0) options are available, but deprecated.
 * +mongodb+ -- Available options are host, port, database (defaults to "vanity"), username and password.
 * +active_record+ -- Uses existing ActiveRecord configuration, by you can over-ride by supplying different options. To pick different underlying adapter, set +active_record_adapter+.
 
