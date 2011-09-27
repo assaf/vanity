@@ -344,13 +344,17 @@ module Vanity
 
   # In the case of Rails, use the Rails logger and collect only for
   # production environment by default.
-  @playground = Playground.new(:rails=>defined?(::Rails))
   class << self
 
     # The playground instance.
     #
     # @see Vanity::Playground
     attr_accessor :playground
+    def playground
+      # In the case of Rails, use the Rails logger and collect only for
+      # production environment by default.
+      @playground ||= Playground.new(:rails=>defined?(::Rails))
+    end
 
     # Returns the Vanity context.  For example, when using Rails this would be
     # the current controller, which can be used to get/set the vanity identity.
