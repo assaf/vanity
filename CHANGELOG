@@ -1,6 +1,27 @@
-== 1.7.1
+== 1.7.1 (2011-09-30)
 
 Minor change in locating config file (Ariel Salomon)
+
+Allow for table names in specified :timestamps (Peter Kovacs)
+    
+When a named scope includes a join, created_at can be ambiguous.  Use
+
+	metric "Sky is limit" do
+		model Sky, :timestamp => 'skies.created_at'
+	end
+
+to disambiguate.
+
+Make vanity_identity method private on controller; ensure no default route
+(Ariel Salomon)
+
+Add Rails 2.3-compatible generator (Ariel Salomon)
+
+Lazy Playground initialization for rails 3.1 (Jonathan del Strother)
+
+Update documentation to reflect that host, port, and database options for redis
+connections are deprecated in favor of using the connection option with a URI
+(Patrick Joyce)
 
 
 == 1.7.0 (2011-08-27)
