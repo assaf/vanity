@@ -209,7 +209,7 @@ module Vanity
       def vanity_js
         return if @_vanity_experiments.nil?
         javascript_tag do
-          render :file=>Vanity.template("vanity.js.erb")
+          render :file=>Vanity.template("_vanity.js.erb")
         end
       end
 
