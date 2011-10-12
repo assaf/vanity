@@ -10,7 +10,7 @@ http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
 <b>Step 1:</b> Start using Vanity in your Rails application:
 
-  == Rails 2.x configuration
+== Rails 2.x configuration
 
   Rails::Initializer.run do |config|
     gem.config "vanity"
@@ -20,7 +20,7 @@ http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
     end
   end
   
-  == Rails 3 configuration
+== Rails 3 configuration
 
 Add to your Gemfile:
     
