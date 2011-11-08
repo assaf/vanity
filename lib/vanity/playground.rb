@@ -242,6 +242,7 @@ module Vanity
     #
     # @since 1.4.0 
     def establish_connection(spec = nil)
+      @spec = spec
       disconnect! if @adapter
       case spec
       when nil
@@ -309,7 +310,7 @@ module Vanity
     #
     # @since 1.3.0
     def reconnect!
-      establish_connection
+      establish_connection(@spec)
     end
 
     # Deprecated. Use Vanity.playground.collecting = true/false instead.  Under
