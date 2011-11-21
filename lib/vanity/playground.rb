@@ -141,7 +141,7 @@ module Vanity
         end
 
         @experiments.each do |experiment|
-          experiment.save
+          experiment[1].save
         end
       end
       @experiments
