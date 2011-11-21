@@ -137,11 +137,8 @@ module Vanity
         @experiments = {}
         @logger.info "Vanity: loading experiments from #{load_path}"
         Dir[File.join(load_path, "*.rb")].each do |file|
-          Experiment::Base.load self, @loading, file
-        end
-
-        @experiments.each do |experiment|
-          experiment[1].save
+          experiment = Experiment::Base.load(self, @loading, file)
+          experiment.save
         end
       end
       @experiments

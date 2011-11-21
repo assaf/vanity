@@ -52,7 +52,7 @@ module Vanity
             extend Definition
             experiment = eval(source, context.new_binding(playground, id), file)
             fail NameError.new("Expected #{file} to define experiment #{id}", id) unless playground.experiments[id]
-            experiment
+            return experiment
           end
         rescue
           error = NameError.exception($!.message, id)
