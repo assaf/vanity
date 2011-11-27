@@ -137,7 +137,8 @@ module Vanity
         @experiments = {}
         @logger.info "Vanity: loading experiments from #{load_path}"
         Dir[File.join(load_path, "*.rb")].each do |file|
-          Experiment::Base.load self, @loading, file
+          experiment = Experiment::Base.load(self, @loading, file)
+          experiment.save
         end
       end
       @experiments
@@ -242,6 +243,7 @@ module Vanity
     #
     # @since 1.4.0 
     def establish_connection(spec = nil)
+      @spec = spec
       disconnect! if @adapter
       case spec
       when nil
@@ -309,7 +311,7 @@ module Vanity
     #
     # @since 1.3.0
     def reconnect!
-      establish_connection
+      establish_connection(@spec)
     end
 
     # Deprecated. Use Vanity.playground.collecting = true/false instead.  Under
