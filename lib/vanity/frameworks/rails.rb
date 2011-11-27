@@ -180,10 +180,10 @@ module Vanity
       def ab_test(name, &block)
         if Vanity.playground.using_js?
           @_vanity_experiments ||= {}
-          @_vanity_experiments[name] ||= Vanity.playground.experiment(name).choose
+          @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose
           value = @_vanity_experiments[name].value
         else
-          value = Vanity.playground.experiment(name).choose.value
+          value = Vanity.playground.experiment(name.to_sym).choose.value
         end
 
         if block
@@ -246,7 +246,7 @@ module Vanity
       end
 
       def chooses
-        exp = Vanity.playground.experiment(params[:e])
+        exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.chooses(exp.alternatives[params[:a].to_i].value)
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
@@ -256,7 +256,7 @@ module Vanity
           render :status => 404, :nothing => true
           return
         end
-        exp = Vanity.playground.experiment(params[:e])
+        exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.chooses(exp.alternatives[params[:a].to_i].value)
         render :status => 200, :nothing => true
       end
