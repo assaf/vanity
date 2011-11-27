@@ -257,7 +257,7 @@ module Vanity
       	  render :status => 404, :nothing => true
       	  return
       	end
-        exp = Vanity.playground.experiment(params[:e])
+        exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.chooses(exp.alternatives[params[:a].to_i].value)
         render :status => 200, :nothing => true
       end
