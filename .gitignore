@@ -1,11 +1,7 @@
 .bundle
-database.sqlite
-dump.rdb
-test/myapp/log/
-*.rbc
-html
-*.gem
-bin
 .yardoc
-.DS_Store
-.idea
+*.gem
+html
+test/myapp/log/
+vendor
+Gemfile.lock
