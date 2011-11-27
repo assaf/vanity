@@ -17,4 +17,10 @@ class PlaygroundTest < Test::Unit::TestCase
     assert_equal Vanity.playground.add_participant_path, Vanity::Playground::DEFAULT_ADD_PARTICIPANT_PATH
   end
 
+  def test_reconnects_with_existing_connection
+    Vanity.playground.establish_connection "mock:/"
+    Vanity.playground.reconnect!
+    assert_equal Vanity.playground.connection.to_s, "mock:/"
+  end
+
 end
