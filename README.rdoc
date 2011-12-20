@@ -72,13 +72,13 @@ Add to your application controller:
 
 == Rails 3
   
-  There is currently an issue with report generation. The vanity-talk Google Group has a couple posts that outline the issue for now. This is one of the posts: http://groups.google.com/group/vanity-talk/browse_thread/thread/343081a72a0cefb6
-  
-  If you are collecting data (in development you need to opt-in to this by setting Vanity.playground.collecting = true in environments/development.rb) you can view experiment results with the vanity dashboard instead of the report. 
-  
-  The vanity dashboard setup instructions with Vanity work for Rails 3.x except the route is different. A Rails 3.x-style route would look like this:
-  
-    `match '/vanity(/:action(/:id(.:format)))', :controller=>:vanity`
+There is currently an issue with report generation. The vanity-talk Google Group has a couple posts that outline the issue for now. This is one of the posts: http://groups.google.com/group/vanity-talk/browse_thread/thread/343081a72a0cefb6
+
+If you are collecting data (in development you need to opt-in to this by setting Vanity.playground.collecting = true in environments/development.rb) you can view experiment results with the vanity dashboard instead of the report. 
+
+The vanity dashboard setup instructions with Vanity work for Rails 3.x except the route is different. A Rails 3.x-style route would look like this:
+
+  `match '/vanity(/:action(/:id(.:format)))', :controller=>:vanity`
 
 
 == Registering participants with Javascript
