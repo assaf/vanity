@@ -210,7 +210,7 @@ module Vanity
       def vanity_js
         return if @_vanity_experiments.nil?
         javascript_tag do
-          render :file => Vanity.template("vanity.js.erb")
+          render :file => Vanity.template("_vanity.js.erb")
         end
       end
 
@@ -253,12 +253,15 @@ module Vanity
       end
 
       def add_participant
+        STDOUT.puts "add_participant called"
+
       	if params[:e].nil? || params[:e].empty?
       	  render :status => 404, :nothing => true
       	  return
       	end
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.chooses(exp.alternatives[params[:a].to_i].value)
+        STDOUT.puts "adding participant for #{params[:e]}: #{params[:a]}"
         render :status => 200, :nothing => true
       end
     end
