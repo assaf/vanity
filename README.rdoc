@@ -45,7 +45,7 @@ Add to your application controller:
     metrics :signups
   end
   
-  NOTE: If using a metric as above ("signups"), there needs to be a corresponding ruby file for that metric. Inside the "experiments" directory create a "metrics" directory with a file called "signup.rb". The contents of the file can describe the signup metric, refer to the "Metrics" Vanity documentation page for an example.
+  NOTE: If using a metric as above ("signups"), there needs to be a corresponding ruby file for that metric. Inside the "experiments" directory create a "metrics" directory with a file called "signups.rb". The contents of the file can describe the signup metric, refer to the "Metrics" Vanity documentation page for an example.
 
 <b>Step 3:</b> Present the different options to your users:
 
