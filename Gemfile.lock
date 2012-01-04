@@ -3,7 +3,7 @@ PATH
   specs:
     vanity (1.5.3)
       redis (~> 2.0)
-      redis-namespace (~> 0.7)
+      redis-namespace (~> 1.0.0)
 
 GEM
   remote: http://rubygems.org/
@@ -57,8 +57,8 @@ GEM
       activesupport (= 2.3.8)
       rake (>= 0.8.3)
     rake (0.8.7)
-    redis (2.2.0)
-    redis-namespace (0.10.0)
+    redis (2.2.2)
+    redis-namespace (1.0.3)
       redis (< 3.0.0)
     shoulda (2.11.3)
     syntax (1.0.0)
