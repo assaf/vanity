@@ -16,13 +16,13 @@ module Vanity
 
       # Schema model
       class VanitySchema < VanityRecord
-        set_table_name :vanity_schema
+        self.table_name = "vanity_schema"
       end
 
       # Metric model
       class VanityMetric < VanityRecord
-        set_table_name :vanity_metrics
-        has_many :vanity_metric_values
+        self.table_name = "vanity_metrics"
+        has_many :vanity_metric_values, :class_name => "Vanity::Adapters::ActiveRecordAdapter::VanityMetricValue"
 
         def self.retrieve(metric)
           find_or_create_by_metric_id(metric.to_s)
@@ -31,14 +31,14 @@ module Vanity
 
       # Metric value
       class VanityMetricValue < VanityRecord
-        set_table_name :vanity_metric_values
+        self.table_name = "vanity_metric_values"
         belongs_to :vanity_metric
       end
 
       # Experiment model
       class VanityExperiment < VanityRecord
-        set_table_name :vanity_experiments
-        has_many :vanity_conversions, :dependent => :destroy
+        self.table_name = "vanity_experiments"
+        has_many :vanity_conversions, :dependent => :destroy, :class_name => "Vanity::Adapters::ActiveRecordAdapter::VanityConversion"
 
         # Finds or creates the experiment
         def self.retrieve(experiment)
@@ -53,13 +53,13 @@ module Vanity
 
       # Conversion model
       class VanityConversion < VanityRecord
-        set_table_name :vanity_conversions
+        self.table_name = "vanity_conversions"
         belongs_to :vanity_experiment
       end
 
       # Participant model
       class VanityParticipant < VanityRecord
-        set_table_name :vanity_participants
+        self.table_name = "vanity_participants"
 
         # Finds the participant by experiment and identity. If
         # create is true then it will create the participant
