@@ -49,7 +49,7 @@ module Vanity
               cookies["vanity_id"] = { :value=>@vanity_identity, :expires=>1.month.from_now }
               @vanity_identity
             elsif response # everyday use
-              @vanity_identity = cookies["vanity_id"] || ActiveSupport::SecureRandom.hex(16)
+              @vanity_identity = cookies["vanity_id"] || ::SecureRandom.hex(16).tr('+/=', 'xyz')
               cookie = { :value=>@vanity_identity, :expires=>1.month.from_now }
               # Useful if application and admin console are on separate domains.
               # This only works in Rails 3.x.
