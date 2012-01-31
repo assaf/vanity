@@ -211,4 +211,8 @@ module Vanity
       
     end
   end
+
+  class NoExperimentError < NameError
+  end
+  
 end
