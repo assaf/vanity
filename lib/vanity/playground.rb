@@ -95,10 +95,11 @@ module Vanity
     # an exception if it cannot load the experiment's definition.
     #
     # @see Vanity::Experiment
+
     def experiment(name)
       id = name.to_s.downcase.gsub(/\W/, "_").to_sym
       warn "Deprecated: pleae call experiment method with experiment identifier (a Ruby symbol)" unless id == name
-      experiments[id.to_sym] or raise NameError, "No experiment #{id}"
+      experiments[id.to_sym] or raise NoExperimentError, "No experiment #{id}"
     end
 
 

@@ -34,7 +34,7 @@ class ExperimentTest < Test::Unit::TestCase
   # -- Loading experiments --
 
   def test_fails_if_cannot_load_named_experiment
-    assert_raises NameError do
+    assert_raises Vanity::NoExperimentError do
       experiment(:ice_cream_flavor)
     end
   end

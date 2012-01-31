@@ -230,7 +230,7 @@ class AbTestTest < ActionController::TestCase
   # -- A/B helper methods --
 
   def test_fail_if_no_experiment
-    assert_raise NameError do
+    assert_raise Vanity::NoExperimentError do
       get :test_render
     end
   end
