@@ -12,6 +12,7 @@ module Vanity
     class ActiveRecordAdapter < AbstractAdapter
       # Base model, stores connection and defines schema
       class VanityRecord < ActiveRecord::Base
+        self.abstract_class = true
       end
 
       # Schema model

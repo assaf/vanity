@@ -18,7 +18,7 @@ group :test do
   gem "mysql"
   gem "passenger", "~>2.0"
   gem "pg"
-  gem "rails", "~>3.0.10"
+  gem "rails", "~>3.2.1"
   gem "rack"
   gem "shoulda"
   gem "timecop"
