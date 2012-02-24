@@ -22,7 +22,5 @@ group :test do
   gem "shoulda"
   gem "timecop"
   gem "webmock"
-  gem "ruby-debug", :platforms => :mri_18
-  gem "ruby-debug19", :platforms => :mri_19
   gem "SystemTimer", "1.2.3", :platforms => :mri_18
 end
