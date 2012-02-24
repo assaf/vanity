@@ -93,7 +93,7 @@ class ExperimentTest < Test::Unit::TestCase
       f.write <<-RUBY
         ab_test "Ice Cream Flavor" do
           metrics :happiness
-          expects(:save)
+          expects(:save).at_least_once
         end
       RUBY
     end
