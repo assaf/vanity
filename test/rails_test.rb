@@ -161,69 +161,99 @@ $stdout << Vanity.playground.load_path
 
   # -- Connection configuration --
 
-  def test_default_connection
-    assert_equal "redis://127.0.0.1:6379/0", load_rails(<<-RB)
+  if ENV['DB'] == 'redis'
+    def test_default_connection
+      assert_equal "redis://127.0.0.1:6379/0", load_rails(<<-RB)
 initializer.after_initialize
 $stdout << Vanity.playground.connection
-    RB
-  end
+      RB
+    end
 
-  def test_connection_from_string
-    assert_equal "redis://192.168.1.1:6379/5", load_rails(<<-RB)
+    def test_connection_from_string
+      assert_equal "redis://192.168.1.1:6379/5", load_rails(<<-RB)
 Vanity.playground.establish_connection "redis://192.168.1.1:6379/5"
 initializer.after_initialize
 $stdout << Vanity.playground.connection
-    RB
-  end
+      RB
+    end
 
-  def test_connection_from_yaml
-    FileUtils.mkpath "tmp/config"
-    ENV["RAILS_ENV"] = "production"
-    File.open("tmp/config/vanity.yml", "w") do |io|
-      io.write <<-YML
+    def test_connection_from_yaml
+      FileUtils.mkpath "tmp/config"
+      ENV["RAILS_ENV"] = "production"
+      File.open("tmp/config/vanity.yml", "w") do |io|
+        io.write <<-YML
 production:
   adapter: redis
   host: somehost
   database: 15
-      YML
-    end
-    assert_equal "redis://somehost:6379/15", load_rails(<<-RB)
+        YML
+      end
+      assert_equal "redis://somehost:6379/15", load_rails(<<-RB)
 initializer.after_initialize
 $stdout << Vanity.playground.connection
-    RB
-  ensure
-    File.unlink "tmp/config/vanity.yml"
-  end
-
-  def test_mongo_connection_from_yaml
-    FileUtils.mkpath "tmp/config"
-    File.open("tmp/config/vanity.yml", "w") do |io|
-      io.write <<-YML
-mongodb:
-  adapter: mongodb
-  host: localhost
-  port: 27017
-  database: vanity_test
-      YML
+      RB
+    ensure
+      File.unlink "tmp/config/vanity.yml"
     end
 
-    assert_equal "mongodb://localhost:27017/vanity_test", load_rails(<<-RB, "mongodb")
+    def test_connection_from_yaml_url
+      FileUtils.mkpath "tmp/config"
+      ENV["RAILS_ENV"] = "production"
+      File.open("tmp/config/vanity.yml", "w") do |io|
+        io.write <<-YML
+production: redis://somehost/15
+        YML
+      end
+      assert_equal "redis://somehost:6379/15", load_rails(<<-RB)
 initializer.after_initialize
 $stdout << Vanity.playground.connection
-    RB
-  ensure
-    File.unlink "tmp/config/vanity.yml"
+      RB
+    ensure
+      File.unlink "tmp/config/vanity.yml"
+    end
+
+    def test_connection_from_yaml_with_erb
+      FileUtils.mkpath "tmp/config"
+      ENV["RAILS_ENV"] = "production"
+      # Pass storage URL through environment like heroku does
+      ENV["REDIS_URL"] = "redis://somehost:6379/15"
+      File.open("tmp/config/vanity.yml", "w") do |io|
+        io.write <<-YML
+production: <%= ENV['REDIS_URL'] %>
+        YML
+      end
+      assert_equal "redis://somehost:6379/15", load_rails(<<-RB)
+initializer.after_initialize
+$stdout << Vanity.playground.connection
+      RB
+    ensure
+      File.unlink "tmp/config/vanity.yml"
+    end
+
+    def test_connection_from_redis_yml
+      FileUtils.mkpath "tmp/config"
+      yml = File.open("tmp/config/redis.yml", "w")
+      yml << "production: internal.local:6379\n"
+      yml.flush
+      assert_equal "redis://internal.local:6379/0", load_rails(<<-RB)
+initializer.after_initialize
+$stdout << Vanity.playground.connection
+      RB
+    ensure
+      File.unlink yml.path
+    end
+  
+
   end
 
-  unless ENV['CI'] == 'true'
-    def test_mongodb_replica_set_connection
+  if ENV['DB'] == 'mongo'
+    def test_mongo_connection_from_yaml
       FileUtils.mkpath "tmp/config"
       File.open("tmp/config/vanity.yml", "w") do |io|
         io.write <<-YML
 mongodb:
   adapter: mongodb
-  hosts:
-    - localhost
+  host: localhost
   port: 27017
   database: vanity_test
         YML
@@ -233,30 +263,37 @@ mongodb:
 initializer.after_initialize
 $stdout << Vanity.playground.connection
       RB
-
-      assert_equal "Mongo::ReplSetConnection", load_rails(<<-RB, "mongodb")
-initializer.after_initialize
-$stdout << Vanity.playground.connection.mongo.class
-      RB
     ensure
       File.unlink "tmp/config/vanity.yml"
     end
-  end
 
-  def test_connection_from_yaml_url
-    FileUtils.mkpath "tmp/config"
-    ENV["RAILS_ENV"] = "production"
-    File.open("tmp/config/vanity.yml", "w") do |io|
-      io.write <<-YML
-production: redis://somehost/15
-      YML
-    end
-    assert_equal "redis://somehost:6379/15", load_rails(<<-RB)
+    unless ENV['CI'] == 'true'
+      def test_mongodb_replica_set_connection
+        FileUtils.mkpath "tmp/config"
+        File.open("tmp/config/vanity.yml", "w") do |io|
+          io.write <<-YML
+mongodb:
+  adapter: mongodb
+  hosts:
+    - localhost
+  port: 27017
+  database: vanity_test
+          YML
+        end
+
+        assert_equal "mongodb://localhost:27017/vanity_test", load_rails(<<-RB, "mongodb")
 initializer.after_initialize
 $stdout << Vanity.playground.connection
-    RB
-  ensure
-    File.unlink "tmp/config/vanity.yml"
+        RB
+
+        assert_equal "Mongo::ReplSetConnection", load_rails(<<-RB, "mongodb")
+initializer.after_initialize
+$stdout << Vanity.playground.connection.mongo.class
+        RB
+      ensure
+        File.unlink "tmp/config/vanity.yml"
+      end
+    end
   end
 
   def test_connection_from_yaml_missing
@@ -275,37 +312,6 @@ $stdout << (Vanity.playground.connection rescue $!.message)
     File.unlink "tmp/config/vanity.yml"
   end
 
-  def test_connection_from_yaml_with_erb
-    FileUtils.mkpath "tmp/config"
-    ENV["RAILS_ENV"] = "production"
-    # Pass storage URL through environment like heroku does
-    ENV["REDIS_URL"] = "redis://somehost:6379/15"
-    File.open("tmp/config/vanity.yml", "w") do |io|
-      io.write <<-YML
-production: <%= ENV['REDIS_URL'] %>
-      YML
-    end
-    assert_equal "redis://somehost:6379/15", load_rails(<<-RB)
-initializer.after_initialize
-$stdout << Vanity.playground.connection
-    RB
-  ensure
-    File.unlink "tmp/config/vanity.yml"
-  end
-
-  def test_connection_from_redis_yml
-    FileUtils.mkpath "tmp/config"
-    yml = File.open("tmp/config/redis.yml", "w")
-    yml << "production: internal.local:6379\n"
-    yml.flush
-    assert_equal "redis://internal.local:6379/0", load_rails(<<-RB)
-initializer.after_initialize
-$stdout << Vanity.playground.connection
-    RB
-  ensure
-    File.unlink yml.path
-  end
-  
   def test_collection_from_vanity_yaml
     FileUtils.mkpath "tmp/config"
     File.open("tmp/config/vanity.yml", "w") do |io|
