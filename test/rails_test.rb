@@ -9,7 +9,7 @@ class UseVanityController < ActionController::Base
 end
 
 # Pages accessible to everyone, e.g. sign in, community search.
-class UseVanityTest < ActionController::TestCase
+class UseVanityControllerTest < ActionController::TestCase
   tests UseVanityController
 
   def setup
@@ -24,6 +24,10 @@ class UseVanityTest < ActionController::TestCase
     if ::Rails.respond_to?(:application) # Rails 3 configuration
       ::Rails.application.config.session_options[:domain] = '.foo.bar'
     end
+  end
+
+  def rails3?
+    defined?(Rails::Railtie)
   end
 
   def test_chooses_sets_alternatives_for_rails_tests
@@ -392,6 +396,8 @@ require "vanity"
 
   def teardown
     super
-    UseVanityController.send(:filter_chain).clear
+    if !rails3?
+      UseVanityController.send(:filter_chain).clear
+    end
   end
 end

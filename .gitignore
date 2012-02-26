@@ -5,3 +5,7 @@ html
 test/myapp/log/
 vendor
 Gemfile.lock
+log/*
+test/dummy/db/*.sqlite3
+test/dummy/log/*.log
+test/dummy/tmp/

@@ -11,8 +11,24 @@ require "action_controller"
 require "action_controller/test_case"
 require "action_view/test_case"
 require "active_record"
-require "initializer"
-Rails.configuration = Rails::Configuration.new
+
+begin
+  require "rails"
+rescue LoadError
+end
+
+if defined?(Rails::Railtie)
+  require File.expand_path("../dummy/config/environment.rb",  __FILE__)
+  require "rails/test_help"
+else
+  require "initializer"
+  Rails.configuration = Rails::Configuration.new
+
+  ActionController::Routing::Routes.draw do |map|
+    map.connect ':controller/:action/:id'
+  end
+end
+
 require "phusion_passenger/events"
 require "lib/vanity"
 require "timecop"
@@ -99,10 +115,6 @@ class Test::Unit::TestCase
     WebMock.reset!
   end
 
-end
-
-ActionController::Routing::Routes.draw do |map|
-  map.connect ':controller/:action/:id'
 end
 
 
