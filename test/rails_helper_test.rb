@@ -27,10 +27,11 @@ class RailsHelperTest < ActionView::TestCase
   end
   
   def test_vanity_track_url_for_returns_url_with_identity_and_metrics
-    assert_equal vanity_track_url_for("123", :sugar_high, :controller => "controller", :action => "action"), "/controller/action?_identity=123&amp;_track=sugar_high"
+    expected = rails3? ? "/controller/action?_identity=123&_track=sugar_high" : "/controller/action?_identity=123&amp;_track=sugar_high"
+    assert_equal expected, vanity_track_url_for("123", :sugar_high, :controller => "controller", :action => "action")
   end
   
   def test_vanity_tracking_image
-    assert_equal vanity_tracking_image("123", :sugar_high, options = {}), image_tag("/vanity/image?_identity=123&amp;_track=sugar_high", :width => "1px", :height => "1px", :alt => "")
+    assert_equal image_tag("/vanity/image?_identity=123&_track=sugar_high", :width => "1px", :height => "1px", :alt => ""), vanity_tracking_image("123", :sugar_high, options = {})
   end
 end

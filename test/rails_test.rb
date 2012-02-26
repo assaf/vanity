@@ -26,10 +26,6 @@ class UseVanityControllerTest < ActionController::TestCase
     end
   end
 
-  def rails3?
-    defined?(Rails::Railtie)
-  end
-
   def test_chooses_sets_alternatives_for_rails_tests
     experiment(:pie_or_cake).chooses(true)
     get :index

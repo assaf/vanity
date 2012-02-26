@@ -4,7 +4,6 @@ $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
 ENV["RACK_ENV"] = "test"
 ENV["DB"] ||= "redis"
 
-RAILS_ROOT = File.expand_path("..")
 require "test/unit"
 require "mocha"
 require "action_controller"
@@ -21,6 +20,7 @@ if defined?(Rails::Railtie)
   require File.expand_path("../dummy/config/environment.rb",  __FILE__)
   require "rails/test_help"
 else
+  RAILS_ROOT = File.expand_path("..")
   require "initializer"
   Rails.configuration = Rails::Configuration.new
 
@@ -55,6 +55,9 @@ class Test::Unit::TestCase
     "mock"=>"mock:/"
   }[ENV["DB"]] or raise "No support yet for #{ENV["DB"]}"
 
+  def rails3?
+    defined?(Rails::Railtie)
+  end
 
   def setup
     FileUtils.mkpath "tmp/experiments/metrics"
@@ -118,8 +121,8 @@ class Test::Unit::TestCase
 end
 
 
-ActiveRecord::Base.logger = $logger
 ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test"
+ActiveRecord::Base.logger = $logger
 
 if ENV["DB"] == "mysql" || ENV["DB"] == "postgres"
   require "generators/templates/vanity_migration"
