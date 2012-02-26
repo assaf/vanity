@@ -7,7 +7,11 @@ class Sky < ActiveRecord::Base
     t.timestamps
   end
 
-  named_scope :high, lambda { { :conditions=>"height >= 4" } }
+  if defined?(Rails::Railtie)
+    scope :high, lambda { { :conditions=>"height >= 4" } }
+  else
+    named_scope :high, lambda { { :conditions=>"height >= 4" } }
+  end
 end
 
 
