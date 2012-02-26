@@ -275,7 +275,11 @@ context "ActiveRecord Metric" do
 
   teardown do
     Sky.delete_all
-    Sky.after_create.clear
-    Sky.after_save.clear
+    if rails3?
+      Sky.reset_callbacks(:create)
+    else
+      Sky.after_create.clear
+      Sky.after_save.clear
+    end
   end
 end

@@ -39,7 +39,7 @@ class UseVanityControllerTest < ActionController::TestCase
 
   def test_vanity_cookie_is_persistent
     get :index
-    assert cookie = @response["Set-Cookie"].find { |c| c[/^vanity_id=/] }
+    cookie = @response["Set-Cookie"].to_s
     assert expires = cookie[/vanity_id=[a-f0-9]{32}; path=\/; expires=(.*)(;|$)/, 1]
     assert_in_delta Time.parse(expires), Time.now + 1.month, 1.minute
   end

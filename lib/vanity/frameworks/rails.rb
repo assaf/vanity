@@ -189,7 +189,11 @@ module Vanity
  
         if block
           content = capture(value, &block)
-          block_called_from_erb?(block) ? concat(content) : content
+          if defined?(block_called_from_erb?) && block_called_from_erb?(block)
+             concat(content)
+          else
+            content
+          end
         else
           value
         end
