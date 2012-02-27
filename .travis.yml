@@ -11,4 +11,5 @@ env:
 #- DB=postgres
 before_script:
 - "mysql -e 'create database vanity_test;' >/dev/null"
+- "rake appraisal:install"
 #- "psql -c 'create database vanity_test;' -U postgres >/dev/null"
