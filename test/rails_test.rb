@@ -132,7 +132,7 @@ class UseVanityControllerTest < ActionController::TestCase
   
   def test_cookie_domain_from_rails_configuration
     get :index
-    assert_equal cookies["vanity_id"][:domain], '.foo.bar' if ::Rails.respond_to?(:application)
+    assert_match @response["Set-Cookie"], /domain=.foo.bar/ if ::Rails.respond_to?(:application)
   end
 
   # -- Load path --
