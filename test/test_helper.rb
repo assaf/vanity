@@ -27,9 +27,9 @@ else
   ActionController::Routing::Routes.draw do |map|
     map.connect ':controller/:action/:id'
   end
+  require "phusion_passenger/events"
 end
 
-require "phusion_passenger/events"
 require "lib/vanity"
 require "timecop"
 require "webmock/test_unit"

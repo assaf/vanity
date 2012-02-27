@@ -1,6 +1,8 @@
 require "test/test_helper"
-require "phusion_passenger/spawn_manager"
 
+#not supported for rails3
+unless defined?(Rails::Railtie)
+require "phusion_passenger/spawn_manager"
 class PassengerTest < Test::Unit::TestCase
   def setup
     super
@@ -39,5 +41,5 @@ class PassengerTest < Test::Unit::TestCase
     @server.stop
     File.unlink "test/myapp/config/vanity.yml"
   end
-
+end
 end
