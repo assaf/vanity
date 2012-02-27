@@ -280,7 +280,7 @@ class AbTestTest < ActionController::TestCase
       metrics :coolness
     end
     responses = Array.new(100) do
-      @controller.send(:cookies).clear
+      @controller.send(:cookies).each{ |cookie| @controller.send(:cookies).delete(cookie.first) }
       get :track
       @response.body
     end
