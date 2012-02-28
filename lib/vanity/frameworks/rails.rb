@@ -85,7 +85,8 @@ module Vanity
         else
           class << self
             define_method :vanity_identity do
-              @vanity_identity = @vanity_identity || ActiveSupport::SecureRandom.hex(16)
+              secure_random = defined?(SecureRandom) ? SecureRandom : ActiveSupport::SecureRandom
+              @vanity_identity = @vanity_identity || secure_random.hex(16)
             end
           end
         end
