@@ -93,8 +93,9 @@ If robots or spiders make up a significant portion of your sites traffic they ca
 
 * Fork the project
 * Please use a topic branch to make your changes, it's easier to test them that way
+* To set up the test suite run bundler, then run `rake appraisal:install` to prepare the test suite to run against multiple versions of Rails
 * Fix, patch, enhance, document, improve, sprinkle pixie dust
-* At minimum run rake test, if possible, please run rake test:all
+* At minimum run `rake appraisal test`, if possible, please run rake test:all
 * Tests. Please. Run rake test, of if you can, rake test:all
 * Send a pull request on GitHub
 
