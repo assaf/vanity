@@ -33,4 +33,4 @@ require "vanity/adapters/mock_adapter"
 require "vanity/playground"
 require "vanity/helpers"
 # Integration with various frameworks.
-require "vanity/frameworks"
+require "vanity/frameworks/rails" if defined?(Rails)
