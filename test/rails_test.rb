@@ -6,6 +6,11 @@ class UseVanityController < ActionController::Base
   def index
     render :text=>ab_test(:pie_or_cake)
   end
+
+  def js
+    ab_test(:pie_or_cake)
+    render :inline => "<%= vanity_js -%>"
+  end
 end
 
 # Pages accessible to everyone, e.g. sign in, community search.
@@ -24,6 +29,12 @@ class UseVanityControllerTest < ActionController::TestCase
     if ::Rails.respond_to?(:application) # Rails 3 configuration
       ::Rails.application.config.session_options[:domain] = '.foo.bar'
     end
+  end
+
+  def test_render_js_for_tests
+    Vanity.playground.use_js!
+    get :js
+    assert_match /script.*e=pie_or_cake.*script/m, @response.body
   end
 
   def test_chooses_sets_alternatives_for_rails_tests
