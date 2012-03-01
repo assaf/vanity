@@ -34,6 +34,10 @@ require "lib/vanity"
 require "timecop"
 require "webmock/test_unit"
 
+#Do to load order differences in Rails boot and test requires we have to manually
+#require these
+require 'vanity/frameworks/rails'
+Vanity::Rails.load!
 
 if $VERBOSE
   $logger = Logger.new(STDOUT)
