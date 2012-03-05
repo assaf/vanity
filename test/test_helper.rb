@@ -125,7 +125,11 @@ class Test::Unit::TestCase
 end
 
 
-ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test"
+if  ENV["DB"] == "postgres"
+  ActiveRecord::Base.establish_connection :adapter=>"postgresql", :database=>"vanity_test"
+else
+  ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test"
+end
 ActiveRecord::Base.logger = $logger
 
 if ENV["DB"] == "mysql" || ENV["DB"] == "postgres"
