@@ -281,34 +281,29 @@ end
 
 
 # Enhance ActionController with use_vanity, filters and helper methods.
-if defined?(ActionController)
+ActiveSupport.on_load(:action_controller) do
   # Include in controller, add view helper methods.
-  ActionController::Base.class_eval do
-    extend Vanity::Rails::UseVanity
-    include Vanity::Rails::Filters
-    helper Vanity::Rails::Helpers
-  end
+  extend Vanity::Rails::UseVanity
+  include Vanity::Rails::Filters
+  helper Vanity::Rails::Helpers
 
-  module ActionController
-    class TestCase
-      alias :setup_controller_request_and_response_without_vanity :setup_controller_request_and_response
-      # Sets Vanity.context to the current controller, so you can do things like:
-      #   experiment(:simple).chooses(:green)
-      def setup_controller_request_and_response
-        setup_controller_request_and_response_without_vanity
-        Vanity.context = @controller
-      end
+  class ActionController::TestCase
+    alias :setup_controller_request_and_response_without_vanity :setup_controller_request_and_response
+    # Sets Vanity.context to the current controller, so you can do things like:
+    #   experiment(:simple).chooses(:green)
+    def setup_controller_request_and_response
+      setup_controller_request_and_response_without_vanity
+      Vanity.context = @controller
     end
   end
 end
 
-if defined?(ActionMailer)
-  # Include in mailer, add view helper methods.
-  ActionMailer::Base.class_eval do
-    include Vanity::Rails::UseVanityMailer
-    include Vanity::Rails::Filters
-    helper Vanity::Rails::Helpers
-  end
+
+# Include in mailer, add view helper methods.
+ActiveSupport.on_load(:action_mailer) do
+  include Vanity::Rails::UseVanityMailer
+  include Vanity::Rails::Filters
+  helper Vanity::Rails::Helpers
 end
 
 # Reconnect whenever we fork under Passenger.
