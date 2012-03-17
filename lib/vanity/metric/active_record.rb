@@ -35,6 +35,7 @@ module Vanity
     # @since 1.2.0
     # @see Vanity::Metric::ActiveRecord
     def model(class_or_scope, options = nil)
+      class_or_scope = class_or_scope.constantize if class_or_scope.is_a?(String)
       options = options || {}
       conditions = options.delete(:conditions)
       @ar_scoped = conditions ? class_or_scope.scoped(:conditions=>conditions) : class_or_scope

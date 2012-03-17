@@ -294,6 +294,22 @@ context "ActiveRecord Metric" do
     assert_in_delta metric(:sky_is_limit).last_update_at.to_i, (Time.now + 1.day).to_i, 1
   end
 
+
+  test "metric is specifiable with a string" do
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model 'Sky'
+        end
+      RUBY
+    end
+    Vanity.playground.metrics
+    Sky.create!
+    assert_equal 1, Vanity::Metric.data(metric(:sky_is_limit)).last.last
+  end
+
+
+
   teardown do
     Sky.delete_all
     if rails3?
