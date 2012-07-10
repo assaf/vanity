@@ -201,6 +201,12 @@ module Vanity
             index = connection.ab_showing(@id, identity)
             unless index
               index = alternative_for(identity)
+              # if we have an on_assignment block, make sure we both store the assignment and call the on_assignment block
+              if @on_assignment_block
+                assignment = alternatives[index.to_i]
+                connection.ab_show(@id, identity, index.to_i)
+                @on_assignment_block.call(Vanity.context, identity, assignment, self)
+              end
               if !@playground.using_js?
                 connection.ab_add_participant @id, index, identity
                 check_completion!
