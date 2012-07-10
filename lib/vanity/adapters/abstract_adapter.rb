@@ -110,6 +110,11 @@ module Vanity
         fail "Not implemented"
       end
 
+      # Determines if a participant already has seen this alternative in this experiment.
+      def ab_seen(experiment, identity, assignment)
+	fail "Not implemented"
+      end
+
       # Records a conversion in this experiment for the given alternative.
       # Associates a value with the conversion (default to 1). If implicit is
       # true, add particpant if not already recorded for this experiment. If
