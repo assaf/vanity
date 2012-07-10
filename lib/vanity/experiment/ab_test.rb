@@ -197,20 +197,20 @@ module Vanity
         if @playground.collecting?
           if active?
             identity = identity()
-      	    index = connection.ab_showing(@id, identity)
-      	    unless index
-      	      index = alternative_for(identity)
-      	      if !@playground.using_js?
-            		# if we have an on_assignment block, call it on new assignments
-            		if @on_assignment_block
-            		  assignment = alternatives[index.to_i]
-            		  if !connection.ab_seen @id, identity, assignment
-            		    @on_assignment_block.call(Vanity.context, identity, assignment, self)
-            		  end
-            		end
-            		connection.ab_add_participant @id, index, identity
-            		check_completion!
-      	      end
+            index = connection.ab_showing(@id, identity)
+            unless index
+              index = alternative_for(identity)
+              if !@playground.using_js?
+                # if we have an on_assignment block, call it on new assignments
+                if @on_assignment_block
+                  assignment = alternatives[index.to_i]
+                  if !connection.ab_seen @id, identity, assignment
+                    @on_assignment_block.call(Vanity.context, identity, assignment, self)
+                  end
+                end
+                connection.ab_add_participant @id, index, identity
+                check_completion!
+              end
             end
           else
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
