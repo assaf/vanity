@@ -14,6 +14,10 @@ gem "mongo"
 gem "mysql"
 gem "pg"
 
+# Math libraries
+gem "integration"
+gem "rubystats"
+
 # APIs
 gem "garb"
 

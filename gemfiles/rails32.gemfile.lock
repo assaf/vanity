@@ -59,6 +59,7 @@ GEM
       crack (>= 0.1.6)
     hike (1.2.1)
     i18n (0.6.0)
+    integration (0.1.0)
     journey (1.0.3)
     json (1.6.5)
     mail (2.4.1)
@@ -108,6 +109,7 @@ GEM
     redis (3.0.5)
     redis-namespace (1.3.1)
       redis (~> 3.0.0)
+    rubystats (0.2.3)
     shoulda (3.0.1)
       shoulda-context (~> 1.0.0)
       shoulda-matchers (~> 1.0.0)
@@ -137,6 +139,7 @@ DEPENDENCIES
   bson_ext
   fastthread!
   garb
+  integration
   mocha
   mongo
   mysql
@@ -144,6 +147,7 @@ DEPENDENCIES
   pg
   rack
   rails (= 3.2.1)
+  rubystats
   shoulda
   timecop
   vanity!
