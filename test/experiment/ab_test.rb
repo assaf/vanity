@@ -137,6 +137,33 @@ class AbTestTest < ActionController::TestCase
     assert_equal 0, alts.map(&:participants).sum
   end
 
+  # -- on_assignment --
+
+  def test_calls_on_assignment_on_new_assignment
+    on_assignment_called_times = 0
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "6e98ec" }
+      metrics :coolness
+      on_assignment { on_assignment_called_times = on_assignment_called_times+1 }
+    end
+    2.times { experiment(:foobar).choose }
+    assert_equal 1, on_assignment_called_times
+  end
+
+  def test_returns_the_same_alternative_consistently_when_on_assignment_is_set
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "6e98ec" }
+      on_assignment {}
+      metrics :coolness
+    end
+    assert value = experiment(:foobar).choose.value
+    assert_match /foo|bar/, value
+    1000.times do
+      assert_equal value, experiment(:foobar).choose.value
+    end
+  end
 
   # -- Running experiment --
 
@@ -330,6 +357,23 @@ class AbTestTest < ActionController::TestCase
 
   # -- Scoring --
   
+  def test_calculate_score
+    new_ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
+    score_result = experiment(:abcd).calculate_score
+    assert_equal :score, score_result.method
+
+    new_ab_test :bayes_abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+      score_method :bayes_score
+    end
+    bayes_score_result = experiment(:bayes_abcd).calculate_score
+    assert_equal :bayes_score, bayes_score_result.method
+  end
+  
   def test_scoring
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
@@ -354,6 +398,23 @@ class AbTestTest < ActionController::TestCase
 
     assert_equal 1, experiment(:abcd).score.base.id
     assert_equal 2, experiment(:abcd).score.least.id
+  end
+
+  def test_bayes_scoring
+    new_ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
+    # participating, conversions, rate, z-score
+    # Control:      182	35 19.23%	N/A
+    # Treatment A:  180	45 25.00%	1.33
+    # treatment B:  189	28 14.81%	-1.13
+    # treatment C:  188	61 32.45%	2.94
+    fake :abcd, :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
+
+    score_result = experiment(:abcd).bayes_score
+    probabilities = score_result.alts.map{|a| a.probability.round}
+    assert_equal [0,0,6,94], probabilities
   end
 
   def test_scoring_with_no_performers
