@@ -38,6 +38,7 @@ GEM
     garb (0.9.1)
       activesupport (>= 2.2.0)
       crack (>= 0.1.6)
+    integration (0.1.0)
     jekyll (0.11.2)
       albino (~> 1.3)
       classifier (~> 1.3)
@@ -73,6 +74,7 @@ GEM
     redis (2.2.2)
     redis-namespace (1.0.4)
       redis (< 3.0.0)
+    rubystats (0.2.3)
     shoulda (3.0.1)
       shoulda-context (~> 1.0.0)
       shoulda-matchers (~> 1.0.0)
@@ -94,6 +96,7 @@ DEPENDENCIES
   appraisal
   bson_ext
   garb
+  integration
   jekyll
   mocha
   mongo
@@ -103,6 +106,7 @@ DEPENDENCIES
   rack
   rails (~> 2.3.8)
   rake
+  rubystats
   shoulda
   timecop
   vanity!

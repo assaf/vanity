@@ -8,6 +8,8 @@ gem "mongo"
 gem "mysql"
 gem "pg"
 gem "garb"
+gem "integration"
+gem "rubystats"
 gem "SystemTimer", "1.2.3", :platforms=>:mri_18
 gem "appraisal"
 gem "mocha", :require=>false

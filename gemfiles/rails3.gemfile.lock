@@ -59,6 +59,7 @@ GEM
       activesupport (>= 2.2.0)
       crack (>= 0.1.6)
     i18n (0.5.0)
+    integration (0.1.0)
     json (1.6.5)
     mail (2.2.19)
       activesupport (>= 2.3.6)
@@ -104,6 +105,7 @@ GEM
     redis (2.2.2)
     redis-namespace (1.0.4)
       redis (< 3.0.0)
+    rubystats (0.2.3)
     shoulda (3.0.1)
       shoulda-context (~> 1.0.0)
       shoulda-matchers (~> 1.0.0)
@@ -128,6 +130,7 @@ DEPENDENCIES
   bson_ext
   fastthread!
   garb
+  integration
   mocha
   mongo
   mysql
@@ -135,6 +138,7 @@ DEPENDENCIES
   pg
   rack
   rails (= 3.0.11)
+  rubystats
   shoulda
   timecop
   vanity!
