@@ -131,7 +131,7 @@ module Vanity
       end
 
       def ab_seen(experiment, identity, alternative)
-	if @experiments.sismember "#{experiment}:alts:#{alternative}:participants", identity
+	if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
 	  return alternative
 	else
 	  return nil
