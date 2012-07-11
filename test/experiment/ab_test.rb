@@ -148,7 +148,7 @@ class AbTestTest < ActionController::TestCase
       on_assignment { on_assignment_called_times = on_assignment_called_times+1 }
     end
     2.times { experiment(:foobar).choose }
-    assert_equal on_assignment_called_times, 1
+    assert_equal 1, on_assignment_called_times
   end
 
   def test_returns_the_same_alternative_consistently_when_on_assignment_is_set

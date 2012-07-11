@@ -215,7 +215,7 @@ module Vanity
       # Determines if a participant already has seen this alternative in this experiment.
       def ab_seen(experiment, identity, alternative)
         participant = VanityParticipant.retrieve(experiment, identity, false)
-        participant && participant.seen
+        participant && participant.seen == alternative.id
       end
 
       # Records a conversion in this experiment for the given alternative.
