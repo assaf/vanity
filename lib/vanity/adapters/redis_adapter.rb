@@ -130,6 +130,14 @@ module Vanity
         @experiments.sadd "#{experiment}:alts:#{alternative}:participants", identity
       end
 
+      def ab_seen(experiment, identity, alternative)
+        if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
+          return alternative
+        else
+          return nil
+        end
+      end
+
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
         if implicit
           @experiments.sadd "#{experiment}:alts:#{alternative}:participants", identity

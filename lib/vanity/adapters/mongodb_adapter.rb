@@ -150,6 +150,12 @@ module Vanity
         @participants.update({ :experiment=>experiment, :identity=>identity }, { "$push"=>{ :seen=>alternative } }, :upsert=>true)
       end
 
+      # Determines if a participant already has seen this alternative in this experiment.
+      def ab_seen(experiment, identity, alternative)
+        participant = @participants.find_one({ :experiment=>experiment, :identity=>identity }, { :fields=>[:seen] })
+        participant && participant["seen"].first == alternative.id
+      end
+
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
         if implicit
           @participants.update({ :experiment=>experiment, :identity=>identity }, { "$push"=>{ :seen=>alternative } }, :upsert=>true)

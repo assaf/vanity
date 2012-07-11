@@ -137,6 +137,33 @@ class AbTestTest < ActionController::TestCase
     assert_equal 0, alts.map(&:participants).sum
   end
 
+  # -- on_assignment --
+
+  def test_calls_on_assignment_on_new_assignment
+    on_assignment_called_times = 0
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "6e98ec" }
+      metrics :coolness
+      on_assignment { on_assignment_called_times = on_assignment_called_times+1 }
+    end
+    2.times { experiment(:foobar).choose }
+    assert_equal 1, on_assignment_called_times
+  end
+
+  def test_returns_the_same_alternative_consistently_when_on_assignment_is_set
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "6e98ec" }
+      on_assignment {}
+      metrics :coolness
+    end
+    assert value = experiment(:foobar).choose.value
+    assert_match /foo|bar/, value
+    1000.times do
+      assert_equal value, experiment(:foobar).choose.value
+    end
+  end
 
   # -- Running experiment --
 
