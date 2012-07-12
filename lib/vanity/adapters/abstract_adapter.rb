@@ -86,7 +86,7 @@ module Vanity
       # :conversions.
       def ab_counts(experiment, alternative)
         fail "Not implemented"
-      end 
+      end
 
       # Pick particular alternative (by index) to show to this particular
       # participant (by identity).
@@ -112,6 +112,11 @@ module Vanity
 
       # Determines if a participant already has seen this alternative in this experiment.
       def ab_seen(experiment, identity, assignment)
+        fail "Not implemented"
+      end
+
+      # Determines what alternative a participant has already been given, if any
+      def ab_assignment(experiment, identity)
         fail "Not implemented"
       end
 
