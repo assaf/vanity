@@ -174,6 +174,19 @@ class AbTestTest < ActionController::TestCase
     end
   end
 
+  # -- ab_assigned --
+
+  def test_ab_assigned
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "6e98ec" }
+      metrics :coolness
+    end
+    assert_equal nil, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, "6e98ec")
+    assert id = experiment(:foobar).choose.id
+    assert_equal id, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, "6e98ec")
+  end
+
   # -- Running experiment --
 
   def test_returns_the_same_alternative_consistently
