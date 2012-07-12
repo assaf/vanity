@@ -95,6 +95,22 @@ module Vanity
     end
 
 
+    # -- Participant Information --
+
+    # Returns an array of all experiments this participant is involved in, with their assignment.
+    #  This is done as an array of arrays [[<experiment_1>, <assignment_1>], [<experiment_2>, <assignment_2>]], sorted by experiment name, so that it will give a consistent string
+    #  when converted to_s (so could be used for caching, for example)
+    def participant_info(participant_id)
+      participant_array = []
+      experiments.values.sort_by{|e| e.name}.each do |e|
+        index = connection.ab_assigned(e.id, participant_id)
+        if index
+          participant_array << [e, e.alternatives[index.to_i]]
+        end
+      end
+      return participant_array
+    end
+
     # -- Robot Detection --
 
     # Call to indicate that participants should be added via js

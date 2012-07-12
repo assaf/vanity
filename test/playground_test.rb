@@ -34,4 +34,16 @@ class PlaygroundTest < Test::Unit::TestCase
     assert !instance.connected?
   end
 
+  def test_participant_info
+    assert_equal [], Vanity.playground.participant_info("abcdef")
+    metric "Coolness"
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "abcdef" }
+      metrics :coolness
+    end
+    alt = experiment(:foobar).choose
+    assert_equal [[Vanity.playground.experiment(:foobar), alt]], Vanity.playground.participant_info("abcdef")
+  end
+
 end

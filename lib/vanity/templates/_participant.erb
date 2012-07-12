@@ -1,0 +1,12 @@
+<p>Participant id <%= participant_id %> is taking part in the following experiments:
+<ul class="experiments">
+  <% participant_info.each do |experiment, alt| %>
+    <li class="experiment <%= experiment.type %>" id="experiment_<%=vanity_h experiment.id.to_s %>">
+	<h3><%=vanity_h experiment.name %> <span class="type">(<%= experiment.class.friendly_name %>)</span></h3>
+	<%= experiment.description.to_s.split(/\n\s*\n/).map { |para| vanity_html_safe(%{<p class="description">#{vanity_h para}</p>}) }.join.html_safe %>
+    <br /><span class="option"><%= alt.name.gsub(/^o/, "O") %>:</span>
+    <span class="value"><code><%=vanity_h alt.value.to_s %></code></span>
+    </li>
+  <% end %>
+</ul>
+</p>
