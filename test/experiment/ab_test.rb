@@ -174,6 +174,106 @@ class AbTestTest < ActionController::TestCase
     end
   end
 
+  # -- ab_assigned --
+
+  def test_ab_assigned
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "6e98ec" }
+      metrics :coolness
+    end
+    assert_equal nil, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, "6e98ec")
+    assert id = experiment(:foobar).choose.id
+    assert_equal id, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, "6e98ec")
+  end
+
+  # -- Unequal probabilities --
+
+  def test_returns_the_same_alternative_consistently_when_using_probabilities
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "6e98ec" }
+      rebalance_frequency 100
+      metrics :coolness
+    end
+    assert value = experiment(:foobar).choose.value
+    assert_match /foo|bar/, value
+    1000.times do
+      assert_equal value, experiment(:foobar).choose.value
+    end
+  end
+
+  def test_uses_probabilities_for_new_assignments
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { rand }
+      rebalance_frequency 10000
+      metrics :coolness
+    end
+    altered_alts = experiment(:foobar).alternatives
+    altered_alts[0].probability=30
+    altered_alts[1].probability=70
+    experiment(:foobar).set_alternative_probabilities altered_alts
+    alts = Array.new(1000) { experiment(:foobar).choose.value }
+    assert_equal %w{bar foo}, alts.uniq.sort
+    assert_in_delta alts.select { |a| a == altered_alts[0].value }.size, 300, 100 # this may fail, such is propability
+  end
+
+  # -- Rebalancing probabilities --
+
+  def test_rebalances_probabilities_after_rebalance_frequency_calls
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { rand }
+      rebalance_frequency 12
+      metrics :coolness
+    end
+    class <<experiment(:foobar)
+      def times_called
+        @times_called || 0
+      end
+      def rebalance!
+        @times_called = times_called + 1
+      end
+    end
+    11.times { experiment(:foobar).choose.value }
+    assert_equal 0, experiment(:foobar).times_called
+    experiment(:foobar).choose.value
+    assert_equal 1, experiment(:foobar).times_called
+    12.times { experiment(:foobar).choose.value }
+    assert_equal 2, experiment(:foobar).times_called
+  end
+
+  def test_rebalance_uses_bayes_score_probabilities_to_update_probabilities
+    new_ab_test :foobar do
+      alternatives "foo", "bar", "baa"
+      identify { rand }
+      rebalance_frequency 12
+      metrics :coolness
+    end
+    corresponding_probabilities = [[experiment(:foobar).alternatives[0], 0.3], [experiment(:foobar).alternatives[1], 0.6], [experiment(:foobar).alternatives[2], 1.0]]
+
+    class <<experiment(:foobar)
+      def was_called
+        @was_called
+      end
+      def bayes_score(probability=90)
+        @was_called = true
+        altered_alts = Vanity.playground.experiment(:foobar).alternatives
+        altered_alts[0].probability=30
+        altered_alts[1].probability=30
+        altered_alts[2].probability=40
+        Struct.new(:alts,:method).new(altered_alts,:bayes_score)
+      end
+      def use_probabilities
+        @use_probabilities
+      end
+    end
+    experiment(:foobar).rebalance!
+    assert experiment(:foobar).was_called
+    assert_equal experiment(:foobar).use_probabilities, corresponding_probabilities
+  end
+
   # -- Running experiment --
 
   def test_returns_the_same_alternative_consistently

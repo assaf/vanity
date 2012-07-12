@@ -222,6 +222,12 @@ module Vanity
       	participant && participant.seen == alternative.id
       end
 
+      # Returns the participant's seen alternative in this experiment, if it exists
+      def ab_assigned(experiment, identity)
+        participant = VanityParticipant.retrieve(experiment, identity, false)
+        participant && participant.seen
+      end
+
       # Records a conversion in this experiment for the given alternative.
       # Associates a value with the conversion (default to 1). If implicit is
       # true, add participant if not already recorded for this experiment. If
