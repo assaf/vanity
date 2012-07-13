@@ -288,6 +288,20 @@ module Vanity
         render :file=>Vanity.template("_participant"), :locals=>{:participant_id => params[:id], :participant_info => Vanity.playground.participant_info(params[:id])}, :content_type=>Mime::HTML, :layout=>false
       end
 
+      def complete
+        exp = Vanity.playground.experiment(params[:e].to_sym)
+        alt = exp.alternatives[params[:a].to_i]
+        confirmed = params[:confirmed]
+        # make the user confirm before completing an experiment
+        if confirmed && confirmed.to_i==alt.id && exp.active?
+          exp.complete!(alt.id)
+          render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+        else
+          @to_confirm = alt.id
+          render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+        end
+      end
+
       def chooses
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.chooses(exp.alternatives[params[:a].to_i].value)
