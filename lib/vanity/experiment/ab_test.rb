@@ -553,10 +553,11 @@ module Vanity
         outcome && _alternatives[outcome]
       end
 
-      def complete!
+      def complete!(outcome = nil)
         return unless @playground.collecting? && active?
         super
-        if @outcome_is
+        if outcome
+        elsif @outcome_is
           begin
             result = @outcome_is.call
             outcome = result.id if Alternative === result && result.experiment == self
