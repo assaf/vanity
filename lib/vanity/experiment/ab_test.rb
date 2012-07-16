@@ -190,6 +190,7 @@ module Vanity
       def _default
         @default
       end
+      private :_default
 
       # Defines an A/B test with two alternatives: false and true.  This is the
       # default pair of alternatives, so just syntactic sugar for those who love
