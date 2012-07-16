@@ -86,6 +86,10 @@ module Vanity
           @participants = @converted = @conversions = 0
         end
       end
+
+      def default?
+        @experiment.default == self
+      end
     end
 
 
@@ -167,6 +171,17 @@ module Vanity
       #   alternative(:blue) == alternatives[2]
       def alternative(value)
         alternatives.find { |alt| alt.value == value }
+      end
+
+      def default(value)
+        @default = alternative(value)
+        class << self
+          define_method :default, instance_method(:_default)
+        end
+      end
+
+      def _default
+        @default
       end
 
       # Defines an A/B test with two alternatives: false and true.  This is the
@@ -427,6 +442,10 @@ module Vanity
       def save
         true_false unless @alternatives
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
+        unless @default
+          @default = alternatives.first
+          warn "No default alternative specified; choosing #{@default.value} as default."
+        end
         super
         if @metrics.nil? || @metrics.empty?
           warn "Please use metrics method to explicitly state which metric you are measuring against."
