@@ -173,10 +173,17 @@ module Vanity
         alternatives.find { |alt| alt.value == value }
       end
 
-      def default(value)
-        @default = alternative(value)
-        class << self
-          define_method :default, instance_method(:_default)
+      def default(*args)
+        if args.empty?
+          @default
+        else
+          lambda do |value|
+            @default = alternative(value)
+            class << self
+              define_method :default, instance_method(:_default)
+            end
+            nil
+          end.call(*args)
         end
       end
 
