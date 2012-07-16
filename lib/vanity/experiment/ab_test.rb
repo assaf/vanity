@@ -443,7 +443,7 @@ module Vanity
         true_false unless @alternatives
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
         unless @default
-          @default = alternatives.first
+          default(alternatives.first.value)
           warn "No default alternative specified; choosing #{@default.value} as default."
         end
         super
