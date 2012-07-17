@@ -112,10 +112,23 @@ module Vanity
 
       def initialize(*args)
         super
+        @enabled = true
+      end
+
+      def enabled?
+        active? && @enabled
+      end
+
+      def enabled=(val)
+        if active?
+          @enabled = val
+        else
+          warn "Cannot set enabled on an inactive experiment!"
+        end
       end
 
 
-      # -- Metric --
+        # -- Metric --
     
       # Tells A/B test which metric we're measuring, or returns metric in use. 
       #
@@ -424,6 +437,7 @@ module Vanity
       def complete!
         return unless @playground.collecting? && active?
         super
+        @enabled = false
         if @outcome_is
           begin
             result = @outcome_is.call
