@@ -317,6 +317,12 @@ module Vanity
         exp.chooses(exp.alternatives[params[:a].to_i].value)
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
+      
+      def reset
+        exp = Vanity.playground.experiment(params[:e].to_sym)
+        exp.reset
+        redirect_to url_for(:action=>:index)
+      end
 
       # JS callback action used by vanity_js
       def add_participant
