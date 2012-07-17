@@ -453,6 +453,12 @@ module Vanity
         # TODO: logging
         connection.ab_set_outcome @id, outcome || 0
       end
+      
+      #called when user picks a winner instead of automatic completion
+      def finish!(alt)
+        connection.ab_set_outcome @id, alt
+        connection.set_experiment_completed_at @id, Time.now
+      end
 
       
       # -- Store/validate --

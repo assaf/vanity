@@ -265,6 +265,12 @@ module Vanity
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
 
+      def finish
+        exp = Vanity.playground.experiment(params[:e].to_sym)
+        exp.finish!(params[:alt])
+        redirect_to url_for(:action=>:index)
+      end
+
       def add_participant
       	if params[:e].nil? || params[:e].empty?
       	  render :status => 404, :nothing => true

@@ -26,6 +26,12 @@
           <% end %>
         <% end %>
       </td>
+      <td class="action">
+        <% if experiment.active? && respond_to?(:url_for) %>
+          <%= button_to "finish", {:action => "finish", :e => experiment.id, :a=>alt.id},
+            :onclick => "return confirm('Are you sure you want to finish the experiment and set #{alt.name} as the outcome?')", :method => :post %>
+        <% end %>
+      </td>
     </tr>
   <% end %>
 </table>
