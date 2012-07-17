@@ -253,6 +253,13 @@ module Vanity
         render :file=>Vanity.template("_report"), :content_type=>Mime::HTML, :layout=>false
       end
 
+      def toggle_enabled
+        exp = Vanity.playground.experiment(params[:e].to_sym)
+        exp.enabled = !exp.enabled?
+        exp.save
+        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+      end
+
       def chooses
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.chooses(exp.alternatives[params[:a].to_i].value)

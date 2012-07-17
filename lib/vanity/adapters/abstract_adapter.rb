@@ -65,6 +65,14 @@ module Vanity
 
 
       # -- Experiments --
+      
+      def set_experiment_enabled(experiment, enabled)
+        fail "Not implemented"
+      end
+      
+      def is_experiment_enabled?(experiment)
+        fail "Not implemented"
+      end
 
       # Store when experiment was created (do not write over existing value). 
       def set_experiment_created_at(experiment, time)

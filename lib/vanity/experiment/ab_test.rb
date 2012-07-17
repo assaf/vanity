@@ -112,18 +112,24 @@ module Vanity
 
       def initialize(*args)
         super
-        @enabled = true
+        if enabled?.nil?
+          enabled = true
+        end
       end
 
       # -- Enabled --
 
       def enabled?
-        active? && @enabled
+        if connection.is_experiment_enabled?(@id) && !active?
+          warn "Bad state - an inactive experiment is enabled! Disabling."
+          connection.set_experiment_enabled(@id, false)
+        end
+        active? && connection.is_experiment_enabled?(@id)
       end
 
       def enabled=(val)
         if active?
-          @enabled = val
+          connection.set_experiment_enabled(@id, val)
         else
           warn "Cannot set enabled on an inactive experiment!"
         end
@@ -244,27 +250,31 @@ module Vanity
       # @example
       #   color = experiment(:which_blue).choose
       def choose
-        if @playground.collecting?
-          if active?
-            identity = identity()
-            index = connection.ab_showing(@id, identity)
-            unless index
-              index = alternative_for(identity)
-              if !@playground.using_js?
-                connection.ab_add_participant @id, index, identity
-                check_completion!
+        if enabled?
+          if @playground.collecting?
+            if active?
+              identity = identity()
+              index = connection.ab_showing(@id, identity)
+              unless index
+                index = alternative_for(identity)
+                if !@playground.using_js?
+                  connection.ab_add_participant @id, index, identity
+                  check_completion!
+                end
               end
+            else
+              index = connection.ab_get_outcome(@id) || alternative_for(identity)
             end
           else
-            index = connection.ab_get_outcome(@id) || alternative_for(identity)
+            identity = identity()
+            @showing ||= {}
+            @showing[identity] ||= alternative_for(identity)
+            index = @showing[identity]
           end
+          alternatives[index.to_i]
         else
-          identity = identity()
-          @showing ||= {}
-          @showing[identity] ||= alternative_for(identity)
-          index = @showing[identity]
+          default
         end
-        alternatives[index.to_i]
       end
 
       # Returns fingerprint (hash) for given alternative.  Can be used to lookup
@@ -482,6 +492,7 @@ module Vanity
           warn "No default alternative specified; choosing #{@default.value} as default."
         end
         super
+        connection.set_experiment_enabled @id, enabled?
         if @metrics.nil? || @metrics.empty?
           warn "Please use metrics method to explicitly state which metric you are measuring against."
           metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
