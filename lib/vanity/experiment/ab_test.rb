@@ -126,8 +126,38 @@ module Vanity
           warn "Cannot set enabled on an inactive experiment!"
         end
       end
+        
+      # -- Default --
 
+      # Tells the A/B what the default value should be, or returns the current default.
+      #
+      # @example
+      #   ab_test "Background color" do
+      #     alternatives "red", "blue", "orange"
+      #     default "red"
+      #   end
+      # TODO document default choice if not explicitly chosen (first alternative specified)
+      #
+      def default(*args)
+        if args.empty?
+          @default
+        else
+          lambda do |value|
+            @default = alternative(value)
+            class << self
+              define_method :default, instance_method(:_default)
+            end
+            nil
+          end.call(*args)
+        end
+      end
 
+      def _default
+        @default
+      end
+      private :_default
+        
+        
         # -- Metric --
     
       # Tells A/B test which metric we're measuring, or returns metric in use. 
@@ -185,25 +215,6 @@ module Vanity
       def alternative(value)
         alternatives.find { |alt| alt.value == value }
       end
-
-      def default(*args)
-        if args.empty?
-          @default
-        else
-          lambda do |value|
-            @default = alternative(value)
-            class << self
-              define_method :default, instance_method(:_default)
-            end
-            nil
-          end.call(*args)
-        end
-      end
-
-      def _default
-        @default
-      end
-      private :_default
 
       # Defines an A/B test with two alternatives: false and true.  This is the
       # default pair of alternatives, so just syntactic sugar for those who love
@@ -437,7 +448,6 @@ module Vanity
       def complete!
         return unless @playground.collecting? && active?
         super
-        @enabled = false
         if @outcome_is
           begin
             result = @outcome_is.call
