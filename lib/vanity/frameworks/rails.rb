@@ -267,7 +267,7 @@ module Vanity
 
       def finish
         exp = Vanity.playground.experiment(params[:e].to_sym)
-        exp.finish!(params[:alt])
+        exp.finish!(params[:a])
         redirect_to url_for(:action=>:index)
       end
 
