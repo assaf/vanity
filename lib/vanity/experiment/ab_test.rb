@@ -89,22 +89,22 @@ module Vanity
     end
 
 
-      # The meat.
-      class AbTest < Base
-        class << self
+    # The meat.
+    class AbTest < Base
+      class << self
 
-          # Convert z-score to probability.
-          def probability(score)
-            score = score.abs
-            probability = AbTest::Z_TO_PROBABILITY.find { |z,p| score >= z }
-            probability ? probability.last : 0
-          end
-
-          def friendly_name
-            "A/B Test" 
-          end
-
+        # Convert z-score to probability.
+        def probability(score)
+          score = score.abs
+          probability = AbTest::Z_TO_PROBABILITY.find { |z,p| score >= z }
+          probability ? probability.last : 0
         end
+
+        def friendly_name
+          "A/B Test" 
+        end
+
+      end
 
       def initialize(*args)
         super
