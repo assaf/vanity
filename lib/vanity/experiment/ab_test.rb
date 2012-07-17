@@ -115,6 +115,8 @@ module Vanity
         @enabled = true
       end
 
+      # -- Enabled --
+
       def enabled?
         active? && @enabled
       end
@@ -448,6 +450,7 @@ module Vanity
       def complete!
         return unless @playground.collecting? && active?
         super
+        @enabled = false
         if @outcome_is
           begin
             result = @outcome_is.call
