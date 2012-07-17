@@ -93,22 +93,22 @@ module Vanity
     end
 
 
-      # The meat.
-      class AbTest < Base
-        class << self
+    # The meat.
+    class AbTest < Base
+      class << self
 
-          # Convert z-score to probability.
-          def probability(score)
-            score = score.abs
-            probability = AbTest::Z_TO_PROBABILITY.find { |z,p| score >= z }
-            probability ? probability.last : 0
-          end
-
-          def friendly_name
-            "A/B Test" 
-          end
-
+        # Convert z-score to probability.
+        def probability(score)
+          score = score.abs
+          probability = AbTest::Z_TO_PROBABILITY.find { |z,p| score >= z }
+          probability ? probability.last : 0
         end
+
+        def friendly_name
+          "A/B Test" 
+        end
+
+      end
 
       def initialize(*args)
         super
@@ -477,7 +477,7 @@ module Vanity
       def save
         true_false unless @alternatives
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
-        unless @default
+        if @default.nil?
           default(alternatives.first.value)
           warn "No default alternative specified; choosing #{@default.value} as default."
         end
