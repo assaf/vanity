@@ -461,6 +461,15 @@ module Vanity
         connection.destroy_experiment @id
         super
       end
+      
+      # reset experiment data.
+      def reset
+        connection.reset_experiment @id
+        @outcome = @completed_at = nil
+        #option A: restart the experiment automatically
+        #option B: stop the experiment, user clicks start button to start
+        self
+      end
 
       # Set up tracking for metrics and ensure that the attributes of the ab_test
       # are valid (e.g. has alternatives, has a default, has metrics).

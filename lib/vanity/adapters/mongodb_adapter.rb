@@ -173,6 +173,10 @@ module Vanity
         @experiments.remove :_id=>experiment
         @participants.remove :experiment=>experiment
       end
+      
+      def reset_experiment(experiment)
+        @participants.remove :experiment=>experiment
+      end
     end
   end
 end
