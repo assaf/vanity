@@ -4,7 +4,11 @@
     <%= experiment.conclusion(score).join(" ") %></caption>
   <% score.alts.each do |alt| %>
     <tr class="<%= "choice" if score.choice == alt %>">
-      <td class="option"><%= alt.name.gsub(/^o/, "O") %>:</td>
+      <td class="option"><%= alt.name.gsub(/^o/, "O") %>:
+        <% if alt.default? %>
+          <div style='font-size: 75%'>(Default)</div>
+        <% end %>
+      </td>
       <td class="value"><code><%=vanity_h alt.value.to_s %></code></td>
       <td class="value"><%= alt.participants %> participants</td>
       <td class="value"><%= alt.converted %> converted</td>
