@@ -133,6 +133,79 @@ class ExperimentTest < Test::Unit::TestCase
     experiment(:ice_cream_flavor).complete!
   end
 
+  def test_experiment_has_default
+    new_ab_test :ice_cream_flavor do
+      alternatives :a, :b, :c
+      default :b
+    end
+    exp = experiment(:ice_cream_flavor)
+    assert_equal exp.default, exp.alternative(:b)
+  end
+  
+  def test_experiment_sets_default_default
+    new_ab_test :ice_cream_flavor do
+      alternatives :a, :b, :c
+      # no default specified
+    end
+    exp = experiment(:ice_cream_flavor)
+    assert_equal exp.default, exp.alternative(:a)
+  end
+  
+  def test_experiment_overrides_unknown_default
+    new_ab_test :ice_cream_flavor do
+      alternatives :a, :b, :c
+      default :badname
+    end
+    exp = experiment(:ice_cream_flavor)
+    assert_equal exp.default, exp.alternative(:a)
+  end
+
+  def test_experiment_can_only_set_default_once
+    assert_raise ArgumentError do
+      new_ab_test :ice_cream_flavor do
+        alternative :a, :b, :c
+        default :a
+        default :b
+      end
+    end
+  end
+  
+  def test_experiment_can_only_have_one_default
+    assert_raise ArgumentError do
+      new_ab_test :ice_cream_flavor do
+        alternative :a, :b, :c
+        default :a, :b
+      end
+    end
+  end
+  
+  def test_experiment_cannot_get_default_before_specified
+    assert_raise ArgumentError do
+      new_ab_test :ice_cream_flavor do
+        alternative :a, :b, :c
+        default
+      end
+    end
+  end
+  
+  def test_experiment_accepts_nil_default
+    new_ab_test :nil_default do
+      alternatives nil, 'foo'
+      default nil
+    end
+    exp = experiment(:nil_default)
+    assert_equal exp.default, exp.alternative(nil)
+  end
+  
+  def test_experiment_chooses_nil_default_default
+    new_ab_test :nil_default_default do
+      alternatives nil, 'foo'
+      # no default specified
+    end
+    exp = experiment(:nil_default_default)
+    assert_equal exp.default, exp.alternative(nil)
+  end
+  
   # -- completion -- #
   
   # check_completion is called by derived classes, but since it's

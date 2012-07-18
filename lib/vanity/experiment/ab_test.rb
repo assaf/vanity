@@ -110,37 +110,41 @@ module Vanity
 
       end
 
+      # An object representing an unspecified default alternative. The @default
+      # variable starts off as nil, but since nil may be a valid alternative,
+      # we need a different way to represent an unspecified default. This object
+      # fills that role.
+      @@UNSPECIFIED_DEFAULT = Object.new.freeze
+
       def initialize(*args)
         super
+        @default = @@UNSPECIFIED_DEFAULT
       end
 
       # -- Default --
 
-      # Tells the A/B what the default value should be, or returns the current default.
+      # Call this method once to set a default alternative. Call without 
+      # arguments to obtain the current default.
       #
-      # @example
+      # @example Set the default alternative
       #   ab_test "Background color" do
       #     alternatives "red", "blue", "orange"
       #     default "red"
       #   end
+      # @example Get the default alternative
+      #   assert experiment(:background_color).default == "red"
       # TODO document default choice if not explicitly chosen (first alternative specified)
       #
-      def default(*args)
-        if args.empty?
-          @default
-        else
-          lambda do |value|
-            @default = alternative(value)
-            class << self
-              define_method :default, instance_method(:_default)
-            end
-            nil
-          end.call(*args)
+      def default(value)
+        @default = value
+        class << self
+          define_method :default, instance_method(:_default)
         end
+        nil
       end
 
       def _default
-        @default
+        alternative(@default)
       end
       private :_default
 
@@ -458,12 +462,18 @@ module Vanity
         super
       end
 
+      # Set up tracking for metrics and ensure that the attributes of the ab_test
+      # are valid (e.g. has alternatives, has a default, has metrics).
       def save
         true_false unless @alternatives
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
-        if @default.nil?
-          default(alternatives.first.value)
-          warn "No default alternative specified; choosing #{@default.value} as default."
+        if @default.equal? @@UNSPECIFIED_DEFAULT 
+          default(@alternatives.first)
+          warn "No default alternative specified; choosing #{@default} as default."
+        elsif alternative(@default).nil?
+          #Specified a default that wasn't listed as an alternative; warn and override.
+          warn "Attempted to set unknown alternative #{@default} as default! Using #{@alternatives.first} instead."
+          @default = @alternatives.first
         end
         super
         if @metrics.nil? || @metrics.empty?
