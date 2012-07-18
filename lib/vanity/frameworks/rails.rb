@@ -267,8 +267,8 @@ module Vanity
 
       def finish
         exp = Vanity.playground.experiment(params[:e].to_sym)
-        exp.finish!(params[:a])
-        redirect_to url_for(:action=>:index)
+        exp.finish!(params[:a].to_i)
+        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
 
       def add_participant
