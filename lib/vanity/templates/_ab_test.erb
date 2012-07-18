@@ -3,7 +3,7 @@
   <caption>
     <%= experiment.conclusion(score).join(" ") %>
     <% if experiment.active? && !experiment.enabled? %>
-      <div style='padding-top: 10px;'>This experiment is currently disabled, and will always choose the default 
+      <div class='disabled_info'>This experiment is currently disabled, and will always choose the default 
         <%= experiment.default.name %>.
       </div>
     <% end %>
@@ -12,7 +12,7 @@
     <tr class="<%= "choice" if score.choice == alt %>">
       <td class="option"><%= alt.name.gsub(/^o/, "O") %>:
         <% if alt.default? %>
-          <div style='font-size: 75%'>(Default)</div>
+          <div class='default'>(Default)</div>
         <% end %>
       </td>
       <td class="value"><code><%=vanity_h alt.value.to_s %></code></td>
