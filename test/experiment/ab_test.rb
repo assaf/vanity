@@ -836,6 +836,17 @@ This experiment did not run long enough to find a clear winner.
     assert [:a, :b, :c].include?(choice)
     assert_equal choice, experiment(:simple).choose.value
   end
+  
+  def test_reset_clears_participants
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      metrics :coolness
+    end
+    experiment(:simple).chooses(:b)
+    assert_equal experiment(:simple).alternatives[1].participants, 1
+    experiment(:simple).reset
+    assert_equal experiment(:simple).alternatives[1].participants, 0
+  end
 
 
   # -- Helper methods --

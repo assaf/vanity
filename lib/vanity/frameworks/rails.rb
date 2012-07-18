@@ -262,7 +262,7 @@ module Vanity
       def reset
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.reset
-        redirect_to url_for(:action=>:index)
+        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
 
       def add_participant

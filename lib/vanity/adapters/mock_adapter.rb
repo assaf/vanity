@@ -154,7 +154,7 @@ module Vanity
       end
       
       def reset_experiment(experiment)
-        @experiments[experiment] = {}
+        @experiments[experiment] = {:created_at => @experiments[experiment][:created_at]}
       end
     end
   end
