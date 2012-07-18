@@ -110,6 +110,14 @@ module Vanity
 
       end
 
+      # If the database has been screwed up somehow, correct it.
+      def repair_state!
+        if enabled? && !active?
+          warn "Bad state - an inactive experiment is enabled! Disabling."
+          connection.set_experiment_enabled(@id, false)
+        end
+      end
+
       # An object representing an unspecified default alternative. The @default
       # variable starts off as nil, but since nil may be a valid alternative,
       # we need a different way to represent an unspecified default. This object
@@ -118,27 +126,27 @@ module Vanity
 
       def initialize(*args)
         super
+        # If the backed database doesn't already have an entry for this experiment,
+        # give it one.
         if enabled?.nil?
           enabled = true
         end
+        
+        repair_state!
         @default = @@UNSPECIFIED_DEFAULT
       end
 
       # -- Enabled --
 
       def enabled?
-        if connection.is_experiment_enabled?(@id) && !active?
-          warn "Bad state - an inactive experiment is enabled! Disabling."
-          connection.set_experiment_enabled(@id, false)
-        end
-        active? && connection.is_experiment_enabled?(@id)
+        connection.is_experiment_enabled?(@id)
       end
 
       def enabled=(val)
         if active?
           connection.set_experiment_enabled(@id, val)
         else
-          warn "Cannot set enabled on an inactive experiment!"
+          raise "Cannot set enabled on an inactive experiment!"
         end
       end
         
@@ -491,6 +499,7 @@ module Vanity
       def save
         true_false unless @alternatives
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
+        
         if @default.equal? @@UNSPECIFIED_DEFAULT 
           default(@alternatives.first)
           warn "No default alternative specified; choosing #{@default} as default."
@@ -499,7 +508,10 @@ module Vanity
           warn "Attempted to set unknown alternative #{@default} as default! Using #{@alternatives.first} instead."
           @default = @alternatives.first
         end
+        
+        repair_state!
         super
+        
         if @metrics.nil? || @metrics.empty?
           warn "Please use metrics method to explicitly state which metric you are measuring against."
           metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)

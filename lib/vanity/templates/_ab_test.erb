@@ -1,7 +1,13 @@
 <% score = experiment.score %>
 <table>
   <caption>
-    <%= experiment.conclusion(score).join(" ") %></caption>
+    <%= experiment.conclusion(score).join(" ") %>
+    <% if experiment.active? && !experiment.enabled? %>
+      <div style='padding-top: 10px;'>This experiment is currently disabled, and will always choose the default 
+        <%= experiment.default.name %>.
+      </div>
+    <% end %>
+  </caption>
   <% score.alts.each do |alt| %>
     <tr class="<%= "choice" if score.choice == alt %>">
       <td class="option"><%= alt.name.gsub(/^o/, "O") %>:
@@ -17,16 +23,16 @@
         <%= "(%d%% better than %s)" % [alt.difference, score.least.name] if alt.difference && alt.difference >= 1 %>
       </td>
       <% if experiment.enabled? %>
-          <td class="action">
-            <% if experiment.active? && respond_to?(:url_for) %>
-              <% if experiment.showing?(alt) %>
-                showing
-              <% else %>
-                <a class="button chooses" title="Show me this alternative from now on" href="#"
-                  data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id) %>">show</a>
-              <% end %>
+        <td class="action">
+          <% if experiment.active? && respond_to?(:url_for) %>
+            <% if experiment.showing?(alt) %>
+              showing
+            <% else %>
+              <a class="button chooses" title="Show me this alternative from now on" href="#"
+                data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id) %>">show</a>
             <% end %>
-          </td>
+          <% end %>
+        </td>
       <% end %>
     </tr>
   <% end %>
