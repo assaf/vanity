@@ -168,8 +168,8 @@ module Vanity
         alternative(@default)
       end
       private :_default
-        
-        
+
+
         # -- Metric --
     
       # Tells A/B test which metric we're measuring, or returns metric in use. 
@@ -461,8 +461,8 @@ module Vanity
 
       def complete!
         return unless @playground.collecting? && active?
+        enabled = false
         super
-        @enabled = false
         if @outcome_is
           begin
             result = @outcome_is.call
@@ -500,7 +500,6 @@ module Vanity
           @default = @alternatives.first
         end
         super
-        connection.set_experiment_enabled @id, enabled?
         if @metrics.nil? || @metrics.empty?
           warn "Please use metrics method to explicitly state which metric you are measuring against."
           metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)

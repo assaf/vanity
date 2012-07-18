@@ -84,7 +84,7 @@ module Vanity
 
 
       # -- Experiments --
-
+     
       def set_experiment_enabled(experiment, enabled)
         @experiments.set "#{experiment}:enabled", enabled
       end
