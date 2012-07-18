@@ -466,8 +466,6 @@ module Vanity
       def reset
         connection.reset_experiment @id
         @outcome = @completed_at = nil
-        #option A: restart the experiment automatically
-        #option B: stop the experiment, user clicks start button to start
         self
       end
 

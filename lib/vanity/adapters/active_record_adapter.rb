@@ -243,6 +243,7 @@ module Vanity
       #Delete all collected data for this experiment.
       def reset_experiment(experiment)
         VanityParticipant.delete_all(:experiment_id => experiment.to_s)
+        VanityExperiment.retrieve(experiment).update_attributes(:outcome=>nil, :completed_at=>nil)
       end
 
       def to_s
