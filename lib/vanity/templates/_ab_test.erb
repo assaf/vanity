@@ -1,13 +1,4 @@
 <% score = experiment.score %>
-<% if experiment.active? %>
-  <div id='on-off'>
-    <% toggle = experiment.enabled? ? "Disable" : "Enable" %>
-    <a class="button toggle" title="<%=toggle%> this experiment." href="#"
-      data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:toggle_enabled, :e => experiment.id) %>">
-      <%=toggle%>
-    </a>
-  </div>
-<% end %>
 <table>
   <caption>
     <%= experiment.conclusion(score).join(" ") %></caption>
