@@ -209,10 +209,10 @@ module Vanity
       #
       # @example
       #   color = experiment(:which_blue).choose
-      def choose
+      def choose(id = nil)
         if @playground.collecting?
+          identity = id || identity()
           if active?
-            identity = identity()
             index = connection.ab_showing(@id, identity)
             unless index
               index = alternative_for(identity)
@@ -240,7 +240,6 @@ module Vanity
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
           end
         else
-          identity = identity()
           @showing ||= {}
           @showing[identity] ||= alternative_for(identity)
           index = @showing[identity]
@@ -663,7 +662,11 @@ module Vanity
       #     alternatives :red, :green, :blue
       #   end
       def ab_test(name, &block)
-        define name, :ab_test, &block
+        begin
+          define name, :ab_test, &block
+        rescue Exception => e
+          puts "Could not define experiment #{name} (perhaps migration has not yet been run): #{e}"
+        end
       end
     end
 

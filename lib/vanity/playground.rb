@@ -154,7 +154,12 @@ module Vanity
         @experiments = {}
         @logger.info "Vanity: loading experiments from #{load_path}"
         Dir[File.join(load_path, "*.rb")].each do |file|
-          experiment = Experiment::Base.load(self, @loading, file)
+          begin
+            experiment = Experiment::Base.load(self, @loading, file)
+          rescue Exception => e
+            puts "Could not load experiment from file #{file} (perhaps migration has not yet been run): #{e}"
+            next
+          end
           experiment.save
         end
       end
