@@ -281,20 +281,24 @@ module Vanity
       # @example
       #   color = experiment(:which_blue).choose
       def choose
-        return default if !enabled?
-        
         if @playground.collecting?
           if active?
             identity = identity()
+            
+            #Check if this identity has already been assigned an index.
             index = connection.ab_showing(@id, identity)
             unless index
+              #If not, generate one randomly
               index = alternative_for(identity)
               if !@playground.using_js?
                 connection.ab_add_participant @id, index, identity
                 check_completion!
               end
             end
+            index = alternatives.index(default) if !enabled?
+
           else
+            # If inactive, always show the outcome. Fallback to generation if one can't be found.
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
           end
         else
@@ -302,6 +306,8 @@ module Vanity
           @showing ||= {}
           @showing[identity] ||= alternative_for(identity)
           index = @showing[identity]
+          
+          index = alternatives.index(default) if !enabled?
         end
         alternatives[index.to_i]
       end

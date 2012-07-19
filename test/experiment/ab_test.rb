@@ -169,7 +169,49 @@ class AbTestTest < ActionController::TestCase
     exp = experiment(:nil_default_default)
     assert_equal exp.default, exp.alternative(nil)
   end
-
+  #
+  #
+  ## -- Experiment Enabled/disabled --
+  #
+  #def test_set_enabled_for_new_test
+  #  assert (new_ab_test :test).enabled?
+  #end
+  #
+  #def test_set_enabled_while_active
+  #  exp = new_ab_test :test
+  #  
+  #  exp.enabled = true
+  #  assert exp.enabled?
+  #  
+  #  exp.enabled = false
+  #  assert !exp.enabled?
+  #end
+  #
+  #def test_cannot_set_enabled_for_inactive
+  #  exp = new_ab_test :test
+  #  exp.complete! #active? => false
+  #
+  #  assert_raise { exp.enabled = true }
+  #  assert_raise { exp.enabled = false }
+  #end
+  #
+  #def test_complete_sets_enabled_false
+  #  exp = new_ab_test :test
+  #  exp.complete! #active? => false
+  #  
+  #  assert !exp.enabled?
+  #end
+  #
+  #def test_choose_uses_default_when_disabled
+  #  exp = new_ab_test :test do
+  #    alternatives 0, 1, 2, 3, 4, 5
+  #    default 3
+  #  end
+  #  
+  #  exp.enabled = false
+  #  assert_equal 3, exp.choose
+  #end
+  
   # -- Experiment metric --
 
   def test_explicit_metric
