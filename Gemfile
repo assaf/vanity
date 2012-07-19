@@ -1,6 +1,7 @@
 source :rubygems
 gemspec
 
+gem "pry"
 gem "appraisal"
 gem "bson_ext"
 gem "garb"

@@ -120,6 +120,8 @@ module Vanity
       # -- Enabled --
 
       def enabled?
+        return true if !@playground.collecting?
+        
         if connection.is_experiment_enabled?(@id) && !active?
           warn "Bad state - an inactive experiment is enabled! Disabling."
           connection.set_experiment_enabled(@id, false)
@@ -128,6 +130,8 @@ module Vanity
       end
 
       def enabled=(val)
+        return if !@playground.collecting?
+        
         if active?
           connection.set_experiment_enabled(@id, val)
         else
@@ -250,7 +254,7 @@ module Vanity
       # @example
       #   color = experiment(:which_blue).choose
       def choose
-        if enabled?
+        #if enabled?
           if @playground.collecting?
             if active?
               identity = identity()
@@ -272,9 +276,9 @@ module Vanity
             index = @showing[identity]
           end
           alternatives[index.to_i]
-        else
-          default
-        end
+        #else
+        #  default
+        #end
       end
 
       # Returns fingerprint (hash) for given alternative.  Can be used to lookup
@@ -492,7 +496,6 @@ module Vanity
           warn "No default alternative specified; choosing #{@default.value} as default."
         end
         super
-        connection.set_experiment_enabled @id, enabled?
         if @metrics.nil? || @metrics.empty?
           warn "Please use metrics method to explicitly state which metric you are measuring against."
           metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
