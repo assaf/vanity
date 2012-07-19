@@ -1,4 +1,4 @@
-<% score = experiment.score %>
+<% score = experiment.calculate_score %>
 <table>
   <caption>
     <%= experiment.conclusion(score).join(" ") %></caption>
@@ -10,6 +10,7 @@
       <td class="value"><%= alt.converted %> converted</td>
       <td>
         <%= "%.1f%%" % [alt.conversion_rate * 100] %>
+        <%= "(%d%% this is best)" % [alt.probability] if score.method == :bayes_score %>
         <%= "(%d%% better than %s)" % [alt.difference, score.least.name] if alt.difference && alt.difference >= 1 %>
       </td>
       <td class="action">
@@ -22,6 +23,18 @@
           <% end %>
         <% end %>
       </td>
+      <td class="action">
+        <% if experiment.active? && respond_to?(:url_for) %>
+			<% if @to_confirm == alt.id %>
+			 Are you <strong>sure</strong> you want to finish this experiment forever and assign all current and future participants to this outcome?
+			 <a class="button chooses" title="Really complete the experiment and assign this outcome" href="#"
+			  data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:complete, :e=>experiment.id, :a=>alt.id, :confirmed=>alt.id) %>">confirm</a>
+			<% else %>
+			 <a class="button chooses" title="Complete the experiment and assign this outcome" href="#"
+			  data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:complete, :e=>experiment.id, :a=>alt.id) %>">finish</a>
+			<% end %>
+		<% end %>
+	  </td>
     </tr>
   <% end %>
 </table>

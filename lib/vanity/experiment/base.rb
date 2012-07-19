@@ -69,6 +69,7 @@ module Vanity
         @id, @name = id.to_sym, name
         @options = options || {}
         @identify_block = method(:default_identify)
+        @on_assignment_block = nil
       end
 
       # Human readable experiment name (first argument you pass when creating a
@@ -113,6 +114,19 @@ module Vanity
         @identify_block = block
       end
 
+      # Defines any additional actions to take when a new assignment is made for the current experiment
+      #
+      # For example, if you want to use the rails default logger to log whenever an assignment is made:
+      #   ab_test "Project widget" do
+      #     alternatives :small, :medium, :large
+      #     on_assignment do |controller, identity, assignment|
+      #       controller.logger.info "made a split test assignment for #{experiment.name}: #{identity} => #{assignment}"
+      #     end
+      #   end
+      def on_assignment(&block)
+        fail "Missing block" unless block
+        @on_assignment_block = block
+      end
 
       # -- Reporting --
 
@@ -141,7 +155,7 @@ module Vanity
       end
 
       # Force experiment to complete.
-      def complete!
+      def complete!(outcome = nil)
         @playground.logger.info "vanity: completed experiment #{id}"
         return unless @playground.collecting?
         connection.set_experiment_completed_at @id, Time.now
