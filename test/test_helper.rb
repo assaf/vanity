@@ -97,7 +97,7 @@ class Test::Unit::TestCase
   def new_ab_test(name, &block)
     id = name.to_s.downcase.gsub(/\W/, "_").to_sym
     experiment = Vanity::Experiment::AbTest.new(Vanity.playground, id, name)
-    experiment.instance_eval &block
+    experiment.instance_eval &block if block
     experiment.save
     Vanity.playground.experiments[id] = experiment
   end
