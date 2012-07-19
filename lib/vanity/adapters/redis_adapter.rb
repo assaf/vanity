@@ -92,8 +92,9 @@ module Vanity
       def is_experiment_enabled?(experiment)
         str = @experiments["#{experiment}:enabled"]
         case str
-          when 'true'; true
-          when 'false'; false
+          when 'true';    true
+          when 'false';   false
+          else            str
         end
         #todo: maybe checking for other values?
       end

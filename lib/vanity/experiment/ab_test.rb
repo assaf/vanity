@@ -129,7 +129,7 @@ module Vanity
         # If the backed database doesn't already have an entry for this experiment,
         # give it one.
         if enabled?.nil?
-          enabled = true
+          self.enabled = true
         end
         
         repair_state!
@@ -139,16 +139,35 @@ module Vanity
       # -- Enabled --
 
       def enabled?
+        return @enabled if !@playground.collecting?
+        
+        if connection.is_experiment_enabled?(@id) && !active?
+          warn "Bad state - an inactive experiment is enabled! Disabling."
+          connection.set_experiment_enabled(@id, false)
+        end
         connection.is_experiment_enabled?(@id)
       end
 
       def enabled=(val)
+        return @enabled = val if !@playground.collecting?
+        
         if active?
           connection.set_experiment_enabled(@id, val)
         else
           raise "Cannot set enabled on an inactive experiment!"
         end
       end
+      
+      #def collecting_set_hook(enabled)
+      #  if enabled && !@playground.collecting?
+      #    # off to on: 			set db value to instance var, then delete instance var
+      #    connection.set_experiment_enabled(@id, @enabled)
+      #    self.remove_instance_variable(:@enabled)
+      #  elsif !enabled && @playground.collecting?
+      #    #on to off: 			grab the db value, set instance var to it
+      #    @enabled = connection.is_experiment_enabled?(@id)
+      #  end
+      #end
         
       # -- Default --
 
