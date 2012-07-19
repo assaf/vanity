@@ -173,21 +173,55 @@ class AbTestTest < ActionController::TestCase
   
   # -- Experiment Enabled/disabled --
   
-  def test_set_enabled_for_new_test
-    assert (new_ab_test :test).enabled?
+  # @example new test should be enabled regardless of collecting?
+  #   regardless_of "Vanity.playground.collecting" do
+  #     assert (new_ab_test :test).enabled?
+  #   end
+  def regardless_of(attr_name, &block)
+    prev_val = eval "#{attr_name}?"
+    
+    eval "#{attr_name}=true"
+    block.call(eval "#{attr_name}?")
+    nuke_playground
+    
+    eval "#{attr_name}=false"
+    block.call(eval "#{attr_name}?")
+    nuke_playground
+    
+    eval "#{attr_name}=prev_val"
   end
   
+  def test_set_enabled_for_new_test
+    regardless_of "Vanity.playground.collecting" do 
+      assert (new_ab_test :test).enabled?
+    end
+  end
+  
+  def test_complete_sets_enabled_false
+    regardless_of "Vanity.playground.collecting" do |collecting|
+      exp = new_ab_test :test
+      exp.complete! #active? => false
+  
+      assert !exp.enabled?, "experiment should not be enabled but it is! collecting=#{collecting}"
+    end
+    
+    #todo: what should happen if collecting goes to false?
+  end
+
   def test_set_enabled_while_active
-    exp = new_ab_test :test
-    
-    exp.enabled = true
-    assert exp.enabled?
-    
-    exp.enabled = false
-    assert !exp.enabled?
+    regardless_of "Vanity.playground.collecting" do
+      exp = new_ab_test :test
+      
+      exp.enabled = true
+      assert exp.enabled?
+      
+      exp.enabled = false
+      assert !exp.enabled?
+    end
   end
   
   def test_cannot_set_enabled_for_inactive
+    Vanity.playground.collecting = true
     exp = new_ab_test :test
     exp.complete! #active? => false
   
@@ -198,22 +232,55 @@ class AbTestTest < ActionController::TestCase
       exp.enabled = false
     end
   end
-  
-  def test_complete_sets_enabled_false
+
+  def test_set_enabled_while_not_collecting
+    Vanity.playground.collecting = false
     exp = new_ab_test :test
-    exp.complete! #active? => false
-    
+    exp.complete! #@active => false, but active? still true
+
+    exp.enabled = true
+    assert exp.enabled?
+
+    exp.enabled = false
     assert !exp.enabled?
   end
   
-  def test_choose_uses_default_when_disabled
+  def test_choose_random_when_enabled
+    regardless_of "Vanity.playground.collecting" do
+      exp = new_ab_test :test do 
+        true_false
+        identify { rand }
+      end
+      results = Set.new
+      100.times do
+        results << exp.choose.value
+      end
+      assert_equal results, [true, false].to_set
+    end
+  end
+  
+  def test_choose_default_when_disabled
     exp = new_ab_test :test do
       alternatives 0, 1, 2, 3, 4, 5
       default 3
     end
     
     exp.enabled = false
-    assert_equal 3, exp.choose.value
+    100.times.each do
+      assert_equal 3, exp.choose.value
+    end
+  end
+  
+  def test_choose_outcome_when_finished
+    exp = new_ab_test :test do
+      alternatives 0,1,2,3,4,5
+      default 3
+      outcome_is { alternative(5) }
+    end
+    exp.complete!
+    100.times.each do
+      assert_equal 5, exp.choose.value
+    end
   end
   
   # -- Experiment metric --

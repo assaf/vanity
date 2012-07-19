@@ -295,8 +295,9 @@ module Vanity
                 check_completion!
               end
             end
+            
+            #Just use the default if experiment is disabled. 
             index = alternatives.index(default) if !enabled?
-
           else
             # If inactive, always show the outcome. Fallback to generation if one can't be found.
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
@@ -307,6 +308,7 @@ module Vanity
           @showing[identity] ||= alternative_for(identity)
           index = @showing[identity]
           
+          #Just use the default if the experiment is disabled.
           index = alternatives.index(default) if !enabled?
         end
         alternatives[index.to_i]
@@ -493,8 +495,10 @@ module Vanity
       end
 
       def complete!
+        self.enabled = false
+        
+        # This works out to: return unless collecting?
         return unless @playground.collecting? && active?
-        enabled = false
         super
         if @outcome_is
           begin
