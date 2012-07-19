@@ -154,12 +154,6 @@ module Vanity
         alternatives = @experiments.keys("#{experiment}:alts:*")
         @experiments.del *alternatives unless alternatives.empty?
       end
-
-      def reset_experiment(experiment)
-        @experiments.del "#{experiment}:outcome", "#{experiment}:completed_at"
-        alternatives = @experiments.keys("#{experiment}:alts:*")
-        @experiments.del *alternatives unless alternatives.empty?
-      end
     end
   end
 end

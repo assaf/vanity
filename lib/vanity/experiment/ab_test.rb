@@ -464,7 +464,8 @@ module Vanity
       
       # reset experiment data.
       def reset
-        connection.reset_experiment @id
+        connection.destroy_experiment @id
+        connection.set_experiment_created_at @id, Time.now
         @outcome = @completed_at = nil
         self
       end

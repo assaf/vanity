@@ -173,12 +173,6 @@ module Vanity
         @experiments.remove :_id=>experiment
         @participants.remove :experiment=>experiment
       end
-      
-      def reset_experiment(experiment)
-        @participants.remove :experiment=>experiment
-        @experiments.update({ :_id=>experiment }, { "$set"=>{ :outcome=>nil } }, :upsert=>true)
-        @experiments.update({ :_id=>experiment }, { "$set"=>{ :completed_at=>nil } }, :upsert=>true)
-      end
     end
   end
 end
