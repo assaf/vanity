@@ -282,7 +282,7 @@ module Vanity
       #   color = experiment(:which_blue).choose
       def choose
         if @playground.collecting?
-          if active?
+          if active? && enabled?
             identity = identity()
             
             #Check if this identity has already been assigned an index.
@@ -296,20 +296,23 @@ module Vanity
               end
             end
             
-            #Just use the default if experiment is disabled. 
-            index = alternatives.index(default) if !enabled?
+          elsif active? && !enabled?
+            #Use the default if experiment is disabled. 
+            index = alternatives.index(default)
           else
             # If inactive, always show the outcome. Fallback to generation if one can't be found.
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
           end
         else
-          identity = identity()
-          @showing ||= {}
-          @showing[identity] ||= alternative_for(identity)
-          index = @showing[identity]
-          
-          #Just use the default if the experiment is disabled.
-          index = alternatives.index(default) if !enabled?
+          if enabled?
+            identity = identity()
+            @showing ||= {}
+            @showing[identity] ||= alternative_for(identity)
+            index = @showing[identity]
+          else
+            #Use the default if the experiment is disabled.
+            index = alternatives.index(default)
+          end
         end
         alternatives[index.to_i]
       end
