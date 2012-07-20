@@ -239,11 +239,6 @@ module Vanity
         record = VanityExperiment.find_by_experiment_id(experiment.to_s)
         record && record.destroy
       end
-      
-      #Delete all collected data for this experiment.
-      def reset_experiment(experiment)
-        VanityParticipant.delete_all(:experiment_id => experiment.to_s)
-      end
 
       def to_s
         @options.to_s

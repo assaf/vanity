@@ -154,6 +154,7 @@ module Vanity
         alternatives = @experiments.keys("#{experiment}:alts:*")
         @experiments.del *alternatives unless alternatives.empty?
       end
+      
     end
   end
 end

@@ -850,6 +850,16 @@ This experiment did not run long enough to find a clear winner.
     assert_equal experiment(:simple).alternatives[1].participants, 0
   end
   
+  def test_clears_outcome_and_completed_at
+     new_ab_test :simple do
+       alternatives :a, :b, :c
+       metrics :coolness	
+     end	  	
+    experiment(:simple).reset	  	
+    assert_nil experiment(:simple).outcome  	
+    assert_nil experiment(:simple).completed_at
+  end
+  
   # -- Pick Winner --
   
   def test_finish_sets_outcome_and_completes
