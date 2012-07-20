@@ -258,6 +258,12 @@ module Vanity
         exp.chooses(exp.alternatives[params[:a].to_i].value)
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
+      
+      def reset
+        exp = Vanity.playground.experiment(params[:e].to_sym)
+        exp.reset
+        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+      end
 
       def add_participant
       	if params[:e].nil? || params[:e].empty?
