@@ -69,6 +69,14 @@ module Vanity
       
 
       # -- Experiments --
+      
+      def set_experiment_enabled(experiment, enabled)
+        @experiments[experiment][:enabled] = enabled
+      end
+      
+      def is_experiment_enabled?(experiment)
+        @experiments[experiment] && (@experiments[experiment][:enabled]==nil || @experiments[experiment][:enabled])
+      end
      
       def set_experiment_created_at(experiment, time)
         @experiments[experiment] ||= {}
