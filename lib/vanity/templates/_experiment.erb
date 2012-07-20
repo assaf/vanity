@@ -9,6 +9,8 @@
 <%= render :file => Vanity.template("_" + experiment.type), :locals => {:experiment => experiment} %>
 <p class="meta">Started <%= experiment.created_at.strftime("%a, %b %d") %>
   <%= " | Completed #{experiment.completed_at.strftime("%a, %b %d")}" unless experiment.active? %>
-<button class="reset" title="Restart this experiment from scratch" href="#"
-  data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:reset, :e=>experiment.id) %>">Reset Experiment</button>
+  <% if experiment.playground.collecting? && respond_to?(:url_for) %>
+    <button class="reset" title="Restart this experiment from scratch" href="#"
+      data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:reset, :e=>experiment.id) %>">Reset Experiment</button>
+  <% end %>
 </p></div>

@@ -456,6 +456,7 @@ module Vanity
       
       #called when user picks a winner instead of automatic completion
       def finish!(alt_id)
+        return unless @playground.collecting? && active?
         outcome = alt_id
         connection.ab_set_outcome @id, alt_id
         connection.set_experiment_completed_at @id, Time.now
@@ -472,6 +473,7 @@ module Vanity
       
       # clears all collected data for the experiment
       def reset
+        return unless @playground.collecting?
         connection.destroy_experiment @id
         connection.set_experiment_created_at @id, Time.now
         @outcome = @completed_at = nil
