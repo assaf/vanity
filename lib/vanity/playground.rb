@@ -181,9 +181,6 @@ module Vanity
     #
     # @since 1.4.0
     def collecting=(enabled)
-      #if @experiments
-      #  @experiments.select{|x| x.is_a? AbTest}.each{|x| x.collecting_set_hook(enabled)}
-      #end
       @collecting = !!enabled
     end
 
