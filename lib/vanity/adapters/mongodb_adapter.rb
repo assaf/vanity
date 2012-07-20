@@ -102,6 +102,15 @@ module Vanity
       
 
       # -- Experiments --
+
+      def set_experiment_enabled(experiment, enabled)
+       @experiments.insert :_id=>experiment, :enabled=>enabled
+      end
+
+      def is_experiment_enabled?(experiment)
+        record = @experiments.find_one({ :_id=>experiment}, { :fields=>[:enabled] })
+        record && record["enabled"]
+      end
      
       def set_experiment_created_at(experiment, time)
         @experiments.insert :_id=>experiment, :created_at=>time
