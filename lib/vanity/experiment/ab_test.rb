@@ -462,7 +462,7 @@ module Vanity
         super
       end
       
-      # reset experiment data.
+      # clears all collected data for the experiment
       def reset
         connection.destroy_experiment @id
         connection.set_experiment_created_at @id, Time.now
