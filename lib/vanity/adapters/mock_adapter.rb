@@ -152,7 +152,6 @@ module Vanity
       def destroy_experiment(experiment)
         @experiments.delete experiment
       end
-      
     end
   end
 end

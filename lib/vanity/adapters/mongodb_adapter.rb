@@ -173,7 +173,6 @@ module Vanity
         @experiments.remove :_id=>experiment
         @participants.remove :experiment=>experiment
       end
-
     end
   end
 end

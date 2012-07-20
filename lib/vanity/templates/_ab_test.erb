@@ -28,9 +28,9 @@
       </td>
       <td class="action">
         <% if experiment.active? && respond_to?(:url_for) %>
-          <button class="finish" title="Pick this alternative as the winner and finisht the experiment" href="#" 
+          <button class="finish" title="Set this alternative as the outcome and complete the experiment" href="#" 
             data-id="<%= experiment.id %>" alt-name="<%= alt.name %>" 
-            data-url="<%= url_for(:action=>:finish, :e=>experiment.id, :a=>alt.id) %>">finish</button>
+            data-url="<%= url_for(:action=>:finish, :e=>experiment.id, :a=>alt.id) %>">complete</button>
         <% end %>
       </td>
     </tr>
