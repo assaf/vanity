@@ -159,6 +159,11 @@ module Vanity
         return unless @playground.collecting? && active?
         connection.set_experiment_enabled(@id, !connection.is_experiment_enabled?(@id))
       end
+      
+      def set_enabled(bool)
+        return unless @playground.collecting? && active?
+        connection.set_experiment_enabled(@id, bool)
+      end
 
       # -- Metric --
     
@@ -460,6 +465,7 @@ module Vanity
       def complete!
         # This statement is equivalent to: return unless collecting?
         return unless @playground.collecting? && active?
+        set_enabled(false)
         super
         if @outcome_is
           begin
