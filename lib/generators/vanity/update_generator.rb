@@ -1,5 +1,5 @@
-#require 'rails/generators'
-#require 'rails/generators/migration'
+require 'rails/generators'
+require 'rails/generators/migration'
 
 module Vanity
   module Generators
