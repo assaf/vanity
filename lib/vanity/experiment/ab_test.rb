@@ -110,15 +110,9 @@ module Vanity
 
       end
 
-      # An object representing an unspecified default alternative. The @default
-      # variable starts off as nil, but since nil may be a valid alternative,
-      # we need a different way to represent an unspecified default. This object
-      # fills that role.
-      @@UNSPECIFIED_DEFAULT = Object.new.freeze
-
       def initialize(*args)
         super
-        @default = @@UNSPECIFIED_DEFAULT
+        @is_default_set = false
       end
 
       # -- Default --
@@ -137,6 +131,7 @@ module Vanity
       #
       def default(value)
         @default = value
+        @is_default_set = true
         class << self
           define_method :default, instance_method(:_default)
         end
@@ -475,8 +470,9 @@ module Vanity
       def save
         true_false unless @alternatives
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
-        if @default.equal? @@UNSPECIFIED_DEFAULT 
+        if !@is_default_set
           default(@alternatives.first)
+          @is_default_set = true
           warn "No default alternative specified; choosing #{@default} as default."
         elsif alternative(@default).nil?
           #Specified a default that wasn't listed as an alternative; warn and override.
