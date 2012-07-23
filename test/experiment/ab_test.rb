@@ -191,10 +191,8 @@ class AbTestTest < ActionController::TestCase
     eval "#{attr_name}=prev_val"
   end
   
-  def test_set_enabled_for_new_test
-    regardless_of "Vanity.playground.collecting" do 
-      assert (new_ab_test :test).enabled?
-    end
+  def test_new_test_is_disabled
+    assert !(new_ab_test :test, false).enabled?
   end
   
   def test_complete_sets_enabled_false
@@ -206,10 +204,9 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_complete_keeps_enabled_true_while_not_collecting
-    Vanity.playground.collecting = false
     exp = new_ab_test :test
-    exp.complete!
-    
+    Vanity.playground.collecting = false
+    exp.set_enabled(false)
     assert exp.enabled?
   end
 
@@ -946,6 +943,27 @@ This experiment did not run long enough to find a clear winner.
     choice = experiment(:simple).choose.value
     assert [:a, :b, :c].include?(choice)
     assert_equal choice, experiment(:simple).choose.value
+  end
+  
+  def test_reset_clears_participants
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      metrics :coolness
+    end
+    experiment(:simple).chooses(:b)
+    assert_equal experiment(:simple).alternatives[1].participants, 1
+    experiment(:simple).reset
+    assert_equal experiment(:simple).alternatives[1].participants, 0
+  end
+  
+  def test_clears_outcome_and_completed_at
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      metrics :coolness
+    end
+    experiment(:simple).reset
+    assert_nil experiment(:simple).outcome
+    assert_nil experiment(:simple).completed_at
   end
 
 

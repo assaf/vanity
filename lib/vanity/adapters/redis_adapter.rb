@@ -94,7 +94,7 @@ module Vanity
         case str
           when 'true';    true
           when 'false';   false
-          else            true
+          else            false
         end
         #todo: maybe checking for other values?
       end
@@ -168,7 +168,6 @@ module Vanity
         alternatives = @experiments.keys("#{experiment}:alts:*")
         @experiments.del *alternatives unless alternatives.empty?
       end
-
     end
   end
 end
