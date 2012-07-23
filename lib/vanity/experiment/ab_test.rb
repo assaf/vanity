@@ -117,13 +117,7 @@ module Vanity
           connection.set_experiment_enabled(@id, false)
         end
       end
-
-      # An object representing an unspecified default alternative. The @default
-      # variable starts off as nil, but since nil may be a valid alternative,
-      # we need a different way to represent an unspecified default. This object
-      # fills that role.
-      @@UNSPECIFIED_DEFAULT = Object.new.freeze
-
+      
       def initialize(*args)
         super
         # If the backed database doesn't already have an entry for this experiment,
@@ -131,9 +125,9 @@ module Vanity
         if enabled?.nil?
           self.enabled = true
         end
-        
-        repair_state!
-        @default = @@UNSPECIFIED_DEFAULT
+
+        repair_state! 
+        @is_default_set = false
       end
 
       # -- Enabled --
@@ -174,6 +168,7 @@ module Vanity
       #
       def default(value)
         @default = value
+        @is_default_set = true
         class << self
           define_method :default, instance_method(:_default)
         end
@@ -512,15 +507,23 @@ module Vanity
         connection.destroy_experiment @id
         super
       end
+      
+      # clears all collected data for the experiment
+      def reset
+        connection.destroy_experiment @id
+        connection.set_experiment_created_at @id, Time.now
+        @outcome = @completed_at = nil
+        self
+      end
 
       # Set up tracking for metrics and ensure that the attributes of the ab_test
       # are valid (e.g. has alternatives, has a default, has metrics).
       def save
         true_false unless @alternatives
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
-        
-        if @default.equal? @@UNSPECIFIED_DEFAULT 
+        if !@is_default_set
           default(@alternatives.first)
+          @is_default_set = true
           warn "No default alternative specified; choosing #{@default} as default."
         elsif alternative(@default).nil?
           #Specified a default that wasn't listed as an alternative; warn and override.
