@@ -94,7 +94,7 @@ module Vanity
         case str
           when 'true';    true
           when 'false';   false
-          else            str
+          else            false
         end
         #todo: maybe checking for other values?
       end

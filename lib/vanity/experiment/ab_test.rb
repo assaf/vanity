@@ -110,46 +110,9 @@ module Vanity
 
       end
 
-      # If the database has been screwed up somehow, correct it.
-      def repair_state!
-        if enabled? && !active?
-          warn "Bad state - an inactive experiment is enabled! Disabling."
-          connection.set_experiment_enabled(@id, false)
-        end
-      end
-      
       def initialize(*args)
         super
-        # If the backed database doesn't already have an entry for this experiment,
-        # give it one.
-        if enabled?.nil?
-          self.enabled = true
-        end
-
-        repair_state! 
         @is_default_set = false
-      end
-
-      # -- Enabled --
-
-      def enabled?
-        return true if !@playground.collecting?
-        
-        if connection.is_experiment_enabled?(@id) && !active?
-          warn "Bad state - an inactive experiment is enabled! Disabling."
-          connection.set_experiment_enabled(@id, false)
-        end
-        connection.is_experiment_enabled?(@id)
-      end
-
-      def enabled=(val)
-        return if !@playground.collecting?
-        
-        if active?
-          connection.set_experiment_enabled(@id, val)
-        else
-          raise "Cannot set enabled on an inactive experiment!"
-        end
       end
         
       # -- Default --
@@ -180,6 +143,22 @@ module Vanity
       end
       private :_default
 
+      # -- Enabled --
+      
+      # Returns true if experiment is enabled, false if disabled.
+      def enabled?
+        !@playground.collecting? || connection.is_experiment_enabled?(@id)
+      end
+      
+      def toggle_enabled
+        return unless @playground.collecting? && active?
+        connection.set_experiment_enabled(@id, !connection.is_experiment_enabled?(@id))
+      end
+      
+      def set_enabled(bool)
+        return unless @playground.collecting? && active?
+        connection.set_experiment_enabled(@id, bool)
+      end
 
       # -- Metric --
     
@@ -266,37 +245,34 @@ module Vanity
       #   color = experiment(:which_blue).choose
       def choose
         if @playground.collecting?
-          if active? && enabled?
-            identity = identity()
-            
-            #Check if this identity has already been assigned an index.
-            index = connection.ab_showing(@id, identity)
-            unless index
-              #If not, generate one randomly
-              index = alternative_for(identity)
-              if !@playground.using_js?
-                connection.ab_add_participant @id, index, identity
-                check_completion!
+          if active?
+            if enabled?
+              identity = identity()
+              
+              #Check if this identity has already been assigned an index.
+              index = connection.ab_showing(@id, identity)
+              unless index
+                #If not, generate one randomly
+                index = alternative_for(identity)
+                if !@playground.using_js?
+                  connection.ab_add_participant @id, index, identity
+                  check_completion!
+                end
               end
+            else
+              # Show the default if experiment is disabled. 
+              index = alternatives.index(default)
             end
-            
-          elsif active? && !enabled?
-            #Use the default if experiment is disabled. 
-            index = alternatives.index(default)
           else
             # If inactive, always show the outcome. Fallback to generation if one can't be found.
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
           end
         else
-          if enabled?
-            identity = identity()
-            @showing ||= {}
-            @showing[identity] ||= alternative_for(identity)
-            index = @showing[identity]
-          else
-            #Use the default if the experiment is disabled.
-            index = alternatives.index(default)
-          end
+          # If collecting=false, show the alternative, but don't track anything.
+          identity = identity()
+          @showing ||= {}
+          @showing[identity] ||= alternative_for(identity)
+          index = @showing[identity]
         end
         alternatives[index.to_i]
       end
@@ -484,6 +460,7 @@ module Vanity
       def complete!
         # This statement is equivalent to: return unless collecting?
         return unless @playground.collecting? && active?
+        set_enabled(false)
         super
         if @outcome_is
           begin
@@ -530,10 +507,7 @@ module Vanity
           warn "Attempted to set unknown alternative #{@default} as default! Using #{@alternatives.first} instead."
           @default = @alternatives.first
         end
-        
-        repair_state!
         super
-        
         if @metrics.nil? || @metrics.empty?
           warn "Please use metrics method to explicitly state which metric you are measuring against."
           metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
@@ -546,7 +520,7 @@ module Vanity
 
       # Called when tracking associated metric.
       def track!(metric_id, timestamp, count, *args)
-        return unless active?
+        return unless active? && enabled?
         identity = identity() rescue nil
         if identity
           return if connection.ab_showing(@id, identity)

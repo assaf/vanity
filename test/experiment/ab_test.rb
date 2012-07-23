@@ -191,10 +191,8 @@ class AbTestTest < ActionController::TestCase
     eval "#{attr_name}=prev_val"
   end
   
-  def test_set_enabled_for_new_test
-    regardless_of "Vanity.playground.collecting" do 
-      assert (new_ab_test :test).enabled?
-    end
+  def test_new_test_is_disabled
+    assert !(new_ab_test :test, false).enabled?
   end
   
   def test_complete_sets_enabled_false
@@ -206,10 +204,9 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_complete_keeps_enabled_true_while_not_collecting
-    Vanity.playground.collecting = false
     exp = new_ab_test :test
-    exp.complete!
-    
+    Vanity.playground.collecting = false
+    exp.set_enabled(false)
     assert exp.enabled?
   end
 
@@ -217,10 +214,10 @@ class AbTestTest < ActionController::TestCase
     Vanity.playground.collecting = true
     exp = new_ab_test :test
     
-    exp.enabled = true
+    exp.set_enabled(true)
     assert exp.enabled?
     
-    exp.enabled = false
+    exp.set_enabled(false)
     assert !exp.enabled?
   end
   
@@ -228,24 +225,19 @@ class AbTestTest < ActionController::TestCase
     Vanity.playground.collecting = true
     exp = new_ab_test :test
     exp.complete! #active? => false
-  
-    assert_raise RuntimeError do
-      exp.enabled = true
-    end
-    assert_raise RuntimeError do 
-      exp.enabled = false
-    end
+    assert !exp.enabled?
+    exp.set_enabled(true)
+    assert !exp.enabled?
+    exp.toggle_enabled
+    assert !exp.enabled?
   end
 
   def test_always_enabled_while_not_collecting
     Vanity.playground.collecting = false
     exp = new_ab_test :test
-
-    exp.enabled = true
     assert exp.enabled?
-
-    exp.enabled = false
-    assert exp.enabled? #still true since collecting = false
+    exp.toggle_enabled
+    assert exp.enabled?
   end
   
   def test_choose_random_when_enabled
@@ -268,7 +260,7 @@ class AbTestTest < ActionController::TestCase
       default 3
     end
     
-    exp.enabled = false
+    exp.set_enabled(false)
     100.times.each do
       assert_equal 3, exp.choose.value
     end

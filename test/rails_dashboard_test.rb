@@ -36,7 +36,7 @@ class RailsDashboardTest < ActionController::TestCase
   end
   
   def test_toggle_enabled
-    experiment(:food).enabled = false
+    experiment(:food).set_enabled(false)
     xhr :post, :toggle_enabled, :e => "food", :a => 0
     assert_response :success
     assert experiment(:food).enabled?

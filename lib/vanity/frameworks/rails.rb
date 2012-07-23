@@ -255,8 +255,7 @@ module Vanity
 
       def toggle_enabled
         exp = Vanity.playground.experiment(params[:e].to_sym)
-        exp.enabled = !exp.enabled?
-        exp.save
+        exp.toggle_enabled
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
 

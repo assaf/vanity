@@ -66,10 +66,13 @@ module Vanity
 
       # -- Experiments --
 
+      # Store whether an experiment is enabled or not
       def set_experiment_enabled(experiment, enabled)
         fail "Not implemented"
       end
       
+      # Returns true if experiment is enabled, the default (if enabled has not yet been set) is false*
+      # (*except for mock_adapter, where default is true for testing)
       def is_experiment_enabled?(experiment)
         fail "Not implemented"
       end

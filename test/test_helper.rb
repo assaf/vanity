@@ -94,11 +94,13 @@ class Test::Unit::TestCase
   end
 
   # Defines an A/B experiment.
-  def new_ab_test(name, &block)
+  def new_ab_test(name, enabled=true, &block)
     id = name.to_s.downcase.gsub(/\W/, "_").to_sym
     experiment = Vanity::Experiment::AbTest.new(Vanity.playground, id, name)
     experiment.instance_eval &block if block
     experiment.save
+    # new experiments start off as disabled, enable them for testing
+    experiment.set_enabled(enabled)
     Vanity.playground.experiments[id] = experiment
   end
 
