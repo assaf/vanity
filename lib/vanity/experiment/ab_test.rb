@@ -181,7 +181,7 @@ module Vanity
       private :_default
 
 
-        # -- Metric --
+      # -- Metric --
     
       # Tells A/B test which metric we're measuring, or returns metric in use. 
       #
