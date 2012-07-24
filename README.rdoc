@@ -31,6 +31,11 @@ If using a relational database, run the generator and migrations to create the d
   $ rails generate vanity
   $ rake db:migrate
   
+If your database already contains vanity but doesn't have the enable/disable feature, run the update generator:
+
+  $ rails generate vanity:update
+  $ rake db:migrate
+  
 Add to your application controller:
 
   class ApplicationController < ActionController::Base
@@ -42,6 +47,7 @@ Add to your application controller:
   ab_test "Price options" do
     description "Mirror, mirror on the wall, who's the better price of all?"
     alternatives 19, 25, 29
+    default 25
     metrics :signups
   end
   
