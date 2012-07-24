@@ -79,6 +79,10 @@ If you are collecting data (in development you need to opt-in to this by setting
 The vanity dashboard setup instructions with Vanity work for Rails 3.x except the route is different. A Rails 3.x-style route would look like this:
 
   `match '/vanity(/:action(/:id(.:format)))', :controller=>:vanity`
+  
+<b>Dashboard Features</b>
+* Reset an experiment by clicking the 'reset experiment' button associated with that experiment. This will delete all collected data and restart the experiment from scratch.
+* Manually complete experiments and set the outcome by clicking the 'complete' button next to the option to be set as the outcome.
 
 
 == Registering participants with Javascript
