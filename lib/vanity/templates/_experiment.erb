@@ -1,11 +1,16 @@
 <h3>
   <%=vanity_h experiment.name %><span class="type">(<%= experiment.class.friendly_name %>)</span>
   <% if experiment.type == 'ab_test' && experiment.active? && experiment.playground.collecting? %>
-    <% toggle = experiment.enabled? ? 'Disable' : 'Enable' %>
-    <a class='button toggle' title='<%=toggle%> this experiment.' href='#'
-       data-id='<%= experiment.id %>' data-url='<%= url_for(:action=>:toggle_enabled, :e => experiment.id) %>'>
-      <%= toggle %>
-    </a>
+    <span class='enabled-links'>
+      <% action = experiment.enabled? ? 'Disable' : 'Enable' %>
+      
+      <% if experiment.enabled? %> Enabled | <% end %>
+      <a title='<%=action%> this experiment.' href='#'
+         data-id='<%= experiment.id %>' data-url='<%= url_for(:action=>action.downcase.to_sym, :e => experiment.id) %>'>
+        <%= action %></a>
+      <% if !experiment.enabled? %> | Disabled <% end %>
+      
+    </span>
   <% end %>
 </h3>
 <%= experiment.description.to_s.split(/\n\s*\n/).map { |para| vanity_html_safe(%{<p class="description">#{vanity_h para}</p>}) }.join.html_safe %>
