@@ -147,7 +147,7 @@ module Vanity
       
       # Returns true if experiment is enabled, false if disabled.
       def enabled?
-        !@playground.collecting? || connection.is_experiment_enabled?(@id)
+        !@playground.collecting? || ( active? && connection.is_experiment_enabled?(@id) )
       end
       
       def toggle_enabled
