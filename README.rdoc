@@ -1,7 +1,8 @@
 Vanity is an Experiment Driven Development framework for Rails.
 
 * All about Vanity: http://vanity.labnotes.org
-* On github: http://github.com/assaf/vanity
+* Original version on github: http://github.com/assaf/vanity
+* The verticalbrands fork: http://github.com/verticalbrands/vanity
 
 http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
