@@ -23,22 +23,21 @@ While disabled, experiments will not be tracked as participants and metrics will
 not be recorded.
 
 Experiments start off disabled. You will have to enable them, either programmatically
-or through the cpanel. *This will affect currently running experiments (i.e. they will be disabled).*
+or through the cpanel. <b>This will affect currently running experiments (i.e. they will be disabled).</b>
 
 If collecting is off, experiments are always seen as enabled. A finished experiment will
 always be disabled. The following table summarizes experiment states:
-```
-collecting | active | enabled | showing     
---------------------------------------------
-    T     |    T    |    T    | alternative <- only case when data is collected
-    T     |    T    |    F    | default
-    T     |    F    |    T    | (not possible, !enabled => !active)
-    T     |    F    |    F    | outcome
-    F     |    T    |    T    | alternative
-    F     |    T    |    F    | (not possible, !collecting => enabled && active)
-    F     |    F    |    T    | (not possible, !collecting => enabled && active)
-    F     |    F    |    F    | (not possible, !collecting => enabled && active)
-```
+
+  collecting | active | enabled | showing     
+  --------------------------------------------
+      T     |    T    |    T    | alternative <- only case when data is collected
+      T     |    T    |    F    | default
+      T     |    F    |    T    | (not possible, !enabled => !active)
+      T     |    F    |    F    | outcome
+      F     |    T    |    T    | alternative
+      F     |    T    |    F    | (not possible, !collecting => enabled && active)
+      F     |    F    |    T    | (not possible, !collecting => enabled && active)
+      F     |    F    |    F    | (not possible, !collecting => enabled && active)
 
 If your database already ran the normal vanity migration but doesn't have the enable/disable feature, run the update generator:
 
