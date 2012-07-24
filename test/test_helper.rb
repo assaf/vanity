@@ -94,13 +94,18 @@ class Test::Unit::TestCase
   end
 
   # Defines an A/B experiment.
-  def new_ab_test(name, enabled=true, &block)
+  # @param [Boolean] settrue=true Whether or not to enable this ab_test when it gets instantiated;
+  # this flag is here to simply the testing of experiment features, and also to allow
+  # testing of the default behavior of an experiment when it gets loaded.
+  # Note that settrue=false does NOT mean to set the ab_test to false; settrue = false
+  # means to not set anything at all (the 'actual' behavior).
+  def new_ab_test(name, settrue = true, &block)
     id = name.to_s.downcase.gsub(/\W/, "_").to_sym
     experiment = Vanity::Experiment::AbTest.new(Vanity.playground, id, name)
     experiment.instance_eval &block if block
     experiment.save
     # new experiments start off as disabled, enable them for testing
-    experiment.set_enabled(enabled)
+    experiment.set_enabled(true) if settrue
     Vanity.playground.experiments[id] = experiment
   end
 

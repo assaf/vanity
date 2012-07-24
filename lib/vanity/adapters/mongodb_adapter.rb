@@ -102,23 +102,38 @@ module Vanity
       
 
       # -- Experiments --
+      
+      def create_if_not_exist(experiment)
+        @experiments.insert :_id=>experiment unless @experiments.find_one({:_id=>experiment})
+      end
+      private :create_if_not_exist
 
       def set_experiment_enabled(experiment, enabled)
-       @experiments.insert :_id=>experiment, :enabled=>enabled
+        create_if_not_exist(experiment)
+        @experiments.update({ :_id=>experiment }, { "$set"=>{ :enabled=>enabled } }, :upsert=>true)
       end
 
       def is_experiment_enabled?(experiment)
         record = @experiments.find_one({ :_id=>experiment}, { :fields=>[:enabled] })
-        record && record["enabled"]
+        record && case record["enabled"]
+                    when true;  true
+                    when false; false
+                    else        false
+                  end
       end
      
       def set_experiment_created_at(experiment, time)
-        @experiments.insert :_id=>experiment, :created_at=>time
+        # Set the experiment's created_at if it doesn't already exist
+        create_if_not_exist(experiment)
+        if !get_experiment_created_at(experiment)
+          @experiments.update({ :_id=>experiment }, { "$set"=>{ :created_at=>time } }, :upsert=>true)
+        end
       end
 
       def get_experiment_created_at(experiment)
         record = @experiments.find_one({ :_id=>experiment }, { :fields=>[:created_at] })
         record && record["created_at"]
+        #Returns nil if either the record or the field doesn't exist
       end
 
       def set_experiment_completed_at(experiment, time)

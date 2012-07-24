@@ -240,6 +240,26 @@ class AbTestTest < ActionController::TestCase
     assert exp.enabled?
   end
   
+  def test_enabled_persists_across_definitions
+    Vanity.playground.collecting = true
+    new_ab_test :test, false
+    assert !experiment(:test).enabled? #starts off false
+    
+    new_playground
+    
+    new_ab_test :test, false
+    assert !experiment(:test).enabled? #still false
+    experiment(:test).set_enabled(true)
+    assert experiment(:test).enabled? #now true
+    
+    new_playground
+    
+    new_ab_test :test, false
+    assert experiment(:test).enabled? #still true
+    experiment(:test).set_enabled(false)
+    assert !experiment(:test).enabled? #now false again
+  end
+  
   def test_choose_random_when_enabled
     regardless_of "Vanity.playground.collecting" do
       exp = new_ab_test :test do 
