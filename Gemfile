@@ -1,7 +1,6 @@
 source :rubygems
 gemspec
 
-gem "pry"
 gem "appraisal"
 gem "bson_ext"
 gem "garb"
@@ -23,4 +22,5 @@ group :development do
   gem "rake"
   gem "RedCloth"
   gem "yard"
+  gem "pry"
 end

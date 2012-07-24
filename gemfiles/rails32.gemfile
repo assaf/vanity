@@ -2,7 +2,6 @@
 
 source :rubygems
 
-gem "pry"
 gem "appraisal"
 gem "garb"
 gem "mocha"
