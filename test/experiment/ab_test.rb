@@ -192,7 +192,7 @@ class AbTestTest < ActionController::TestCase
   end
   
   def test_new_test_is_disabled
-    assert !(new_ab_test :test, false).enabled?
+    assert !(new_ab_test :test, :enable => false).enabled?
   end
   
   def test_complete_sets_enabled_false
@@ -240,19 +240,19 @@ class AbTestTest < ActionController::TestCase
   
   def test_enabled_persists_across_definitions
     Vanity.playground.collecting = true
-    new_ab_test :test, false
+    new_ab_test :test, :enable => false
     assert !experiment(:test).enabled? #starts off false
     
     new_playground
     
-    new_ab_test :test, false
+    new_ab_test :test, :enable => false
     assert !experiment(:test).enabled? #still false
     experiment(:test).set_enabled(true)
     assert experiment(:test).enabled? #now true
     
     new_playground
     
-    new_ab_test :test, false
+    new_ab_test :test, :enable => false
     assert experiment(:test).enabled? #still true
     experiment(:test).set_enabled(false)
     assert !experiment(:test).enabled? #now false again
