@@ -495,11 +495,11 @@ module Vanity
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
         if !@is_default_set
           default(@alternatives.first)
-          @is_default_set = true
           warn "No default alternative specified; choosing #{@default} as default."
         elsif alternative(@default).nil?
           #Specified a default that wasn't listed as an alternative; warn and override.
           warn "Attempted to set unknown alternative #{@default} as default! Using #{@alternatives.first} instead."
+          #Set the instance variable directly since default(value) is no longer defined
           @default = @alternatives.first
         end
         super

@@ -115,11 +115,7 @@ module Vanity
 
       def is_experiment_enabled?(experiment)
         record = @experiments.find_one({ :_id=>experiment}, { :fields=>[:enabled] })
-        record && case record["enabled"]
-                    when true;  true
-                    when false; false
-                    else        false
-                  end
+        record && !!record["enabled"]
       end
      
       def set_experiment_created_at(experiment, time)
