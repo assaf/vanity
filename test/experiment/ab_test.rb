@@ -228,15 +228,13 @@ class AbTestTest < ActionController::TestCase
     assert !exp.enabled?
     exp.set_enabled(true)
     assert !exp.enabled?
-    exp.toggle_enabled
-    assert !exp.enabled?
   end
 
   def test_always_enabled_while_not_collecting
     Vanity.playground.collecting = false
     exp = new_ab_test :test
     assert exp.enabled?
-    exp.toggle_enabled
+    exp.set_enabled(false)
     assert exp.enabled?
   end
   

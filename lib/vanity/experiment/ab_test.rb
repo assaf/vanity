@@ -150,11 +150,6 @@ module Vanity
         !@playground.collecting? || ( active? && connection.is_experiment_enabled?(@id) )
       end
       
-      def toggle_enabled
-        return unless @playground.collecting? && active?
-        connection.set_experiment_enabled(@id, !connection.is_experiment_enabled?(@id))
-      end
-      
       def set_enabled(bool)
         return unless @playground.collecting? && active?
         connection.set_experiment_enabled(@id, bool)
