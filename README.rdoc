@@ -32,7 +32,7 @@ always be disabled. The following table summarizes experiment states:
   --------------------------------------------
       T     |    T    |    T    | alternative <- only case when data is collected
       T     |    T    |    F    | default
-      T     |    F    |    T    | (not possible, !enabled => !active)
+      T     |    F    |    T    | (not possible, !active => !enabled)
       T     |    F    |    F    | outcome
       F     |    T    |    T    | alternative
       F     |    T    |    F    | (not possible, !collecting => enabled && active)
