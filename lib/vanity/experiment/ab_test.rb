@@ -42,6 +42,13 @@ module Vanity
         load_counts unless @conversions
         @conversions
       end
+      
+      # Number of tracked metrics for this alternativeReturns a hash of metric=>value
+      def metric_counts
+        @metric_counts if @metric_counts
+        @metric_counts = @experiment.playground.connection.ab_metric_counts(@experiment.id, id)
+        @metric_counts
+      end
 
       # Z-score for this alternative, related to 2nd-best performing alternative. Populated by AbTest#score.
       attr_accessor :z_score
@@ -497,6 +504,7 @@ module Vanity
         if identity
           return if connection.ab_showing(@id, identity)
           index = alternative_for(identity)
+          connection.ab_add_metric_count @id, index, metric_id, count
           connection.ab_add_conversion @id, index, identity, count
           check_completion!
         end

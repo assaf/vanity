@@ -112,6 +112,15 @@ module Vanity
           :converted    => @experiments.scard("#{experiment}:alts:#{alternative}:converted").to_i,
           :conversions  => @experiments["#{experiment}:alts:#{alternative}:conversions"].to_i }
       end
+      
+      def ab_metric_counts(experiment, alternative)
+        metrics = @experiments.keys("#{experiment}:alts:#{alternative}:metrics:*")
+        hash = {}
+        metrics.each do |metric|
+          hash[metric.split(':')[4]] = @experiments[metric].to_i
+        end
+        hash
+      end
 
       def ab_show(experiment, identity, alternative)
         @experiments["#{experiment}:participant:#{identity}:show"] = alternative
@@ -138,6 +147,10 @@ module Vanity
         end
         @experiments.sadd "#{experiment}:alts:#{alternative}:converted", identity if implicit || participating
         @experiments.incrby "#{experiment}:alts:#{alternative}:conversions", count
+      end
+
+      def ab_add_metric_count(experiment, alternative, metric, count = 1)
+        @experiments.incrby "#{experiment}:alts:#{alternative}:metrics:#{metric}:metric_count", count
       end
 
       def ab_get_outcome(experiment)

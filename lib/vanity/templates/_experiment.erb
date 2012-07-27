@@ -1,5 +1,8 @@
 <h3><%=vanity_h experiment.name %> <span class="type">(<%= experiment.class.friendly_name %>)</span></h3>
 <%= experiment.description.to_s.split(/\n\s*\n/).map { |para| vanity_html_safe(%{<p class="description">#{vanity_h para}</p>}) }.join.html_safe %>
+<p>Tracking: 
+  <% experiment.metrics.each_with_index do |metric,i| %><%= i==0 ? metric.name : ", #{metric.name}"%><% end %>
+</p>
 <button class="reset" title="Reset this experiment" href="#"
   data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:reset, :e=>experiment.id) %>">Reset</button>
 <%= render :file => Vanity.template("_" + experiment.type), :locals => {:experiment => experiment} %>
