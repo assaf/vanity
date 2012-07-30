@@ -103,13 +103,7 @@ module Vanity
 
       # -- Experiments --
       
-      def create_if_not_exist(experiment)
-        @experiments.insert :_id=>experiment unless @experiments.find_one({:_id=>experiment})
-      end
-      private :create_if_not_exist
-
       def set_experiment_enabled(experiment, enabled)
-        create_if_not_exist(experiment)
         @experiments.update({ :_id=>experiment }, { "$set"=>{ :enabled=>enabled } }, :upsert=>true)
       end
 
@@ -119,11 +113,7 @@ module Vanity
       end
      
       def set_experiment_created_at(experiment, time)
-        # Set the experiment's created_at if it doesn't already exist
-        create_if_not_exist(experiment)
-        if !get_experiment_created_at(experiment)
-          @experiments.update({ :_id=>experiment }, { "$set"=>{ :created_at=>time } }, :upsert=>true)
-        end
+        @experiments.update({ :_id=>experiment }, { "$set"=>{ :created_at=>time } }, :upsert=>true)
       end
 
       def get_experiment_created_at(experiment)
