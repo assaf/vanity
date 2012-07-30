@@ -1,5 +1,5 @@
 PATH
-  remote: /Users/dougcole/workspace/vanity
+  remote: /Users/xiaohanzhang/vanity
   specs:
     vanity (1.8.0)
       redis (~> 2.0)

@@ -93,11 +93,20 @@ class Test::Unit::TestCase
   end
 
   # Defines an A/B experiment.
-  def new_ab_test(name, &block)
+  # @param [Hash] options Options include:
+  #   [Boolean] enable (default true) - Whether or not to enable this ab_test when it gets instantiated;
+  # this flag is here to simply the testing of experiment features, and also to allow
+  # testing of the default behavior of an experiment when it gets loaded.
+  # Note that :enable => false does NOT mean to set the ab_test to false; it
+  # means to not set enabled at all (the 'actual' behavior).
+  def new_ab_test(name, options = {}, &block)
+    enable = options.fetch(:enable, true)
     id = name.to_s.downcase.gsub(/\W/, "_").to_sym
     experiment = Vanity::Experiment::AbTest.new(Vanity.playground, id, name)
-    experiment.instance_eval &block
+    experiment.instance_eval &block if block
     experiment.save
+    # new experiments start off as disabled, enable them for testing
+    experiment.set_enabled(true) if enable
     Vanity.playground.experiments[id] = experiment
   end
 
@@ -136,6 +145,10 @@ if ENV["DB"] == "mysql" || ENV["DB"] == "postgres"
   require "generators/templates/vanity_migration"
   VanityMigration.down rescue nil
   VanityMigration.up
+  
+  require "generators/templates/vanity_migration_add_enabled_to_vanity_experiments"
+  VanityMigrationAddEnabledToVanityExperiments.down rescue nil
+  VanityMigrationAddEnabledToVanityExperiments.up
 end
 
 

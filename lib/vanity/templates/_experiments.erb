@@ -1,5 +1,5 @@
 <ul class="experiments">
-  <% experiments.sort_by { |id, experiment| experiment.created_at }.reverse.each do |id, experiment| %>
+  <% experiments.sort_by { |id, experiment| id.to_s }.each do |id, experiment| %>
     <li class="experiment <%= experiment.type %>" id="experiment_<%=vanity_h id.to_s %>">
     <%= render :file => Vanity.template("_experiment"), :locals => { :id => id, :experiment => experiment } %>
     </li>

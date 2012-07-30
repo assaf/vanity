@@ -1,6 +1,7 @@
 .bundle
 .yardoc
 *.gem
+.idea
 html
 test/myapp/log/
 vendor

@@ -15,6 +15,11 @@
     <div class="vanity">
       <% experiments = Vanity.playground.experiments ; unless experiments.empty? %>
         <h2>Experiments</h2>
+        <% unless Vanity.playground.collecting? %>
+          <div>Vanity is currently not collecting data or metrics. To turn on data collection,
+            set <span style='font-family: courier'>Vanity.playground.collecting = true;</span>.
+          </div>
+        <% end %>
         <%= render :file=>Vanity.template("_experiments"), :locals=>{:experiments=>experiments} %>
       <% end %>
       <% metrics = Vanity.playground.metrics ; unless metrics.empty? %>

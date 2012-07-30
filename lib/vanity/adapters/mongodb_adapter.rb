@@ -102,14 +102,24 @@ module Vanity
       
 
       # -- Experiments --
+      
+      def set_experiment_enabled(experiment, enabled)
+        @experiments.update({ :_id=>experiment }, { "$set"=>{ :enabled=>enabled } }, :upsert=>true)
+      end
+
+      def is_experiment_enabled?(experiment)
+        record = @experiments.find_one({ :_id=>experiment}, { :fields=>[:enabled] })
+        record && record["enabled"] == true
+      end
      
       def set_experiment_created_at(experiment, time)
-        @experiments.insert :_id=>experiment, :created_at=>time
+        @experiments.update({ :_id=>experiment }, { "$set"=>{ :created_at=>time } }, :upsert=>true)
       end
 
       def get_experiment_created_at(experiment)
         record = @experiments.find_one({ :_id=>experiment }, { :fields=>[:created_at] })
         record && record["created_at"]
+        #Returns nil if either the record or the field doesn't exist
       end
 
       def set_experiment_completed_at(experiment, time)
