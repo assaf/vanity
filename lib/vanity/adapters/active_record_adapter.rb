@@ -102,6 +102,8 @@ module Vanity
           klass.delete_all
         end
       end
+      
+      # -- Metrics --
 
       def get_metric_last_update_at(metric)
         record = VanityMetric.find_by_metric_id(metric.to_s)
@@ -144,6 +146,20 @@ module Vanity
       def destroy_metric(metric)
         record = VanityMetric.find_by_metric_id(metric.to_s)
         record && record.destroy
+      end
+
+      # -- Experiments --
+      
+      def set_experiment_enabled(experiment, enabled)
+        record = VanityExperiment.find_by_experiment_id(experiment.to_s) ||
+                VanityExperiment.new(:experiment_id => experiment.to_s)
+        record.enabled = enabled
+        record.save
+      end
+
+      def is_experiment_enabled?(experiment)
+        record = VanityExperiment.retrieve(experiment)
+        record && record.enabled
       end
 
       # Store when experiment was created (do not write over existing value).

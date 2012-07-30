@@ -85,6 +85,15 @@ module Vanity
 
       # -- Experiments --
      
+      def set_experiment_enabled(experiment, enabled)
+        @experiments.set "#{experiment}:enabled", enabled
+      end
+
+      def is_experiment_enabled?(experiment)
+        str = @experiments["#{experiment}:enabled"]
+        str == 'true'
+      end
+     
       def set_experiment_created_at(experiment, time)
         @experiments.setnx "#{experiment}:created_at", time.to_i
       end

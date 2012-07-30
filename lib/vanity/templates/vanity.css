@@ -7,12 +7,15 @@
 .vanity .experiments { list-style: none; margin: 0; padding: 0 }
 .vanity .experiment { margin: 1em 0 2em 0; border-bottom: 1px solid #ddd }
 .vanity .experiment .type { margin-left: .3em; color: #bbb; font-size: .8em; font-weight: normal }
+.vanity .experiment .enabled-links { float: right; font-weight: normal }
 
 .vanity .ab_test table { border-collapse: collapse; table-layout: fixed; width: 100%; border-bottom: 1px solid #ccc; margin: 1em 0 0 0 }
 .vanity .ab_test td { padding: .5em; border-top: 1px solid #ccc }
 .vanity .ab_test .choice td { font-weight: bold; background: #f0f0f8 }
 .vanity .ab_test caption { caption-side: bottom; padding: .5em; background: transparent; text-align: left }
+.vanity .ab_test caption .disabled_info { padding-top: .5em }
 .vanity .ab_test td.option { width: 5em; white-space: nowrap; overflow: hidden }
+.vanity .ab_test td.option .default { font-size: 75% }
 .vanity .ab_test td.value { width: 8em; white-space: nowrap; overflow: hidden }
 .vanity .ab_test td.action { width: 6em; overflow: hidden; text-align: right }
 

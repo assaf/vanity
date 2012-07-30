@@ -1,10 +1,48 @@
 Vanity is an Experiment Driven Development framework for Rails.
 
 * All about Vanity: http://vanity.labnotes.org
-* On github: http://github.com/assaf/vanity
+* Original version on github: http://github.com/assaf/vanity
+* The verticalbrands fork: http://github.com/verticalbrands/vanity
 
 http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
+== Changes in the verticalbrands fork
+
+Enabling/disabling an experiment through the cpanel. Specify a "default" alternative
+in the experiment specification; disabled experiments will always show that option.
+e.g.
+
+  ab_test "Price options" do
+    description "Mirror, mirror on the wall, who's the better price of all?"
+    alternatives 19, 25, 29
+    default 25
+    metrics :signups
+  end
+
+While disabled, experiments will not be tracked as participants and metrics will
+not be recorded.
+
+Experiments start off disabled. You will have to enable them, either programmatically
+or through the cpanel. <b>This will affect currently running experiments (i.e. they will be disabled).</b>
+
+If collecting is off, experiments are always seen as enabled. A finished experiment will
+always be disabled. The following table summarizes experiment states:
+
+  collecting | active | enabled | showing     
+  --------------------------------------------
+      T     |    T    |    T    | alternative <- only case when data is collected
+      T     |    T    |    F    | default
+      T     |    F    |    T    | (not possible, !active => !enabled)
+      T     |    F    |    F    | outcome
+      F     |    T    |    T    | alternative
+      F     |    T    |    F    | (not possible, !collecting => enabled && active)
+      F     |    F    |    T    | (not possible, !collecting => enabled && active)
+      F     |    F    |    F    | (not possible, !collecting => enabled && active)
+
+If your database already ran the normal vanity migration but doesn't have the enable/disable feature, run the update generator:
+
+  $ rails generate vanity:update
+  $ rake db:migrate
 
 == A/B Testing With Rails (In 5 Easy Steps)
 
@@ -42,6 +80,7 @@ Add to your application controller:
   ab_test "Price options" do
     description "Mirror, mirror on the wall, who's the better price of all?"
     alternatives 19, 25, 29
+    default 25
     metrics :signups
   end
   
