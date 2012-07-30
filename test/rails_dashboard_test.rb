@@ -53,4 +53,9 @@ class RailsDashboardTest < ActionController::TestCase
     xhr :post, :reset, :e => "food"
     assert_response :success
   end
+  
+  def test_finish
+    xhr :post, :finish, :e => "food", :a => 0
+    assert_response :success
+  end
 end

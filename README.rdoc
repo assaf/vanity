@@ -43,6 +43,11 @@ If your database already ran the normal vanity migration but doesn't have the en
 
   $ rails generate vanity:update
   $ rake db:migrate
+  
+<b>More Dashboard Features</b>
+* Reset an experiment by clicking the 'reset experiment' button associated with that experiment. This will delete all collected data and restart the experiment from scratch.
+* Manually complete experiments and set the outcome by clicking the 'complete' button next to the option to be set as the outcome.
+
 
 == A/B Testing With Rails (In 5 Easy Steps)
 

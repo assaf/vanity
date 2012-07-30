@@ -452,26 +452,30 @@ module Vanity
         outcome && _alternatives[outcome]
       end
 
-      def complete!
+      def complete!(alt_id = nil)
         # This statement is equivalent to: return unless collecting?
         return unless @playground.collecting? && active?
         set_enabled(false)
         super
-        if @outcome_is
-          begin
-            result = @outcome_is.call
-            outcome = result.id if Alternative === result && result.experiment == self
-          rescue 
-            warn "Error in AbTest#complete!: #{$!}"
+        if alt_id # user picks a winner instead of automatic completion
+          outcome = alt_id
+        else # determine outcome
+          if @outcome_is
+            begin
+              result = @outcome_is.call
+              outcome = result.id if Alternative === result && result.experiment == self
+            rescue 
+              warn "Error in AbTest#complete!: #{$!}"
+            end
+          else
+            best = score.best
+            outcome = best.id if best
           end
-        else
-          best = score.best
-          outcome = best.id if best
         end
         # TODO: logging
         connection.ab_set_outcome @id, outcome || 0
       end
-
+      
       
       # -- Store/validate --
 
@@ -482,6 +486,7 @@ module Vanity
       
       # clears all collected data for the experiment
       def reset
+        return unless @playground.collecting?
         connection.destroy_experiment @id
         connection.set_experiment_created_at @id, Time.now
         @outcome = @completed_at = nil

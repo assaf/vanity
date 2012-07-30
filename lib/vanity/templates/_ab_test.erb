@@ -22,18 +22,23 @@
         <%= "%.1f%%" % [alt.conversion_rate * 100] %>
         <%= "(%d%% better than %s)" % [alt.difference, score.least.name] if alt.difference && alt.difference >= 1 %>
       </td>
-      <% if experiment.enabled? %>
-        <td class="action">
-          <% if experiment.active? && respond_to?(:url_for) %>
-            <% if experiment.showing?(alt) %>
-              showing
-            <% else %>
-              <a class="button chooses" title="Show me this alternative from now on" href="#"
-                data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id) %>">show</a>
-            <% end %>
+      <td class="action">
+        <% if experiment.enabled? && experiment.active? && respond_to?(:url_for) %>
+          <% if experiment.showing?(alt) %>
+            showing
+          <% else %>
+            <a class="button chooses" title="Show me this alternative from now on" href="#"
+              data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id) %>">show</a>
           <% end %>
-        </td>
-      <% end %>
+        <% end %>
+      </td>
+      <td class="action">
+        <% if experiment.playground.collecting? && experiment.active? && respond_to?(:url_for) %>
+          <button class="finish" title="Set this alternative as the outcome and complete the experiment" href="#" 
+            data-id="<%= experiment.id %>" alt-name="<%= alt.name %>" 
+            data-url="<%= url_for(:action=>:finish, :e=>experiment.id, :a=>alt.id) %>">complete</button>
+        <% end %>
+      </td>
     </tr>
   <% end %>
 </table>

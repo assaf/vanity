@@ -145,7 +145,6 @@ module Vanity
       def destroy_experiment(experiment)
         fail "Not implemented"
       end
-
     end
   end
 end

@@ -113,7 +113,7 @@ module Vanity
       end
      
       def set_experiment_created_at(experiment, time)
-        @experiments.update({ :_id=>experiment }, { "$set"=>{ :created_at=>time } }, :upsert=>true)
+        @experiments.insert :_id=>experiment, :created_at=>time
       end
 
       def get_experiment_created_at(experiment)

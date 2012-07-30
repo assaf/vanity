@@ -2,7 +2,7 @@
   <head>
     <title>Vanity Report: <%= Time.now.strftime("%b %d %Y, %I:%M:%P") %></title>
     <style>
-      .vanity { margin: 2em auto; width: 40em; font-family: "Helvetica Neue", "Helvetica", "Verdana", sans-serif }
+      .vanity { margin: 2em auto; width: 50em; font-family: "Helvetica Neue", "Helvetica", "Verdana", sans-serif }
       .vanity h1 { margin: 1em 0; border-bottom: 3px solid #ccc }
       <%= vanity_html_safe(File.read(Vanity.template("vanity.css"))) %>
     </style>
