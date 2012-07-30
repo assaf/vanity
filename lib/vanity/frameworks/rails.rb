@@ -279,7 +279,7 @@ module Vanity
 
       def finish
         exp = Vanity.playground.experiment(params[:e].to_sym)
-        exp.finish!(params[:a].to_i)
+        exp.complete!(params[:a].to_i)
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
 
