@@ -93,11 +93,12 @@ class Test::Unit::TestCase
   end
 
   # Defines an A/B experiment.
-  # @param [Boolean] settrue=true Whether or not to enable this ab_test when it gets instantiated;
+  # @param [Hash] options Options include:
+  #   [Boolean] enable (default true) - Whether or not to enable this ab_test when it gets instantiated;
   # this flag is here to simply the testing of experiment features, and also to allow
   # testing of the default behavior of an experiment when it gets loaded.
-  # Note that settrue=false does NOT mean to set the ab_test to false; settrue = false
-  # means to not set anything at all (the 'actual' behavior).
+  # Note that :enable => false does NOT mean to set the ab_test to false; it
+  # means to not set enabled at all (the 'actual' behavior).
   def new_ab_test(name, options = {}, &block)
     enable = options.fetch(:enable, true)
     id = name.to_s.downcase.gsub(/\W/, "_").to_sym
