@@ -255,13 +255,13 @@ module Vanity
 
       def disable
         exp = Vanity.playground.experiment(params[:e].to_sym)
-        exp.set_enabled(false)
+        exp.enabled = false
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
       
       def enable
         exp = Vanity.playground.experiment(params[:e].to_sym)
-        exp.set_enabled(true)
+        exp.enabled = true
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
 

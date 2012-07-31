@@ -106,7 +106,7 @@ class Test::Unit::TestCase
     experiment.instance_eval &block if block
     experiment.save
     # new experiments start off as disabled, enable them for testing
-    experiment.set_enabled(true) if enable
+    experiment.enabled = true if enable
     Vanity.playground.experiments[id] = experiment
   end
 
