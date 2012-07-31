@@ -133,6 +133,12 @@ module Vanity
           :conversions  => conversions && conversions[alternative.to_s] || 0 }
       end
 
+      def ab_metric_counts(experiment, alternative)
+        record = @experiments.find_one({ :_id=>experiment }, { :fields=>[:metrics] })
+        metrics = record && record["metrics"]
+        metrics[alternative.to_s]
+      end
+
       def ab_show(experiment, identity, alternative)
         @participants.update({ :experiment=>experiment, :identity=>identity }, { "$set"=>{ :show=>alternative } }, :upsert=>true)
       end
@@ -158,6 +164,10 @@ module Vanity
         end
         @participants.update({ :experiment=>experiment, :identity=>identity }, { "$push"=>{ :converted=>alternative } }, :upsert=>true) if implicit || participating
         @experiments.update({ :_id=>experiment }, { "$inc"=>{ "conversions.#{alternative}"=>count } }, :upsert=>true)
+      end
+
+      def ab_add_metric_count(experiment, alternative, metric, count = 1)
+        @experiments.update({ :_id=>experiment }, { "$inc"=>{ "metrics.#{alternative}.#{metric}"=>count } }, :upsert=>true)
       end
 
       def ab_get_outcome(experiment)

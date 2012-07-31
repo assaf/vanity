@@ -29,6 +29,14 @@ class VanityMigration < ActiveRecord::Migration
     end
     add_index :vanity_conversions, [:vanity_experiment_id, :alternative], :name => "by_experiment_id_and_alternative"
 
+    create_table :vanity_metric_counts do |t|
+      t.integer :vanity_experiment_id
+      t.integer :alternative
+      t.string :metric
+      t.integer :count
+    end
+    add_index :vanity_metric_counts, [:vanity_experiment_id, :alternative, :metric], :name => "by_experiment_id_and_alternative_and_metric"
+
     create_table :vanity_participants do |t|
       t.string :experiment_id
       t.string :identity

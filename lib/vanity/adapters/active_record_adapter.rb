@@ -40,7 +40,7 @@ module Vanity
       class VanityExperiment < VanityRecord
         self.table_name = :vanity_experiments
         has_many :vanity_conversions, :dependent => :destroy
-        has_many :vanity_alt_metrics, :dependent => :destroy
+        has_many :vanity_metric_counts, :dependent => :destroy
 
         # Finds or creates the experiment
         def self.retrieve(experiment)
@@ -59,7 +59,7 @@ module Vanity
         end
       end
 
-      # Alternatives Metric model
+      # Metric Counts model (for keeping track of metrics for each alternative)
       class VanityMetricCount < VanityRecord
         self.table_name = :vanity_metric_counts
         belongs_to :vanity_experiment
@@ -187,7 +187,7 @@ module Vanity
       end
 
       # Returns counts for given A/B experiment and alternative (by index).
-      # Returns hash with values for the keys :participants, ¶:converted and
+      # Returns hash with values for the keys :participants, :converted and
       # :conversions.
       def ab_counts(experiment, alternative)
         record = VanityExperiment.retrieve(experiment)
