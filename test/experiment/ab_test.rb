@@ -414,7 +414,6 @@ class AbTestTest < ActionController::TestCase
       alternatives "foo", "bar"
       identify { ids.pop }
       metrics :coolness
-      
     end
     500.times do
       experiment(:foobar).choose
