@@ -140,7 +140,6 @@ module Vanity
         Dir[File.join(load_path, "*.rb")].each do |file|
           experiment = Experiment::Base.load(self, @loading, file)
           # experiment.save is called in Experiment::Base
-          experiment.save
         end
       end
       @experiments

@@ -53,7 +53,7 @@ module Vanity
         end
         
         def increment_metric_count(alternative, metric, count = 1)
-          conditions = {:alternative => alternative, :metric => metric}
+          conditions = {:alternative => alternative, :metric => metric.to_s}
           record = vanity_metric_counts.find(:first, :conditions => conditions) || vanity_metric_counts.create(conditions)
           record.increment!(:count, count)
         end
@@ -115,6 +115,8 @@ module Vanity
           klass.delete_all
         end
       end
+      
+      # -- Metrics --
 
       def get_metric_last_update_at(metric)
         record = VanityMetric.find_by_metric_id(metric.to_s)
@@ -157,6 +159,20 @@ module Vanity
       def destroy_metric(metric)
         record = VanityMetric.find_by_metric_id(metric.to_s)
         record && record.destroy
+      end
+
+      # -- Experiments --
+      
+      def set_experiment_enabled(experiment, enabled)
+        record = VanityExperiment.find_by_experiment_id(experiment.to_s) ||
+                VanityExperiment.new(:experiment_id => experiment.to_s)
+        record.enabled = enabled
+        record.save
+      end
+
+      def is_experiment_enabled?(experiment)
+        record = VanityExperiment.retrieve(experiment)
+        record && record.enabled
       end
 
       # Store when experiment was created (do not write over existing value).
@@ -206,7 +222,7 @@ module Vanity
       # Returns hash with metric names as keys and metric counts as values
       def ab_metric_counts(experiment, alternative)
         record = VanityExperiment.retrieve(experiment)
-        metric_counts = record.vanity_metric_counts.where(:alternative => alternative)
+        metric_counts = record.vanity_metric_counts.keep_if{|m| m.alternative == alternative}
         hash = {}
         metric_counts.each do |metric_count|
           hash[metric_count.metric] = metric_count.count

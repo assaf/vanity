@@ -121,7 +121,7 @@ module Vanity
         super
         @is_default_set = false
       end
-
+        
       # -- Default --
 
       # Call this method once to set a default alternative. Call without 
@@ -150,8 +150,19 @@ module Vanity
       end
       private :_default
 
+      # -- Enabled --
+      
+      # Returns true if experiment is enabled, false if disabled.
+      def enabled?
+        !@playground.collecting? || ( active? && connection.is_experiment_enabled?(@id) )
+      end
+      
+      def set_enabled(bool)
+        return unless @playground.collecting? && active?
+        connection.set_experiment_enabled(@id, bool)
+      end
 
-        # -- Metric --
+      # -- Metric --
     
       # Tells A/B test which metric we're measuring, or returns metric in use. 
       #
@@ -237,19 +248,29 @@ module Vanity
       def choose
         if @playground.collecting?
           if active?
-            identity = identity()
-            index = connection.ab_showing(@id, identity)
-            unless index
-              index = alternative_for(identity)
-              if !@playground.using_js?
-                connection.ab_add_participant @id, index, identity
-                check_completion!
+            if enabled?
+              identity = identity()
+              
+              #Check if this identity has already been assigned an index.
+              index = connection.ab_showing(@id, identity)
+              unless index
+                #If not, generate one randomly
+                index = alternative_for(identity)
+                if !@playground.using_js?
+                  connection.ab_add_participant @id, index, identity
+                  check_completion!
+                end
               end
+            else
+              # Show the default if experiment is disabled. 
+              index = alternatives.index(default)
             end
           else
+            # If inactive, always show the outcome. Fallback to generation if one can't be found.
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
           end
         else
+          # If collecting=false, show the alternative, but don't track anything.
           identity = identity()
           @showing ||= {}
           @showing[identity] ||= alternative_for(identity)
@@ -438,24 +459,30 @@ module Vanity
         outcome && _alternatives[outcome]
       end
 
-      def complete!
+      def complete!(alt_id = nil)
+        # This statement is equivalent to: return unless collecting?
         return unless @playground.collecting? && active?
+        set_enabled(false)
         super
-        if @outcome_is
-          begin
-            result = @outcome_is.call
-            outcome = result.id if Alternative === result && result.experiment == self
-          rescue 
-            warn "Error in AbTest#complete!: #{$!}"
+        if alt_id # user picks a winner instead of automatic completion
+          outcome = alt_id
+        else # determine outcome
+          if @outcome_is
+            begin
+              result = @outcome_is.call
+              outcome = result.id if Alternative === result && result.experiment == self
+            rescue 
+              warn "Error in AbTest#complete!: #{$!}"
+            end
+          else
+            best = score.best
+            outcome = best.id if best
           end
-        else
-          best = score.best
-          outcome = best.id if best
         end
         # TODO: logging
         connection.ab_set_outcome @id, outcome || 0
       end
-
+      
       
       # -- Store/validate --
 
@@ -466,6 +493,7 @@ module Vanity
       
       # clears all collected data for the experiment
       def reset
+        return unless @playground.collecting?
         connection.destroy_experiment @id
         connection.set_experiment_created_at @id, Time.now
         @outcome = @completed_at = nil
@@ -479,11 +507,11 @@ module Vanity
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
         if !@is_default_set
           default(@alternatives.first)
-          @is_default_set = true
           warn "No default alternative specified; choosing #{@default} as default."
         elsif alternative(@default).nil?
           #Specified a default that wasn't listed as an alternative; warn and override.
           warn "Attempted to set unknown alternative #{@default} as default! Using #{@alternatives.first} instead."
+          #Set the instance variable directly since default(value) is no longer defined
           @default = @alternatives.first
         end
         super
@@ -499,7 +527,7 @@ module Vanity
 
       # Called when tracking associated metric.
       def track!(metric_id, timestamp, count, *args)
-        return unless active?
+        return unless active? && enabled?
         identity = identity() rescue nil
         if identity
           return if connection.ab_showing(@id, identity)
