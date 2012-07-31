@@ -90,8 +90,7 @@ module Vanity
       end
 
       def is_experiment_enabled?(experiment)
-        str = @experiments["#{experiment}:enabled"]
-        str == 'true'
+        @experiments["#{experiment}:enabled"] == 'true'
       end
      
       def set_experiment_created_at(experiment, time)

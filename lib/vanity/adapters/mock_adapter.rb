@@ -77,7 +77,7 @@ module Vanity
 
       def is_experiment_enabled?(experiment)
         # NOTE: default is true for mock_adapter, but false for all other adapters
-        @experiments[experiment] && @experiments[experiment][:enabled]
+        @experiments[experiment] && (@experiments[experiment][:enabled] == true)
       end
      
       def set_experiment_created_at(experiment, time)
