@@ -159,10 +159,8 @@ module Vanity
       def enabled=(bool)
         return unless @playground.collecting? && active?
         if created_at.nil?
-          warn <<errmsg
-DB has no created_at for this experiment! This most likely means you didn't call #save
-before calling enabled=, which you should.
-errmsg
+          warn 'DB has no created_at for this experiment! This most likely means' + 
+               'you didn\'t call #save before calling enabled=, which you should.'
         else
           connection.set_experiment_enabled(@id, bool)
         end
