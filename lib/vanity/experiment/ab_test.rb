@@ -150,9 +150,22 @@ module Vanity
         !@playground.collecting? || ( active? && connection.is_experiment_enabled?(@id) )
       end
       
-      def set_enabled(bool)
+      # Enable or disable the experiment. Only works if the playground is collecting
+      # and this experiment is enabled.
+      #
+      # **Note** You should set the enabled/disabled status of an experiment until 
+      # it exists in the database. Ensure that your experiment has had #save invoked
+      # previous to any enabled= calls.
+      def enabled=(bool)
         return unless @playground.collecting? && active?
-        connection.set_experiment_enabled(@id, bool)
+        if created_at.nil?
+          warn <<errmsg
+DB has no created_at for this experiment! This most likely means you didn't call #save
+before calling enabled=, which you should.
+errmsg
+        else
+          connection.set_experiment_enabled(@id, bool)
+        end
       end
 
       # -- Metric --
@@ -455,7 +468,7 @@ module Vanity
       def complete!(alt_id = nil)
         # This statement is equivalent to: return unless collecting?
         return unless @playground.collecting? && active?
-        set_enabled(false)
+        self.enabled = false
         super
         if alt_id # user picks a winner instead of automatic completion
           outcome = alt_id
@@ -495,6 +508,9 @@ module Vanity
 
       # Set up tracking for metrics and ensure that the attributes of the ab_test
       # are valid (e.g. has alternatives, has a default, has metrics).
+      # If collecting, this method will also store this experiment into the db.
+      # In most cases, you call this method right after the experiment's been instantiated
+      # and declared.
       def save
         true_false unless @alternatives
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2

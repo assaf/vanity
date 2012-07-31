@@ -206,7 +206,7 @@ class AbTestTest < ActionController::TestCase
   def test_complete_keeps_enabled_true_while_not_collecting
     exp = new_ab_test :test
     Vanity.playground.collecting = false
-    exp.set_enabled(false)
+    exp.enabled = false
     assert exp.enabled?
   end
 
@@ -214,10 +214,10 @@ class AbTestTest < ActionController::TestCase
     Vanity.playground.collecting = true
     exp = new_ab_test :test
     
-    exp.set_enabled(true)
+    exp.enabled = true
     assert exp.enabled?
     
-    exp.set_enabled(false)
+    exp.enabled = false
     assert !exp.enabled?
   end
   
@@ -226,7 +226,7 @@ class AbTestTest < ActionController::TestCase
     exp = new_ab_test :test
     exp.complete! #active? => false
     assert !exp.enabled?
-    exp.set_enabled(true)
+    exp.enabled = true
     assert !exp.enabled?
   end
 
@@ -234,7 +234,7 @@ class AbTestTest < ActionController::TestCase
     Vanity.playground.collecting = false
     exp = new_ab_test :test
     assert exp.enabled?
-    exp.set_enabled(false)
+    exp.enabled = false
     assert exp.enabled?
   end
   
@@ -247,14 +247,14 @@ class AbTestTest < ActionController::TestCase
     
     new_ab_test :test, :enable => false
     assert !experiment(:test).enabled? #still false
-    experiment(:test).set_enabled(true)
+    experiment(:test).enabled = true
     assert experiment(:test).enabled? #now true
     
     new_playground
     
     new_ab_test :test, :enable => false
     assert experiment(:test).enabled? #still true
-    experiment(:test).set_enabled(false)
+    experiment(:test).enabled = false
     assert !experiment(:test).enabled? #now false again
   end
   
@@ -278,7 +278,7 @@ class AbTestTest < ActionController::TestCase
       default 3
     end
     
-    exp.set_enabled(false)
+    exp.enabled = false
     100.times.each do
       assert_equal 3, exp.choose.value
     end
