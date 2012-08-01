@@ -505,6 +505,11 @@ module Vanity
       # Set up tracking for metrics and ensure that the attributes of the ab_test
       # are valid (e.g. has alternatives, has a default, has metrics).
       def save
+        if @saved
+          warn "Experiment #{name} has already been saved"
+          return
+        end
+        @saved = true
         true_false unless @alternatives
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
         if !@is_default_set
