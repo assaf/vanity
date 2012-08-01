@@ -53,8 +53,7 @@ module Vanity
         end
         
         def increment_metric_count(alternative, metric, count = 1)
-          conditions = {:alternative => alternative, :metric => metric.to_s}
-          record = vanity_metric_counts.find(:first, :conditions => conditions) || vanity_metric_counts.create(conditions)
+          record = vanity_metric_counts.find_or_create_by_alternative_and_metric(alternative, metric.to_s)
           record.increment!(:count, count)
         end
       end
@@ -222,12 +221,8 @@ module Vanity
       # Returns hash with metric names as keys and metric counts as values
       def ab_metric_counts(experiment, alternative)
         record = VanityExperiment.retrieve(experiment)
-        metric_counts = record.vanity_metric_counts.keep_if{|m| m.alternative == alternative}
-        hash = {}
-        metric_counts.each do |metric_count|
-          hash[metric_count.metric] = metric_count.count
-        end
-        hash
+        metric_counts = record.vanity_metric_counts.where(:alternative => alternative)
+        Hash[metric_counts.map {|metric_count| [metric_count.metric, metric_count.count]}]
       end
 
       # Pick particular alternative (by index) to show to this particular

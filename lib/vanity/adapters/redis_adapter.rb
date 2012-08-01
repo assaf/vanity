@@ -123,12 +123,8 @@ module Vanity
       end
       
       def ab_metric_counts(experiment, alternative)
-        metrics = @experiments.keys("#{experiment}:alts:#{alternative}:metrics:*")
-        hash = {}
-        metrics.each do |metric|
-          hash[metric.split(':')[4]] = @experiments[metric].to_i
-        end
-        hash
+        metric_count_keys = @experiments.keys("#{experiment}:alts:#{alternative}:metrics:*")
+        Hash[metric_count_keys.map {|key| [key.split(':')[4], @experiments[key].to_i]}]
       end
 
       def ab_show(experiment, identity, alternative)

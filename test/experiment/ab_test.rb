@@ -328,7 +328,6 @@ class AbTestTest < ActionController::TestCase
       identify { rand }
       metrics :hot, :cold
     end
-    experiment(:abcd).chooses(:one)
     100.times do
       Vanity.playground.track! :hot
     end
