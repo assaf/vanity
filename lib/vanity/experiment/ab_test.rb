@@ -43,10 +43,10 @@ module Vanity
         @conversions
       end
       
-      # Number of tracked metrics for this alternativeReturns a hash of metric=>value
+      # Number of tracked metrics for this alternative
+      # Returns a hash of metric=>value
       def metric_counts
-        @metric_counts if @metric_counts
-        @metric_counts = @experiment.playground.connection.ab_metric_counts(@experiment.id, id)
+        load_counts unless @metric_counts
         @metric_counts
       end
 
@@ -89,8 +89,10 @@ module Vanity
       def load_counts
         if @experiment.playground.collecting?
           @participants, @converted, @conversions = @experiment.playground.connection.ab_counts(@experiment.id, id).values_at(:participants, :converted, :conversions)
+          @metric_counts = @experiment.playground.connection.ab_metric_counts(@experiment.id, id)
         else
           @participants = @converted = @conversions = 0
+          @metric_counts = {}
         end
       end
 

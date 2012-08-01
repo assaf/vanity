@@ -145,8 +145,8 @@ module Vanity
 
       def ab_metric_counts(experiment, alternative)
         record = @experiments.find_one({ :_id=>experiment }, { :fields=>[:metrics] })
-        metrics = record && record["metrics"]
-        metrics[alternative.to_s]
+        metric_counts = record && record["metrics"] && record["metrics"][alternative.to_s]
+        metric_counts ? metric_counts : {}
       end
 
       def ab_show(experiment, identity, alternative)
