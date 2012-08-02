@@ -8,7 +8,7 @@ http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
 == Changes in the verticalbrands fork
 
-To update your vanity database for the features in the verticalbrands fork, run:
+If using ActiveRecord, to update your vanity database for the features in the verticalbrands fork, run:
 
   $ rails generate vanity --skip
   $ rake db:migrate
@@ -29,7 +29,7 @@ While disabled, experiments will not be tracked as participants and metrics will
 not be recorded.
 
 Experiments start off disabled. You will have to enable them, either programmatically
-or through the cpanel. <b>This will affect currently running experiments (i.e. they will be disabled).</b>
+or through the cpanel. <b>All experiments from older versions of vanity will be disabled upon upgrading vanity.</b>
 
 If collecting is off, experiments are always seen as enabled. A finished experiment will
 always be disabled. The following table summarizes experiment states:
