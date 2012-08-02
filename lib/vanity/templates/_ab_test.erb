@@ -17,7 +17,12 @@
       </td>
       <td class="value"><code><%=vanity_h alt.value.to_s %></code></td>
       <td class="value"><%= alt.participants %> participants</td>
-      <td class="value"><%= alt.converted %> converted</td>
+      <td class="value">
+        <%= alt.converted %> converted
+        <% alt.metric_counts.each do |metric, count| %>
+          <div class="metric_count"><%= metric %>: <%= count %></div>
+        <% end %>
+      </td>
       <td>
         <%= "%.1f%%" % [alt.conversion_rate * 100] %>
         <%= "(%d%% better than %s)" % [alt.difference, score.least.name] if alt.difference && alt.difference >= 1 %>

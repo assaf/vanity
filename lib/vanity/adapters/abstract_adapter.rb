@@ -97,7 +97,13 @@ module Vanity
       # :conversions.
       def ab_counts(experiment, alternative)
         fail "Not implemented"
-      end 
+      end
+      
+      # Returns metric counts for given A/B experiment and alternative (by index).
+      # Returns hash with metric names as keys and metric counts as values
+      def ab_metric_counts(experiment, alternative)
+        fail "Not implemented"
+      end
 
       # Pick particular alternative (by index) to show to this particular
       # participant (by identity).
@@ -127,6 +133,11 @@ module Vanity
       # implicit is false (default), only add conversion is participant
       # previously recorded as participating in this experiment.
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
+        fail "Not implemented"
+      end
+      
+      # Records a tracked metric in this experiment for the given alternative.
+      def ab_add_metric_count(experiment, alternative, metric, count = 1)
         fail "Not implemented"
       end
 

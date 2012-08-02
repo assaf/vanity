@@ -110,6 +110,13 @@ module Vanity
           :converted    => alt[:converted] ? alt[:converted].size : 0,
           :conversions  => alt[:conversions] || 0 }
       end
+  
+      def ab_metric_counts(experiment, alternative)
+        @experiments[experiment] ||= {}
+        @experiments[experiment][:alternatives] ||= {}
+        alt = @experiments[experiment][:alternatives][alternative] ||= {}
+        metrics = alt[:metrics] ||= {}
+      end
 
       def ab_show(experiment, identity, alternative)
         @experiments[experiment] ||= {}
@@ -147,6 +154,15 @@ module Vanity
         end
         alt[:converted] << identity if implicit || participating
         alt[:conversions] += count
+      end
+
+      def ab_add_metric_count(experiment, alternative, metric, count = 1)
+        @experiments[experiment] ||= {}
+        @experiments[experiment][:alternatives] ||= {}
+        alt = @experiments[experiment][:alternatives][alternative] ||= {}
+        alt[:metrics] ||= {}
+        alt[:metrics][metric] ||= 0
+        alt[:metrics][metric] += count
       end
 
       def ab_get_outcome(experiment)

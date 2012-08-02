@@ -149,6 +149,10 @@ if ENV["DB"] == "mysql" || ENV["DB"] == "postgres"
   require "generators/templates/vanity_migration_add_enabled_to_vanity_experiments"
   VanityMigrationAddEnabledToVanityExperiments.down rescue nil
   VanityMigrationAddEnabledToVanityExperiments.up
+  
+  require "generators/templates/vanity_migration_add_vanity_metric_counts_table"
+  VanityMigrationAddVanityMetricCountsTable.down rescue nil
+  VanityMigrationAddVanityMetricCountsTable.up
 end
 
 

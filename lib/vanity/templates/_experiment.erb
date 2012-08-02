@@ -20,6 +20,9 @@
   <% end %>
 </h3>
 <%= experiment.description.to_s.split(/\n\s*\n/).map { |para| vanity_html_safe(%{<p class="description">#{vanity_h para}</p>}) }.join.html_safe %>
+<p class="metric_count">Metrics: 
+  <% experiment.metrics.each_with_index do |metric,i| %><%= i==0 ? metric.name : ", #{metric.name}"%><% end %>
+</p>
 <%= render :file => Vanity.template("_" + experiment.type), :locals => {:experiment => experiment} %>
 <p class="meta">Started <%= experiment.created_at.strftime("%a, %b %d") %>
   <%= " | Completed #{experiment.completed_at.strftime("%a, %b %d")}" unless experiment.active? %>

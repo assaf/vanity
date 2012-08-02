@@ -319,6 +319,38 @@ class AbTestTest < ActionController::TestCase
     Vanity.playground.track! :coolness
     assert_equal 1, experiment(:abcd).alternatives.sum(&:conversions)
   end
+  
+  def test_multiple_metric_tracking_into_alternative
+    metric "Hot"
+    metric "Cold"
+    new_ab_test :abcd do
+      alternatives :one, :two
+      identify { rand }
+      metrics :hot, :cold
+    end
+    100.times do
+      Vanity.playground.track! :hot
+    end
+    200.times do
+      Vanity.playground.track! :cold
+    end
+    assert_in_delta experiment(:abcd).alternative(:one).metric_counts["hot"], 50, 15
+    assert_in_delta experiment(:abcd).alternative(:one).metric_counts["cold"], 100, 20
+    assert_in_delta experiment(:abcd).alternative(:two).metric_counts["hot"], 50, 15
+    assert_in_delta experiment(:abcd).alternative(:two).metric_counts["cold"], 100, 20
+  end
+  
+  def test_metric_counts_tracked_multiple_times_per_participant
+    metric "Coolness"
+    new_ab_test :abcd do
+      identify{ 'me' }
+      metrics :coolness
+    end
+    10.times do
+      Vanity.playground.track! :coolness
+    end
+    assert_equal 10, experiment(:abcd).choose.metric_counts["coolness"]
+  end
 
   # -- use_js! --
 

@@ -42,6 +42,13 @@ module Vanity
         load_counts unless @conversions
         @conversions
       end
+      
+      # Number of tracked metrics for this alternative
+      # Returns a hash of metric=>value
+      def metric_counts
+        load_counts unless @metric_counts
+        @metric_counts
+      end
 
       # Z-score for this alternative, related to 2nd-best performing alternative. Populated by AbTest#score.
       attr_accessor :z_score
@@ -82,8 +89,10 @@ module Vanity
       def load_counts
         if @experiment.playground.collecting?
           @participants, @converted, @conversions = @experiment.playground.connection.ab_counts(@experiment.id, id).values_at(:participants, :converted, :conversions)
+          @metric_counts = @experiment.playground.connection.ab_metric_counts(@experiment.id, id)
         else
           @participants = @converted = @conversions = 0
+          @metric_counts = {}
         end
       end
 
@@ -510,6 +519,11 @@ module Vanity
       # In most cases, you call this method right after the experiment's been instantiated
       # and declared.
       def save
+        if @saved
+          warn "Experiment #{name} has already been saved"
+          return
+        end
+        @saved = true
         true_false unless @alternatives
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
         if !@is_default_set
@@ -539,6 +553,7 @@ module Vanity
         if identity
           return if connection.ab_showing(@id, identity)
           index = alternative_for(identity)
+          connection.ab_add_metric_count @id, index, metric_id, count
           connection.ab_add_conversion @id, index, identity, count
           check_completion!
         end

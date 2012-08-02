@@ -12,6 +12,7 @@
 .vanity .experiment .status_enabled { background: #EFE }
 .vanity .experiment .status_disabled { background: #FEE }
 .vanity .experiment .enabled-links { float: right; font-weight: normal }
+.vanity .experiment .metric_count { font-size: 90% }
 
 .vanity .ab_test table { border-collapse: collapse; table-layout: fixed; width: 100%; border-bottom: 1px solid #ccc; margin: 1em 0 0 0 }
 .vanity .ab_test td { padding: .5em; border-top: 1px solid #ccc }

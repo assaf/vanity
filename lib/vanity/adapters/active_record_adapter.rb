@@ -40,6 +40,7 @@ module Vanity
       class VanityExperiment < VanityRecord
         self.table_name = :vanity_experiments
         has_many :vanity_conversions, :dependent => :destroy
+        has_many :vanity_metric_counts, :dependent => :destroy
 
         # Finds or creates the experiment
         def self.retrieve(experiment)
@@ -50,6 +51,17 @@ module Vanity
           record = vanity_conversions.find_or_create_by_alternative(alternative)
           record.increment!(:conversions, count)
         end
+        
+        def increment_metric_count(alternative, metric, count = 1)
+          record = vanity_metric_counts.find_or_create_by_alternative_and_metric(alternative, metric.to_s)
+          record.increment!(:count, count)
+        end
+      end
+
+      # Metric Counts model (for keeping track of metrics for each alternative)
+      class VanityMetricCount < VanityRecord
+        self.table_name = :vanity_metric_counts
+        belongs_to :vanity_experiment
       end
 
       # Conversion model
@@ -200,6 +212,14 @@ module Vanity
                 :conversions => conversions
         }
       end
+      
+      # Returns metric counts for given A/B experiment and alternative (by index).
+      # Returns hash with metric names as keys and metric counts as values
+      def ab_metric_counts(experiment, alternative)
+        record = VanityExperiment.retrieve(experiment)
+        metric_counts = record.vanity_metric_counts.where(:alternative => alternative)
+        Hash[metric_counts.map {|metric_count| [metric_count.metric, metric_count.count]}]
+      end
 
       # Pick particular alternative (by index) to show to this particular
       # participant (by identity).
@@ -232,6 +252,11 @@ module Vanity
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
         VanityParticipant.retrieve(experiment, identity, implicit, :converted => alternative)
         VanityExperiment.retrieve(experiment).increment_conversion(alternative, count)
+      end
+      
+      # Records a tracked metric in this experiment for the given alternative.
+      def ab_add_metric_count(experiment, alternative, metric, count = 1)
+        VanityExperiment.retrieve(experiment).increment_metric_count(alternative, metric, count)
       end
 
       # Returns the outcome of this experiment (if set), the index of a

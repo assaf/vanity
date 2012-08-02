@@ -8,6 +8,12 @@ http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
 == Changes in the verticalbrands fork
 
+To update your vanity database for the features in the verticalbrands fork, run:
+
+  $ rails generate vanity --skip
+  $ rake db:migrate
+
+=== Enable/Disable experiments
 Enabling/disabling an experiment through the cpanel. Specify a "default" alternative
 in the experiment specification; disabled experiments will always show that option.
 e.g.
@@ -39,14 +45,16 @@ always be disabled. The following table summarizes experiment states:
       F     |    F    |    T    | (not possible, !collecting => enabled && active)
       F     |    F    |    F    | (not possible, !collecting => enabled && active)
 
-If your database already ran the normal vanity migration but doesn't have the enable/disable feature, run the update generator:
+=== Reset Experiments
+Clicking the 'reset experiment' button associated with an experiment on the dashboard will delete all collected data and restart the experiment from scratch.
+Complete experiments can be restarted this way (although all previously collected data will be deleted; if you want to simply pause an experiment, use the enable/disable feature).
 
-  $ rails generate vanity:update
-  $ rake db:migrate
-  
-<b>More Dashboard Features</b>
-* Reset an experiment by clicking the 'reset experiment' button associated with that experiment. This will delete all collected data and restart the experiment from scratch.
-* Manually complete experiments and set the outcome by clicking the 'complete' button next to the option to be set as the outcome.
+=== Manually complete experiments
+Clicking the 'complete' button next to an option will complete the associated AB Test and set that option as the outcome.
+
+=== Tracking multiple metrics for each alternative
+AB Tests now keeps track of metrics for each alternative in addition to conversions. Unlike conversions, metrics are tracked multiple times per participant.
+Note: this feature is only intended for metric tracking using the <code>track!</code> method.
 
 
 == A/B Testing With Rails (In 5 Easy Steps)
