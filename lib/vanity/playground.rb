@@ -132,8 +132,9 @@ module Vanity
     def without_js(&block)
       original = @use_js
       @use_js = false
-      block.call
+      value = block.call
       @use_js = original
+      value
     end
 
 

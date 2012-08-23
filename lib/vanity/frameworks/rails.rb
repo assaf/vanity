@@ -182,12 +182,12 @@ module Vanity
       #     <%= count %> features to choose from!
       #   <% end %>
       def ab_test(name, &block)
-        if defined?(ActionMailer) && Vanity.context < ActionMailer::Base
+        value = if defined?(ActionMailer) && Vanity.context < ActionMailer::Base
           Vanity.playground.without_js do
-            value = setup_experiment(name)
+            setup_experiment(name)
           end
         else
-          value = setup_experiment(name)
+          setup_experiment(name)
         end
  
         if block
