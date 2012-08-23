@@ -182,12 +182,12 @@ module Vanity
       #     <%= count %> features to choose from!
       #   <% end %>
       def ab_test(name, &block)
-        if Vanity.playground.using_js?
-          @_vanity_experiments ||= {}
-          @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose
-          value = @_vanity_experiments[name].value
+        if defined?(ActionMailer) && Vanity.context < ActionMailer::Base
+          Vanity.playground.without_js do
+            value = setup_experiment(name)
+          end
         else
-          value = Vanity.playground.experiment(name.to_sym).choose.value
+          value = setup_experiment(name)
         end
  
         if block
@@ -235,6 +235,17 @@ module Vanity
 
       def vanity_simple_format(text, html_options={})
         vanity_html_safe(simple_format(text, html_options))
+      end
+
+      private
+      def setup_experiment(name)
+        if Vanity.playground.using_js?
+          @_vanity_experiments ||= {}
+          @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose
+          @_vanity_experiments[name].value
+        else
+          Vanity.playground.experiment(name.to_sym).choose.value
+        end
       end
     end
 
