@@ -62,6 +62,7 @@ module Vanity
       # Participant model
       class VanityParticipant < VanityRecord
         self.table_name = :vanity_participants
+        attr_accessible :experiment_id, :identity, :seen
 
         # Finds the participant by experiment and identity. If
         # create is true then it will create the participant
