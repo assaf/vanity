@@ -39,6 +39,7 @@ module Vanity
       # Experiment model
       class VanityExperiment < VanityRecord
         self.table_name = :vanity_experiments
+        attr_accessible :experiment_id
         has_many :vanity_conversions, :dependent => :destroy
 
         # Finds or creates the experiment
