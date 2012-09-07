@@ -5,6 +5,7 @@ html
 test/myapp/log/
 vendor
 log/*
+.idea
 test/dummy/db/*.sqlite3
 test/dummy/log/*.log
 test/dummy/tmp/
