@@ -144,13 +144,16 @@ module Vanity
       end
 
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
-        if implicit
-          @experiments.sadd "#{experiment}:alts:#{alternative}:participants", identity
-        else
-          participating = @experiments.sismember("#{experiment}:alts:#{alternative}:participants", identity)
+        participating = if implicit
+                          @experiments.sadd "#{experiment}:alts:#{alternative}:participants", identity
+                          false
+                        else
+                          @experiments.sismember("#{experiment}:alts:#{alternative}:participants", identity)
+                        end
+        if implicit || participating
+          @experiments.sadd "#{experiment}:alts:#{alternative}:converted", identity
+          @experiments.incrby "#{experiment}:alts:#{alternative}:conversions", count
         end
-        @experiments.sadd "#{experiment}:alts:#{alternative}:converted", identity if implicit || participating
-        @experiments.incrby "#{experiment}:alts:#{alternative}:conversions", count
       end
 
       def ab_add_metric_count(experiment, alternative, metric, count = 1)
