@@ -93,8 +93,8 @@ module Vanity
       end
       protected :use_vanity_mailer
     end
-    
-    
+
+
     # Vanity needs these filters.  They are includes in ActionController and
     # automatically added when you use #use_vanity in your controller.
     module Filters
@@ -142,7 +142,7 @@ module Vanity
       def vanity_reload_filter
         Vanity.playground.reload!
       end
-      
+
       # Filter to track metrics
       # pass _track param along to call track! on that alternative
       def vanity_track_filter
@@ -150,7 +150,7 @@ module Vanity
           track! params[:_track]
         end
       end
-      
+
       protected :vanity_context_filter, :vanity_query_parameter_filter, :vanity_reload_filter
     end
 
@@ -182,14 +182,10 @@ module Vanity
       #     <%= count %> features to choose from!
       #   <% end %>
       def ab_test(name, &block)
-        if Vanity.playground.using_js?
-          @_vanity_experiments ||= {}
-          @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose
-          value = @_vanity_experiments[name].value
-        else
-          value = Vanity.playground.experiment(name.to_sym).choose.value
-        end
- 
+        @_vanity_experiments ||= {}
+        @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose
+        value = @_vanity_experiments[name].value
+
         if block
           content = capture(value, &block)
           if defined?(block_called_from_erb?) && block_called_from_erb?(block)
@@ -201,13 +197,13 @@ module Vanity
           value
         end
       end
-      
+
       # Generate url with the identity of the current user and the metric to track on click
       def vanity_track_url_for(identity, metric, options = {})
         options = options.merge(:_identity => identity, :_track => metric)
         url_for(options)
       end
-      
+
       # Generate url with the fingerprint for the current Vanity experiment
       def vanity_tracking_image(identity, metric, options = {})
         options = options.merge(:controller => :vanity, :action => :image, :_identity => identity, :_track => metric)
@@ -235,6 +231,35 @@ module Vanity
 
       def vanity_simple_format(text, html_options={})
         vanity_html_safe(simple_format(text, html_options))
+      end
+
+      # Return a copy of the active experiments on a page
+      #
+      # @example Render some info about each active experiment in development mode
+      #   <% if Rails.env.development? %>
+      #     <% experiments = vanity_experiments %>
+      #     <% unless experiments.nil? %>
+      #       <% experiments.each do |name, alternative| %>
+      #         <span>Participating in <%= name %>, seeing <%= alternative %>:<%= alternative.value %> </span>
+      #       <% end %>
+      #     <% end %>
+      #   <% end %>
+      # @example Push experiment values into javascript for use there
+      #   <% experiments = vanity_experiments %>
+      #   <% unless experiments.nil? %>
+      #     <script>
+      #       <% experiments.each do |name, alternative| %>
+      #         myAbTests.<%= name.to_s.camelize(:lower) %> = '<%= alternative.value %>';
+      #       <% end %>
+      #     </script>
+      #   <% end %>
+      def vanity_experiments
+        return if @_vanity_experiments.nil?
+        experiments = {}
+        @_vanity_experiments.each do |name, alternative|
+          experiments[name] = alternative.clone
+        end
+        return experiments
       end
     end
 
@@ -269,7 +294,7 @@ module Vanity
         render :status => 200, :nothing => true
       end
     end
-    
+
     module TrackingImage
       def image
         # send image
