@@ -381,26 +381,29 @@ $stdout << Vanity.playground.collecting?
 
   def load_rails(code, env = "production")
     tmp = Tempfile.open("test.rb")
-    tmp.write <<-RB
-$:.delete_if { |path| path[/gems\\/vanity-\\d/] }
-$:.unshift File.expand_path("../lib")
-RAILS_ROOT = File.expand_path(".")
-RAILS_ENV = ENV['RACK_ENV'] = "#{env}"
-require "initializer"
-require "active_support"
-Rails.configuration = Rails::Configuration.new
-initializer = Rails::Initializer.new(Rails.configuration)
-initializer.check_gem_dependencies
-require "vanity"
-    RB
-    tmp.write code
-    tmp.flush
-    Dir.chdir "tmp" do
-      open("|ruby #{tmp.path}").read
+    begin
+      tmp.write <<-RB
+  $:.delete_if { |path| path[/gems\\/vanity-\\d/] }
+  $:.unshift File.expand_path("../lib")
+  RAILS_ROOT = File.expand_path(".")
+  RAILS_ENV = ENV['RACK_ENV'] = "#{env}"
+  require "initializer"
+  require "active_support"
+  Rails.configuration = Rails::Configuration.new
+  initializer = Rails::Initializer.new(Rails.configuration)
+  initializer.check_gem_dependencies
+  require "vanity"
+      RB
+      tmp.write code
+      tmp.flush
+      Dir.chdir "tmp" do
+        open("|ruby #{tmp.path}").read
+      end
+    ensure
+      tmp.close!
     end
-  rescue
-    tmp.close!
   end
+
 
 
   def teardown
