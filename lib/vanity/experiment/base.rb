@@ -34,7 +34,7 @@ module Vanity
     class Base
 
       class << self
-        
+
         # Returns the type of this class as a symbol (e.g. AbTest becomes
         # ab_test).
         def type
@@ -94,7 +94,7 @@ module Vanity
       def type
         self.class.type
       end
-     
+
       # Defines how we obtain an identity for the current experiment.  Usually
       # Vanity gets the identity form a session object (see use_vanity), but
       # there are cases where you want a particular experiment to use a
@@ -126,7 +126,7 @@ module Vanity
         @description = text if text
         @description
       end
- 
+
 
       # -- Experiment completion --
 
@@ -152,7 +152,7 @@ module Vanity
       def completed_at
         @completed_at ||= connection.get_experiment_completed_at(@id)
       end
-      
+
       # Returns true if experiment active, false if completed.
       def active?
         !@playground.collecting? || !connection.is_experiment_completed?(@id)
@@ -180,7 +180,7 @@ module Vanity
 
       def default_identify(context)
         raise "No Vanity.context" unless context
-        raise "Vanity.context does not respond to vanity_identity" unless context.respond_to?(:vanity_identity)
+        raise "Vanity.context does not respond to vanity_identity" unless context.respond_to?(:vanity_identity, true)
         context.send(:vanity_identity) or raise "Vanity.context.vanity_identity - no identity"
       end
 
@@ -195,7 +195,7 @@ module Vanity
           end
         end
       end
-      
+
       # Returns key for this experiment, or with an argument, return a key
       # using the experiment as the namespace.  Examples:
       #   key => "vanity:experiments:green_button"
@@ -208,11 +208,11 @@ module Vanity
       def connection
         @playground.connection
       end
-      
+
     end
   end
 
   class NoExperimentError < NameError
   end
-  
+
 end
