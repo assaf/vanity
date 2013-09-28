@@ -1,25 +1,47 @@
 <% score = experiment.score %>
 <table>
   <caption>
-    <%= experiment.conclusion(score).join(" ") %></caption>
+    <%= experiment.conclusion(score).join(" ") %>
+    <% if experiment.active? && !experiment.enabled? %>
+      <div class='disabled_info'>This experiment is currently disabled, and will always choose the default 
+        <%= experiment.default.name %>.
+      </div>
+    <% end %>
+  </caption>
   <% score.alts.each do |alt| %>
     <tr class="<%= "choice" if score.choice == alt %>">
-      <td class="option"><%= alt.name.gsub(/^o/, "O") %>:</td>
+      <td class="option"><%= alt.name.gsub(/^o/, "O") %>:
+        <% if alt.default? %>
+          <div class='default'>(Default)</div>
+        <% end %>
+      </td>
       <td class="value"><code><%=vanity_h alt.value.to_s %></code></td>
       <td class="value"><%= alt.participants %> participants</td>
-      <td class="value"><%= alt.converted %> converted</td>
+      <td class="value">
+        <%= alt.converted %> converted
+        <% alt.metric_counts.each do |metric, count| %>
+          <div class="metric_count"><%= metric %>: <%= count %></div>
+        <% end %>
+      </td>
       <td>
         <%= "%.1f%%" % [alt.conversion_rate * 100] %>
         <%= "(%d%% better than %s)" % [alt.difference, score.least.name] if alt.difference && alt.difference >= 1 %>
       </td>
       <td class="action">
-        <% if experiment.active? && respond_to?(:url_for) %>
+        <% if experiment.enabled? && experiment.active? && respond_to?(:url_for) %>
           <% if experiment.showing?(alt) %>
             showing
           <% else %>
             <a class="button chooses" title="Show me this alternative from now on" href="#"
               data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id) %>">show</a>
           <% end %>
+        <% end %>
+      </td>
+      <td class="action">
+        <% if experiment.playground.collecting? && experiment.active? && respond_to?(:url_for) %>
+          <button class="finish" title="Set this alternative as the outcome and complete the experiment" href="#" 
+            data-id="<%= experiment.id %>" alt-name="<%= alt.name %>" 
+            data-url="<%= url_for(:action=>:finish, :e=>experiment.id, :a=>alt.id) %>">complete</button>
         <% end %>
       </td>
     </tr>

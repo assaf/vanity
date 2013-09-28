@@ -1,9 +1,60 @@
 Vanity is an Experiment Driven Development framework for Rails.
 
 * All about Vanity: http://vanity.labnotes.org
-* On github: http://github.com/assaf/vanity
+* Original version on github: http://github.com/assaf/vanity
+* The verticalbrands fork: http://github.com/verticalbrands/vanity
 
 http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
+
+== Changes in the verticalbrands fork
+
+If using ActiveRecord, to update your vanity database for the features in the verticalbrands fork, run:
+
+  $ rails generate vanity --skip
+  $ rake db:migrate
+
+=== Enable/Disable experiments
+Enabling/disabling an experiment through the cpanel. Specify a "default" alternative
+in the experiment specification; disabled experiments will always show that option.
+e.g.
+
+  ab_test "Price options" do
+    description "Mirror, mirror on the wall, who's the better price of all?"
+    alternatives 19, 25, 29
+    default 25
+    metrics :signups
+  end
+
+While disabled, experiments will not be tracked as participants and metrics will
+not be recorded.
+
+Experiments start off disabled. You will have to enable them, either programmatically
+or through the cpanel. <b>All experiments from older versions of vanity will be disabled upon upgrading vanity.</b>
+
+If collecting is off, experiments are always seen as enabled. A finished experiment will
+always be disabled. The following table summarizes experiment states:
+
+  collecting | active | enabled | showing     
+  --------------------------------------------
+      T     |    T    |    T    | alternative <- only case when data is collected
+      T     |    T    |    F    | default
+      T     |    F    |    T    | (not possible, !active => !enabled)
+      T     |    F    |    F    | outcome
+      F     |    T    |    T    | alternative
+      F     |    T    |    F    | (not possible, !collecting => enabled && active)
+      F     |    F    |    T    | (not possible, !collecting => enabled && active)
+      F     |    F    |    F    | (not possible, !collecting => enabled && active)
+
+=== Reset Experiments
+Clicking the 'reset experiment' button associated with an experiment on the dashboard will delete all collected data and restart the experiment from scratch.
+Complete experiments can be restarted this way (although all previously collected data will be deleted; if you want to simply pause an experiment, use the enable/disable feature).
+
+=== Manually complete experiments
+Clicking the 'complete' button next to an option will complete the associated AB Test and set that option as the outcome.
+
+=== Tracking multiple metrics for each alternative
+AB Tests now keeps track of metrics for each alternative in addition to conversions. Unlike conversions, metrics are tracked multiple times per participant.
+Note: this feature is only intended for metric tracking using the <code>track!</code> method.
 
 
 == A/B Testing With Rails (In 5 Easy Steps)
@@ -42,6 +93,7 @@ Add to your application controller:
   ab_test "Price options" do
     description "Mirror, mirror on the wall, who's the better price of all?"
     alternatives 19, 25, 29
+    default 25
     metrics :signups
   end
   

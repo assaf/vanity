@@ -22,4 +22,5 @@ group :development do
   gem "rake"
   gem "RedCloth"
   gem "yard"
+  gem "pry"
 end

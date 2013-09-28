@@ -34,4 +34,28 @@ class RailsDashboardTest < ActionController::TestCase
     xhr :post, :chooses, :e => "food", :a => 0
     assert_response :success
   end
+  
+  def test_disable
+    experiment(:food).enabled = true
+    xhr :post, :disable, :e => "food", :a => 0
+    assert_response :success
+    assert !experiment(:food).enabled?
+  end
+  
+  def test_enable
+    experiment(:food).enabled = false
+    xhr :post, :enable, :e => "food", :a => 0
+    assert_response :success
+    assert experiment(:food).enabled?
+  end
+
+  def test_reset
+    xhr :post, :reset, :e => "food"
+    assert_response :success
+  end
+  
+  def test_finish
+    xhr :post, :finish, :e => "food", :a => 0
+    assert_response :success
+  end
 end

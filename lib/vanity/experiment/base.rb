@@ -141,7 +141,7 @@ module Vanity
       end
 
       # Force experiment to complete.
-      def complete!
+      def complete!(arg = nil)
         @playground.logger.info "vanity: completed experiment #{id}"
         return unless @playground.collecting?
         connection.set_experiment_completed_at @id, Time.now

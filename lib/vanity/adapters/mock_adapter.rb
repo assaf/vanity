@@ -69,6 +69,16 @@ module Vanity
       
 
       # -- Experiments --
+      
+      def set_experiment_enabled(experiment, enabled)
+        @experiments[experiment] ||= {}
+        @experiments[experiment][:enabled] = enabled
+      end
+
+      def is_experiment_enabled?(experiment)
+        # NOTE: default is true for mock_adapter, but false for all other adapters
+        @experiments[experiment] && (@experiments[experiment][:enabled] == true)
+      end
      
       def set_experiment_created_at(experiment, time)
         @experiments[experiment] ||= {}
@@ -99,6 +109,13 @@ module Vanity
         { :participants => alt[:participants] ? alt[:participants].size : 0,
           :converted    => alt[:converted] ? alt[:converted].size : 0,
           :conversions  => alt[:conversions] || 0 }
+      end
+  
+      def ab_metric_counts(experiment, alternative)
+        @experiments[experiment] ||= {}
+        @experiments[experiment][:alternatives] ||= {}
+        alt = @experiments[experiment][:alternatives][alternative] ||= {}
+        metrics = alt[:metrics] ||= {}
       end
 
       def ab_show(experiment, identity, alternative)
@@ -137,6 +154,15 @@ module Vanity
         end
         alt[:converted] << identity if implicit || participating
         alt[:conversions] += count
+      end
+
+      def ab_add_metric_count(experiment, alternative, metric, count = 1)
+        @experiments[experiment] ||= {}
+        @experiments[experiment][:alternatives] ||= {}
+        alt = @experiments[experiment][:alternatives][alternative] ||= {}
+        alt[:metrics] ||= {}
+        alt[:metrics][metric] ||= 0
+        alt[:metrics][metric] += count
       end
 
       def ab_get_outcome(experiment)

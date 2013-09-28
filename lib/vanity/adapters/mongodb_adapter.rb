@@ -102,6 +102,15 @@ module Vanity
       
 
       # -- Experiments --
+      
+      def set_experiment_enabled(experiment, enabled)
+        @experiments.update({ :_id=>experiment }, { "$set"=>{ :enabled=>enabled } }, :upsert=>true)
+      end
+
+      def is_experiment_enabled?(experiment)
+        record = @experiments.find_one({ :_id=>experiment}, { :fields=>[:enabled] })
+        record && (record["enabled"] == true)
+      end
      
       def set_experiment_created_at(experiment, time)
         @experiments.insert :_id=>experiment, :created_at=>time
@@ -110,6 +119,7 @@ module Vanity
       def get_experiment_created_at(experiment)
         record = @experiments.find_one({ :_id=>experiment }, { :fields=>[:created_at] })
         record && record["created_at"]
+        #Returns nil if either the record or the field doesn't exist
       end
 
       def set_experiment_completed_at(experiment, time)
@@ -131,6 +141,12 @@ module Vanity
         { :participants => @participants.find({ :experiment=>experiment, :seen=>alternative }).count,
           :converted    => @participants.find({ :experiment=>experiment, :converted=>alternative }).count,
           :conversions  => conversions && conversions[alternative.to_s] || 0 }
+      end
+
+      def ab_metric_counts(experiment, alternative)
+        record = @experiments.find_one({ :_id=>experiment }, { :fields=>[:metrics] })
+        metric_counts = record && record["metrics"] && record["metrics"][alternative.to_s]
+        metric_counts ? metric_counts : {}
       end
 
       def ab_show(experiment, identity, alternative)
@@ -158,6 +174,10 @@ module Vanity
         end
         @participants.update({ :experiment=>experiment, :identity=>identity }, { "$push"=>{ :converted=>alternative } }, :upsert=>true) if implicit || participating
         @experiments.update({ :_id=>experiment }, { "$inc"=>{ "conversions.#{alternative}"=>count } }, :upsert=>true)
+      end
+
+      def ab_add_metric_count(experiment, alternative, metric, count = 1)
+        @experiments.update({ :_id=>experiment }, { "$inc"=>{ "metrics.#{alternative}.#{metric}"=>count } }, :upsert=>true)
       end
 
       def ab_get_outcome(experiment)

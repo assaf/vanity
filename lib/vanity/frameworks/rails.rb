@@ -253,9 +253,33 @@ module Vanity
         render :file=>Vanity.template("_report"), :content_type=>Mime::HTML, :layout=>false
       end
 
+      def disable
+        exp = Vanity.playground.experiment(params[:e].to_sym)
+        exp.enabled = false
+        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+      end
+      
+      def enable
+        exp = Vanity.playground.experiment(params[:e].to_sym)
+        exp.enabled = true
+        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+      end
+
       def chooses
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.chooses(exp.alternatives[params[:a].to_i].value)
+        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+      end
+      
+      def reset
+        exp = Vanity.playground.experiment(params[:e].to_sym)
+        exp.reset
+        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+      end
+
+      def finish
+        exp = Vanity.playground.experiment(params[:e].to_sym)
+        exp.complete!(params[:a].to_i)
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
 

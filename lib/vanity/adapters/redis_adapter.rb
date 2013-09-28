@@ -85,6 +85,14 @@ module Vanity
 
       # -- Experiments --
      
+      def set_experiment_enabled(experiment, enabled)
+        @experiments.set "#{experiment}:enabled", enabled
+      end
+
+      def is_experiment_enabled?(experiment)
+        @experiments["#{experiment}:enabled"] == 'true'
+      end
+     
       def set_experiment_created_at(experiment, time)
         @experiments.setnx "#{experiment}:created_at", time.to_i
       end
@@ -112,6 +120,11 @@ module Vanity
           :converted    => @experiments.scard("#{experiment}:alts:#{alternative}:converted").to_i,
           :conversions  => @experiments["#{experiment}:alts:#{alternative}:conversions"].to_i }
       end
+      
+      def ab_metric_counts(experiment, alternative)
+        metric_count_keys = @experiments.keys("#{experiment}:alts:#{alternative}:metrics:*")
+        Hash[metric_count_keys.map {|key| [key.split(':')[4], @experiments[key].to_i]}]
+      end
 
       def ab_show(experiment, identity, alternative)
         @experiments["#{experiment}:participant:#{identity}:show"] = alternative
@@ -132,12 +145,20 @@ module Vanity
 
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
         if implicit
+          # add participant
           @experiments.sadd "#{experiment}:alts:#{alternative}:participants", identity
-        else
-          participating = @experiments.sismember("#{experiment}:alts:#{alternative}:participants", identity)
+          # convert
+          @experiments.sadd "#{experiment}:alts:#{alternative}:converted", identity
+          @experiments.incrby "#{experiment}:alts:#{alternative}:conversions", count
+        elsif @experiments.sismember("#{experiment}:alts:#{alternative}:participants", identity) # is participant?
+          # convert
+          @experiments.sadd "#{experiment}:alts:#{alternative}:converted", identity
+          @experiments.incrby "#{experiment}:alts:#{alternative}:conversions", count
         end
-        @experiments.sadd "#{experiment}:alts:#{alternative}:converted", identity if implicit || participating
-        @experiments.incrby "#{experiment}:alts:#{alternative}:conversions", count
+      end
+
+      def ab_add_metric_count(experiment, alternative, metric, count = 1)
+        @experiments.incrby "#{experiment}:alts:#{alternative}:metrics:#{metric}:metric_count", count
       end
 
       def ab_get_outcome(experiment)
@@ -154,7 +175,6 @@ module Vanity
         alternatives = @experiments.keys("#{experiment}:alts:*")
         @experiments.del *alternatives unless alternatives.empty?
       end
-
     end
   end
 end

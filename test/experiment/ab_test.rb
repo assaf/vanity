@@ -97,7 +97,205 @@ class AbTestTest < ActionController::TestCase
     assert_equal fingerprints.first, experiment(:ab).fingerprint(experiment(:ab).alternatives.first)
   end
 
+  def test_ab_has_default
+    new_ab_test :ice_cream_flavor do
+      alternatives :a, :b, :c
+      default :b
+    end
+    exp = experiment(:ice_cream_flavor)
+    assert_equal exp.default, exp.alternative(:b)
+  end
 
+  def test_ab_sets_default_default
+    new_ab_test :ice_cream_flavor do
+      alternatives :a, :b, :c
+      # no default specified
+    end
+    exp = experiment(:ice_cream_flavor)
+    assert_equal exp.default, exp.alternative(:a)
+  end
+
+  def test_ab_overrides_unknown_default
+    new_ab_test :ice_cream_flavor do
+      alternatives :a, :b, :c
+      default :badname
+    end
+    exp = experiment(:ice_cream_flavor)
+    assert_equal exp.default, exp.alternative(:a)
+  end
+
+  def test_ab_can_only_set_default_once
+    assert_raise ArgumentError do
+      new_ab_test :ice_cream_flavor do
+        alternative :a, :b, :c
+        default :a
+        default :b
+      end
+    end
+  end
+
+  def test_ab_can_only_have_one_default
+    assert_raise ArgumentError do
+      new_ab_test :ice_cream_flavor do
+        alternative :a, :b, :c
+        default :a, :b
+      end
+    end
+  end
+
+  def test_ab_cannot_get_default_before_specified
+    assert_raise ArgumentError do
+      new_ab_test :ice_cream_flavor do
+        alternative :a, :b, :c
+        default
+      end
+    end
+  end
+
+  def test_ab_accepts_nil_default
+    new_ab_test :nil_default do
+      alternatives nil, 'foo'
+      default nil
+    end
+    exp = experiment(:nil_default)
+    assert_equal exp.default, exp.alternative(nil)
+  end
+
+  def test_ab_chooses_nil_default_default
+    new_ab_test :nil_default_default do
+      alternatives nil, 'foo'
+      # no default specified
+    end
+    exp = experiment(:nil_default_default)
+    assert_equal exp.default, exp.alternative(nil)
+  end
+  
+  
+  # -- Experiment Enabled/disabled --
+  
+  # @example new test should be enabled regardless of collecting?
+  #   regardless_of "Vanity.playground.collecting" do
+  #     assert (new_ab_test :test).enabled?
+  #   end
+  def regardless_of(attr_name, &block)
+    prev_val = eval "#{attr_name}?"
+    
+    eval "#{attr_name}=true"
+    block.call(eval "#{attr_name}?")
+    nuke_playground
+    
+    eval "#{attr_name}=false"
+    block.call(eval "#{attr_name}?")
+    nuke_playground
+    
+    eval "#{attr_name}=prev_val"
+  end
+  
+  def test_new_test_is_disabled
+    assert !(new_ab_test :test, :enable => false).enabled?
+  end
+  
+  def test_complete_sets_enabled_false
+    Vanity.playground.collecting = true
+    exp = new_ab_test :test
+    exp.complete! #active? => false
+
+    assert !exp.enabled?, "experiment should not be enabled but it is!"
+  end
+
+  def test_complete_keeps_enabled_true_while_not_collecting
+    exp = new_ab_test :test
+    Vanity.playground.collecting = false
+    exp.enabled = false
+    assert exp.enabled?
+  end
+
+  def test_set_enabled_while_active
+    Vanity.playground.collecting = true
+    exp = new_ab_test :test
+    
+    exp.enabled = true
+    assert exp.enabled?
+    
+    exp.enabled = false
+    assert !exp.enabled?
+  end
+  
+  def test_cannot_set_enabled_for_inactive
+    Vanity.playground.collecting = true
+    exp = new_ab_test :test
+    exp.complete! #active? => false
+    assert !exp.enabled?
+    exp.enabled = true
+    assert !exp.enabled?
+  end
+
+  def test_always_enabled_while_not_collecting
+    Vanity.playground.collecting = false
+    exp = new_ab_test :test
+    assert exp.enabled?
+    exp.enabled = false
+    assert exp.enabled?
+  end
+  
+  def test_enabled_persists_across_definitions
+    Vanity.playground.collecting = true
+    new_ab_test :test, :enable => false
+    assert !experiment(:test).enabled? #starts off false
+    
+    new_playground
+    
+    new_ab_test :test, :enable => false
+    assert !experiment(:test).enabled? #still false
+    experiment(:test).enabled = true
+    assert experiment(:test).enabled? #now true
+    
+    new_playground
+    
+    new_ab_test :test, :enable => false
+    assert experiment(:test).enabled? #still true
+    experiment(:test).enabled = false
+    assert !experiment(:test).enabled? #now false again
+  end
+  
+  def test_choose_random_when_enabled
+    regardless_of "Vanity.playground.collecting" do
+      exp = new_ab_test :test do 
+        true_false
+        identify { rand }
+      end
+      results = Set.new
+      100.times do
+        results << exp.choose.value
+      end
+      assert_equal results, [true, false].to_set
+    end
+  end
+  
+  def test_choose_default_when_disabled
+    exp = new_ab_test :test do
+      alternatives 0, 1, 2, 3, 4, 5
+      default 3
+    end
+    
+    exp.enabled = false
+    100.times.each do
+      assert_equal 3, exp.choose.value
+    end
+  end
+  
+  def test_choose_outcome_when_finished
+    exp = new_ab_test :test do
+      alternatives 0,1,2,3,4,5
+      default 3
+      outcome_is { alternative(5) }
+    end
+    exp.complete!
+    100.times.each do
+      assert_equal 5, exp.choose.value
+    end
+  end
+  
   # -- Experiment metric --
 
   def test_explicit_metric
@@ -120,6 +318,38 @@ class AbTestTest < ActionController::TestCase
     end
     Vanity.playground.track! :coolness
     assert_equal 1, experiment(:abcd).alternatives.sum(&:conversions)
+  end
+  
+  def test_multiple_metric_tracking_into_alternative
+    metric "Hot"
+    metric "Cold"
+    new_ab_test :abcd do
+      alternatives :one, :two
+      identify { rand }
+      metrics :hot, :cold
+    end
+    100.times do
+      Vanity.playground.track! :hot
+    end
+    200.times do
+      Vanity.playground.track! :cold
+    end
+    assert_in_delta experiment(:abcd).alternative(:one).metric_counts["hot"], 50, 15
+    assert_in_delta experiment(:abcd).alternative(:one).metric_counts["cold"], 100, 20
+    assert_in_delta experiment(:abcd).alternative(:two).metric_counts["hot"], 50, 15
+    assert_in_delta experiment(:abcd).alternative(:two).metric_counts["cold"], 100, 20
+  end
+  
+  def test_metric_counts_tracked_multiple_times_per_participant
+    metric "Coolness"
+    new_ab_test :abcd do
+      identify{ 'me' }
+      metrics :coolness
+    end
+    10.times do
+      Vanity.playground.track! :coolness
+    end
+    assert_equal 10, experiment(:abcd).choose.metric_counts["coolness"]
   end
 
   # -- use_js! --
@@ -763,6 +993,41 @@ This experiment did not run long enough to find a clear winner.
     choice = experiment(:simple).choose.value
     assert [:a, :b, :c].include?(choice)
     assert_equal choice, experiment(:simple).choose.value
+  end
+  
+  # -- Reset --
+  
+  def test_reset_clears_participants
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      metrics :coolness
+    end
+    experiment(:simple).chooses(:b)
+    assert_equal experiment(:simple).alternatives[1].participants, 1
+    experiment(:simple).reset
+    assert_equal experiment(:simple).alternatives[1].participants, 0
+  end
+  
+  def test_clears_outcome_and_completed_at
+     new_ab_test :simple do
+       alternatives :a, :b, :c
+       metrics :coolness	
+     end	  	
+    experiment(:simple).reset	  	
+    assert_nil experiment(:simple).outcome  	
+    assert_nil experiment(:simple).completed_at
+  end
+  
+  # -- Pick Winner --
+  
+  def test_complete_with_argument_sets_outcome_and_completes
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      metrics :coolness
+    end
+    experiment(:simple).complete!(experiment(:simple).alternatives[1].id)
+    assert_equal experiment(:simple).alternatives[1], experiment(:simple).outcome
+    assert_not_nil experiment(:simple).completed_at
   end
 
 
