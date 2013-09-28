@@ -89,27 +89,43 @@ module Vanity
     end
 
 
-      # The meat.
-      class AbTest < Base
-        class << self
+    # The meat.
+    class AbTest < Base
+      class << self
 
-          # Convert z-score to probability.
-          def probability(score)
-            score = score.abs
-            probability = AbTest::Z_TO_PROBABILITY.find { |z,p| score >= z }
-            probability ? probability.last : 0
-          end
-
-          def friendly_name
-            "A/B Test" 
-          end
-
+        # Convert z-score to probability.
+        def probability(score)
+          score = score.abs
+          probability = AbTest::Z_TO_PROBABILITY.find { |z,p| score >= z }
+          probability ? probability.last : 0
         end
+
+        def friendly_name
+          "A/B Test" 
+        end
+
+      end
+
+      # What method to use for calculating score.  Default is :score, but can also be set to :bayes_score to calculate probability of each alternative being the best.
+      #
+      # @example Define A/B test which uses bayes_score in reporting
+      # ab_test "noodle_test" do
+      #   alternatives "spaghetti", "linguine"
+      #   metrics :signup
+      #   score_method :bayes_score
+      # end
+      def score_method(new_method=nil)
+        if new_method
+          @score_method = new_method
+        end
+        @score_method
+      end
 
       def initialize(*args)
         super
+        @score_method = :score
+        @use_probabilities = nil
       end
-
 
       # -- Metric --
     
@@ -126,7 +142,6 @@ module Vanity
         @metrics = args.map { |id| @playground.metric(id) } unless args.empty?
         @metrics
       end
-
 
       # -- Alternatives --
 
@@ -202,6 +217,21 @@ module Vanity
             unless index
               index = alternative_for(identity)
               if !@playground.using_js?
+                # if we have an on_assignment block, call it on new assignments
+                if @on_assignment_block
+                  assignment = alternatives[index.to_i]
+                  if !connection.ab_seen @id, identity, assignment
+                    @on_assignment_block.call(Vanity.context, identity, assignment, self)
+                  end
+                end
+                # if we are rebalancing probabilities, keep track of how long it has been since we last rebalanced
+                if @rebalance_frequency
+                  @assignments_since_rebalancing += 1
+                  if @assignments_since_rebalancing >= @rebalance_frequency
+                    @assignments_since_rebalancing = 0
+                    rebalance!
+                  end
+                end
                 connection.ab_add_participant @id, index, identity
                 check_completion!
               end
@@ -282,12 +312,16 @@ module Vanity
 
       # -- Reporting --
 
+      def calculate_score
+        self.send(score_method)
+      end
+
       # Scores alternatives based on the current tracking data.  This method
       # returns a structure with the following attributes:
       # [:alts]   Ordered list of alternatives, populated with scoring info.
       # [:base]   Second best performing alternative.
       # [:least]  Least performing alternative (but more than zero conversion).
-      # [:choice] Choice alterntive, either the outcome or best alternative.
+      # [:choice] Choice alternative, either the outcome or best alternative.
       #
       # Alternatives returned by this method are populated with the following
       # attributes:
@@ -323,10 +357,86 @@ module Vanity
         # choice alternative can only pick best if we have high probability (>90%).
         best = sorted.last if sorted.last.measure > 0.0
         choice = outcome ? alts[outcome.id] : (best && best.probability >= probability ? best : nil)
-        Struct.new(:alts, :best, :base, :least, :choice).new(alts, best, base, least, choice)
+        Struct.new(:alts, :best, :base, :least, :choice, :method).new(alts, best, base, least, choice, :score)
       end
 
-      # Use the result of #score to derive a conclusion.  Returns an
+      # Scores alternatives based on the current tracking data, using Bayesian estimates of the best binomial bandit.
+      # Based on the R bandit package, http://cran.r-project.org/web/packages/bandit, which is based on Steven L. Scott, A modern Bayesian look at the multi-armed bandit, Appl. Stochastic Models Bus. Ind. 2010; 26:639-658. (http://www.economics.uci.edu/~ivan/asmb.874.pdf)
+      # This method returns a structure with the following attributes:
+      # [:alts]   Ordered list of alternatives, populated with scoring info.
+      # [:base]   Second best performing alternative.
+      # [:least]  Least performing alternative (but more than zero conversion).
+      # [:choice] Choice alternative, either the outcome or best alternative.
+      #
+      # Alternatives returned by this method are populated with the following
+      # attributes:
+      # [:probability]  Probability (probability this is the best alternative).
+      # [:difference]   Difference from the least performant altenative.
+      #
+      # The choice alternative is set only if its probability is higher or
+      # equal to the specified probability (default is 90%).
+      def bayes_score(probability = 90)
+        begin
+          require 'integration'
+          require 'rubystats'
+        rescue LoadError
+          warn "to use bayes_score, install integration and rubystats gems"
+          return score(probability)
+        end
+
+        begin
+          require "gsl"
+        rescue LoadError
+          warn "for better integration performance, install gsl gem"
+        end
+
+        alts = alternatives
+        # sort by conversion rate to find second best
+        sorted = alts.sort_by(&:measure)
+        base = sorted[-2]
+
+        def pdf_of_best(z, alternative_being_examined, all_alternatives)
+          # get the pdf for this alternative at z
+          r = alternative_being_examined.pdf(z)
+          # now multiply by the probability that all the other alternatives are lower
+          all_alternatives.each do |other|
+            if other != alternative_being_examined
+              r = r * other.cdf(z)
+            end
+          end
+          return r
+        end
+
+        def prob_best(alternative_being_examined, all_alternatives)
+          Integration.integrate(0,1,:tolerance=>1e-4) {|z| pdf_of_best(z, alternative_being_examined, all_alternatives) }
+        end
+
+        alternative_posteriors = sorted.map {|a| x=a.converted; n=a.participants; Rubystats::BetaDistribution.new(x+1, n-x+1)}
+
+        # calculate probabilities
+        pc = base.measure
+        nc = base.participants
+        sorted.each_with_index do |alt, i|
+          p = alt.measure
+          n = alt.participants
+          alt.probability = 100*prob_best(alternative_posteriors[i], alternative_posteriors)
+        end
+        # difference is measured from least performant
+        if least = sorted.find { |alt| alt.measure > 0 }
+          sorted.each do |alt|
+            if alt.measure > least.measure
+              alt.difference = (alt.measure - least.measure) / least.measure * 100
+            end
+          end
+        end
+        # best alternative is one with highest conversion rate (best shot).
+        # choice alternative can only pick best if we have high probability (>90%).
+        best = sorted.last if sorted.last.measure > 0.0
+        choice = outcome ? alts[outcome.id] : (best && best.probability >= probability ? best : nil)
+        Struct.new(:alts, :best, :base, :least, :choice, :method).new(sorted, best, base, least, choice, :bayes_score)
+      end
+
+      # Use the result of #score or #bayes_score to derive a conclusion.  Returns an
       # array of claims.
       def conclusion(score = score)
         claims = []
@@ -348,10 +458,18 @@ module Vanity
             diff = ((best.measure - second.measure) / second.measure * 100).round
             better = " (%d%% better than %s)" % [diff, second.name] if diff > 0
             claims << "The best choice is %s: it converted at %.1f%%%s." % [best.name, best.measure * 100, better]
-            if best.probability >= 90
-              claims << "With %d%% probability this result is statistically significant." % score.best.probability
+            if score.method == :bayes_score
+              if best.probability >= 90
+                claims << "With %d%% probability this result is the best." % score.best.probability
+              else
+                claims << "This result does not have strong confidence behind it, suggest you continue this experiment."
+              end
             else
-              claims << "This result is not statistically significant, suggest you continue this experiment."
+              if best.probability >= 90
+                claims << "With %d%% probability this result is statistically significant." % score.best.probability
+              else
+                claims << "This result is not statistically significant, suggest you continue this experiment."
+              end
             end
             sorted.delete best
           end
@@ -369,6 +487,43 @@ module Vanity
         claims
       end
 
+      # -- Unequal probability assignments --
+
+      def set_alternative_probabilities(alternative_probabilities)
+        # create @use_probabilities as a function to go from [0,1] to outcome
+        cumulative_probability = 0.0
+        new_probabilities = alternative_probabilities.map {|am| [am, (cumulative_probability += am.probability)/100.0]}
+        @use_probabilities = new_probabilities
+      end
+
+      # -- Experiment rebalancing --
+
+      # Experiment rebalancing allows the app to automatically adjust the probabilities for each alternative; when one is performing better, it will increase its probability
+      #  according to Bayesian one-armed bandit theory, in order to (eventually) maximize your overall conversions.
+
+      # Sets or returns how often (as a function of number of people assigned) to rebalance. For example:
+      #   ab_test "Simple" do
+      #     rebalance_frequency 100
+      #   end
+      #
+      #  puts "The experiment will automatically rebalance after every " + experiment(:simple).description + " users are assigned."
+      def rebalance_frequency(rf = nil)
+        if rf
+          @assignments_since_rebalancing = 0
+          @rebalance_frequency = rf
+          rebalance!
+        end
+        @rebalance_frequency
+      end
+
+      # Force experiment to rebalance.
+      def rebalance!
+        return unless @playground.collecting?
+        score_results = bayes_score
+        if score_results.method == :bayes_score
+          set_alternative_probabilities score_results.alts
+        end
+      end
 
       # -- Completion --
 
@@ -478,7 +633,15 @@ module Vanity
       # identity, and randomly distributed alternatives for each identity (in the
       # same experiment).
       def alternative_for(identity)
-        Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.size
+        if @use_probabilities
+          existing_assignment = connection.ab_assigned @id, identity
+          return existing_assignment if existing_assignment
+          random_outcome = rand()
+          @use_probabilities.each do |alternative, max_prob|
+            return alternative.id if random_outcome < max_prob
+          end
+        end
+        return Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.size
       end
 
       begin

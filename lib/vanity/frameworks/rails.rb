@@ -253,6 +253,10 @@ module Vanity
         render :file=>Vanity.template("_report"), :content_type=>Mime::HTML, :layout=>false
       end
 
+      def participant
+        render :file=>Vanity.template("_participant"), :locals=>{:participant_id => params[:id], :participant_info => Vanity.playground.participant_info(params[:id])}, :content_type=>Mime::HTML, :layout=>false
+      end
+
       def chooses
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.chooses(exp.alternatives[params[:a].to_i].value)

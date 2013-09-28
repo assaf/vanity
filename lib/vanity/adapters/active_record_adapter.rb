@@ -212,14 +212,33 @@ module Vanity
         VanityParticipant.retrieve(experiment, identity, true, :seen => alternative)
       end
 
+      # Determines if a participant already has seen this alternative in this experiment.
+      def ab_seen(experiment, identity, alternative)
+        participant = VanityParticipant.retrieve(experiment, identity, false)
+        participant && participant.seen == alternative.id
+      end
+
+      # Returns the participant's seen alternative in this experiment, if it exists
+      def ab_assigned(experiment, identity)
+        participant = VanityParticipant.retrieve(experiment, identity, false)
+        participant && participant.seen
+      end
+
       # Records a conversion in this experiment for the given alternative.
       # Associates a value with the conversion (default to 1). If implicit is
-      # true, add particpant if not already recorded for this experiment. If
-      # implicit is false (default), only add conversion is participant
+      # true, add participant if not already recorded for this experiment. If
+      # implicit is false (default), only add conversion if participant
       # previously recorded as participating in this experiment.
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
+        participant = VanityParticipant.retrieve(experiment, identity, false)
         VanityParticipant.retrieve(experiment, identity, implicit, :converted => alternative)
         VanityExperiment.retrieve(experiment).increment_conversion(alternative, count)
+        # Note: this appears to be double-counting converstions because this function is called twice; not sure why this is so, but the change below will
+        #   not increment if we have already converted for this participant
+        # if !participant || !participant.converted
+        #   VanityParticipant.retrieve(experiment, identity, implicit, :converted => alternative)
+        #   VanityExperiment.retrieve(experiment).increment_conversion(alternative, count)
+        # end
       end
 
       # Returns the outcome of this experiment (if set), the index of a
