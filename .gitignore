@@ -1,5 +1,6 @@
 .bundle
 .yardoc
+.rvmrc
 *.gem
 html
 test/myapp/log/
