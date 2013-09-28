@@ -1,12 +1,12 @@
 PATH
-  remote: /Users/dougcole/workspace/vanity
+  remote: /Users/phill/Development/ruby/vanity
   specs:
     vanity (1.8.0)
       redis (~> 2.0)
       redis-namespace (~> 1.0.0)
 
 GEM
-  remote: http://rubygems.org/
+  remote: https://rubygems.org/
   specs:
     SystemTimer (1.2.3)
     actionmailer (3.1.3)
@@ -103,7 +103,7 @@ GEM
     rdoc (3.12)
       json (~> 1.4)
     redis (2.2.2)
-    redis-namespace (1.0.3)
+    redis-namespace (1.0.4)
       redis (< 3.0.0)
     shoulda (3.0.1)
       shoulda-context (~> 1.0.0)
