@@ -69,9 +69,9 @@ module Vanity
         # update the found participant.
         def self.retrieve(experiment, identity, create = true, update_with = nil)
           if record = VanityParticipant.first(:conditions=>{ :experiment_id=>experiment.to_s, :identity=>identity.to_s })
-            record.update_attributes(update_with) if update_with
+            record.update_attributes(update_with, :without_protection => true) if update_with
           elsif create
-            record = VanityParticipant.create({ :experiment_id=>experiment.to_s, :identity=>identity }.merge(update_with || {}))
+            record = VanityParticipant.create({ :experiment_id=>experiment.to_s, :identity=>identity }.merge(update_with || {}), :without_protection => true)
           end
           record
         end
@@ -112,7 +112,7 @@ module Vanity
         record = VanityMetric.retrieve(metric)
 
         values.each_with_index do |value, index|
-          record.vanity_metric_values.create(:date => timestamp.to_date.to_s, :index => index, :value => value)
+          record.vanity_metric_values.create({:date => timestamp.to_date.to_s, :index => index, :value => value}, :without_protection => true)
         end
 
         record.updated_at = Time.now
@@ -149,7 +149,7 @@ module Vanity
       # Store when experiment was created (do not write over existing value).
       def set_experiment_created_at(experiment, time)
         record = VanityExperiment.find_by_experiment_id(experiment.to_s) ||
-                VanityExperiment.new(:experiment_id => experiment.to_s)
+                VanityExperiment.new(:experiment_id => experiment.to_s, :without_protection => true)
         record.created_at ||= time
         record.save
       end
