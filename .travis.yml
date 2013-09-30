@@ -1,6 +1,8 @@
 language: ruby
 bundler_args: --without development
 script: 'rake appraisal test'
+services:
+  - mongodb
 rvm:
 - 1.8.7
 - 1.9.3
