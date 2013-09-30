@@ -19,4 +19,5 @@ before_script:
 #- "psql -c 'create database vanity_test;' -U postgres >/dev/null"
 matrix:
   allow_failures:
+    - rvm: 2.0.0
     - rvm: ruby-head
