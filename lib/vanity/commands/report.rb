@@ -2,30 +2,28 @@ require "erb"
 require "cgi"
 
 module Vanity
-  
+
   # Render method available to templates (when used by Vanity command line,
   # outside Rails).
   module Render
-    
+
     # Render the named template.  Used for reporting and the dashboard.
-    def render(path, locals = {})
-      locals[:playground] = self
-      keys = locals.keys
-      struct = Struct.new(*keys)
-      struct.send :include, Render
-      locals = struct.new(*locals.values_at(*keys))
-      dir, base = File.split(path)
-      path = File.join(dir, "_#{base}")
-      erb = ERB.new(File.read(path), nil, '<>')
-      erb.filename = path
-      erb.result(locals.instance_eval { binding })
+    def render(path_or_options, locals = {})
+      if path_or_options.respond_to?(:keys)
+	render_erb(
+	  path_or_options[:file] || path_or_options[:partial],
+	  path_or_options[:locals]
+	)
+      else
+	render_erb(path_or_options, locals)
+      end
     end
 
     # Escape HTML.
     def vanity_h(html)
       CGI.escapeHTML(html.to_s)
     end
-    
+
     def vanity_html_safe(text)
       text
     end
@@ -37,6 +35,29 @@ module Vanity
         gsub(/\n\n+/, "</p>\n\n#{open}").       # 2+ newline  -> paragraph
         gsub(/([^\n]\n)(?=[^\n])/, '\1<br />') + # 1 newline   -> br
         "</p>"
+    end
+
+    protected
+
+    def render_erb(path, locals = {})
+      locals[:playground] = self
+      keys = locals.keys
+      struct = Struct.new(*keys)
+      struct.send :include, Render
+      locals = struct.new(*locals.values_at(*keys))
+      dir, base = File.split(path)
+      path = File.join(dir, partialize(base))
+      erb = ERB.new(File.read(path), nil, '<>')
+      erb.filename = path
+      erb.result(locals.instance_eval { binding })
+    end
+
+    def partialize(template_name)
+      if template_name[0] != '_'
+	"_#{template_name}"
+      else
+	template_name
+      end
     end
   end
 

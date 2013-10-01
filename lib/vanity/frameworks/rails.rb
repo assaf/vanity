@@ -1,5 +1,5 @@
 module Vanity
-  module Rails #:nodoc:
+  module Rails
     def self.load!
       Vanity.playground.load_path = ::Rails.root + Vanity.playground.load_path
       Vanity.playground.logger ||= ::Rails.logger
