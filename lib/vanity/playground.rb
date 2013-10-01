@@ -129,6 +129,14 @@ module Vanity
       @use_js
     end
 
+    def without_js(&block)
+      original = @use_js
+      @use_js = false
+      value = block.call
+      @use_js = original
+      value
+    end
+
 
     # Returns hash of experiments (key is experiment id).
     #
