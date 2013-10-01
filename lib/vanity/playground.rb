@@ -156,8 +156,13 @@ module Vanity
     # Loads all metrics and experiments.  Rails calls this during
     # initialization.
     def load!
-      experiments
-      metrics
+      begin
+        experiments
+        metrics
+      rescue
+        @logger.warn "Vanity: expirements not loading..."
+      end
+      
     end
 
     # Returns a metric (raises NameError if no metric with that identifier).
