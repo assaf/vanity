@@ -211,7 +211,7 @@ module Vanity
       end
 
       def vanity_js
-        return if @_vanity_experiments.nil?
+        return if @_vanity_experiments.nil? || @_vanity_experiments.empty?
         javascript_tag do
           render :file => Vanity.template("_vanity.js.erb")
         end
@@ -237,16 +237,13 @@ module Vanity
       #
       # @example Render some info about each active experiment in development mode
       #   <% if Rails.env.development? %>
-      #     <% experiments = vanity_experiments %>
-      #     <% unless experiments.nil? %>
-      #       <% experiments.each do |name, alternative| %>
-      #         <span>Participating in <%= name %>, seeing <%= alternative %>:<%= alternative.value %> </span>
-      #       <% end %>
+      #     <% vanity_experiments.each do |name, alternative| %>
+      #       <span>Participating in <%= name %>, seeing <%= alternative %>:<%= alternative.value %> </span>
       #     <% end %>
       #   <% end %>
       # @example Push experiment values into javascript for use there
       #   <% experiments = vanity_experiments %>
-      #   <% unless experiments.nil? %>
+      #   <% unless experiments.empty? %>
       #     <script>
       #       <% experiments.each do |name, alternative| %>
       #         myAbTests.<%= name.to_s.camelize(:lower) %> = '<%= alternative.value %>';
@@ -254,11 +251,13 @@ module Vanity
       #     </script>
       #   <% end %>
       def vanity_experiments
-        return if @_vanity_experiments.nil?
+        @_vanity_experiments ||= {}
         experiments = {}
+
         @_vanity_experiments.each do |name, alternative|
           experiments[name] = alternative.clone
         end
+
         return experiments
       end
     end

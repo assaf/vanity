@@ -52,8 +52,8 @@ class RailsHelperTest < ActionView::TestCase
     assert_equal vanity_experiments.keys.length, 1
   end
 
-  def test_vanity_experiments_returns_nil_when_no_experiments
-    assert_nil vanity_experiments
+  def test_vanity_experiments_returns_empty_hash_when_no_experiments
+    assert_equal vanity_experiments, {}
   end
 
 end
