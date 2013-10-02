@@ -1,20 +1,16 @@
-<% unless @_vanity_experiments.empty? %>
-  var httpRequest;
-  <%
-    @_vanity_experiments.each do |name, alternative| 
-  %>
-    var params = "e=<%= name %>&a=<%= alternative.id %>&authenticity_token=" + encodeURIComponent("<%= form_authenticity_token %>");
-    if (window.XMLHttpRequest) { // Mozilla, Safari, ...
-      httpRequest = new XMLHttpRequest();
-    } else if (window.ActiveXObject) { // IE
-      try { httpRequest = new ActiveXObject("Msxml2.XMLHTTP"); }
-      catch (e) { }
-    }
-    if (httpRequest) {
-      httpRequest.open('POST', "<%= Vanity.playground.add_participant_path %>", true);
-      httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-      httpRequest.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-      httpRequest.send(params);
-    }
-  <% end %>
+var httpRequest;
+<% @_vanity_experiments.each do |name, alternative| %>
+  var params = "e=<%= name %>&a=<%= alternative.id %>&authenticity_token=" + encodeURIComponent("<%= form_authenticity_token %>");
+  if (window.XMLHttpRequest) { // Mozilla, Safari, ...
+    httpRequest = new XMLHttpRequest();
+  } else if (window.ActiveXObject) { // IE
+    try { httpRequest = new ActiveXObject("Msxml2.XMLHTTP"); }
+    catch (e) { }
+  }
+  if (httpRequest) {
+    httpRequest.open('POST', "<%= Vanity.playground.add_participant_path %>", true);
+    httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    httpRequest.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    httpRequest.send(params);
+  }
 <% end %>
