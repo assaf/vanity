@@ -32,6 +32,8 @@ module Vanity
 
       # Metric value
       class VanityMetricValue < VanityRecord
+        attr_accessible :date, :index, :value
+
         self.table_name = :vanity_metric_values
         belongs_to :vanity_metric
       end
