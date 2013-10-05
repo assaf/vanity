@@ -1,16 +1,21 @@
+= Vanity
+{<img src="https://travis-ci.org/assaf/vanity.png?branch=feature/readme-update" alt="Build Status" />}[https://travis-ci.org/assaf/vanity]
+
 Vanity is an Experiment Driven Development framework for Rails.
 
 * All about Vanity: http://vanity.labnotes.org
-* On github: http://github.com/assaf/vanity
+* On Github: http://github.com/assaf/vanity
 
 http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
 
 == A/B Testing With Rails (In 5 Easy Steps)
 
-<b>Step 1:</b> Start using Vanity in your Rails application:
+=== <b>Step 1:</b> Start using Vanity in your Rails application
 
-== Rails 2.x configuration
+==== Step 1.1
+
+===== Rails 2.x installation
 
   Rails::Initializer.run do |config|
     gem.config "vanity"
@@ -19,39 +24,49 @@ http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
       require "vanity"
     end
   end
-  
-== Rails 3 configuration
+
+===== Rails 3 installation
 
 Add to your Gemfile:
-    
+
   gem "vanity"
 
-If using a relational database, run the generator and migrations to create the database schema:
+===== Rails 4 installation
+
+Coming soon!
+
+==== Step 1.2
+
+Choose a method to store experiment results: for Redis or an external tracking mechanism, migrations aren't needed. Mongo is also available. To use a relational database, via ActiveRecord, run the generator and migrations to create the database schema:
 
   $ rails generate vanity
   $ rake db:migrate
-  
-Add to your application controller:
+
+==== Step 1.3
+
+add to your application controller:
 
   class ApplicationController < ActionController::Base
     use_vanity :current_user
   end
 
-<b>Step 2:</b> Define your first A/B test.  This experiment goes in the file <code>experiments/price_options.rb</code>:
+=== <b>Step 2:</b> Define your first A/B test
+
+This experiment goes in the file <code>experiments/price_options.rb</code>:
 
   ab_test "Price options" do
     description "Mirror, mirror on the wall, who's the better price of all?"
     alternatives 19, 25, 29
     metrics :signups
   end
-  
-  NOTE: If using a metric as above ("signups"), there needs to be a corresponding ruby file for that metric. Inside the "experiments" directory create a "metrics" directory with a file called "signups.rb". The contents of the file can describe the signup metric, refer to the "Metrics" Vanity documentation page for an example.
 
-<b>Step 3:</b> Present the different options to your users:
+NOTE: If using a metric as above ("signups"), there needs to be a corresponding ruby file for that metric. Inside the "experiments" directory create a "metrics" directory with a file called "signups.rb". The contents of the file can describe the signup metric, refer to the "Metrics" Vanity documentation page for an example.
+
+=== <b>Step 3:</b> Present the different options to your users
 
   <h2>Get started for only $<%= ab_test :price_options %> a month!</h2>
 
-<b>Step 4:</b> Measure conversion:
+=== <b>Step 4:</b> Measure conversion
 
   class SignupController < ApplicationController
     def signup
@@ -65,21 +80,11 @@ Add to your application controller:
     end
   end
 
-<b>Step 5:</b> Check the report:
+=== <b>Step 5:</b> Check the report:
 
   vanity report --output vanity.html
-  
 
-== Rails 3
-  
-There is currently an issue with report generation. The vanity-talk Google Group has a couple posts that outline the issue for now. This is one of the posts: http://groups.google.com/group/vanity-talk/browse_thread/thread/343081a72a0cefb6
-
-If you are collecting data (in development you need to opt-in to this by setting Vanity.playground.collecting = true in environments/development.rb) you can view experiment results with the vanity dashboard instead of the report. 
-
-The vanity dashboard setup instructions with Vanity work for Rails 3.x except the route is different. A Rails 3.x-style route would look like this:
-
-  `match '/vanity(/:action(/:id(.:format)))', :controller=>:vanity`
-
+Or see instructions for viewing the results using Rails.
 
 == Registering participants with Javascript
 
@@ -88,6 +93,16 @@ If robots or spiders make up a significant portion of your sites traffic they ca
 * Add Vanity.playground.use_js!
 * Set Vanity.playground.add_participant_path = '/path/to/vanity/action', this should point to the add_participant path that is added with Vanity::Rails::Dashboard, make sure that this action is available to all users
 * Add <%= vanity_js %> to any page that needs uses an ab_test. vanity_js needs to be included after your call to ab_test so that it knows which version of the experiment the participant is a member of.  The helper will render nothing if the there are no ab_tests running on the current page, so adding vanity_js to the bottom of your layouts is a good option.  Keep in mind that if you call use_js! and don't include vanity_js in your view no participants will be recorded.
+
+== Compatibility Matrix
+
+Running Rails 2 on Ruby 2? Vanity probably won't work for you. But here's what does:
+
+  Persistence: Redis, Mongo, ActiveRecord
+  Rails: 2.3, 3, 3.1, 3.2
+  Ruby: 1.8.7, 1.9.3
+
+NOTE: Support for Rails 4 and Ruby 2.0 are coming soon!
 
 == Contributing
 
@@ -102,7 +117,7 @@ If robots or spiders make up a significant portion of your sites traffic they ca
 
 == Credits/License
 
-Original code, copyright of Assaf Arkin, released under the MIT license.  
+Original code, copyright of Assaf Arkin, released under the MIT license.
 
 Documentation available under the Creative Commons Attribution license.
 
