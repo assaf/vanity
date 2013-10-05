@@ -1,3 +1,10 @@
+== 1.8.1 (2013-10-05)
+
+Added vanity_experiments helper for rails to return read only copy of active experiments (@iceberg901).
+Fixed support for Mass Assignment on Rails 3.2 (@hcarver).
+Fixed commandlin usage (@phillbaker).
+
+
 == 1.8.0 (2012-03-12)
 
 Improved support for Rails 3.1 and Rails 3.2. Thanks to masverba, Daan and IsaacLewis.
@@ -10,7 +17,7 @@ Finer Grained Exceptions for Missing Experiments (Nick Barnwell)
 Minor change in locating config file (Ariel Salomon)
 
 Allow for table names in specified :timestamps (Peter Kovacs)
-    
+
 When a named scope includes a join, created_at can be ambiguous.  Use
 
 	metric "Sky is limit" do
@@ -35,7 +42,7 @@ connections are deprecated in favor of using the connection option with a URI
 
 1.7.0 adds support for ActionMailer, for example:
 
-	class UserMailer < ActionMailer::Base 
+	class UserMailer < ActionMailer::Base
 		def invite_email(user)
 			use_vanity_mailer user
 			mail :to => user.email, :subject => ab_test(:invite_subject)
@@ -225,7 +232,7 @@ To view Google Analytics metrics from within Vanity, first make sure you are
 using Garb.  For example, in your Gemfile:
 
   gem "vanity", "1.3.0"
-  gem "garb",   "0.5.0" 
+  gem "garb",   "0.5.0"
 
 Next, authenticate using your account credentials.  For example, in your
 config/environments/production.rb:
@@ -317,7 +324,7 @@ Much thanks to Ian Sefferman for fixing issues with Ruby 1.8.7 and Rails support
 * Added: Metrics.
 * Added: Use Vanity.playground.mock! when running tests and you'd rather not access a live Redis server.
 * Changed: A/B tests now using metrics for tracking.
-* Changed: Now throwing NameError instead of LoadError when failing to load experiment/metric.  NameError can be rescued on same line. 
+* Changed: Now throwing NameError instead of LoadError when failing to load experiment/metric.  NameError can be rescued on same line.
 * Changed: New, easier URL mapping for Dashboard: map.vanity "/vanity", :controller=>:vanity.
 * Changed: All tests are green on Ruby 1.8.6, 1.8.7 and 1.9.1.
 * Changed: Switched to redis-rb from http://github.com/ezmobius/redis-rb.
