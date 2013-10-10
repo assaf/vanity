@@ -127,7 +127,7 @@ module Vanity
         connection = VanityMetric.connection
         record = VanityMetric.retrieve(metric)
         dates = (from.to_date..to.to_date).map(&:to_s)
-        conditions = [connection.quote_column_name('date') + ' IN (?)', dates]
+        conditions = [connection.quote_column_name('date') + ' BETWEEN ? AND ?', from.to_date, to.to_date]
         order = "#{connection.quote_column_name('date')}"
         select = "sum(#{connection.quote_column_name('value')}) AS value, #{connection.quote_column_name('date')}"
         group_by = "#{connection.quote_column_name('date')}"
