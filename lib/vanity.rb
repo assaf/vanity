@@ -31,6 +31,7 @@ require "vanity/adapters/mongodb_adapter"
 require "vanity/adapters/mock_adapter"
 # Playground.
 require "vanity/playground"
+require "vanity/autoconnect"
 require "vanity/helpers"
 # Integration with various frameworks.
 require "vanity/frameworks"

@@ -23,4 +23,15 @@ class PlaygroundTest < Test::Unit::TestCase
     assert_equal Vanity.playground.connection.to_s, "mock:/"
   end
 
+  def test_autoconnect_establishes_connection_by_default
+    instance = Vanity::Playground.new(:connection=>"mock:/")
+    assert instance.connected?
+  end
+
+  def test_autoconnect_can_skip_connection
+    Vanity::Autoconnect.stubs(:playground_should_autoconnect?).returns(false)
+    instance = Vanity::Playground.new(:connection=>"mock:/")
+    assert !instance.connected?
+  end
+
 end

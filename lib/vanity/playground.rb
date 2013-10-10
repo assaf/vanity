@@ -21,6 +21,7 @@ module Vanity
     # - namespace -- Namespace to use
     # - load_path -- Path to load experiments/metrics from
     # - logger -- Logger to use
+    # - redis -- A Redis object that will be used for the connection
     def initialize(*args)
       options = Hash === args.last ? args.pop : {}
       # In the case of Rails, use the Rails logger and collect only for
@@ -39,18 +40,6 @@ module Vanity
       end
 
       @options = defaults.merge(config).merge(options)
-      if @options[:host] == 'redis' && @options.values_at(:host, :port, :db).any?
-        warn "Deprecated: please specify Redis connection as URL (\"redis://host:port/db\")"
-        establish_connection :adapter=>"redis", :host=>@options[:host], :port=>@options[:port], :database=>@options[:db] || @options[:database]
-      elsif @options[:redis]
-        @adapter = RedisAdapter.new(:redis=>@options[:redis])
-      else
-        connection_spec = args.shift || @options[:connection]
-        if connection_spec
-          connection_spec = "redis://" + connection_spec unless connection_spec[/^\w+:/]
-          establish_connection connection_spec
-        end
-      end
 
       warn "Deprecated: namespace option no longer supported directly" if @options[:namespace]
       @load_path = @options[:load_path] || DEFAULTS[:load_path]
@@ -58,12 +47,15 @@ module Vanity
         @logger = Logger.new(STDOUT)
         @logger.level = Logger::ERROR
       end
+
+      autoconnect(@options, args) if Vanity::Autoconnect.playground_should_autoconnect?
+
       @loading = []
       @use_js = false
       self.add_participant_path = DEFAULT_ADD_PARTICIPANT_PATH
       @collecting = !!@options[:collecting]
     end
-   
+
     # Deprecated. Use redis.server instead.
     attr_accessor :host, :port, :db, :password, :namespace
 
@@ -219,7 +211,7 @@ module Vanity
 
 
     # -- Connection management --
- 
+
     # This is the preferred way to programmatically create a new connection (or
     # switch to a new connection). If no connection was established, the
     # playground will create a new one by calling this method with no arguments.
@@ -242,7 +234,7 @@ module Vanity
     #   Vanity.playground.establish_connection :adapter=>:redis,
     #                                          :host=>"redis.local"
     #
-    # @since 1.4.0 
+    # @since 1.4.0
     def establish_connection(spec = nil)
       @spec = spec
       disconnect! if @adapter
@@ -341,6 +333,23 @@ module Vanity
     def redis
       warn "Deprecated: use connection method instead"
       connection
+    end
+
+    protected
+
+    def autoconnect(options, arguments)
+      if options[:host] == 'redis' && options.values_at(:host, :port, :db).any?
+        warn "Deprecated: please specify Redis connection as URL (\"redis://host:port/db\")"
+        establish_connection :adapter=>"redis", :host=>options[:host], :port=>options[:port], :database=>options[:db] || options[:database]
+      elsif options[:redis]
+        @adapter = RedisAdapter.new(:redis=>options[:redis])
+      else
+        connection_spec = arguments.shift || options[:connection]
+        if connection_spec
+          connection_spec = "redis://" + connection_spec unless connection_spec[/^\w+:/]
+          establish_connection connection_spec
+        end
+      end
     end
 
   end
