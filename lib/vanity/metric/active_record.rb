@@ -35,18 +35,21 @@ module Vanity
     # @since 1.2.0
     # @see Vanity::Metric::ActiveRecord
     def model(class_or_scope, options = nil)
-      options = options || {}
-      conditions = options.delete(:conditions)
-      @ar_scoped = conditions ? class_or_scope.scoped(:conditions=>conditions) : class_or_scope
-      @ar_aggregate = AGGREGATES.find { |key| options.has_key?(key) }
-      @ar_column = options.delete(@ar_aggregate)
-      fail "Cannot use multiple aggregates in a single metric" if AGGREGATES.find { |key| options.has_key?(key) }
-      @ar_timestamp = options.delete(:timestamp) || :created_at
-      @ar_timestamp, @ar_timestamp_table = @ar_timestamp.to_s.split('.').reverse
-      @ar_timestamp_table ||= @ar_scoped.table_name
-      fail "Unrecognized options: #{options.keys * ", "}" unless options.empty?
-      @ar_scoped.after_create self
-      extend ActiveRecord
+      ActiveSupport.on_load(:active_record, :yield=>true) do
+        class_or_scope = class_or_scope.constantize if class_or_scope.is_a?(String)
+        options = options || {}
+        conditions = options.delete(:conditions)
+        @ar_scoped = conditions ? class_or_scope.scoped(:conditions=>conditions) : class_or_scope
+        @ar_aggregate = AGGREGATES.find { |key| options.has_key?(key) }
+        @ar_column = options.delete(@ar_aggregate)
+        fail "Cannot use multiple aggregates in a single metric" if AGGREGATES.find { |key| options.has_key?(key) }
+        @ar_timestamp = options.delete(:timestamp) || :created_at
+        @ar_timestamp, @ar_timestamp_table = @ar_timestamp.to_s.split('.').reverse
+        @ar_timestamp_table ||= @ar_scoped.table_name
+        fail "Unrecognized options: #{options.keys * ", "}" unless options.empty?
+        @ar_scoped.after_create self
+        extend ActiveRecord
+      end
     end
 
     # Calling model method on a metric extends it with these modules, redefining
