@@ -1,23 +1,65 @@
 language: ruby
 bundler_args: --without development
-script: 'rake appraisal test'
+script: 'bundle exec rake test'
 services:
   - mongodb
 rvm:
 - 1.8.7
 - 1.9.3
 - 2.0.0
-- ruby-head
 env:
 - DB=mongodb
 - DB=redis
 - DB=mysql
 #- DB=postgres
+gemfile:
+  - Gemfile
+  - gemfiles/rails3.gemfile
+  - gemfiles/rails31.gemfile
+  - gemfiles/rails32.gemfile
 before_script:
+- if [[ "`basename $BUNDLE_GEMFILE`" == "Gemfile" ]]; then rvm rubygems 1.8.25; fi # Rubygems 2.0.x fails with Rails 2.3
 - "mysql -e 'create database vanity_test;' >/dev/null"
-- "rake appraisal:install"
-#- "psql -c 'create database vanity_test;' -U postgres >/dev/null"
+#- if [[ "$DB" == "pgsql" ]]; then psql -c 'create database vanity_test;' -U postgres >/dev/null; fi
 matrix:
-  allow_failures:
+  exclude:
+    # Rails 2 is not officially supported on Ruby 1.9.3
+    - rvm: 1.9.3
+      env: DB=mongodb
+      gemfile: Gemfile
+    - rvm: 1.9.3
+      env: DB=redis
+      gemfile: Gemfile
+    - rvm: 1.9.3
+      env: DB=mysql
+      gemfile: Gemfile
+    # Rails <= 3.2 is not officially supported on Ruby 2.0.0
     - rvm: 2.0.0
+      env: DB=mongodb
+      gemfile: Gemfile
+    - rvm: 2.0.0
+      env: DB=redis
+      gemfile: Gemfile
+    - rvm: 2.0.0
+      env: DB=mysql
+      gemfile: Gemfile
+    - rvm: 2.0.0
+      env: DB=mongodb
+      gemfile: gemfiles/rails3.gemfile
+    - rvm: 2.0.0
+      env: DB=redis
+      gemfile: gemfiles/rails3.gemfile
+    - rvm: 2.0.0
+      env: DB=mysql
+      gemfile: gemfiles/rails3.gemfile
+  allow_failures:
     - rvm: ruby-head
+    - rvm: 2.0.0
+      env: DB=mongodb
+      gemfile: gemfiles/rails31.gemfile
+    - rvm: 2.0.0
+      env: DB=redis
+      gemfile: gemfiles/rails31.gemfile
+    - rvm: 2.0.0
+      env: DB=mysql
+      gemfile: gemfiles/rails31.gemfile

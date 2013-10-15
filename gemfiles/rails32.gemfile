@@ -2,19 +2,20 @@
 
 source "https://rubygems.org"
 
-gem "appraisal"
-gem "garb"
-gem "mocha"
-gem "mongo"
+gem "rack"
 gem "bson_ext"
+gem "mongo"
 gem "mysql"
 gem "pg"
-gem "rack"
-gem "shoulda"
-gem "timecop"
-gem "webmock"
+gem "garb"
 gem "SystemTimer", "1.2.3", :platforms=>:mri_18
+gem "appraisal"
+gem "mocha", :require=>false
+gem "shoulda", :require=>false
+gem "timecop", :require=>false
+gem "webmock", :require=>false
 gem "rails", "3.2.1"
+gem "fastthread", :git=>"git://github.com/zoltankiss/fastthread.git", :platforms=>:mri_20
 gem "passenger", "~>3.0"
 
 gemspec :path=>"../"

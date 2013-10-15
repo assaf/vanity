@@ -1,3 +1,9 @@
+GIT
+  remote: git://github.com/zoltankiss/fastthread.git
+  revision: 56e6ce7c1780797a354d5befe9a9a9869bbc7e3e
+  specs:
+    fastthread (1.0.7)
+
 PATH
   remote: /Users/phill/Development/ruby/vanity
   specs:
@@ -49,7 +55,6 @@ GEM
     crack (0.3.1)
     daemon_controller (1.0.0)
     erubis (2.7.0)
-    fastthread (1.0.7)
     garb (0.9.1)
       activesupport (>= 2.2.0)
       crack (>= 0.1.6)
@@ -132,6 +137,7 @@ DEPENDENCIES
   SystemTimer (= 1.2.3)
   appraisal
   bson_ext
+  fastthread!
   garb
   mocha
   mongo

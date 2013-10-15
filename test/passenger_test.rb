@@ -16,10 +16,14 @@ class PassengerTest < Test::Unit::TestCase
     @server.start
     Thread.pass until @server.started?
     app_root = File.expand_path("myapp", File.dirname(__FILE__))
-    @app = @server.spawn_application "app_root"=>app_root, "spawn_method"=>"smart-lv2"
+    @app = @server.spawn_application "app_root"=>app_root, "spawn_method"=>"smart"
   end
 
   def test_reconnect
+    # When using AR adapter, we're not responsible to reconnect, and we're going
+    # to get the same "connect" (AR connection handler) either way.
+    # return if defined?(Vanity::Adapters::ActiveRecordAdapter) && Vanity::Adapters::ActiveRecordAdapter === Vanity.playground.connection
+
     sleep 0.1
     case @app.listen_socket_type
     when "tcp" ; socket = TCPSocket.new(*@app.listen_socket_name.split(":"))
@@ -38,7 +42,9 @@ class PassengerTest < Test::Unit::TestCase
 
   def teardown
     super
+    @server.cleanup
     @server.stop
+    Process.kill('SIGKILL', @app.pid.to_i) # Just in case...KIDS, GET OUT OF THE POOL!
     File.unlink "test/myapp/config/vanity.yml"
   end
 end

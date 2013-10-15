@@ -1,21 +1,32 @@
 source 'https://rubygems.org'
 gemspec
 
-gem "appraisal"
-gem "bson_ext"
-gem "garb"
-gem "mocha"
-gem "mongo"
-gem "bson_ext"
-gem "mysql"
-gem "passenger", "~>2.0"
-gem "pg"
-gem "rails", "~>2.3.8"
+# Frameworks
 gem "rack"
-gem "shoulda"
-gem "timecop"
-gem "webmock"
+gem "rails", "~>2.3.8"
+
+# Servers
+gem "passenger", "~>2.0"
+
+# Persistence
+gem "bson_ext"
+gem "mongo"
+gem "mysql"
+gem "pg"
+
+# APIs
+gem "garb"
+
+# Compatibility
 gem "SystemTimer", "1.2.3", :platforms => :mri_18
+
+# Testing
+gem "appraisal"
+
+gem "mocha", :require=>false
+gem "shoulda", :require=>false # Requires test/unit
+gem "timecop", :require=>false
+gem "webmock", :require=>false
 
 group :development do
   gem "jekyll"
