@@ -35,6 +35,15 @@ class AbTestTest < ActionController::TestCase
     metric "Coolness"
   end
 
+  def teardown
+    super
+    if RUBY_VERSION == '1.8.7'
+      GC.enable
+      GC.start
+      GC.disable
+    end
+  end
+
   # --  Experiment definition --
 
   def test_requires_at_least_two_alternatives_per_experiment
@@ -53,7 +62,7 @@ class AbTestTest < ActionController::TestCase
       metrics :coolness
     end
   end
-  
+
   def test_returning_alternative_by_value
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
@@ -315,7 +324,7 @@ class AbTestTest < ActionController::TestCase
 
 
   # -- Testing with tests --
-  
+
   def test_with_given_choice
     new_ab_test :simple do
       alternatives :a, :b, :c
@@ -356,7 +365,7 @@ class AbTestTest < ActionController::TestCase
 
 
   # -- Scoring --
-  
+
   def test_scoring
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
@@ -628,7 +637,7 @@ This experiment did not run long enough to find a clear winner.
 
 
   # -- Outcome --
-  
+
   def test_completion_outcome
     new_ab_test :quick do
       outcome_is { alternatives[1] }
