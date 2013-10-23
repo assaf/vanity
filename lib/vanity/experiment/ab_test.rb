@@ -15,7 +15,7 @@ module Vanity
 
       # Alternative id, only unique for this experiment.
       attr_reader :id
-     
+
       # Alternative name (option A, option B, etc).
       attr_reader :name
 
@@ -48,7 +48,7 @@ module Vanity
 
       # Probability derived from z-score. Populated by AbTest#score.
       attr_accessor :probability
-    
+
       # Difference from least performing alternative. Populated by AbTest#score.
       attr_accessor :difference
 
@@ -64,7 +64,7 @@ module Vanity
       end
 
       def <=>(other)
-        measure <=> other.measure 
+        measure <=> other.measure
       end
 
       def ==(other)
@@ -101,7 +101,7 @@ module Vanity
           end
 
           def friendly_name
-            "A/B Test" 
+            "A/B Test"
           end
 
         end
@@ -112,8 +112,8 @@ module Vanity
 
 
       # -- Metric --
-    
-      # Tells A/B test which metric we're measuring, or returns metric in use. 
+
+      # Tells A/B test which metric we're measuring, or returns metric in use.
       #
       # @example Define A/B test against coolness metric
       #   ab_test "Background color" do
@@ -138,7 +138,7 @@ module Vanity
       #     metrics :coolness
       #     alternatives "red", "blue", "orange"
       #   end
-      # 
+      #
       # @example Find out which alternatives this test uses
       #   alts = experiment(:background_color).alternatives
       #   puts "#{alts.count} alternatives, with the colors: #{alts.map(&:value).join(", ")}"
@@ -174,7 +174,7 @@ module Vanity
       #
       # @example
       #   ab_test "More bacon" do
-      #     metrics :yummyness 
+      #     metrics :yummyness
       #     false_true
       #   end
       #
@@ -197,20 +197,20 @@ module Vanity
         if @playground.collecting?
           if active?
             identity = identity()
-	    index = connection.ab_showing(@id, identity)
-	    unless index
-	      index = alternative_for(identity)
-	      if !@playground.using_js?
-		# if we have an on_assignment block, call it on new assignments
-		if @on_assignment_block
-		  assignment = alternatives[index.to_i]
-		  if !connection.ab_seen @id, identity, assignment
-		    @on_assignment_block.call(Vanity.context, identity, assignment, self)
-		  end
-		end
-		connection.ab_add_participant @id, index, identity
-		check_completion!
-	      end
+      	    index = connection.ab_showing(@id, identity)
+      	    unless index
+      	      index = alternative_for(identity)
+      	      if !@playground.using_js?
+            		# if we have an on_assignment block, call it on new assignments
+            		if @on_assignment_block
+            		  assignment = alternatives[index.to_i]
+            		  if !connection.ab_seen @id, identity, assignment
+            		    @on_assignment_block.call(Vanity.context, identity, assignment, self)
+            		  end
+            		end
+            		connection.ab_add_participant @id, index, identity
+            		check_completion!
+      	      end
             end
           else
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
@@ -231,9 +231,9 @@ module Vanity
         Digest::MD5.hexdigest("#{id}:#{alternative.id}")[-10,10]
       end
 
-      
+
       # -- Testing --
-     
+
       # Forces this experiment to use a particular alternative.  You'll want to
       # use this from your test cases to test for the different alternatives.
       #
@@ -262,8 +262,8 @@ module Vanity
               check_completion!
             end
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            if (connection.ab_showing(@id, identity) && connection.ab_showing(@id, identity) != index) || 
-         alternative_for(identity) != index
+            if (connection.ab_showing(@id, identity) && connection.ab_showing(@id, identity) != index) ||
+              alternative_for(identity) != index
               connection.ab_show @id, identity, index
             end
           end
@@ -300,7 +300,7 @@ module Vanity
       # [:z_score]      Z-score (relative to the base alternative).
       # [:probability]  Probability (z-score mapped to 0, 90, 95, 99 or 99.9%).
       # [:difference]   Difference from the least performant altenative.
-      # 
+      #
       # The choice alternative is set only if its probability is higher or
       # equal to the specified probability (default is 90%).
       def score(probability = 90)
@@ -411,7 +411,7 @@ module Vanity
           begin
             result = @outcome_is.call
             outcome = result.id if Alternative === result && result.experiment == self
-          rescue 
+          rescue
             warn "Error in AbTest#complete!: #{$!}"
           end
         else
@@ -422,7 +422,7 @@ module Vanity
         connection.ab_set_outcome @id, outcome || 0
       end
 
-      
+
       # -- Store/validate --
 
       def destroy
