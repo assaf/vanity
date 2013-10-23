@@ -216,12 +216,19 @@ module Vanity
         VanityParticipant.retrieve(experiment, identity, true, :seen => alternative)
       end
 
+      # Determines if a participant already has seen this alternative in this experiment.
+      def ab_seen(experiment, identity, alternative)
+        participant = VanityParticipant.retrieve(experiment, identity, false)
+        participant && participant.seen == alternative.id
+      end
+
       # Records a conversion in this experiment for the given alternative.
       # Associates a value with the conversion (default to 1). If implicit is
-      # true, add particpant if not already recorded for this experiment. If
-      # implicit is false (default), only add conversion is participant
+      # true, add participant if not already recorded for this experiment. If
+      # implicit is false (default), only add conversion if participant
       # previously recorded as participating in this experiment.
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
+        participant = VanityParticipant.retrieve(experiment, identity, false)
         VanityParticipant.retrieve(experiment, identity, implicit, :converted => alternative)
         VanityExperiment.retrieve(experiment).increment_conversion(alternative, count)
       end
