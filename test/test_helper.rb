@@ -22,6 +22,7 @@ if defined?(Rails::Railtie)
 else
   RAILS_ROOT = File.expand_path("..")
   require "initializer"
+  require "actionmailer"
   Rails.configuration = Rails::Configuration.new
 
   ActionController::Routing::Routes.draw do |map|

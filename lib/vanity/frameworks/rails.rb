@@ -182,9 +182,7 @@ module Vanity
       #     <%= count %> features to choose from!
       #   <% end %>
       def ab_test(name, &block)
-        @_vanity_experiments ||= {}
-        @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose
-        value = @_vanity_experiments[name].value
+        value = setup_experiment(name)
 
         if block
           content = capture(value, &block)
@@ -258,8 +256,17 @@ module Vanity
           experiments[name] = alternative.clone
         end
 
-        return experiments
+        experiments
       end
+
+      protected
+
+      def setup_experiment(name)
+        @_vanity_experiments ||= {}
+        @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose
+        @_vanity_experiments[name].value
+      end
+
     end
 
 
