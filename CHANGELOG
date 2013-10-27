@@ -1,8 +1,14 @@
+== 1.8.2 (2013-10-27)
+
+Optimize metric_values query (@zawaideh).
+Add an on_assignment hook for experiments which is called when an identity is given an assignment in ab_test (@lotze)
+Finish Ruby 2.0 compatiblity with testing setup and add ActionMailer test coverage (@phillbaker).
+
 == 1.8.1 (2013-10-05)
 
 Added vanity_experiments helper for rails to return read only copy of active experiments (@iceberg901).
 Fixed support for Mass Assignment on Rails 3.2 (@hcarver).
-Fixed commandlin usage (@phillbaker).
+Fixed commandline usage (@phillbaker).
 
 
 == 1.8.0 (2012-03-12)

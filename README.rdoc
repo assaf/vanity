@@ -1,5 +1,5 @@
 = Vanity
-{<img src="https://travis-ci.org/assaf/vanity.png?branch=feature/readme-update" alt="Build Status" />}[https://travis-ci.org/assaf/vanity]
+{<img src="https://travis-ci.org/assaf/vanity.png?branch=master" alt="Build Status" />}[https://travis-ci.org/assaf/vanity]
 
 Vanity is an Experiment Driven Development framework for Rails.
 
@@ -96,13 +96,16 @@ If robots or spiders make up a significant portion of your sites traffic they ca
 
 == Compatibility Matrix
 
-Running Rails 2 on Ruby 2? Vanity probably won't work for you. But here's what does:
+Here's what's tested and known to work:
 
-  Persistence: Redis, Mongo, ActiveRecord
-  Rails: 2.3, 3, 3.1, 3.2
-  Ruby: 1.8.7, 1.9.3
+  Ruby 1.8.7, 1.9.3
+    Persistence: Redis, Mongo, ActiveRecord
+    Rails: 2.3, 3, 3.1, 3.2
+  Ruby 2.0
+    Persistence: Redis, Mongo, ActiveRecord
+    Rails: 3.2
 
-NOTE: Support for Rails 4 and Ruby 2.0 are coming soon!
+NOTE: Support for Rails 4 is coming soon!
 
 == Contributing
 
