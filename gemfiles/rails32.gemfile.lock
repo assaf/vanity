@@ -7,7 +7,7 @@ GIT
 PATH
   remote: /Users/phill/Development/ruby/vanity
   specs:
-    vanity (1.8.1)
+    vanity (1.8.2)
       redis (~> 2.0)
       redis-namespace (~> 1.0.0)
 
