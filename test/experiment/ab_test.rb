@@ -174,6 +174,106 @@ class AbTestTest < ActionController::TestCase
     end
   end
 
+  # -- ab_assigned --
+
+  def test_ab_assigned
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "6e98ec" }
+      metrics :coolness
+    end
+    assert_equal nil, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, "6e98ec")
+    assert id = experiment(:foobar).choose.id
+    assert_equal id, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, "6e98ec")
+  end
+
+  # -- Unequal probabilities --
+
+  def test_returns_the_same_alternative_consistently_when_using_probabilities
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "6e98ec" }
+      rebalance_frequency 100
+      metrics :coolness
+    end
+    assert value = experiment(:foobar).choose.value
+    assert_match /foo|bar/, value
+    1000.times do
+      assert_equal value, experiment(:foobar).choose.value
+    end
+  end
+
+  def test_uses_probabilities_for_new_assignments
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { rand }
+      rebalance_frequency 10000
+      metrics :coolness
+    end
+    altered_alts = experiment(:foobar).alternatives
+    altered_alts[0].probability=30
+    altered_alts[1].probability=70
+    experiment(:foobar).set_alternative_probabilities altered_alts
+    alts = Array.new(1000) { experiment(:foobar).choose.value }
+    assert_equal %w{bar foo}, alts.uniq.sort
+    assert_in_delta alts.select { |a| a == altered_alts[0].value }.size, 300, 100 # this may fail, such is propability
+  end
+
+  # -- Rebalancing probabilities --
+
+  def test_rebalances_probabilities_after_rebalance_frequency_calls
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { rand }
+      rebalance_frequency 12
+      metrics :coolness
+    end
+    class <<experiment(:foobar)
+      def times_called
+        @times_called || 0
+      end
+      def rebalance!
+        @times_called = times_called + 1
+      end
+    end
+    11.times { experiment(:foobar).choose.value }
+    assert_equal 0, experiment(:foobar).times_called
+    experiment(:foobar).choose.value
+    assert_equal 1, experiment(:foobar).times_called
+    12.times { experiment(:foobar).choose.value }
+    assert_equal 2, experiment(:foobar).times_called
+  end
+
+  def test_rebalance_uses_bayes_score_probabilities_to_update_probabilities
+    new_ab_test :foobar do
+      alternatives "foo", "bar", "baa"
+      identify { rand }
+      rebalance_frequency 12
+      metrics :coolness
+    end
+    corresponding_probabilities = [[experiment(:foobar).alternatives[0], 0.3], [experiment(:foobar).alternatives[1], 0.6], [experiment(:foobar).alternatives[2], 1.0]]
+
+    class <<experiment(:foobar)
+      def was_called
+        @was_called
+      end
+      def bayes_score(probability=90)
+        @was_called = true
+        altered_alts = Vanity.playground.experiment(:foobar).alternatives
+        altered_alts[0].probability=30
+        altered_alts[1].probability=30
+        altered_alts[2].probability=40
+        Struct.new(:alts,:method).new(altered_alts,:bayes_score)
+      end
+      def use_probabilities
+        @use_probabilities
+      end
+    end
+    experiment(:foobar).rebalance!
+    assert experiment(:foobar).was_called
+    assert_equal experiment(:foobar).use_probabilities, corresponding_probabilities
+  end
+
   # -- Running experiment --
 
   def test_returns_the_same_alternative_consistently
@@ -365,6 +465,22 @@ class AbTestTest < ActionController::TestCase
 
 
   # -- Scoring --
+  def test_calculate_score
+    new_ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
+    score_result = experiment(:abcd).calculate_score
+    assert_equal :score, score_result.method
+
+    new_ab_test :bayes_abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+      score_method :bayes_score
+    end
+    bayes_score_result = experiment(:bayes_abcd).calculate_score
+    assert_equal :bayes_score, bayes_score_result.method
+  end
 
   def test_scoring
     new_ab_test :abcd do
@@ -390,6 +506,23 @@ class AbTestTest < ActionController::TestCase
 
     assert_equal 1, experiment(:abcd).score.base.id
     assert_equal 2, experiment(:abcd).score.least.id
+  end
+
+  def test_bayes_scoring
+    new_ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      metrics :coolness
+    end
+    # participating, conversions, rate, z-score
+    # Control:      182	35 19.23%	N/A
+    # Treatment A:  180	45 25.00%	1.33
+    # treatment B:  189	28 14.81%	-1.13
+    # treatment C:  188	61 32.45%	2.94
+    fake :abcd, :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
+
+    score_result = experiment(:abcd).bayes_score
+    probabilities = score_result.alts.map{|a| a.probability.round}
+    assert_equal [0,0,6,94], probabilities
   end
 
   def test_scoring_with_no_performers

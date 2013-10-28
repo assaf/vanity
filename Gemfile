@@ -11,6 +11,9 @@ gem "passenger", "~>2.0"
 # Persistence
 gem "bson_ext"
 gem "mongo"
+gem "bson_ext"
+gem "rubystats"
+gem "integration"
 gem "mysql"
 gem "pg"
 

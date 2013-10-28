@@ -73,10 +73,10 @@ module Vanity
         @experiments.drop
         @participants.drop
       end
-      
+
 
       # -- Metrics --
-      
+
       def get_metric_last_update_at(metric)
         record = @metrics.find_one(:_id=>metric)
         record && record["last_update_at"]
@@ -99,10 +99,10 @@ module Vanity
       def destroy_metric(metric)
         @metrics.remove :_id=>metric
       end
-      
+
 
       # -- Experiments --
-     
+
       def set_experiment_created_at(experiment, time)
         @experiments.insert :_id=>experiment, :created_at=>time
       end
@@ -152,8 +152,14 @@ module Vanity
 
       # Determines if a participant already has seen this alternative in this experiment.
       def ab_seen(experiment, identity, alternative)
-	participant = @participants.find_one({ :experiment=>experiment, :identity=>identity }, { :fields=>[:seen] })
-	participant && participant["seen"].first == alternative.id
+        participant = @participants.find_one({ :experiment=>experiment, :identity=>identity }, { :fields=>[:seen] })
+        participant && participant["seen"].first == alternative.id
+      end
+
+      # Returns the participant's seen alternative in this experiment, if it exists
+      def ab_assigned(experiment, identity)
+        participant = @participants.find_one({ :experiment=>experiment, :identity=>identity }, { :fields=>[:seen] })
+        participant && participant["seen"].first
       end
 
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)

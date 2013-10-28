@@ -60,7 +60,7 @@ module Vanity
       end
 
       # -- Metrics --
-      
+
       def get_metric_last_update_at(metric)
         last_update_at = @metrics["#{metric}:last_update_at"]
         last_update_at && Time.at(last_update_at.to_i)
@@ -84,7 +84,7 @@ module Vanity
 
 
       # -- Experiments --
-     
+
       def set_experiment_created_at(experiment, time)
         @experiments.setnx "#{experiment}:created_at", time.to_i
       end
@@ -131,11 +131,21 @@ module Vanity
       end
 
       def ab_seen(experiment, identity, alternative)
-	if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
-	  return alternative
-	else
-	  return nil
-	end
+        if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
+          return alternative
+        else
+          return nil
+        end
+      end
+
+      # Returns the participant's seen alternative in this experiment, if it exists
+      def ab_assigned(experiment, identity)
+        Vanity.playground.experiments[experiment].alternatives.each do |alternative|
+          if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
+            return alternative.id
+          end
+        end
+        return nil
       end
 
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
