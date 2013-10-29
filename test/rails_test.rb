@@ -254,6 +254,7 @@ $stdout << Vanity.playground.connection
 
     def test_connection_from_yaml
       FileUtils.mkpath "tmp/config"
+      @original_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "production"
       File.open("tmp/config/vanity.yml", "w") do |io|
         io.write <<-YML
@@ -267,11 +268,13 @@ production:
 $stdout << Vanity.playground.connection
       RB
     ensure
+      ENV["RAILS_ENV"] = @original_env
       File.unlink "tmp/config/vanity.yml"
     end
 
     def test_connection_from_yaml_url
       FileUtils.mkpath "tmp/config"
+      @original_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "production"
       File.open("tmp/config/vanity.yml", "w") do |io|
         io.write <<-YML
@@ -282,13 +285,16 @@ production: redis://somehost/15
 $stdout << Vanity.playground.connection
       RB
     ensure
+      ENV["RAILS_ENV"] = @original_env
       File.unlink "tmp/config/vanity.yml"
     end
 
     def test_connection_from_yaml_with_erb
       FileUtils.mkpath "tmp/config"
+      @original_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "production"
       # Pass storage URL through environment like heroku does
+      @original_redis_url = ENV["REDIS_URL"]
       ENV["REDIS_URL"] = "redis://somehost:6379/15"
       File.open("tmp/config/vanity.yml", "w") do |io|
         io.write <<-YML
@@ -299,6 +305,8 @@ production: <%= ENV['REDIS_URL'] %>
 $stdout << Vanity.playground.connection
       RB
     ensure
+      ENV["RAILS_ENV"] = @original_env
+      ENV["REDIS_URL"] = @original_redis_url
       File.unlink "tmp/config/vanity.yml"
     end
 

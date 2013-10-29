@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
   spec.rdoc_options     = "--title", "Vanity #{spec.version}", "--main", "README.rdoc",
                           "--webcvs", "http://github.com/assaf/#{spec.name}"
 
-  spec.required_ruby_version = '>= 1.8.7'
-  spec.add_dependency "redis", "~>2.0"
-  spec.add_dependency "redis-namespace", "~>1.0.0"
+  spec.required_ruby_version = ">= 1.8.7"
+  spec.add_dependency "redis", ">= 2.1"
+  spec.add_dependency "redis-namespace", ">= 1.1.0"
 end
