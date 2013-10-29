@@ -138,6 +138,16 @@ module Vanity
 	end
       end
 
+      # Returns the participant's seen alternative in this experiment, if it exists
+      def ab_assigned(experiment, identity)
+        Vanity.playground.experiments[experiment].alternatives.each do |alternative|
+          if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
+            return alternative.id
+          end
+        end
+        return nil
+      end
+
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
         if implicit
           @experiments.sadd "#{experiment}:alts:#{alternative}:participants", identity

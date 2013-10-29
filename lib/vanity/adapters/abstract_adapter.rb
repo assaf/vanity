@@ -38,15 +38,15 @@ module Vanity
       # Empty the database. This is used during tests.
       def flushdb
       end
-      
+
 
       # -- Metrics --
-     
+
       # Return when metric was last updated.
       def get_metric_last_update_at(metric)
         fail "Not implemented"
       end
-  
+
       # Track metric data.
       def metric_track(metric, timestamp, identity, values)
         fail "Not implemented"
@@ -66,7 +66,7 @@ module Vanity
 
       # -- Experiments --
 
-      # Store when experiment was created (do not write over existing value). 
+      # Store when experiment was created (do not write over existing value).
       def set_experiment_created_at(experiment, time)
         fail "Not implemented"
       end
@@ -75,8 +75,8 @@ module Vanity
       def get_experiment_created_at(experiment)
         fail "Not implemented"
       end
-     
-      # Returns true if experiment completed. 
+
+      # Returns true if experiment completed.
       def is_experiment_completed?(experiment)
         fail "Not implemented"
       end
@@ -86,7 +86,7 @@ module Vanity
       # :conversions.
       def ab_counts(experiment, alternative)
         fail "Not implemented"
-      end 
+      end
 
       # Pick particular alternative (by index) to show to this particular
       # participant (by identity).
@@ -112,7 +112,12 @@ module Vanity
 
       # Determines if a participant already has seen this alternative in this experiment.
       def ab_seen(experiment, identity, assignment)
-	fail "Not implemented"
+        fail "Not implemented"
+      end
+
+      # Determines what alternative a participant has already been given, if any
+      def ab_assigned(experiment, identity)
+        fail "Not implemented"
       end
 
       # Records a conversion in this experiment for the given alternative.

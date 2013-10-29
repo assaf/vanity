@@ -375,7 +375,6 @@ module Vanity
         claims
       end
 
-
       # -- Completion --
 
       # Defines how the experiment can choose the optimal outcome on completion.

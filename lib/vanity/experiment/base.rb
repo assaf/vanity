@@ -69,7 +69,7 @@ module Vanity
         @id, @name = id.to_sym, name
         @options = options || {}
         @identify_block = method(:default_identify)
-	@on_assignment_block = nil
+        @on_assignment_block = nil
       end
 
       # Human readable experiment name (first argument you pass when creating a
