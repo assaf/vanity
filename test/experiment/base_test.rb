@@ -8,7 +8,7 @@ class ExperimentTest < Test::Unit::TestCase
   end
 
   # -- Defining experiment --
-  
+
   def test_can_access_experiment_by_id
     exp = new_ab_test(:ice_cream_flavor) { metrics :happiness }
     assert_equal exp, experiment(:ice_cream_flavor)
@@ -105,7 +105,7 @@ class ExperimentTest < Test::Unit::TestCase
     assert_kind_of Time, experiment(:ice_cream_flavor).created_at
     assert_in_delta experiment(:ice_cream_flavor).created_at.to_i, Time.now.to_i, 1
   end
- 
+
   def test_experiment_keeps_created_timestamp_across_definitions
     past = Date.today - 1
     Timecop.freeze past.to_time do
@@ -136,7 +136,7 @@ class ExperimentTest < Test::Unit::TestCase
   end
 
   # -- completion -- #
-  
+
   # check_completion is called by derived classes, but since it's
   # part of the base_test I'm testing it here.
   def test_error_in_check_completion
@@ -148,5 +148,14 @@ class ExperimentTest < Test::Unit::TestCase
     e.stubs(:identity).returns(:b)
     e.track!(:a, Time.now, 10)
   end
- 
+
+  def test_complete_updates_completed_at
+    new_ab_test(:ice_cream_flavor) { metrics :happiness }
+
+    Timecop.freeze(2008, 9, 1, 12, 0, 0) do
+      experiment(:ice_cream_flavor).complete!(1)
+    end
+    assert_equal Time.local(2008, 9, 1, 12, 0, 0), experiment(:ice_cream_flavor).completed_at
+  end
+
 end

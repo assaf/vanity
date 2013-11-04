@@ -406,17 +406,19 @@ module Vanity
       def complete!(outcome = nil)
         return unless @playground.collecting? && active?
         super
-	if outcome
-	elsif @outcome_is
-          begin
-            result = @outcome_is.call
-            outcome = result.id if Alternative === result && result.experiment == self
-          rescue
-            warn "Error in AbTest#complete!: #{$!}"
+
+      	unless outcome
+          if @outcome_is
+            begin
+              result = @outcome_is.call
+              outcome = result.id if Alternative === result && result.experiment == self
+            rescue
+              warn "Error in AbTest#complete!: #{$!}"
+            end
+          else
+            best = score.best
+            outcome = best.id if best
           end
-        else
-          best = score.best
-          outcome = best.id if best
         end
         # TODO: logging
         connection.ab_set_outcome @id, outcome || 0

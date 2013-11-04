@@ -124,8 +124,8 @@ module Vanity
       #     end
       #   end
       def on_assignment(&block)
-	fail "Missing block" unless block
-	@on_assignment_block = block
+      	fail "Missing block" unless block
+      	@on_assignment_block = block
       end
 
       # -- Reporting --
@@ -155,6 +155,8 @@ module Vanity
       end
 
       # Force experiment to complete.
+      # @param optional integer id of the alternative that is the decided
+      # outcome of the experiment
       def complete!(outcome = nil)
         @playground.logger.info "vanity: completed experiment #{id}"
         return unless @playground.collecting?

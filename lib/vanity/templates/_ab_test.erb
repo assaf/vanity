@@ -1,7 +1,8 @@
 <% score = experiment.score %>
 <table>
   <caption>
-    <%= experiment.conclusion(score).join(" ") %></caption>
+    <%= experiment.conclusion(score).join(" ") %>
+  </caption>
   <% score.alts.each do |alt| %>
     <tr class="<%= "choice" if score.choice == alt %>">
       <td class="option"><%= alt.name.gsub(/^o/, "O") %>:</td>
@@ -12,29 +13,30 @@
         <%= "%.1f%%" % [alt.conversion_rate * 100] %>
         <%= "(%d%% better than %s)" % [alt.difference, score.least.name] if alt.difference && alt.difference >= 1 %>
       </td>
-      <td class="action">
-        <% if experiment.active? && respond_to?(:url_for) %>
-          <% if experiment.showing?(alt) %>
-            showing
-          <% else %>
-            <a class="button chooses" title="Show me this alternative from now on" href="#"
-              data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id) %>">show</a>
-          <% end %>
-        <% end %>
-      </td>
-      <td class="action">
-        <% if experiment.active? && respond_to?(:url_for) %>
-    			<% if @to_confirm == alt.id %>
-    			 Are you <strong>sure</strong> you want to finish this experiment forever and assign all current and future participants to this outcome?
-    			 <a class="button chooses" title="Really complete the experiment and assign this outcome" href="#"
-    			  data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:complete, :e=>experiment.id, :a=>alt.id, :confirmed=>alt.id) %>">confirm</a>
-    			<% else %>
-    			 <a class="button chooses" title="Complete the experiment and assign this outcome" href="#"
-    			  data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:complete, :e=>experiment.id, :a=>alt.id) %>">finish</a>
-    			<% end %>
-  		  <% end %>
-      </td>
+      <% if experiment.active? && respond_to?(:url_for) %>
+        <td class="action">
+          <small>
+            <% if experiment.showing?(alt) %>
+              currently <br> shown
+            <% else %>
+              <a class="button chooses" title="Show me this alternative from now on" href="#"
+                data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id) %>">show me</a>
+            <% end %>
+          </small>
+        </td>
+        <td class="action">
+          <small>
+            <% if @to_confirm == alt.id %>
+             Finish this experiment and assign all current and future participants to <%= alt.name %>?
+             <a class="button chooses" title="Confirm experiment completion and assignment of all current and future participants to <%= alt.name %>" href="#"
+              data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:complete, :e=>experiment.id, :a=>alt.id, :confirmed=>alt.id) %>">confirm</a>
+            <% else %>
+             <a class="button chooses" title="Complete the experiment and assign all current and future participants to <%= alt.name %>" href="#"
+              data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:complete, :e=>experiment.id, :a=>alt.id) %>">make permanent</a>
+            <% end %>
+          </small>
+        </td>
+      <% end %>
     </tr>
   <% end %>
 </table>
-<%=  %>

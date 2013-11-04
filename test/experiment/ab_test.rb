@@ -660,6 +660,14 @@ This experiment did not run long enough to find a clear winner.
     assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
   end
 
+  def test_completion_with_outcome
+    new_ab_test :quick do
+      metrics :coolness
+    end
+    experiment(:quick).complete!(1)
+    assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
+  end
+
   def test_error_in_completion
     new_ab_test :quick do
       outcome_is { raise RuntimeError }
