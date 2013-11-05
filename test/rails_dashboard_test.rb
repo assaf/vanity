@@ -4,7 +4,6 @@ class VanityController < ActionController::Base
   include Vanity::Rails::Dashboard
 end
 
-# Pages accessible to everyone, e.g. sign in, community search.
 class RailsDashboardTest < ActionController::TestCase
   tests VanityController
 
@@ -18,6 +17,8 @@ class RailsDashboardTest < ActionController::TestCase
     end
   end
 
+  # --  Actions accessible to everyone, e.g. sign in, community search --
+
   def test_add_participant
     xhr :post, :add_participant, :e => "food", :a => 0
     assert_response :success
@@ -28,6 +29,39 @@ class RailsDashboardTest < ActionController::TestCase
     xhr :post, :add_participant
     assert_response :not_found
     assert @response.body.blank?
+  end
+
+  # --  Test administrator actions --
+
+  def test_participant_renders_experiment_for_id
+    experiment(:food).choose
+    get :participant, :id => "1"
+    assert_response :success
+    assert @response.body =~ %r{id 1 is taking part in the following experiments:\n<ul class=\"experiments\">[\s]+<li class=\"experiment ab_test}
+  end
+
+  def test_participant_renders_empty_for_bad_id
+    get :participant, :id => "2"
+    assert_response :success
+    assert @response.body =~ %r{<ul class=\"experiments\">[\s]+</ul>}
+  end
+
+  def test_participant_renders_empty_for_no_id
+    get :participant
+    assert_response :success
+    assert @response.body =~ %r{<ul class=\"experiments\">[\s]+</ul>}
+  end
+
+  def test_complete_forces_confirmation
+    xhr :post, :complete, :e => "food", :a => 0
+    assert_response :success
+    assert_equal 0, assigns(:to_confirm)
+  end
+
+  def test_complete_with_confirmation_completes
+    xhr :post, :complete, :e => "food", :a => 0, :confirmed => 'true'
+    assert_response :success
+    assert !Vanity.playground.experiment('food').active?
   end
 
   def test_chooses
