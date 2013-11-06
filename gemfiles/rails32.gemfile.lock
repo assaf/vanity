@@ -47,6 +47,7 @@ GEM
       bundler
       rake
     arel (3.0.2)
+    backports (3.3.5)
     bson (1.6.0)
     bson_ext (1.6.0)
       bson (= 1.6.0)
@@ -136,6 +137,7 @@ PLATFORMS
 DEPENDENCIES
   SystemTimer (= 1.2.3)
   appraisal
+  backports
   bson_ext
   fastthread!
   garb

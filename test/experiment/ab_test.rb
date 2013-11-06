@@ -389,10 +389,10 @@ class AbTestTest < ActionController::TestCase
     new_ab_test :bayes_abcd do
       alternatives :a, :b, :c, :d
       metrics :coolness
-      score_method :bayes_score
+      score_method :bayes_bandit_score
     end
     bayes_score_result = experiment(:bayes_abcd).calculate_score
-    assert_equal :bayes_score, bayes_score_result.method
+    assert_equal :bayes_bandit_score, bayes_score_result.method
   end
 
   def test_scoring
@@ -433,7 +433,7 @@ class AbTestTest < ActionController::TestCase
     # treatment C:  188	61 32.45%	2.94
     fake :abcd, :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
 
-    score_result = experiment(:abcd).bayes_score
+    score_result = experiment(:abcd).bayes_bandit_score
     probabilities = score_result.alts.map{|a| a.probability.round}
     assert_equal [0,0,6,94], probabilities
   end

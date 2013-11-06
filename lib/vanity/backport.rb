@@ -19,8 +19,7 @@ class Date
   unless method_defined?(:to_time)
     # Backported from Ruby 1.9.
     def to_time
-      Time.local(year, mon, mday) 
+      Time.local(year, mon, mday)
     end
   end
 end
-

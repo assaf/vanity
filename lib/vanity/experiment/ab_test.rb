@@ -1,112 +1,29 @@
 require "digest/md5"
+require "vanity/experiment/alternative"
+require "vanity/experiment/bayesian_bandit_score"
 
 module Vanity
   module Experiment
-
-    # One of several alternatives in an A/B test (see AbTest#alternatives).
-    class Alternative
-
-      def initialize(experiment, id, value) #, participants, converted, conversions)
-        @experiment = experiment
-        @id = id
-        @name = "option #{(@id + 65).chr}"
-        @value = value
-      end
-
-      # Alternative id, only unique for this experiment.
-      attr_reader :id
-
-      # Alternative name (option A, option B, etc).
-      attr_reader :name
-
-      # Alternative value.
-      attr_reader :value
-
-      # Experiment this alternative belongs to.
-      attr_reader :experiment
-
-      # Number of participants who viewed this alternative.
-      def participants
-        load_counts unless @participants
-        @participants
-      end
-
-      # Number of participants who converted on this alternative (a participant is counted only once).
-      def converted
-        load_counts unless @converted
-        @converted
-      end
-
-      # Number of conversions for this alternative (same participant may be counted more than once).
-      def conversions
-        load_counts unless @conversions
-        @conversions
-      end
-
-      # Z-score for this alternative, related to 2nd-best performing alternative. Populated by AbTest#score.
-      attr_accessor :z_score
-
-      # Probability derived from z-score. Populated by AbTest#score.
-      attr_accessor :probability
-
-      # Difference from least performing alternative. Populated by AbTest#score.
-      attr_accessor :difference
-
-      # Conversion rate calculated as converted/participants
-      def conversion_rate
-        @conversion_rate ||= (participants > 0 ? converted.to_f/participants.to_f  : 0.0)
-      end
-
-      # The measure we use to order (sort) alternatives and decide which one is better (by calculating z-score).
-      # Defaults to conversion rate.
-      def measure
-        conversion_rate
-      end
-
-      def <=>(other)
-        measure <=> other.measure
-      end
-
-      def ==(other)
-        other && id == other.id && experiment == other.experiment
-      end
-
-      def to_s
-        name
-      end
-
-      def inspect
-        "#{name}: #{value} #{converted}/#{participants}"
-      end
-
-      def load_counts
-        if @experiment.playground.collecting?
-          @participants, @converted, @conversions = @experiment.playground.connection.ab_counts(@experiment.id, id).values_at(:participants, :converted, :conversions)
-        else
-          @participants = @converted = @conversions = 0
-        end
-      end
-    end
-
-
     # The meat.
     class AbTest < Base
       class << self
-	# Convert z-score to probability.
-	def probability(score)
-	  score = score.abs
-	  probability = AbTest::Z_TO_PROBABILITY.find { |z,p| score >= z }
-	  probability ? probability.last : 0
-	end
+      	# Convert z-score to probability.
+      	def probability(score)
+      	  score = score.abs
+      	  probability = AbTest::Z_TO_PROBABILITY.find { |z,p| score >= z }
+      	  probability ? probability.last : 0
+      	end
 
-	def friendly_name
-	  "A/B Test"
-	end
+      	def friendly_name
+      	  "A/B Test"
+      	end
       end
+
+      DEFAULT_SCORE_METHOD = :z_score
 
       def initialize(*args)
         super
-	@score_method = :score
+      	@score_method = DEFAULT_SCORE_METHOD
       end
 
       # -- Metric --
@@ -170,17 +87,17 @@ module Vanity
       # also be set to :bandit_score to calculate probability of each
       # alternative being the best.
       #
-      # @example Define A/B test which uses bayes_score in reporting
+      # @example Define A/B test which uses bayes_bandit_score in reporting
       # ab_test "noodle_test" do
       #   alternatives "spaghetti", "linguine"
       #   metrics :signup
-      #   score_method :bayes_score
+      #   score_method :bayes_bandit_score
       # end
       def score_method(method=nil)
-	if method
-	  @score_method = method
-	end
-	@score_method
+      	if method
+      	  @score_method = method
+      	end
+      	@score_method
       end
 
       # Defines an A/B test with two alternatives: false and true.  This is the
@@ -304,7 +221,11 @@ module Vanity
       # -- Reporting --
 
       def calculate_score
-	self.send(score_method)
+      	if respond_to?(score_method)
+      	  self.send(score_method)
+      	else
+      	  score
+      	end
       end
 
       # Scores alternatives based on the current tracking data.  This method
@@ -348,11 +269,16 @@ module Vanity
         # choice alternative can only pick best if we have high probability (>90%).
         best = sorted.last if sorted.last.measure > 0.0
         choice = outcome ? alts[outcome.id] : (best && best.probability >= probability ? best : nil)
-	Struct.new(:alts, :best, :base, :least, :choice, :method).new(alts, best, base, least, choice, :score)
+      	Struct.new(:alts, :best, :base, :least, :choice, :method).new(alts, best, base, least, choice, :score)
       end
 
-      # Scores alternatives based on the current tracking data, using Bayesian estimates of the best binomial bandit.
-      # Based on the R bandit package, http://cran.r-project.org/web/packages/bandit, which is based on Steven L. Scott, A modern Bayesian look at the multi-armed bandit, Appl. Stochastic Models Bus. Ind. 2010; 26:639-658. (http://www.economics.uci.edu/~ivan/asmb.874.pdf)
+      # Scores alternatives based on the current tracking data, using Bayesian
+      # estimates of the best binomial bandit. Based on the R bandit package,
+      # http://cran.r-project.org/web/packages/bandit, which is based on
+      # Steven L. Scott, A modern Bayesian look at the multi-armed bandit,
+      # Appl. Stochastic Models Bus. Ind. 2010; 26:639-658.
+      # (http://www.economics.uci.edu/~ivan/asmb.874.pdf)
+      #
       # This method returns a structure with the following attributes:
       # [:alts]   Ordered list of alternatives, populated with scoring info.
       # [:base]   Second best performing alternative.
@@ -366,68 +292,25 @@ module Vanity
       #
       # The choice alternative is set only if its probability is higher or
       # equal to the specified probability (default is 90%).
-      def bayes_score(probability = 90)
-	begin
-	  require 'integration'
-	  require 'rubystats'
-	rescue LoadError
-	  warn "to use bayes_score, install integration and rubystats gems"
-	  return score(probability)
-	end
+      def bayes_bandit_score(probability = 90)
+      	begin
+      	  require "backports/1.9.1/kernel/define_singleton_method" if RUBY_VERSION < "1.9"
+      	  require "integration"
+      	  require "rubystats"
+      	rescue LoadError
+      	  fail "to use bayes_bandit_score, install integration and rubystats gems"
+      	end
 
-	begin
-	  require "gsl"
-	rescue LoadError
-	  warn "for better integration performance, install gsl gem"
-	end
+      	begin
+      	  require "gsl"
+      	rescue LoadError
+      	  warn "for better integration performance, install gsl gem"
+      	end
 
-	alts = alternatives
-	# sort by conversion rate to find second best
-	sorted = alts.sort_by(&:measure)
-	base = sorted[-2]
-
-	def pdf_of_best(z, alternative_being_examined, all_alternatives)
-	  # get the pdf for this alternative at z
-	  r = alternative_being_examined.pdf(z)
-	  # now multiply by the probability that all the other alternatives are lower
-	  all_alternatives.each do |other|
-	    if other != alternative_being_examined
-	      r = r * other.cdf(z)
-	    end
-	  end
-	  return r
-	end
-
-	def prob_best(alternative_being_examined, all_alternatives)
-	  Integration.integrate(0,1,:tolerance=>1e-4) {|z| pdf_of_best(z, alternative_being_examined, all_alternatives) }
-	end
-
-	alternative_posteriors = sorted.map {|a| x=a.converted; n=a.participants; Rubystats::BetaDistribution.new(x+1, n-x+1)}
-
-	# calculate probabilities
-	pc = base.measure
-	nc = base.participants
-	sorted.each_with_index do |alt, i|
-	  p = alt.measure
-	  n = alt.participants
-	  alt.probability = 100*prob_best(alternative_posteriors[i], alternative_posteriors)
-	end
-	# difference is measured from least performant
-	if least = sorted.find { |alt| alt.measure > 0 }
-	  sorted.each do |alt|
-	    if alt.measure > least.measure
-	      alt.difference = (alt.measure - least.measure) / least.measure * 100
-	    end
-	  end
-	end
-	# best alternative is one with highest conversion rate (best shot).
-	# choice alternative can only pick best if we have high probability (>90%).
-	best = sorted.last if sorted.last.measure > 0.0
-	choice = outcome ? alts[outcome.id] : (best && best.probability >= probability ? best : nil)
-	Struct.new(:alts, :best, :base, :least, :choice, :method).new(sorted, best, base, least, choice, :bayes_score)
+      	BayesianBanditScore.new(alternatives, outcome).calculate!
       end
 
-      # Use the result of #score or #bayes_score to derive a conclusion.  Returns an
+      # Use the result of #score or #bayes_bandit_score to derive a conclusion.  Returns an
       # array of claims.
       def conclusion(score = score)
         claims = []
@@ -446,24 +329,24 @@ module Vanity
           # we want a result that's clearly better than 2nd best.
           best, second = sorted[0], sorted[1]
           if best.measure > second.measure
-            diff = ((best.measure - second.measure) / second.measure * 100).round
-            better = " (%d%% better than %s)" % [diff, second.name] if diff > 0
-            claims << "The best choice is %s: it converted at %.1f%%%s." % [best.name, best.measure * 100, better]
-	    if score.method == :bayes_score
-	      if best.probability >= 90
-		      claims << "With %d%% probability this result is the best." % score.best.probability
-	      else
-		      claims << "This result does not have strong confidence behind it, suggest you continue this experiment."
-	      end
-		  else
-	      if best.probability >= 90
-		      claims << "With %d%% probability this result is statistically significant." % score.best.probability
-	      else
-		      claims << "This result is not statistically significant, suggest you continue this experiment."
-	      end
-            end
-            sorted.delete best
-          end
+      	    diff = ((best.measure - second.measure) / second.measure * 100).round
+      	    better = " (%d%% better than %s)" % [diff, second.name] if diff > 0
+      	    claims << "The best choice is %s: it converted at %.1f%%%s." % [best.name, best.measure * 100, better]
+      	    if score.method == :bayes_bandit_score
+      	      if best.probability >= 90
+      		      claims << "With %d%% probability this result is the best." % score.best.probability
+      	      else
+      		      claims << "This result does not have strong confidence behind it, suggest you continue this experiment."
+      	      end
+      	    else
+      	      if best.probability >= 90
+      		      claims << "With %d%% probability this result is statistically significant." % score.best.probability
+      	      else
+      		      claims << "This result is not statistically significant, suggest you continue this experiment."
+      	      end
+      	    end
+      	    sorted.delete best
+      	  end
           sorted.each do |alt|
             if alt.measure > 0.0
               claims << "%s converted at %.1f%%." % [alt.name.gsub(/^o/, "O"), alt.measure * 100]
