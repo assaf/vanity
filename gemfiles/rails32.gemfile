@@ -7,6 +7,9 @@ gem "bson_ext"
 gem "mongo"
 gem "mysql"
 gem "pg"
+gem "backports", :platforms=>:mri_18
+gem "integration"
+gem "rubystats"
 gem "garb"
 gem "SystemTimer", "1.2.3", :platforms=>:mri_18
 gem "appraisal"

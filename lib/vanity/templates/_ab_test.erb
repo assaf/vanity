@@ -1,4 +1,4 @@
-<% score = experiment.score %>
+<% score = experiment.calculate_score %>
 <table>
   <caption>
     <%= experiment.conclusion(score).join(" ") %>
@@ -11,6 +11,7 @@
       <td class="value"><%= alt.converted %> converted</td>
       <td>
         <%= "%.1f%%" % [alt.conversion_rate * 100] %>
+        <%= "(%d%% this is best)" % [alt.probability] if score.method == :bayes_score %>
         <%= "(%d%% better than %s)" % [alt.difference, score.least.name] if alt.difference && alt.difference >= 1 %>
       </td>
       <% if experiment.active? && respond_to?(:url_for) %>

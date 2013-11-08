@@ -14,6 +14,11 @@ gem "mongo"
 gem "mysql"
 gem "pg"
 
+# Math libraries
+gem "backports", :platforms => :mri_18
+gem "integration"
+gem "rubystats"
+
 # APIs
 gem "garb"
 
