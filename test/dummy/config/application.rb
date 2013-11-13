@@ -46,5 +46,7 @@ module Dummy
 
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
+
+    config.eager_load = (ENV['RAILS_ENV'] || ENV['RACK_ENV']) == "production" if Rails::Application.respond_to?(:eager_load!)
   end
 end

@@ -165,7 +165,7 @@ class VanityMailer < ActionMailer::Base
     experiment(:pie_or_cake).chooses(forced_outcome)
 
     if defined?(Rails::Railtie)
-      mail :subject =>ab_test(:pie_or_cake).to_s
+      mail :subject =>ab_test(:pie_or_cake).to_s, :body => ""
     else
       subject ab_test(:pie_or_cake).to_s
       body ""
@@ -442,10 +442,10 @@ $:.unshift File.expand_path("../lib")
 RAILS_ROOT = File.expand_path(".")
       RB
       code = code_setup
-      code += defined?(Rails::Railtie) ? load_rails_3(env) : load_rails_2(env)
+      code += defined?(Rails::Railtie) ? load_rails_3_or_4(env) : load_rails_2(env)
       code += %Q{\nrequire "vanity"\n}
       code += before_initialize
-      code += defined?(Rails::Railtie) ? initialize_rails_3 : initialize_rails_2
+      code += defined?(Rails::Railtie) ? initialize_rails_3_or_4 : initialize_rails_2
       code += after_initialize
       tmp.write code
       tmp.flush
@@ -468,7 +468,7 @@ initializer.check_gem_dependencies
     RB
   end
 
-  def load_rails_3(env)
+  def load_rails_3_or_4(env)
     <<-RB
 ENV['BUNDLE_GEMFILE'] ||= "#{ENV['BUNDLE_GEMFILE']}"
 require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
@@ -481,6 +481,7 @@ Bundler.require(:default)
 module Foo
   class Application < Rails::Application
     config.active_support.deprecation = :notify
+    config.eager_load = #{env == "production"} if Rails::Application.respond_to?(:eager_load!)
   end
 end
     RB
@@ -492,7 +493,7 @@ initializer.after_initialize
     RB
   end
 
-  def initialize_rails_3
+  def initialize_rails_3_or_4
     <<-RB
 Foo::Application.initialize!
     RB

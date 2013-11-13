@@ -2,9 +2,6 @@ require "test/test_helper"
 
 context ".playground_should_autoconnect?" do
 
-  setup do
-  end
-
   test "returns true by default" do
     autoconnect = Vanity::Autoconnect.playground_should_autoconnect?
     assert autoconnect == true
