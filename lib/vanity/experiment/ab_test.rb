@@ -24,6 +24,7 @@ module Vanity
       def initialize(*args)
         super
       	@score_method = DEFAULT_SCORE_METHOD
+        @use_probabilities = nil
       end
 
       # -- Metric --
@@ -129,20 +130,28 @@ module Vanity
         if @playground.collecting?
           if active?
             identity = identity()
-      	    index = connection.ab_showing(@id, identity)
-      	    unless index
-      	      index = alternative_for(identity)
-      	      if !@playground.using_js?
-            		# if we have an on_assignment block, call it on new assignments
-            		if @on_assignment_block
-            		  assignment = alternatives[index.to_i]
-            		  if !connection.ab_seen @id, identity, assignment
-            		    @on_assignment_block.call(Vanity.context, identity, assignment, self)
-            		  end
-            		end
-            		connection.ab_add_participant @id, index, identity
-            		check_completion!
-      	      end
+            index = connection.ab_showing(@id, identity)
+            unless index
+              index = alternative_for(identity)
+              if !@playground.using_js?
+                # if we have an on_assignment block, call it on new assignments
+                if @on_assignment_block
+                  assignment = alternatives[index.to_i]
+                  if !connection.ab_seen @id, identity, assignment
+                    @on_assignment_block.call(Vanity.context, identity, assignment, self)
+                  end
+                end
+                # if we are rebalancing probabilities, keep track of how long it has been since we last rebalanced
+                if @rebalance_frequency
+                  @assignments_since_rebalancing += 1
+                  if @assignments_since_rebalancing >= @rebalance_frequency
+                    @assignments_since_rebalancing = 0
+                    rebalance!
+                  end
+                end
+                connection.ab_add_participant @id, index, identity
+                check_completion!
+              end
             end
           else
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
@@ -361,6 +370,44 @@ module Vanity
         claims
       end
 
+      # -- Unequal probability assignments --
+
+      def set_alternative_probabilities(alternative_probabilities)
+        # create @use_probabilities as a function to go from [0,1] to outcome
+        cumulative_probability = 0.0
+        new_probabilities = alternative_probabilities.map {|am| [am, (cumulative_probability += am.probability)/100.0]}
+        @use_probabilities = new_probabilities
+      end
+
+      # -- Experiment rebalancing --
+
+      # Experiment rebalancing allows the app to automatically adjust the probabilities for each alternative; when one is performing better, it will increase its probability
+      #  according to Bayesian one-armed bandit theory, in order to (eventually) maximize your overall conversions.
+
+      # Sets or returns how often (as a function of number of people assigned) to rebalance. For example:
+      #   ab_test "Simple" do
+      #     rebalance_frequency 100
+      #   end
+      #
+      #  puts "The experiment will automatically rebalance after every " + experiment(:simple).description + " users are assigned."
+      def rebalance_frequency(rf = nil)
+        if rf
+          @assignments_since_rebalancing = 0
+          @rebalance_frequency = rf
+          rebalance!
+        end
+        @rebalance_frequency
+      end
+
+      # Force experiment to rebalance.
+      def rebalance!
+        return unless @playground.collecting?
+        score_results = bayes_bandit_score
+        if score_results.method == :bayes_bandit_score
+          set_alternative_probabilities score_results.alts
+        end
+      end
+
       # -- Completion --
 
       # Defines how the experiment can choose the optimal outcome on completion.
@@ -472,7 +519,15 @@ module Vanity
       # identity, and randomly distributed alternatives for each identity (in the
       # same experiment).
       def alternative_for(identity)
-        Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.size
+        if @use_probabilities
+          existing_assignment = connection.ab_assigned @id, identity
+          return existing_assignment if existing_assignment
+          random_outcome = rand()
+          @use_probabilities.each do |alternative, max_prob|
+            return alternative.id if random_outcome < max_prob
+          end
+        end
+        return Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.size
       end
 
       begin
