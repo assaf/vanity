@@ -1,10 +1,19 @@
-.bundle
-.yardoc
-*.gem
-html
-test/myapp/log/
 vendor
 log/*
+test/myapp/log/
 test/dummy/db/*.sqlite3
 test/dummy/log/*.log
 test/dummy/tmp/
+
+# Documentation cache and generated files
+.yardoc
+html
+
+# Generated files
+*.gem
+
+# Environment normalisation
+.bundle
+.rvmrc
+.ruby-version
+.ruby-gemset

@@ -1,3 +1,0 @@
-export RUBYOPT="rubygems"
-export RUBYLIB="."
-rvm 1.9.2
