@@ -1,5 +1,5 @@
 module Vanity
-  VERSION = "1.8.2"
+  VERSION = "1.8.3.beta"
 
   module Version
     version = VERSION.to_s.split(".").map { |i| i.to_i }
