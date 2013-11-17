@@ -16,7 +16,8 @@
       <% experiments = Vanity.playground.experiments ; unless experiments.empty? %>
         <h2>Experiments</h2>
         <% unless Vanity.playground.collecting? %>
-          <div>Vanity is currently not collecting data or metrics. To turn on data collection,
+          <div class="alert">
+            Vanity is currently not collecting data or metrics. To turn on data collection,
             set <span style='font-family: courier'>Vanity.playground.collecting = true;</span>.
           </div>
         <% end %>
