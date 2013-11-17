@@ -48,5 +48,7 @@ module Dummy
     config.filter_parameters += [:password]
 
     config.eager_load = (ENV['RAILS_ENV'] || ENV['RACK_ENV']) == "production" if Rails::Application.respond_to?(:eager_load!)
+
+    ActiveSupport::Deprecation.silenced = true if ActiveSupport::Deprecation.respond_to?(:silenced) && ENV['CI']
   end
 end

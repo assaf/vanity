@@ -482,6 +482,7 @@ module Foo
   class Application < Rails::Application
     config.active_support.deprecation = :notify
     config.eager_load = #{env == "production"} if Rails::Application.respond_to?(:eager_load!)
+    ActiveSupport::Deprecation.silenced = true if ActiveSupport::Deprecation.respond_to?(:silenced) && ENV['CI']
   end
 end
     RB
