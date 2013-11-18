@@ -13,7 +13,7 @@ class AbTestController < ActionController::Base
   end
 
   def test_capture
-    if Rails.version.to_i == 3
+    if defined?(Rails::Railtie)
       render :inline=>"<%= ab_test :simple do |value| %><%= value %><% end %>"
     else
       render :inline=>"<% ab_test :simple do |value| %><%= value %><% end %>"

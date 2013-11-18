@@ -163,7 +163,7 @@ context "Metric name" do
     end
     assert_equal "Yawns per second", Vanity.playground.metric(:yawns_sec).name
   end
-end  
+end
 
 
 context "Metric description" do
@@ -237,7 +237,7 @@ context "Metric last_update_at" do
     end
     assert_in_delta metric.last_update_at.to_i, (Time.now + 1.day).to_i, 1
   end
-end 
+end
 
 
 context "Metric data" do

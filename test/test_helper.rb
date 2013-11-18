@@ -45,10 +45,7 @@ if $VERBOSE
   $logger.level = Logger::DEBUG
 end
 
-
-class Test::Unit::TestCase
-  include WebMock::API
-
+module VanityTestHelpers
   # We go destructive on the database at the end of each run, so make sure we
   # don't use databases you care about. For Redis, we pick database 15
   # (default is 0).
@@ -64,9 +61,16 @@ class Test::Unit::TestCase
     defined?(Rails::Railtie)
   end
 
-  def setup
+  def setup_after
     FileUtils.mkpath "tmp/experiments/metrics"
     new_playground
+  end
+
+  def teardown_after
+    Vanity.context = nil
+    FileUtils.rm_rf "tmp"
+    Vanity.playground.connection.flushdb if Vanity.playground.connected?
+    WebMock.reset!
   end
 
   # Call this on teardown. It wipes put the playground and any state held in it
@@ -116,17 +120,33 @@ class Test::Unit::TestCase
     Vanity.playground.stubs(:connection).returns(stub(:flushdb=>nil))
   end
 
-  def teardown
-    Vanity.context = nil
-    FileUtils.rm_rf "tmp"
-    Vanity.playground.connection.flushdb if Vanity.playground.connected?
-    WebMock.reset!
-  end
+  # Defining setup/tear down in a module and including it below doesn't
+  # override the built-in setup/teardown methods, so we alias_method_chain
+  # them to run.
+  def self.included(klass)
+    klass.class_eval {
+      alias :teardown_before :teardown
+      alias :teardown :teardown_after
 
+      alias :setup_before :setup
+      alias :setup :setup_after
+    }
+  end
 end
 
+class Test::Unit::TestCase
+  include WebMock::API
+  include VanityTestHelpers
+end
 
-if  ENV["DB"] == "postgres"
+if defined?(ActiveSupport::TestCase)
+  class ActiveSupport::TestCase
+    include WebMock::API
+    include VanityTestHelpers
+  end
+end
+
+if ENV["DB"] == "postgres"
   ActiveRecord::Base.establish_connection :adapter=>"postgresql", :database=>"vanity_test"
 else
   ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test"
@@ -139,18 +159,7 @@ if ENV["DB"] == "mysql" || ENV["DB"] == "postgres"
   VanityMigration.up
 end
 
-
-class Array
-  # Not in Ruby 1.8.6.
-  unless method_defined?(:shuffle)
-    def shuffle
-      copy = clone
-      Array.new(size) { copy.delete_at(Kernel.rand(copy.size)) }
-    end
-  end
-end
-
-
+# test/spec/mini v3
 # Source: http://gist.github.com/25455
 def context(*args, &block)
   return super unless (name = args.first) && block

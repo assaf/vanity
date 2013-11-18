@@ -13,6 +13,10 @@ module Vanity
       # Base model, stores connection and defines schema
       class VanityRecord < ActiveRecord::Base
         self.abstract_class = true
+
+        def self.needs_attr_accessible?
+          respond_to?(:attr_accessible) && !defined?(ActionController::StrongParameters)
+        end
       end
 
       # Schema model
@@ -32,7 +36,7 @@ module Vanity
 
       # Metric value
       class VanityMetricValue < VanityRecord
-	       attr_accessible :date, :index, :value if respond_to?(:attr_accessible)
+        attr_accessible :date, :index, :value if needs_attr_accessible?
 
         self.table_name = :vanity_metric_values
         belongs_to :vanity_metric
@@ -42,7 +46,7 @@ module Vanity
       class VanityExperiment < VanityRecord
         self.table_name = :vanity_experiments
         has_many :vanity_conversions, :dependent => :destroy
-        attr_accessible :experiment_id if respond_to?(:attr_accessible)
+        attr_accessible :experiment_id if needs_attr_accessible?
 
         # Finds or creates the experiment
         def self.retrieve(experiment)
@@ -64,7 +68,7 @@ module Vanity
       # Participant model
       class VanityParticipant < VanityRecord
         self.table_name = :vanity_participants
-        attr_accessible :experiment_id, :identity, :seen, :shown, :converted if respond_to?(:attr_accessible)
+        attr_accessible :experiment_id, :identity, :seen, :shown, :converted if needs_attr_accessible?
 
         # Finds the participant by experiment and identity. If
         # create is true then it will create the participant

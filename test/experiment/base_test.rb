@@ -152,10 +152,11 @@ class ExperimentTest < Test::Unit::TestCase
   def test_complete_updates_completed_at
     new_ab_test(:ice_cream_flavor) { metrics :happiness }
 
-    Timecop.freeze(2008, 9, 1, 12, 0, 0) do
+    time = Time.utc(2008, 9, 1, 12, 0, 0)
+    Timecop.freeze(time) do
       experiment(:ice_cream_flavor).complete!(1)
     end
-    assert_equal Time.local(2008, 9, 1, 12, 0, 0), experiment(:ice_cream_flavor).completed_at
+    assert_equal time, experiment(:ice_cream_flavor).completed_at
   end
 
 end

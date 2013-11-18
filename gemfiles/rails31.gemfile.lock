@@ -59,7 +59,6 @@ GEM
     garb (0.9.1)
       activesupport (>= 2.2.0)
       crack (>= 0.1.6)
-    hike (1.2.1)
     i18n (0.6.0)
     integration (0.1.0)
     json (1.6.5)
