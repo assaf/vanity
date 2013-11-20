@@ -1,3 +1,12 @@
+== 1.8.3 (2013-11-20)
+
+Add support for Rails 4. (@phillbaker)
+Update redis gem depedendencies. (@phillbaker)
+Add Bayesian multi-armed bandit scoring for experiments as an alternative to the standard A/B calculations, as well as periodic alternative rebalancing based on alternative performance (@lotze).
+Add 'complete' UI functionality to the dashboard to complete an experiment from the rails web interface (@lotze).
+Gem maintenance: license specification to gemspec, remove .rvmrc file (@phillbaker).
+Add #ab_assigned to adapters: to get an array of the experiments a specific identity is assigned to, as well as a controller action to display those assignments (@lotze).
+
 == 1.8.2 (2013-10-27)
 
 Optimize metric_values query (@zawaideh).
@@ -26,9 +35,9 @@ Allow for table names in specified :timestamps (Peter Kovacs)
 
 When a named scope includes a join, created_at can be ambiguous.  Use
 
-	metric "Sky is limit" do
-		model Sky, :timestamp => 'skies.created_at'
-	end
+  metric "Sky is limit" do
+    model Sky, :timestamp => 'skies.created_at'
+  end
 
 to disambiguate.
 
@@ -48,12 +57,12 @@ connections are deprecated in favor of using the connection option with a URI
 
 1.7.0 adds support for ActionMailer, for example:
 
-	class UserMailer < ActionMailer::Base
-		def invite_email(user)
-			use_vanity_mailer user
-			mail :to => user.email, :subject => ab_test(:invite_subject)
-		end
-	end
+  class UserMailer < ActionMailer::Base
+    def invite_email(user)
+      use_vanity_mailer user
+      mail :to => user.email, :subject => ab_test(:invite_subject)
+    end
+  end
 
 See the documentation for more details.
 
