@@ -85,7 +85,7 @@ module Vanity
       end
 
       # What method to use for calculating score.  Default is :ab_test, but can
-      # also be set to :bandit_score to calculate probability of each
+      # also be set to :bayes_bandit_score to calculate probability of each
       # alternative being the best.
       #
       # @example Define A/B test which uses bayes_bandit_score in reporting
