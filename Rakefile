@@ -1,5 +1,4 @@
 require "rake/testtask"
-require 'appraisal'
 
 # -- Building stuff --
 
@@ -75,10 +74,16 @@ ADAPTERS = %w{redis mongodb mysql}
 
 desc "Test using different back-ends"
 task "test:adapters", :adapter do |t, args|
-  adapters = args.adapter ? [args.adapter] : ADAPTERS
-  adapters.each do |adapter|
-    puts "** Testing #{adapter} adapter"
-    sh "rake appraisal test DB=#{adapter} #{'--trace' if Rake.application.options.trace}"
+  begin # Make sure we have appraisal installed and available
+    require "appraisal"
+
+    adapters = args.adapter ? [args.adapter] : ADAPTERS
+    adapters.each do |adapter|
+      puts "** Testing #{adapter} adapter"
+      sh "rake appraisal test DB=#{adapter} #{'--trace' if Rake.application.options.trace}"
+    end
+  rescue LoadError
+    warn "The appraisal gem must be available"
   end
 end
 
@@ -150,10 +155,10 @@ task :report do
   Vanity.playground.metrics.values.each(&:destroy!)
   Vanity.playground.reload!
 
-  # Control	182	35	19.23%	N/A
-  # Treatment A	180	45	25.00%	1.33
-  # Treatment B	189	28	14.81%	-1.13
-  # Treatment C	188	61	32.45%	2.94
+  # Control 182 35  19.23%  N/A
+  # Treatment A 180 45  25.00%  1.33
+  # Treatment B 189 28  14.81%  -1.13
+  # Treatment C 188 61  32.45%  2.94
   Vanity.playground.experiment(:null_abc).instance_eval do
     fake nil=>[182,35], :red=>[180,45], :green=>[189,28], :blue=>[188,61]
     @created_at = (Date.today - 40).to_time

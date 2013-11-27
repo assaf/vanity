@@ -26,14 +26,14 @@ gem "garb"
 gem "SystemTimer", "1.2.3", :platforms => :mri_18
 
 # Testing
-gem "appraisal"
-
 gem "mocha", :require=>false
 gem "shoulda", :require=>false # Requires test/unit
 gem "timecop", :require=>false
 gem "webmock", :require=>false
 
 group :development do
+  gem "appraisal", ">= 1.0.0.beta2" # For setting up test Gemfiles
+
   gem "jekyll"
   gem "rake"
   gem "RedCloth"
