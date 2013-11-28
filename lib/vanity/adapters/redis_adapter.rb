@@ -5,8 +5,20 @@ module Vanity
       #
       # @since 1.4.0
       def redis_connection(spec)
+        require "redis"
+        fail "redis >= 2.1 is required" unless valid_redis_version?
         require "redis/namespace"
+        fail "redis-namespace >= 1.1.0 is required" unless valid_redis_namespace_version?
+
         RedisAdapter.new(spec)
+      end
+
+      def valid_redis_version?
+        Gem.loaded_specs['redis'].version >= Gem::Version.create('2.1')
+      end
+
+      def valid_redis_namespace_version?
+        Gem.loaded_specs['redis'].version >= Gem::Version.create('1.1.0')
       end
     end
 
@@ -60,7 +72,7 @@ module Vanity
       end
 
       # -- Metrics --
-      
+
       def get_metric_last_update_at(metric)
         last_update_at = @metrics["#{metric}:last_update_at"]
         last_update_at && Time.at(last_update_at.to_i)
@@ -84,7 +96,7 @@ module Vanity
 
 
       # -- Experiments --
-     
+
       def set_experiment_created_at(experiment, time)
         @experiments.setnx "#{experiment}:created_at", time.to_i
       end
@@ -131,11 +143,11 @@ module Vanity
       end
 
       def ab_seen(experiment, identity, alternative)
-	if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
-	  return alternative
-	else
-	  return nil
-	end
+  if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
+    return alternative
+  else
+    return nil
+  end
       end
 
       # Returns the participant's seen alternative in this experiment, if it exists

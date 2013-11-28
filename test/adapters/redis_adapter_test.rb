@@ -3,6 +3,7 @@ require 'test/test_helper'
 class RedisAdapterTest < Test::Unit::TestCase
   def test_warn_on_disconnect_error
     if defined?(Redis)
+      require "vanity/adapters/redis_adapter"
       assert_nothing_raised do
         Redis.any_instance.stubs(:connect!)
         mocked_redis = stub("Redis")

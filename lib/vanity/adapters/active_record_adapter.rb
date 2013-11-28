@@ -86,6 +86,8 @@ module Vanity
       end
 
       def initialize(options)
+
+
         @options = options.inject({}) { |h,kv| h[kv.first.to_s] = kv.last ; h }
         if @options["active_record_adapter"] && (@options["active_record_adapter"] != "default")
           @options["adapter"] = @options["active_record_adapter"]
@@ -222,8 +224,8 @@ module Vanity
 
       # Determines if a participant already has seen this alternative in this experiment.
       def ab_seen(experiment, identity, alternative)
-      	participant = VanityParticipant.retrieve(experiment, identity, false)
-      	participant && participant.seen == alternative.id
+        participant = VanityParticipant.retrieve(experiment, identity, false)
+        participant && participant.seen == alternative.id
       end
 
       # Returns the participant's seen alternative in this experiment, if it exists

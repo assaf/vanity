@@ -3,6 +3,8 @@
 source "https://rubygems.org"
 
 gem "rack"
+gem "redis", ">= 2.1"
+gem "redis-namespace", ">= 1.1.0"
 gem "bson_ext"
 gem "mongo"
 gem "mysql"

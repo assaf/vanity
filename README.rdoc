@@ -1,7 +1,7 @@
 = Vanity
 {<img src="https://travis-ci.org/assaf/vanity.png?branch=master" alt="Build Status" />}[https://travis-ci.org/assaf/vanity]
 
-Vanity is an Experiment Driven Development framework for Rails.
+Vanity is an A/B testing framework for Rails that is datastore agnostic.
 
 * All about Vanity: http://vanity.labnotes.org
 * On Github: http://github.com/assaf/vanity
@@ -33,14 +33,30 @@ Add to your Gemfile:
 
 ==== Step 1.2
 
-Choose a method to store experiment results: for Redis or an external tracking mechanism, migrations aren't needed. Mongo is also available. To use a relational database, via ActiveRecord, run the generator and migrations to create the database schema:
+Choose a method to store experiment results.
+
+For Redis:
+
+  gem "redis", ">= 2.1"
+  gem "redis-namespace", ">= 1.1.0"
+
+For Mongo:
+
+  gem "bson_ext"
+  gem "mongo"
+
+Vanity supports multiple SQL stores (like MySQL, MariaDB, Postgres, Sqlite, etc.) using ActiveRecord, which is built into Rails. If you're using DataMapper, Sequel or another persistence framework:
+
+   gem "active_record"
+
+Fun the generator and migrations to create the database schema:
 
   $ rails generate vanity
   $ rake db:migrate
 
 ==== Step 1.3
 
-add to your application controller:
+Turn Vanity on, and pass a reference to a method that identifies a user. For example:
 
   class ApplicationController < ActionController::Base
     use_vanity :current_user
