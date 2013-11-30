@@ -26,7 +26,7 @@ module Vanity
       options = Hash === args.last ? args.pop : {}
       # In the case of Rails, use the Rails logger and collect only for
       # production environment by default.
-      defaults = options[:rails] ? DEFAULTS.merge(:collecting => ::Rails.env.production?, :logger => ::Rails.logger) : DEFAULTS
+      defaults = options[:rails] ? DEFAULTS.merge(:collecting => true, :logger => ::Rails.logger) : DEFAULTS
       if config_file_exists?
         env = ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
         config = load_config_file[env]
@@ -417,9 +417,7 @@ module Vanity
       establish_connection(@spec)
     end
 
-    # Deprecated. Use Vanity.playground.collecting = true/false instead. Under
-    # Rails, collecting is true in production environment, false in all other
-    # environments, which is exactly what you want.
+    # Deprecated. Use Vanity.playground.collecting = true/false instead.
     def test!
       warn "Deprecated: use collecting = false instead"
       self.collecting = false

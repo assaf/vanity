@@ -48,7 +48,7 @@ end
 Create an ActionMailer class, for example:
 
 <pre>
-class UserMailer < ActionMailer::Base 
+class UserMailer < ActionMailer::Base
   def invite_email(user)
     use_vanity_mailer user
     mail :to => user.email, :subject =>ab_test(:invite_subject)
@@ -125,5 +125,3 @@ A/B test your email content:
 </pre>
 
 Here we use the text from the "invite_text" experiment and then use the @vanity_track_url_for@ helper to add the identity and the metric to track into the url so that Vanity can track the click-throughs.
-
-Remember: By default, Vanity only collects data in production mode.

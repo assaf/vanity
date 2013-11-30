@@ -125,10 +125,6 @@ The controller should look like:
     include Vanity::Rails::Dashboard
   end
 
-NOTE: By default, Vanity turns collection off in development mode. To turn it on, in <code>config/environments/development.rb</code> add:
-
-  Vanity.playground.collecting = true
-
 == Registering participants with Javascript
 
 If robots or spiders make up a significant portion of your sites traffic they can affect your conversion rate. Vanity can optionally add participants to the experiments using asynchronous javascript callbacks, which will keep almost all robots out. To set this up simply do the following:

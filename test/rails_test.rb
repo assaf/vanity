@@ -451,8 +451,8 @@ $stdout << Vanity.playground.collecting?
     RB
   end
 
-  def test_collection_false_in_development_by_default
-    assert_equal "false", load_rails("", <<-RB, "development")
+  def test_collection_true_in_development_by_default
+    assert_equal "true", load_rails("", <<-RB, "development")
 $stdout << Vanity.playground.collecting?
     RB
   end
