@@ -152,8 +152,8 @@ module Vanity
 
       # Determines if a participant already has seen this alternative in this experiment.
       def ab_seen(experiment, identity, alternative)
-  participant = @participants.find_one({ :experiment=>experiment, :identity=>identity }, { :fields=>[:seen] })
-  participant && participant["seen"].first == alternative.id
+        participant = @participants.find_one({ :experiment=>experiment, :identity=>identity }, { :fields=>[:seen] })
+        participant && participant["seen"].first == alternative.id
       end
 
       # Returns the participant's seen alternative in this experiment, if it exists

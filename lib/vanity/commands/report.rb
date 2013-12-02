@@ -10,12 +10,12 @@ module Vanity
     # Render the named template.  Used for reporting and the dashboard.
     def render(path_or_options, locals = {})
       if path_or_options.respond_to?(:keys)
-	render_erb(
-	  path_or_options[:file] || path_or_options[:partial],
-	  path_or_options[:locals]
-	)
+        render_erb(
+          path_or_options[:file] || path_or_options[:partial],
+          path_or_options[:locals]
+        )
       else
-	render_erb(path_or_options, locals)
+       render_erb(path_or_options, locals)
       end
     end
 
@@ -54,9 +54,9 @@ module Vanity
 
     def partialize(template_name)
       if template_name[0] != '_'
-	"_#{template_name}"
+        "_#{template_name}"
       else
-	template_name
+        template_name
       end
     end
   end

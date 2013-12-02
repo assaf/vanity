@@ -95,8 +95,8 @@ module Vanity
       #     end
       #   end
       def on_assignment(&block)
-      	fail "Missing block" unless block
-      	@on_assignment_block = block
+        fail "Missing block" unless block
+        @on_assignment_block = block
       end
 
       # -- Reporting --
