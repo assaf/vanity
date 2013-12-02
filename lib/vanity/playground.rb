@@ -52,6 +52,7 @@ module Vanity
 
       @loading = []
       @use_js = false
+      @failover_on_datastore_error = false
       self.add_participant_path = DEFAULT_ADD_PARTICIPANT_PATH
       @collecting = !!@options[:collecting]
     end
@@ -101,13 +102,13 @@ module Vanity
     #  when converted to_s (so could be used for caching, for example)
     def participant_info(participant_id)
       participant_array = []
-      experiments.values.sort_by{|e| e.name}.each do |e|
+      experiments.values.sort_by(&:name).each do |e|
         index = connection.ab_assigned(e.id, participant_id)
         if index
           participant_array << [e, e.alternatives[index.to_i]]
         end
       end
-      return participant_array
+      participant_array
     end
 
     # -- Robot Detection --
@@ -134,6 +135,44 @@ module Vanity
 
     def using_js?
       @use_js
+    end
+
+    # -- Datastore graceful failover --
+
+    # Turns on passing of errors to the Proc returned by #on_datastore_error.
+    #
+    # @since 1.9.0
+    def failover_on_datastore_error!
+      @failover_on_datastore_error = true
+    end
+
+    # Returns whether to failover on an error raise by the datastore adapter.
+    #
+    # @since 1.9.0
+    def failover_on_datastore_error?
+      @failover_on_datastore_error
+    end
+
+    # Returns a Proc, passed the parameters of the thrown error, the calling
+    # Class, the calling method, and an array of arguments passed to the
+    # calling method.
+    #
+    #    Proc.new do |error, klass, method, arguments|
+    #      ...
+    #    end
+    #
+    # The default implementation logs this information to Playground#logger.
+    #
+    # @since 1.9.0
+    def on_datastore_error
+      Proc.new do |error, klass, method, arguments|
+        log = "[#{Time.now.iso8601}]"
+        log << " [vanity #{klass} #{method}]"
+        log << " [#{error.message}]"
+        log << " [#{arguments.join(' ')}]"
+        @logger.error(log)
+        nil
+      end
     end
 
 
