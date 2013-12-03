@@ -5,6 +5,7 @@ ENV["RACK_ENV"] = "test"
 ENV["DB"] ||= "redis"
 
 require "test/unit"
+require "tmpdir"
 require "mocha"
 require "action_controller"
 require "action_controller/test_case"

@@ -234,9 +234,11 @@ $stdout << Vanity.playground.load_path
   end
 
   def test_absolute_load_path
-    assert_equal File.expand_path("/tmp/var"), load_rails(%Q{\nVanity.playground.load_path = "/tmp/var"\n}, <<-RB)
+    Dir.mktmpdir do |dir|
+      assert_equal dir, load_rails(%Q{\nVanity.playground.load_path = "#{dir}"\n}, <<-RB)
 $stdout << Vanity.playground.load_path
-    RB
+      RB
+    end
   end
 
   if ENV['DB'] == 'redis'
