@@ -4,29 +4,51 @@ title: Using with Rails
 ---
 
 <div id="toc">
+# "Installing Vanity":#install
 # "Configuring Vanity":#config
 # "Test Environment":#test
 # "Dashboard":#dashboard
 # "Unicorn and Forking Servers":#fork
 </div>
 
-This guide is written for Rails 2.3.5.  If you have any tips for Rails 3.0, please share.
+h3(#install).  Installing Vanity
 
+<em>Rails 3.x and 4.x:</em>
 
-h3(#config).  Configuring Vanity
+Add Vanity to your Gemfile:
 
-Start by telling Rails to use the Vanity gem, either using @config.gem "vanity"@ or by adding @gem "vanity"@ to your Gemfile.
+<pre>
+gem "vanity"
+</pre>
 
-You will most likely need to @require "vanity"@ from within @after_initialize@ in order to use it everywhere in your app:
+<em>Rails 2.x:</em>
 
 <pre>
 Rails::Initializer.run do |config|
-  . . .
+  gem.config "vanity"
+
   config.after_initialize do
     require "vanity"
   end
 end
 </pre>
+
+h3(#config).  Configuring Vanity
+
+h4. Configuring identity
+
+Once the gem is setup, enable Vanity in your ActionController:
+
+<pre>
+class ApplicationController < ActionController::Base
+  use_vanity :current_user
+end
+</pre>
+
+This example assumes you have a @current_user@ controller method which will return a consistent value for each user. 
+There are other ways to identify people as well, you can read more about the options in Managing Identity.
+
+h4. Configuring datastore
 
 If you have a @config/vanity.yml@ file, Vanity will read the configuration for the current environment.  For example:
 
@@ -40,7 +62,9 @@ production:
   database: vanity
 </pre>
 
-If you want to use Google Analytics, you must also tell Rails to include the @garb@ gem, and login for a new session.  You'll want to do that for production, not for development if you like developing offline:
+h4. Using metrics from Google Analytics
+
+If you want to use Vanity with metrics from Google Analytics, you must also tell Rails to include the @garb@ gem, and login for a new session.  You'll want to do that for production, not for development if you like developing offline:
 
 <pre>
 config.after_initialize do
@@ -48,6 +72,8 @@ config.after_initialize do
   Garb::Session.login('..ga email..', '..ga pwd..', account_type: "GOOGLE")
 end
 </pre>
+
+h4. Enabling experiments outside of the production environment
 
 There's generally no need to collect metric and experiment data outside production environment.  Under Rails, Vanity turns collection on only if the environment name is "production". You can control this from @config/environments@ by setting @Vanity.playground.collecting@ to true/false. When collection is off, Vanity doesn't connect to the database server, so there's no need to set a database configuration for these environments.
 
