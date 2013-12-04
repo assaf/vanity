@@ -49,7 +49,7 @@ Vanity supports multiple SQL stores (like MySQL, MariaDB, Postgres, Sqlite, etc.
 
    gem "active_record"
 
-Fun the generator and migrations to create the database schema:
+Run the generator and migrations to create the database schema:
 
   $ rails generate vanity
   $ rake db:migrate
@@ -106,7 +106,7 @@ In <code>config/routes.rb</code>, add:
 
   match '/vanity(/:action(/:id(.:format)))', :controller => :vanity, :via => :get
 
-Where the controller should looks like:
+The controller should look like:
 
   class VanityController < ApplicationController
     include Vanity::Rails::Dashboard
