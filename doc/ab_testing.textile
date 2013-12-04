@@ -75,7 +75,7 @@ Vanity splits the audience randomly -- using "cookies and other mechanisms":iden
 
 Vanity will show the conversion rate for each alternative, and how that conversion compares to the worst performing alternative.  In the example above, option A has 80.6% conversion rate, 11% more than option B's 72.6% conversion rate (72.6 * 111% ~ 80.6%). 
 
-(These large numbers are easily explained by the fact that this report was generated form made up data)
+(These large numbers are easily explained by the fact that this report was generated from made up data)
 
 It takes only a handful of visits before you'll see one alternative clearly performing better than all others.  That's a sign that you should continue running the experiment.  You see, small sample size tend to give out random results.
 
