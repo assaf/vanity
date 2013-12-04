@@ -27,7 +27,17 @@ Also:
 
 h3(#intro). A/B Testing with Rails (in 5 easy steps)
 
-*Step 1:* Start using Vanity in your Rails application:
+*Step 1:* Set up Vanity for your Rails application:
+
+<em>Rails 3.x or 4.x:</em>
+
+Add to your Gemfile:
+
+<pre>
+gem "vanity"
+</pre>
+
+<em>Rails 2.x:</em>
 
 <pre>
 Rails::Initializer.run do |config|
@@ -39,7 +49,7 @@ Rails::Initializer.run do |config|
 end
 </pre>
 
-And:
+Then activate vanity in your ApplicationController:
 
 <pre>
 class ApplicationController < ActionController::Base
@@ -47,7 +57,15 @@ class ApplicationController < ActionController::Base
 end
 </pre>
 
-*Step 2:* Define your first A/B test.  This experiment goes in the file <code>experiments/price_options.rb</code>:
+*Step 2:* Define your first metric. This goes in the file <code>experiments/metrics/signup.rb</code>:
+
+<pre>
+metric "Signup (Activation)" do
+  description "Measures how many people signed up for our awesome service."
+end
+</pre>
+
+*Step 3:* Define your first A/B test.  This experiment goes in the file <code>experiments/price_options.rb</code>:
 
 <pre>
 ab_test "Price options" do
@@ -57,13 +75,13 @@ ab_test "Price options" do
 end
 </pre>
 
-*Step 3:* Present the different options to your users:
+*Step 4:* Present the different options to your users:
 
 <pre>
 <h2>Get started for only $<%= ab_test :price_options %> a month!</h2>
 </pre>
 
-*Step 4:* Measure conversion:
+*Step 5:* Measure conversion:
 
 <pre>
 class SignupController < ApplicationController
@@ -79,7 +97,7 @@ class SignupController < ApplicationController
 end
 </pre>
 
-*Step 5:* Check the report:
+*Step 6:* Check the report:
 
 <pre>
 vanity report --output vanity.html
