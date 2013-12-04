@@ -15,6 +15,12 @@ http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
 ==== Step 1.1
 
+===== Rails 3 & Rails 4 installation
+
+Add to your Gemfile:
+
+  gem "vanity"
+
 ===== Rails 2.x installation
 
   Rails::Initializer.run do |config|
@@ -24,12 +30,6 @@ http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
       require "vanity"
     end
   end
-
-===== Rails 3 & Rails 4 installation
-
-Add to your Gemfile:
-
-  gem "vanity"
 
 ==== Step 1.2
 
