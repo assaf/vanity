@@ -1,0 +1,83 @@
+body {
+  font: 13pt "Geneva", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif;
+  line-height: 1.5em;
+  margin: 2em auto;
+  background-color: #fff;
+  color: #444;
+}
+a:link { color: #4488f7; text-decoration: none }
+a:visited { color: #4488f7; text-decoration: none }
+a:hover { text-decoration: underline }
+img { border: 1px solid #eee; padding: 16px; margin: 0 auto; display: block }
+blockquote { padding-left: 2em; padding-right: 2em; margin-left: 0.3em; margin-right: 0; font-style: italic }
+ul { list-style-type: disc; padding-left: 1.2em }
+ul ul { list-style-type: disc; padding-left: 1em }
+table { border-spacing: 0; width: 100%; margin: 0.3em 0 0.3em 0 }
+th, td { padding: 0.3em 0.5em 0.3em 0.5em; border-bottom: 1px solid #D8D8D8; vertical-align: top; background-color: #FFF }
+th, thead td { border-bottom: none; background-color: #669966; color: #fff; text-align: left }
+
+pre, code {
+  font-family: "Andale Mono", "DejaVu Sans Mono", "Courier New", "Courier", monospace;
+  font-size: 11pt;
+  color: #222;
+}
+pre {
+  line-height: 1.2em;
+  padding: 0.6em 0 0.6em 1em;
+  white-space: pre-wrap;
+  background: #eef;
+  white-space: -moz-pre-wrap !important;
+}
+pre br {
+  display: none;
+}
+
+h1, h2, h3, h3, #header, #links, #sidebar {
+  font-family: "Gill Sans", "Trebuchet MS", "Calibri", sans-serif;
+  margin: 0;
+  color: #222;
+}
+h2 { font-size: 1.5em }
+h3 { font-size: 1.2em; margin-top: 2.5em }
+h4 { font-size: 1.0em; margin-top: 1.5em }
+/*line-height: 1.25em; letter-spacing: 0.03em; color: #87C72E; */
+
+.title { margin: 12pt 0 0 0; font-size: 48pt; font-weight: bold; letter-spacing: -2px; line-height: 48pt }
+.title a { color: #000 !important }
+.tagline { margin: -34pt 0 1.5em 9em; font-size: 18pt; font-weight: normal; color: #aaa; line-height: 18pt }
+
+.footnote { font-size: 90%; margin-top: 4em }
+.footnote+.footnote { margin-top: .6em }
+#links { position: fixed; right: 0; top: 0; padding: .6em; color: #ccc }
+#header, #content, #footer { width: 40em; margin-left: 210px }
+#sidebar { float: left; width: 140px; margin: 20px }
+#sidebar ul { list-style: none; text-align: right; margin: 0 0 3em 0; padding: 0 }
+#sidebar ul a img { border: none; margin; 0; padding: 0 }
+#sidebar ul#stats { color: #666 }
+table#issues .votes { color: #ccc; float: right }
+#content { padding: 1.35em 0 }
+#footer { clear: both; padding: 0; margin-top: 3em; border-top: 1px solid #ccc; text-align: right }
+
+#toc ol {
+  margin: 1em 0 2em 0.6em;
+  list-style-type: disc;
+  padding-left: 1em;
+  font-size: 0.9em;
+}
+#toc li {
+  margin: .3em 0;
+}
+
+.experimental {
+  font-family: "Rough Draft", "Stencil", "Tahoma", "sans-serif";
+  content: "Experimental";
+  text-transform: uppercase;
+  color: rgba(255,0,0,0.65);
+  font-size: 36pt;
+  position: absolute;
+  margin-top: -4em;
+  margin-left: 2em;
+  -webkit-transform: rotate(-15deg); 
+  -moz-transform: rotate(-15deg); 
+}
+

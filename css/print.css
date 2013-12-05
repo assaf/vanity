@@ -1,0 +1,43 @@
+body {
+  color: #000;
+  background: #fff;
+  width: 220mm;
+  margin: 0;
+  text-rendering: optimizeLegibility;
+  font-size: 14pt;
+}
+.title, .tagline {
+  display: none;
+}
+h1 {
+  page-break-before: always;
+}
+h1:first-child {
+  page-break-before: avoid;
+}
+h1, h2, h3 {
+  color: black;
+}
+pre, p, blockquote, table {
+  page-break-inside: avoid;
+}
+pre, code {
+  margin: 0;
+  font-size: 13pt;
+}
+a:link, a:visited {
+  background: transparent;
+  text-decoration: none;
+  color: #0044b3;
+}
+
+#links, #sidebar, #footer {
+  display: none;
+}
+#content {
+  color: black;
+  padding: 0;
+  border: 0;
+  margin-left: 0;
+  width: 100% !important;
+}

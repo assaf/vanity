@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Vanity &mdash; Metrics</title>
+    <link href="css/page.css" media="screen,print" rel="stylesheet" type="text/css">
+    <link href="css/print.css" media="print" rel="stylesheet" type="text/css">
+    <link href="images/favicon.png" rel="shortcut icon">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+    <script type="text/javascript" src="site.js"></script>
+  </head>
+  <body>
+    <div id="header">
+      <div class="title"><a href="http://vanity.labnotes.org" title="Mirror, mirror, on the wall &hellip;">Vanity</a></div>
+      <div class="tagline">Experiment<br>Driven Development</div>
+    </div>
+    <div id="links">
+      <a href="http://github.com/assaf/vanity">Source code</a> |
+      <a href="http://groups.google.com/group/vanity-talk" title="vanity-talk google group">Google Group</a> |
+      <a href="http://vanity.labnotes.org/api/index.html">API reference</a>
+    </div>
+    <div id="sidebar">
+      <ul>
+        <li><a href="index.html#intro" title="A/B Testing with Rails in 5 easy steps">2 Minute Demo</a></li>
+        <li><a href="metrics.html">Metrics</a></li>
+        <li><a href="ab_testing.html" title="Everything you need to know">A/B Testing</a></li>
+        <li><a href="rails.html">Using with Rails</a></li>
+        <li><a href="email.html">Testing emails</a></li>
+        <li><a href="identity.html">Managing Identity</a></li>
+        <li><a href="configuring.html">Configuring</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+        <li><a href="experimental.html">Experimental</a></li>
+        <li>Download: <a href="vanity-api.zip">API</a>/<a href="vanity.pdf">PDF</a></li>
+      </ul> 
+      <ul id="stats">
+        <li><a href="http://travis-ci.org/assaf/vanity"><img src="http://travis-ci.org/assaf/vanity.png"></a></li>
+        <li><a href="http://github.com/assaf/vanity/graphs/traffic">Traffic</a></li>
+        <li><a href="http://wiki.github.com/assaf/vanity/whos-using-vanity">Who's using it?</a></li>
+      </ul>
+    </div>
+    <div id="content">
+      <h1 id="metrics">Metrics</h1>
+      <div id="toc">
+<ol>
+	<li><a href="#define">Defining a Metric</a></li>
+	<li><a href="#ar">Metrics From Your Database</a></li>
+	<li><a href="#ga">Google Analytics</a></li>
+	<li><a href="#custom">Creating Your Own Metric</a></li>
+	<li><a href="#deeper">Digging Deeper</a><br />
+</div></li>
+</ol>
+<p>A good starting point for improving &#8212; on anything &#8212; is measuring.  Vanity allows you to measure multiple metrics, best way to tell how well your experiments are doing.</p>
+<blockquote>
+<p><a href="http://500hats.typepad.com/500blogs/2007/09/startup-metrics.html">Startup metrics for pirates: <span class="caps">AARRR</span>!</a></p>
+<ol>
+	<li>Acquisition</li>
+	<li>Activation</li>
+	<li>Retention</li>
+	<li>Referral</li>
+	<li>Revenue<br />
+</blockquote></li>
+</ol>
+<h3 id="define">Defining a Metric</h3>
+<p>Vanity always loads metrics defined in the <code>experiments/metrics</code> directory.  A metric definition is a Ruby file that looks like this:</p>
+<pre>
+metric "Signup (Activation)" do
+  description "Measures how many people signed up for our awesome service."
+end
+</pre>
+<p>That&#8217;s a basic metric and you feed it data by calling the <code>track!</code> method.  For example:</p>
+<pre>
+class AccountsController &lt; ApplicationController
+
+  def create
+    @person = Person.new(params[:person])
+    if @person.save
+      track! :signup      # track successful sign up
+      UserSession.create person
+      redirect_to root_url
+    else
+      render :action=&gt;:new
+    end
+  end
+
+end
+</pre>
+<p>The metric identifier is the same as the file name.  The above example defines the metric <code>:signup</code> in the file <code>experiments/metrics/signup.rb</code>.</p>
+<p>You can call <code>track!</code> with a value to track.  This example tracks how many items were bought during the day:</p>
+<pre>
+def checkout
+  track! :items, @cart.items.count
+  . . .
+end
+</pre>
+<p>Calling <code>track!</code> with no value is the same as calling with one, and for convenience you can pass zero and negative numbers, both will be ignored.</p>
+<p><img src="images/signup_metric.png" alt="" /></p>
+<p>Define, track, and you&#8217;re ready to roll.</p>
+<h3 id="ar">Metrics From Your Database</h3>
+<p>If you already have the data, why not use it?</p>
+<p>This example defines a metric for signups, based on the number of <code>Account</code> records created each day:</p>
+<pre>
+metric "Signup (Activation)" do
+  description "Measures how many people signed up for our awesome service."
+  model Account
+end
+</pre>
+<p>You don&#8217;t need to call <code>track!</code> with this metric, all the data already exists.  It&#8217;s a simple query to count the number of records created, grouped by their timestamp (<code>created_at</code>).  And since it&#8217;s querying the database, you&#8217;ll immediately see historical data for the last 90 days.</p>
+<p>Even though the metric itself doesn&#8217;t store any information, it needs to update experiments whenever new records are created.  To do that, it registers itself as an <code>after_create</code> callback on the model.</p>
+<p>Some metrics measure values, not occurrences.  For example, this metric measures user satisfaction by calculating average value from the column <code>rating</code>:</p>
+<pre>
+metric "Satisfaction Survey" do
+  description "Measures how many people signed up for our awesome service."
+  model Survey, :average=&gt;:rating
+end
+</pre>
+<p>The aggregates you can use this way are: <code>:average</code>, <code>:minimum</code>, <code>:maximum</code> and <code>:sum</code>.</p>
+<p>You can use a condition when the metric only applies to some records.  Here&#8217;s a metric that only measures unlimited accounts:</p>
+<pre>
+metric "Signups to Unlimited" do
+  description "Signups to our All You Can Eat and Burp Unlimited plan."
+  model Account, :conditions=&gt;{ :plan_type=&gt;'unlimited' }
+end
+</pre>
+<p>If you have named scopes, you&#8217;ll want to use them instead:</p>
+<pre>
+metric "Signups to Unlimited" do
+  description "Signups to our All You Can Eat and Burp Unlimited plan."
+  model Account.unlimited
+end
+</pre>
+<p>When you view this metric, it calculates the number of accounts created on any given day that are currently unlimited plans.  So, if ten accounts were created over the past week, and today five of them upgraded to unlimited plan, the metric will show five unlimited accounts (current state) but spread over the past week (their <code>created_at</code> timestamp).</p>
+<p>If your metric uses aggregates or conditions, and the aggregate/conditional attributes change over time, and you need to know when the change took place, consider tracking the event.</p>
+<p>This example tracks when accounts were created or upgraded to unlimited plan:</p>
+<pre>
+metric "Signups (Unlimited)" do
+  description "Signups to our All You Can Eat and Burp Unlimited plan (including upgrades)."
+  Account.after_save do |account|
+    track! if account.plan_type_changed? &amp;&amp; account.plan_type == 'unlimited'
+  end
+end
+</pre>
+<h3 id="ga">Google Analytics</h3>
+<p>You can easily include Google Analytics metrics in your Vanity dashboard.  You&#8217;ll need, in addition to Vanity, to use <a href="http://github.com/vigetlabs/garb">Garb</a>, a Ruby wrapper for the Google Analytics <span class="caps">API</span>.</p>
+<p>Login to Google Analytics using either username and password, or OAuth authentication token.  Here&#8217;s a sample <code>config/environment</code> snippet:</p>
+<pre>
+Rails::Initializer.run do |config|
+  gems.config "vanity"
+  gems.config "garb"
+ 
+  . . . 
+  config.after_initialize do
+    require "garb"
+    ga = YAML.load_file(Rails.root + "config/ga.yml")
+    Garb::Session.login(ga['email'], ga['password'], account_type: "GOOGLE")
+  end
+end
+</pre>
+<p>To define a metric that corresponds to the Google Analytics daily visitors:</p>
+<pre>
+metric "Acquisition: Visitors" do
+  description "Unique visitors on any given page, as tracked by Google Analytics"
+  google_analytics "UA-1828623-6", :visitors
+end
+</pre>
+<p>The first argument is the GA profile, the second argument the GA metric name (defaults to <code>pageviews</code>).</p>
+<p>You can use the full Garb <span class="caps">API</span> by accessing the report directly, for example:</p>
+<pre>
+metric "Activation: Signups" do
+  google_analytics "UA-1828623-6"
+  report.filters do
+    eql(:page_path, 'welcome')
+  end
+end
+</pre>
+<p>See <a href="http://rdoc.info/projects/vigetlabs/garb">the Garb documentation</a> and <a href="http://code.google.com/apis/analytics/docs/gdata/gdataReferenceDimensionsMetrics.html#bounceRate">Google Analytics <span class="caps">API</span></a> for more details.</p>
+<h3 id="custom">Creating Your Own Metric</h3>
+<p>Got other ideas for metrics?  Writing your own metric is fairly simple.</p>
+<p>The easiest way to create your own metric is by adding your own <code>values</code> method, for example:</p>
+<pre>
+metric "Hours in a day" do
+  description "Measures how many hours in each day."
+  def values(from, to)
+    (from..to).map { |i| 24 }
+  end
+end
+</pre>
+<p>This example is based on <code>Vanity::Metric</code>.  You can, of course, base your metric on any other class.</p>
+<p>For simplicity, a metric is any object that implements these two methods:</p>
+<ul>
+	<li><code>name</code> &#8212; Returns the metric&#8217;s name, which will show up in the dashboard/report.</li>
+	<li><code>values</code> &#8212; Receives a start date and end date and returns an array of values for all dates in that range (inclusive).</li>
+</ul>
+<p>A metric may also implement these methods:</p>
+<ul>
+	<li><code>description</code> &#8212; Returns human readable description.</li>
+	<li><code>bounds</code> &#8212; Returns acceptable upper and lower bounds (<code>nil</code> if unknown).</li>
+	<li><code>hook</code> &#8212; <a href="ab_testing.html">A/B tests</a> use this to manage their own book keeping.</li>
+</ul>
+<p>If you wrote your own metric implementation, please consider <a href="contributing.html">contributing it to Vanity</a> so we can all benefit from it.  Thanks.</p>
+<h3 id="deeper">Digging Deeper</h3>
+<p>All metrics are listed in <code>Vanity.playground.metrics</code>, a hash that maps metric identifier to metric object.  Methods like <code>track!</code> and <code>metrics</code> (see <a href="ab_testing.html">A/B tests</a>) reference metrics using their identifier.</p>
+<p>On startup, Vanity loads all the metrics it finds in the <code>experiments/metrics</code> directory.  The metric identifier is the same as the file name, so <code>experiments/metrics/coolness.rb</code> becomes <code>:coolness</code>.</p>
+<p>You can always populate the hash with your own metrics.</p>
+<p>When Vanity loads a metric, it evaluates the metric definition in a context that has two methods: <code>metric</code> and <code>playground</code>.  The <code>metric</code> method creates a new <code>Vanity::Metric</code> object, and evaluates the block in the context of that object, so when you see the metric definition using methods like <code>description</code> or <code>model</code>, these are all invoked on the metric object itself.</p>
+<p>A <code>Vanity::Metric</code> object responds to <code>track!</code> and increments a record in the database (an <em>O(1)</em> operation).  It creates one record for each day, accumulating that day&#8217;s count.  When generating reports, the <code>values</code> method fetches the values of all these keys (also <em>O(1)</em>).</p>
+<p>You can call <code>track!</code> with a value higher than one, and it will increment the day&#8217;s count by that value.</p>
+<p>Any time you track a metric, the metric passes its identifier, timestamp and count (if more than zero) to all its hooks.  <a href="ab_testing.html">A/B tests</a> use hooks to manage their own book keeping.  When you define an experiment and tell it which metric(s) to use, the experiment registers itself by calling the <code>hook</code> method.</p>
+<p>When you call <code>model</code> on a metric, this method changes the metric definition by rewriting the <code>values</code> method to perform a query, rewriting the <code>track!</code> method to update hooks but not the database, and register an <code>after_create</code> callback that updates the hooks.</p>
+<p>How about some tips &amp; tricks for getting the most out of metrics (you might call them &#8220;best practices&#8221;)?  Got any to share?</p>
+    </div>
+    <div id="footer"><a href="credits.html">Credits / License</a></div>
+    <script type="text/javascript">var _gaq=_gaq||[];_gaq.push(["_setAccount", "UA-1828623-6"], ["_trackPageview"]);(function(){var ga=document.createElement("script");ga.src=("https:"==document.location.protocol?"https://ssl":"http://www")+".google-analytics.com/ga.js";ga.setAttribute("async", "true");document.documentElement.firstChild.appendChild(ga);})();</script>
+  </body>
+</html>

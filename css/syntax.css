@@ -1,0 +1,7 @@
+.highlight .k, .highlight .kp { color: blue } /* keyword */
+.highlight .no { color: darkblue } /* constant */
+.highlight .s1 { color: green } /* string */
+.highlight .n { color: black } /* identifier */
+.highlight .o, .highlight .p { color: darkblue } /* = + */
+.highlight .ss { color: darkblue } /* symbol */
+.highlight .c1 { color: gray } /* comment */

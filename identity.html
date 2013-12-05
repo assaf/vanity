@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Vanity &mdash; Welcome to Vanity</title>
+    <title>Vanity &mdash; Managing Identity</title>
     <link href="css/page.css" media="screen,print" rel="stylesheet" type="text/css">
     <link href="css/print.css" media="print" rel="stylesheet" type="text/css">
     <link href="images/favicon.png" rel="shortcut icon">
@@ -38,74 +38,38 @@
       </ul>
     </div>
     <div id="content">
-      <h1 id="welcome to vanity">Welcome to Vanity</h1>
-      <p><a href="http://github.com/assaf/vanity">Vanity</a> is an Experiment Driven Development framework for Rails.</p>
-<p><img src="images/sidebar_test.png" alt="" /></p>
-<h3>Reading Order</h3>
-<ul>
-	<li><a href="#intro" title="A/B Testing with Rails in 5 easy steps">2 Minute Demo</a></li>
-	<li><a href="metrics.html">Metrics</a></li>
-	<li><a href="ab_testing.html" title="Everything you need to know">A/B Testing</a></li>
-	<li><a href="rails.html">Using with Rails</a></li>
-	<li><a href="identity.html">Managing Identity</a></li>
-</ul>
-<p>Also:</p>
-<ul>
-	<li><a href="http://blog.labnotes.org/2009/11/19/vanity-experiment-driven-development-for-rails/" title="Introduction to EDD and Vanity">Experiment Driven Development</a></li>
-	<li><a href="http://github.com/assaf/vanity" title="Official Github repository">Get the code</a></li>
-	<li><a href="api/index.html"><span class="caps">API</span> reference</a></li>
-	<li><a href="http://groups.google.com/group/vanity-talk">Join vanity-talk list</a></li>
-	<li><a href="contributing.html">Contributing to Vanity</a></li>
-</ul>
-<h3 id="intro">A/B Testing with Rails (in 5 easy steps)</h3>
-<p><strong>Step 1:</strong> Start using Vanity in your Rails application:</p>
-<pre>
-Rails::Initializer.run do |config|
-  gem.config "vanity"
-
-  config.after_initialize do
-    require "vanity"
-  end
-end
-</pre>
-<p>And:</p>
+      <h1 id="managing identity">Managing Identity</h1>
+      <p>For effective A/B tests, you want to:</p>
+<ol>
+	<li>Randomly show different alternatives to different people</li>
+	<li>Consistently show the same alternative to the same person</li>
+	<li>Know which alternative you&#8217;re showing and tracking</li>
+	<li>When running multiple tests at once, keep them independent</li>
+</ol>
+<p>Vanity will assign each visitor a unique identifier and store it in a cookie that persists across sessions.  That way, each visitor will get to see the same alternatives on repeating visits.  Assuming they use the same browser on all visits.</p>
+<p>If you have a better way of tracking visitors, e.g. using sign in, you&#8217;ll want to use that instead.  That way the same person gets treated to the same experiment, even if they switch between machines and browsers.</p>
+<p>You can choose either option using the <code>use_vanity</code> method.  In the first case, just call <code>use_vanity</code> from within the <code>ApplicationController</code>.  In the second case, you&#8217;ll want to pass <code>use_vanity</code> either a block that returns an identity value, or the name of a method that returns an object which provides the identity.</p>
+<p>Sounds complicated?  These two examples are equivalent:</p>
 <pre>
 class ApplicationController &lt; ActionController::Base
   use_vanity :current_user
 end
 </pre>
-<p><strong>Step 2:</strong> Define your first A/B test.  This experiment goes in the file <code>experiments/price_options.rb</code>:</p>
+
 <pre>
-ab_test "Price options" do
-  description "Mirror, mirror on the wall, who's the better price of all?"
-  alternatives 19, 25, 29
-  metrics :signup
+class ApplicationController &lt; ActionController::Base
+  use_vanity { |c| c.current_user &amp;&amp; c.current_user.id }
 end
 </pre>
-<p><strong>Step 3:</strong> Present the different options to your users:</p>
+<p>If you use either block or method name and they return <code>nil</code>, Vanity will fallback on persistent cookie mechanism.</p>
+<p>An identity can be anything.  For example, if you&#8217;re running an experiment to test a new feature that will be available in some projects but not others, you&#8217;ll want to slice the audience by project identifier, not user ID.</p>
+<p>You can also give each experiment a different identity using the <code>identify</code> callback.  Here&#8217;s an example that tells one experiment to use a project identifier:</p>
 <pre>
-&lt;h2&gt;Get started for only $&lt;%= ab_test :price_options %&gt; a month!&lt;/h2&gt;
-</pre>
-<p><strong>Step 4:</strong> Measure conversion:</p>
-<pre>
-class SignupController &lt; ApplicationController
-  def signup
-    @account = Account.new(params[:account])
-    if @account.save
-      track! :signup
-      redirect_to @acccount
-    else
-      render action: :offer
-    end
-  end
+ab_test "New feature" do
+  description "New feature only available to some projects"
+  identify { |c| c.current_project.id }
 end
 </pre>
-<p><strong>Step 5:</strong> Check the report:</p>
-<pre>
-vanity report --output vanity.html
-</pre>
-<p><img src="images/price_options.png" alt="" /></p>
-<p>Read more about <a href="ab_testing.html">A/B Testing &#8230;</a></p>
     </div>
     <div id="footer"><a href="credits.html">Credits / License</a></div>
     <script type="text/javascript">var _gaq=_gaq||[];_gaq.push(["_setAccount", "UA-1828623-6"], ["_trackPageview"]);(function(){var ga=document.createElement("script");ga.src=("https:"==document.location.protocol?"https://ssl":"http://www")+".google-analytics.com/ga.js";ga.setAttribute("async", "true");document.documentElement.firstChild.appendChild(ga);})();</script>

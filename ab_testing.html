@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Vanity &mdash; A/B Testing</title>
+    <link href="css/page.css" media="screen,print" rel="stylesheet" type="text/css">
+    <link href="css/print.css" media="print" rel="stylesheet" type="text/css">
+    <link href="images/favicon.png" rel="shortcut icon">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+    <script type="text/javascript" src="site.js"></script>
+  </head>
+  <body>
+    <div id="header">
+      <div class="title"><a href="http://vanity.labnotes.org" title="Mirror, mirror, on the wall &hellip;">Vanity</a></div>
+      <div class="tagline">Experiment<br>Driven Development</div>
+    </div>
+    <div id="links">
+      <a href="http://github.com/assaf/vanity">Source code</a> |
+      <a href="http://groups.google.com/group/vanity-talk" title="vanity-talk google group">Google Group</a> |
+      <a href="http://vanity.labnotes.org/api/index.html">API reference</a>
+    </div>
+    <div id="sidebar">
+      <ul>
+        <li><a href="index.html#intro" title="A/B Testing with Rails in 5 easy steps">2 Minute Demo</a></li>
+        <li><a href="metrics.html">Metrics</a></li>
+        <li><a href="ab_testing.html" title="Everything you need to know">A/B Testing</a></li>
+        <li><a href="rails.html">Using with Rails</a></li>
+        <li><a href="email.html">Testing emails</a></li>
+        <li><a href="identity.html">Managing Identity</a></li>
+        <li><a href="configuring.html">Configuring</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+        <li><a href="experimental.html">Experimental</a></li>
+        <li>Download: <a href="vanity-api.zip">API</a>/<a href="vanity.pdf">PDF</a></li>
+      </ul> 
+      <ul id="stats">
+        <li><a href="http://travis-ci.org/assaf/vanity"><img src="http://travis-ci.org/assaf/vanity.png"></a></li>
+        <li><a href="http://github.com/assaf/vanity/graphs/traffic">Traffic</a></li>
+        <li><a href="http://wiki.github.com/assaf/vanity/whos-using-vanity">Who's using it?</a></li>
+      </ul>
+    </div>
+    <div id="content">
+      <h1 id="a/b testing">A/B Testing</h1>
+      <div id="toc">
+<ol>
+	<li><a href="#tf">True or False</a></li>
+	<li><a href="#interpret">Interpreting the Results</a></li>
+	<li><a href="#multiple">Multiple Alternatives</a></li>
+	<li><a href="#test">A/B Testing and Code Testing</a></li>
+	<li><a href="#decide">Let the Experiment Decide</a><br />
+</div></li>
+</ol>
+<p><a href="http://en.wikipedia.org/wiki/A/B_testing">A/B testing</a> (or &#8220;split testing&#8221;) are experiments you can run to compare the performance of different alternatives.  A classical example is using an A/B test to compare two versions of a landing page, to find out which alternative leads to more registrations.</p>
+<p>You can use A/B tests to gauge interest in a new feature, response to a feature change, improve the site&#8217;s design and copy, and so forth.  In spite of the name, you can use A/B tests to check out more than two alternatives.</p>
+<blockquote>
+<p>&#8220;If you are not embarrassed by the first version of your product, you’ve launched too late&#8221; &#8212; Reid Hoffman, founder of LinkedIn</p>
+</blockquote>
+<h3 id="tf">True or False</h3>
+<p>Let&#8217;s start with a simple experiment.  We have this idea that a bigger sign-up link will increase the number of people who sign up for our service.  Let&#8217;s see how well our hypothesis holds.</p>
+<p>We already have a <a href="metrics.html">metric</a> we&#8217;re monitoring, and our experiment will measure against it:</p>
+<pre>
+ab_test "Big singup link" do
+  description "Testing to see if a bigger sign-up link increases number of signups."
+  metrics :signup
+end
+</pre>
+<p>Next, we&#8217;re going to show some of our visitors a bigger sign-up link:</p>
+<pre>
+&lt;% bigger = "font:14pt;font-weight:bold" if ab_test(:big_signup_link) %&gt;
+&lt;%= link_to "Sign up", signup_url, style: bigger %&gt;
+</pre>
+<p>Approximately half the visitors to our site will see this link:</p>
+<a href="#">Sign up</a>
+<p>The other half will see this one:</p>
+<a href="#" style="font:14pt;font-weight:bold">Sign up</a>
+<p>An A/B test has two parts, we just covered the part which decides which alternative to show.  The second part measures the effectiveness of each alternative.  This happens as result of measuring the metric.</p>
+<p>Remember that we&#8217;re measuring signups, so we already have this in the code:</p>
+<pre>
+class SignupController &lt; ApplicationController
+  def signup
+    Account.create(params[:account])
+    track! :signup
+  end
+end
+</pre>
+<h3 id="interpret">Interpreting the Results</h3>
+<p>We&#8217;re going to let the experiment run for a while and track the results using <a href="rails.html#dashboard">the dashboard</a>, or by running the command <code>vanity report</code>.</p>
+<p>Vanity splits the audience randomly &#8212; using <a href="identity.html">cookies and other mechanisms</a> &#8212; and records who got to see each alternative, and how many in each group converted (in our case, signed up).  Dividing conversions by participants gives you the conversion rate.</p>
+<p><img src="images/clear_winner.png" alt="" /></p>
+<p>Vanity will show the conversion rate for each alternative, and how that conversion compares to the worst performing alternative.  In the example above, option A has 80.6% conversion rate, 11% more than option B&#8217;s 72.6% conversion rate (72.6 * 111% ~ 80.6%).</p>
+<p>(These large numbers are easily explained by the fact that this report was generated form made up data)</p>
+<p>It takes only a handful of visits before you&#8217;ll see one alternative clearly performing better than all others.  That&#8217;s a sign that you should continue running the experiment.  You see, small sample size tend to give out random results.</p>
+<p>To get actionable results, you want a large enough sample, more specifically, you want to look at the probability.  Vanity picks the top two alternatives and <a href="http://20bits.com/articles/statistical-analysis-and-ab-testing/">calculates a z-score</a> to determine the probability that the best alternative performed better than second best.  It presents that probability which should tell you when is a good time to wrap up the experiment.</p>
+<p>This is the part that gets most people confused about A/B testing.  Let&#8217;s say we ran an experiment with two alternatives and we notice that option B performs 50% better than option A (A * 150% = B).  We calculate from the z-score a 90% probability.</p>
+<p>&#8220;With 90% probability&#8221; does not mean 90% of the difference (50%), it does not mean B performs 45% better than A (90% * 50% = 45%).  In fact, it doesn&#8217;t tell us how well B performs relative to A.  Option B may perform exceptionally well during the experiment, not so well later on.</p>
+<p>The only thing &#8220;with 90% probability&#8221; tells us is the probability that option B is somewhat better than option A.  And that means 10% probability that the results we&#8217;re seeing are totally random and mean nothing in the long run.  In other words: 9 out of 10 times, B is indeed better than A.</p>
+<p>If you run the test longer to collect a larger sample size you&#8217;ll see the probability increase to 95%, then 99% and finally 99.9%.  That&#8217;s big confidence in the outcome of the experiment, but it might take a long time to get there.</p>
+<p>You might want to instead decide on some target probability (which could change from one experiment to another).  For example, if you pick 95% as the target, you&#8217;re going to act on the wrong conclusion 1 out of 20 times, but you&#8217;re going to finish your experiments faster, which means you&#8217;ll get to iterate quickly and more often.  Fast iterations are one way to improve the quality of your software.</p>
+<p>You&#8217;ll want to read more about <a href="http://www.cennydd.co.uk/2009/statistical-significance-other-ab-test-pitfalls/">A/B testing and statistical significance</a></p>
+<h3 id="multiple">Multiple Alternatives</h3>
+<p>Your A/B tests can have as many alternatives as you care, with two caveats.  The more alternatives you have the larger the sample size you need, and so the longer it will take to find out the outcome of your experiment.  You want alternatives that are significantly different from each other, testing two pricing options at $5 and $25 is fast, testing all the prices between $5 and $25 at $1 increments will take a long time to reach any conclusive result.</p>
+<p>The second caveat is that right now Vanity only scores the two best performing alternatives.  This may be an issue in some experiments, it may also be fixed in a future release.</p>
+<p>To define an experiment with multiple alternatives:</p>
+<pre>
+ab_test "Price options" do
+  description "Mirror, mirror on the wall, who's the better price of them all?"
+  alternatives 5, 15, 25
+  metrics :signup
+end
+</pre>
+<p>The <code>ab_test</code> method returns the value of one of the chosen alternatives, so in your views you can write:</p>
+<pre>
+&lt;h2&gt;Get started for only $&lt;%= ab_test :price_options %&gt; a month!&lt;/h2&gt;
+</pre>
+<p><img src="images/price_options.png" alt="" /></p>
+<p>If you don&#8217;t given any values, Vanity will run your experiment with the values false and true.  Here are other examples for rendering A/B tests with multiple values:</p>
+<pre>
+def index
+  # alternatives are names of templates 
+  render template: ab_test(:new_page)
+end
+</pre>
+
+<pre>
+&lt;%= ab_test(:greeting) %&gt; &lt;%= current_user.name %&gt;
+</pre>
+
+<pre>
+&lt;% ab_test :features do |count| %&gt;
+  &lt;%= count %&gt; features to choose from!
+&lt;% end %&gt;
+</pre>
+<h3 id="test">A/B Testing and Code Testing</h3>
+<p>If you&#8217;re presenting more than one alternative to visitors of your site, you&#8217;ll want to test more than one alternative.  Don&#8217;t let A/B testing become A/broken.</p>
+<p>You can force a functional/integration test to choose a given alternative:</p>
+<pre>
+def test_big_signup_link
+  experiment(:big_signup_link).chooses(true)
+  get :index
+  assert_select "a[href=/signup][style^=font:14pt]", "Sign up"
+end
+</pre>
+<p>Here&#8217;s another example using Webrat:</p>
+<pre>
+def test_price_option
+  [19, 25, 29].each do |price| 
+    experiment(:price_options).chooses(price)
+    visit root_path
+    assert_contain "Get started for only $#{price} a month!"
+  end
+end
+</pre>
+<p>You&#8217;ll also want to test each alternative visually, from your Web browser.  For that you&#8217;ll have to install the <a href="rails.html#dashboard">the Dashboard</a>, which lets you pick which alternative is shown to you:</p>
+<p><img src="images/ab_in_dashboard.png" alt="" /></p>
+<p>Once the experiment is over, simply remove its definition from the experiments directory and run the test suite again.  You&#8217;ll see errors in all the places that touch the experiment (from failing to load it), pointing you to what parts of the code you need to remove/change.</p>
+<h3 id="decide">Let the Experiment Decide</h3>
+<p>Sample size and probability help you interpret the results, you can also use them to configure an experiment to automatically complete itself.</p>
+<p>This experiment will conclude once it has 1000 participants for each alternative, or a leading alternative with probability of 95% or higher:</p>
+<pre>
+ab_test "Self completed" do
+  description "This experiment will self-complete."
+  metrics :coolness
+  complete_if do
+    alternatives.all? { |alt| alt.participants &gt;= 1000 } ||
+      (score.choice &amp;&amp; score.choice.probability &gt;= 95)
+  end
+end
+</pre>
+<p>When it reaches its end, the experiment will stop recording conversions, chose one of its alternatives as the outcome and switch every usage of <code>ab_test</code> to that alternative.</p>
+<p>By default Vanity will choose the alternative with the highest conversion rate.  This is most often, but not always, the best outcome.  Imagine an experiment where option B results in less conversions, but higher quality conversion that option A.  Perhaps you&#8217;re interested in option B conversions if you&#8217;re losing no more than 20% compared to option A.  Here&#8217;s a way to write that outcome:</p>
+<pre>
+ab_test "Self completed" do
+  description "This experiment will self-complete."
+  metrics :coolness
+
+  complete_if do
+    score(95).choice # only return choice with probability &gt;= 95
+  end
+
+  outcome_is do
+    a, b = alternatives
+    b.conversion_rate &gt;= 0.8 * a.conversion_rate ? b : a
+  end
+end
+</pre>
+    </div>
+    <div id="footer"><a href="credits.html">Credits / License</a></div>
+    <script type="text/javascript">var _gaq=_gaq||[];_gaq.push(["_setAccount", "UA-1828623-6"], ["_trackPageview"]);(function(){var ga=document.createElement("script");ga.src=("https:"==document.location.protocol?"https://ssl":"http://www")+".google-analytics.com/ga.js";ga.setAttribute("async", "true");document.documentElement.firstChild.appendChild(ga);})();</script>
+  </body>
+</html>
