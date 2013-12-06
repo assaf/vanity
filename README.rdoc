@@ -9,7 +9,7 @@ Vanity is an A/B testing framework for Rails that is datastore agnostic.
 http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
 
 
-== A/B Testing With Rails (In 5 Easy Steps)
+== A/B Testing With Rails
 
 === <b>Step 1:</b> Start using Vanity in your Rails application
 
@@ -33,23 +33,29 @@ Add to your Gemfile:
 
 ==== Step 1.2
 
-Choose a method to store experiment results.
+Choose a datastore that best fits your needs and preferences for storing experiment results. Choose one of: Redis, MongoDB or an SQL database. While Redis is usually faster, it may add additional complexity to your stack.
 
-For Redis:
+===== Redis Setup
+
+Add to your Gemfile:
 
   gem "redis", ">= 2.1"
   gem "redis-namespace", ">= 1.1.0"
 
-For Mongo:
+===== MongoDB Setup
+
+Add to your Gemfile:
 
   gem "bson_ext"
   gem "mongo"
 
-Vanity supports multiple SQL stores (like MySQL, MariaDB, Postgres, Sqlite, etc.) using ActiveRecord, which is built into Rails. If you're using DataMapper, Sequel or another persistence framework:
+===== SQL Database Setup
+
+Vanity supports multiple SQL stores (like MySQL, MariaDB, Postgres, Sqlite, etc.) using ActiveRecord, which is built into Rails. If you're using DataMapper, Sequel or another persistence framework, add to your Gemfile:
 
    gem "active_record"
 
-Run the generator and migrations to create the database schema:
+If you're going to store data in the database, run the generator and migrations to create the database schema:
 
   $ rails generate vanity
   $ rake db:migrate
@@ -62,6 +68,8 @@ Turn Vanity on, and pass a reference to a method that identifies a user. For exa
     use_vanity :current_user
   end
 
+For more information, please see the {identity documentation}[http://vanity.labnotes.org/identity.html].
+
 === <b>Step 2:</b> Define your first A/B test
 
 This experiment goes in the file <code>experiments/price_options.rb</code>:
@@ -72,7 +80,11 @@ This experiment goes in the file <code>experiments/price_options.rb</code>:
     metrics :signups
   end
 
-NOTE: If using a metric as above ("signups"), there needs to be a corresponding ruby file for that metric. Inside the "experiments" directory create a "metrics" directory with a file called "signups.rb". The contents of the file can describe the signup metric, refer to the "Metrics" Vanity documentation page for an example.
+If the experiment uses a metric as above ("signups"), there needs to be a corresponding ruby file for that metric, <code>experiments/metrics/signups.rb</code>.
+
+  metric "Signup (Activation)" do
+    description "Measures how many people signed up for our awesome service."
+  end
 
 === <b>Step 3:</b> Present the different options to your users
 
