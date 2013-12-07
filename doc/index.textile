@@ -10,7 +10,7 @@ title: Welcome to Vanity
 
 h3. Reading Order
 
-* "2 Minute Demo(A/B Testing with Rails in 5 easy steps)":#intro
+* "Introduction & Setup":#intro
 * "Metrics":metrics.html
 * "A/B Testing(Everything you need to know)":ab_testing.html
 * "Using with Rails":rails.html
@@ -24,68 +24,8 @@ Also:
 * "Join vanity-talk list":http://groups.google.com/group/vanity-talk
 * "Contributing to Vanity":contributing.html
 
+h3(#intro). Introduction & setup
 
-h3(#intro). A/B Testing with Rails (in 5 easy steps)
-
-*Step 1:* Start using Vanity in your Rails application:
-
-<pre>
-Rails::Initializer.run do |config|
-  gem.config "vanity"
-
-  config.after_initialize do
-    require "vanity"
-  end
-end
-</pre>
-
-And:
-
-<pre>
-class ApplicationController < ActionController::Base
-  use_vanity :current_user
-end
-</pre>
-
-*Step 2:* Define your first A/B test.  This experiment goes in the file <code>experiments/price_options.rb</code>:
-
-<pre>
-ab_test "Price options" do
-  description "Mirror, mirror on the wall, who's the better price of all?"
-  alternatives 19, 25, 29
-  metrics :signup
-end
-</pre>
-
-*Step 3:* Present the different options to your users:
-
-<pre>
-<h2>Get started for only $<%= ab_test :price_options %> a month!</h2>
-</pre>
-
-*Step 4:* Measure conversion:
-
-<pre>
-class SignupController < ApplicationController
-  def signup
-    @account = Account.new(params[:account])
-    if @account.save
-      track! :signup
-      redirect_to @acccount
-    else
-      render action: :offer
-    end
-  end
-end
-</pre>
-
-*Step 5:* Check the report:
-
-<pre>
-vanity report --output vanity.html
-</pre>
-
-!images/price_options.png!
+Please see the "setup instructions in the README":https://github.com/assaf/vanity#vanity
 
 Read more about "A/B Testing ...":ab_testing.html
-
