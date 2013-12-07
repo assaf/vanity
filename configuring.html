@@ -16,11 +16,11 @@
     <div id="links">
       <a href="http://github.com/assaf/vanity">Source code</a> |
       <a href="http://groups.google.com/group/vanity-talk" title="vanity-talk google group">Google Group</a> |
-      <a href="http://vanity.labnotes.org/api/index.html">API reference</a>
+      <a href="http://rdoc.info/gems/vanity">API reference</a>
     </div>
     <div id="sidebar">
       <ul>
-        <li><a href="index.html#intro" title="A/B Testing with Rails in 5 easy steps">2 Minute Demo</a></li>
+        <li><a href="index.html#intro" title="A/B Testing with Rails">Intro</a></li>
         <li><a href="metrics.html">Metrics</a></li>
         <li><a href="ab_testing.html" title="Everything you need to know">A/B Testing</a></li>
         <li><a href="rails.html">Using with Rails</a></li>
@@ -29,11 +29,9 @@
         <li><a href="configuring.html">Configuring</a></li>
         <li><a href="contributing.html">Contributing</a></li>
         <li><a href="experimental.html">Experimental</a></li>
-        <li>Download: <a href="vanity-api.zip">API</a>/<a href="vanity.pdf">PDF</a></li>
-      </ul> 
+      </ul>
       <ul id="stats">
         <li><a href="http://travis-ci.org/assaf/vanity"><img src="http://travis-ci.org/assaf/vanity.png"></a></li>
-        <li><a href="http://github.com/assaf/vanity/graphs/traffic">Traffic</a></li>
         <li><a href="http://wiki.github.com/assaf/vanity/whos-using-vanity">Who's using it?</a></li>
       </ul>
     </div>
@@ -45,8 +43,6 @@
 development:
   adapter: redis
   connection: redis://localhost:6379/0
-test:
-  collecting: false
 production:
   adapter: mongodb
   database: analytics
@@ -58,6 +54,8 @@ production:
 	<li><ins>mongodb</ins> &#8212; Available options are host, port, database (defaults to &#8220;vanity&#8221;), username and password.</li>
 	<li><ins>active_record</ins> &#8212; Uses existing ActiveRecord configuration, by you can over-ride by supplying different options. To pick different underlying adapter, set <ins>active_record_adapter</ins>.</li>
 </ul>
+<p>You want Vanity to collect information (metrics, experiments, etc) in production, but there&#8217;s no point collecting data in other environments. You can turn data collection on and off by setting <code>Vanity.playground.collecting</code>. Under Rails, collection is turned off in all environments expect production.</p>
+<p>You may want to turn data collection on for integration tests, depending on what you&#8217;re testing. Also, you may need to turn it on if your development server runs more than one process, e.g. if you&#8217;re using Passenger for development and want to use the Vanity console to pick a particular alternative in an A/B test.</p>
 <p>Available configuration options are:</p>
 <table>
 	<tr>

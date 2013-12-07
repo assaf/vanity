@@ -16,11 +16,11 @@
     <div id="links">
       <a href="http://github.com/assaf/vanity">Source code</a> |
       <a href="http://groups.google.com/group/vanity-talk" title="vanity-talk google group">Google Group</a> |
-      <a href="http://vanity.labnotes.org/api/index.html">API reference</a>
+      <a href="http://rdoc.info/gems/vanity">API reference</a>
     </div>
     <div id="sidebar">
       <ul>
-        <li><a href="index.html#intro" title="A/B Testing with Rails in 5 easy steps">2 Minute Demo</a></li>
+        <li><a href="index.html#intro" title="A/B Testing with Rails">Intro</a></li>
         <li><a href="metrics.html">Metrics</a></li>
         <li><a href="ab_testing.html" title="Everything you need to know">A/B Testing</a></li>
         <li><a href="rails.html">Using with Rails</a></li>
@@ -29,11 +29,9 @@
         <li><a href="configuring.html">Configuring</a></li>
         <li><a href="contributing.html">Contributing</a></li>
         <li><a href="experimental.html">Experimental</a></li>
-        <li>Download: <a href="vanity-api.zip">API</a>/<a href="vanity.pdf">PDF</a></li>
-      </ul> 
+      </ul>
       <ul id="stats">
         <li><a href="http://travis-ci.org/assaf/vanity"><img src="http://travis-ci.org/assaf/vanity.png"></a></li>
-        <li><a href="http://github.com/assaf/vanity/graphs/traffic">Traffic</a></li>
         <li><a href="http://wiki.github.com/assaf/vanity/whos-using-vanity">Who's using it?</a></li>
       </ul>
     </div>
@@ -86,7 +84,7 @@ end
 <p>Vanity splits the audience randomly &#8212; using <a href="identity.html">cookies and other mechanisms</a> &#8212; and records who got to see each alternative, and how many in each group converted (in our case, signed up).  Dividing conversions by participants gives you the conversion rate.</p>
 <p><img src="images/clear_winner.png" alt="" /></p>
 <p>Vanity will show the conversion rate for each alternative, and how that conversion compares to the worst performing alternative.  In the example above, option A has 80.6% conversion rate, 11% more than option B&#8217;s 72.6% conversion rate (72.6 * 111% ~ 80.6%).</p>
-<p>(These large numbers are easily explained by the fact that this report was generated form made up data)</p>
+<p>(These large numbers are easily explained by the fact that this report was generated from made up data)</p>
 <p>It takes only a handful of visits before you&#8217;ll see one alternative clearly performing better than all others.  That&#8217;s a sign that you should continue running the experiment.  You see, small sample size tend to give out random results.</p>
 <p>To get actionable results, you want a large enough sample, more specifically, you want to look at the probability.  Vanity picks the top two alternatives and <a href="http://20bits.com/articles/statistical-analysis-and-ab-testing/">calculates a z-score</a> to determine the probability that the best alternative performed better than second best.  It presents that probability which should tell you when is a good time to wrap up the experiment.</p>
 <p>This is the part that gets most people confused about A/B testing.  Let&#8217;s say we ran an experiment with two alternatives and we notice that option B performs 50% better than option A (A * 150% = B).  We calculate from the z-score a 90% probability.</p>

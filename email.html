@@ -16,11 +16,11 @@
     <div id="links">
       <a href="http://github.com/assaf/vanity">Source code</a> |
       <a href="http://groups.google.com/group/vanity-talk" title="vanity-talk google group">Google Group</a> |
-      <a href="http://vanity.labnotes.org/api/index.html">API reference</a>
+      <a href="http://rdoc.info/gems/vanity">API reference</a>
     </div>
     <div id="sidebar">
       <ul>
-        <li><a href="index.html#intro" title="A/B Testing with Rails in 5 easy steps">2 Minute Demo</a></li>
+        <li><a href="index.html#intro" title="A/B Testing with Rails">Intro</a></li>
         <li><a href="metrics.html">Metrics</a></li>
         <li><a href="ab_testing.html" title="Everything you need to know">A/B Testing</a></li>
         <li><a href="rails.html">Using with Rails</a></li>
@@ -29,11 +29,9 @@
         <li><a href="configuring.html">Configuring</a></li>
         <li><a href="contributing.html">Contributing</a></li>
         <li><a href="experimental.html">Experimental</a></li>
-        <li>Download: <a href="vanity-api.zip">API</a>/<a href="vanity.pdf">PDF</a></li>
-      </ul> 
+      </ul>
       <ul id="stats">
         <li><a href="http://travis-ci.org/assaf/vanity"><img src="http://travis-ci.org/assaf/vanity.png"></a></li>
-        <li><a href="http://github.com/assaf/vanity/graphs/traffic">Traffic</a></li>
         <li><a href="http://wiki.github.com/assaf/vanity/whos-using-vanity">Who's using it?</a></li>
       </ul>
     </div>
@@ -75,7 +73,7 @@ end
 </pre>
 <p>Create an ActionMailer class, for example:</p>
 <pre>
-class UserMailer &lt; ActionMailer::Base
+class UserMailer &lt; ActionMailer::Base 
   def invite_email(user)
     use_vanity_mailer user
     mail :to =&gt; user.email, :subject =&gt;ab_test(:invite_subject)
@@ -137,6 +135,7 @@ end
   &lt;/html&gt;
 </pre>
 <p>Here we use the text from the &#8220;invite_text&#8221; experiment and then use the <code>vanity_track_url_for</code> helper to add the identity and the metric to track into the url so that Vanity can track the click-throughs.</p>
+<p>Remember: By default, Vanity only collects data in production mode.</p>
     </div>
     <div id="footer"><a href="credits.html">Credits / License</a></div>
     <script type="text/javascript">var _gaq=_gaq||[];_gaq.push(["_setAccount", "UA-1828623-6"], ["_trackPageview"]);(function(){var ga=document.createElement("script");ga.src=("https:"==document.location.protocol?"https://ssl":"http://www")+".google-analytics.com/ga.js";ga.setAttribute("async", "true");document.documentElement.firstChild.appendChild(ga);})();</script>
