@@ -24,3 +24,5 @@
 .vanity form#milestones label { margin-right: .5em }
 .vanity form#milestones input { vertical-align: bottom }
 .vanity .metric .marking.label { position: absolute; bottom: 2em; color: #c66; font-size: 80% }
+
+.vanity .alert { padding: 8px 35px 8px 14px; margin-bottom: 20px; text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.5); background-color: rgb(252, 248, 227); border: 1px solid rgb(251, 238, 213); border-radius: 4px 4px 4px 4px; }
