@@ -113,6 +113,9 @@ module Vanity
         end
       end
 
+
+      # -- Metrics --
+
       def get_metric_last_update_at(metric)
         record = VanityMetric.find_by_metric_id(metric.to_s)
         record && record.updated_at
@@ -154,6 +157,13 @@ module Vanity
       def destroy_metric(metric)
         record = VanityMetric.find_by_metric_id(metric.to_s)
         record && record.destroy
+      end
+
+
+      # -- Experiments --
+
+      def experiment_persisted?(experiment)
+        VanityExperiment.find_by_experiment_id(experiment.to_s).present?
       end
 
       # Store when experiment was created (do not write over existing value).

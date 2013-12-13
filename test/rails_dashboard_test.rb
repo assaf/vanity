@@ -17,7 +17,37 @@ class RailsDashboardTest < ActionController::TestCase
     end
   end
 
-  # --  Actions accessible to everyone, e.g. sign in, community search --
+  # --  Test dashboard --
+
+  def test_index
+    get :index
+    assert_response :success
+    assert @response.body =~ %r{div class="vanity"}
+  end
+
+  def test_assigns_experiments
+    get :index
+    experiments = assigns(:experiments).with_indifferent_access
+
+    assert experiments.respond_to?(:keys)
+    assert experiments.keys.include?("food")
+    assert experiments.values.first.name == :food
+  end
+
+  def test_assigns_metrics
+    get :index
+    metrics = assigns(:metrics).with_indifferent_access
+    assert metrics.respond_to?(:keys)
+    assert metrics.keys.include?("sugar_high")
+    assert metrics.values.first.name == "sugar_high"
+  end
+
+  def test_assigns_experiments_persisted
+    get :index
+    assert assigns(:experiments_persisted)
+  end
+
+  # --  Actions used in non-admin actions --
 
   def test_add_participant
     xhr :post, :add_participant, :e => "food", :a => 0

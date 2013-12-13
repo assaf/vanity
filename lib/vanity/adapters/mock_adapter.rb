@@ -44,7 +44,7 @@ module Vanity
 
 
       # -- Metrics --
-      
+
       def get_metric_last_update_at(metric)
         @metrics[metric] && @metrics[metric][:last_update_at]
       end
@@ -66,10 +66,14 @@ module Vanity
       def destroy_metric(metric)
         @metrics.delete metric
       end
-      
+
 
       # -- Experiments --
-     
+
+      def experiment_persisted?(experiment)
+        !!@experiments[experiment]
+      end
+
       def set_experiment_created_at(experiment, time)
         @experiments[experiment] ||= {}
         @experiments[experiment][:created_at] ||= time
@@ -133,7 +137,7 @@ module Vanity
         if implicit
           alt[:participants] << identity
         else
-          participating = alt[:participants].include?(identity) 
+    participating = alt[:participants].include?(identity)
         end
         alt[:converted] << identity if implicit || participating
         alt[:conversions] += count

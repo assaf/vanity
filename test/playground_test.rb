@@ -34,6 +34,28 @@ class PlaygroundTest < Test::Unit::TestCase
     assert !instance.connected?
   end
 
+  def test_experiments_persisted_returns_true
+    metric "Coolness"
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "abcdef" }
+      metrics :coolness
+    end
+
+    assert Vanity.playground.experiments_persisted?
+  end
+
+  def test_experiments_persisted_finds_returns_false
+    name = 'Price'
+    id = :price
+    experiment = Vanity::Experiment::AbTest.new(Vanity.playground, id, name)
+    Vanity.playground.experiments[id] = experiment
+
+    assert !Vanity.playground.experiments_persisted?
+
+    Vanity.playground.experiments.delete(id)
+  end
+
   def test_participant_info
     assert_equal [], Vanity.playground.participant_info("abcdef")
     metric "Coolness"

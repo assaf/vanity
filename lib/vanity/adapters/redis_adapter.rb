@@ -97,6 +97,10 @@ module Vanity
 
       # -- Experiments --
 
+      def experiment_persisted?(experiment)
+        !!@experiments["#{experiment}:created_at"]
+      end
+
       def set_experiment_created_at(experiment, time)
         call_redis_with_failover do
           @experiments.setnx "#{experiment}:created_at", time.to_i

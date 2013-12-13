@@ -103,8 +103,12 @@ module Vanity
 
       # -- Experiments --
 
+      def experiment_persisted?(experiment)
+        !!@experiments.find_one({ :_id=>experiment })
+      end
+
       def set_experiment_created_at(experiment, time)
-        @experiments.insert :_id=>experiment, :created_at=>time
+        @experiments.insert(:_id=>experiment, :created_at=>time)
       end
 
       def get_experiment_created_at(experiment)

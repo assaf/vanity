@@ -176,7 +176,8 @@ module Vanity
     end
 
 
-    # Returns hash of experiments (key is experiment id).
+    # Returns hash of experiments (key is experiment id). This create the
+    # Experiment and persists it to the datastore.
     #
     # @see Vanity::Experiment
     def experiments
@@ -189,6 +190,10 @@ module Vanity
         end
       end
       @experiments
+    end
+
+    def experiments_persisted?
+      experiments.keys.all? { |id| connection.experiment_persisted?(id) }
     end
 
     # Reloads all metrics and experiments.  Rails calls this for each request in
