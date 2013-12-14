@@ -21,6 +21,8 @@ gem "webmock", :require=>false
 gem "rails", "4.0.0"
 gem "fastthread", :git=>"git://github.com/zoltankiss/fastthread.git", :platforms=>:mri_20
 gem "passenger", "~>3.0"
+gem "bson", "~>2.0.0.rc2"
+gem "mongoid", "~>4.0.0.alpha1"
 
 group :development do
   gem "appraisal", ">= 1.0.0.beta2"
