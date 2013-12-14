@@ -56,6 +56,7 @@ module VanityTestHelpers
   DATABASE = {
     "redis"=>"redis://localhost/15",
     "mongodb"=>"mongodb://localhost/vanity",
+    "mongoid"=>"mongodb://localhost/vanity",
     "mysql"=> { "adapter"=>"active_record", "active_record_adapter"=>"mysql", "database"=>"vanity_test" },
     "postgres"=> { "adapter"=>"active_record", "active_record_adapter"=>"postgresql", "database"=>"vanity_test", "username"=>"postgres" },
     "mock"=>"mock:/"

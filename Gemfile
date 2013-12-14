@@ -13,7 +13,7 @@ gem "redis", ">= 2.1"
 gem "redis-namespace", ">= 1.1.0"
 gem "bson_ext"
 gem "mongo"
-gem "mongoid"
+gem "mongoid", :require => false
 gem "mysql"
 gem "sqlite3"
 # gem "pg"
