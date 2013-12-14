@@ -1,10 +1,12 @@
 require "test/test_helper"
 
 class Sky < ActiveRecord::Base
-  connection.drop_table :skies if table_exists?
-  connection.create_table :skies do |t|
-    t.integer :height
-    t.timestamps
+  if connected?
+    connection.drop_table :skies if table_exists?
+    connection.create_table :skies do |t|
+      t.integer :height
+      t.timestamps
+    end
   end
 
   if defined?(Rails::Railtie)
@@ -14,6 +16,7 @@ class Sky < ActiveRecord::Base
   end
 end
 
+if ActiveRecord::Base.connected?
 
 context "ActiveRecord Metric" do
 
@@ -304,4 +307,6 @@ context "ActiveRecord Metric" do
       Sky.after_save.clear
     end
   end
+end
+
 end

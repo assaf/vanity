@@ -149,7 +149,7 @@ end
 
 if ENV["DB"] == "postgres"
   ActiveRecord::Base.establish_connection :adapter=>"postgresql", :database=>"vanity_test"
-else
+elsif ENV["DB"] == "mysql"
   ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test"
 end
 ActiveRecord::Base.logger = $logger

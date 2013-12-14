@@ -20,8 +20,9 @@ gemfile:
   - gemfiles/rails32.gemfile
   - gemfiles/rails4.gemfile
 before_script:
+- 'echo ''gem: --no-ri --no-rdoc'' > ~/.gemrc' # skip installing docs for gems
 - if [[ "`basename $BUNDLE_GEMFILE`" == "Gemfile" ]]; then rvm rubygems 1.8.25; fi # Rubygems 2.0.x fails with Rails 2.3
-- "mysql -e 'create database vanity_test;' >/dev/null"
+- if [[ "$DB" == "mysql" ]]; then mysql -e 'create database vanity_test;' >/dev/null; fi
 #- if [[ "$DB" == "pgsql" ]]; then psql -c 'create database vanity_test;' -U postgres >/dev/null; fi
 matrix:
   exclude:

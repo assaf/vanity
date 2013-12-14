@@ -1,5 +1,22 @@
+# Based on https://github.com/plataformatec/devise/blob/master/test/rails_app/config/database.yml
+
+# SQLite version 3.x
+#   gem install sqlite3
+#
+#   Ensure the SQLite 3 gem is defined in your Gemfile
+#   gem 'sqlite3'
+
+# Set databases in all environments since we may test loading Rails in non-
+# test environments
+
+development:
+  adapter: sqlite3
+  database: ":memory:"
+
 test:
-  adapter: mysql
-  database: vanity_test
-  pool: 5
-  timeout: 5000
+  adapter: sqlite3
+  database: ":memory:"
+
+production:
+  adapter: sqlite3
+  database: ":memory:"
