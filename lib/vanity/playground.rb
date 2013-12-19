@@ -407,6 +407,8 @@ module Vanity
         if connection_spec
           connection_spec = "redis://" + connection_spec unless connection_spec[/^\w+:/]
           establish_connection connection_spec
+	else
+	  establish_connection
         end
       end
     end
