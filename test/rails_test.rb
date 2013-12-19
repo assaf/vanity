@@ -323,8 +323,6 @@ $stdout << Vanity.playground.connection
     ensure
       File.unlink yml.path
     end
-
-
   end
 
   if ENV['DB'] == 'mongo'
@@ -347,7 +345,7 @@ $stdout << Vanity.playground.connection
       File.unlink "tmp/config/vanity.yml"
     end
 
-    unless ENV['CI'] == 'true'
+    unless ENV['CI'] == 'true' #TODO this doesn't get tested on CI
       def test_mongodb_replica_set_connection
         FileUtils.mkpath "tmp/config"
         File.open("tmp/config/vanity.yml", "w") do |io|
@@ -382,9 +380,12 @@ production:
   adapter: redis
       YML
     end
-    assert_equal "No configuration for development", load_rails("", <<-RB, "development")
-$stdout << (Vanity.playground.connection rescue $!.message)
-    RB
+
+     assert_equal "No configuration for development", load_rails("\nbegin\n", <<-RB, "development")
+rescue RuntimeError => e
+  $stdout << e.message
+end
+      RB
   ensure
     File.unlink "tmp/config/vanity.yml"
   end
@@ -395,6 +396,7 @@ $stdout << (Vanity.playground.connection rescue $!.message)
       io.write <<-YML
 production:
   collecting: false
+  adapter: mock
       YML
     end
     assert_equal "false", load_rails("", <<-RB)
@@ -433,6 +435,20 @@ $stdout << Vanity.playground.collecting?
 Vanity.playground.test!
 $stdout << Vanity.playground.collecting?
     RB
+  end
+
+  def test_playground_loads_if_connected
+    assert_equal "{}", load_rails("", <<-RB)
+$stdout << Vanity.playground.instance_variable_get(:@experiments).inspect
+    RB
+  end
+
+  def test_playground_does_not_load_if_not_connected
+    ENV['VANITY_DISABLED'] = '1'
+    assert_equal "nil", load_rails("", <<-RB)
+$stdout << Vanity.playground.instance_variable_get(:@experiments).inspect
+    RB
+    ENV['VANITY_DISABLED'] = nil
   end
 
   def load_rails(before_initialize, after_initialize, env="production")
