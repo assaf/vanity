@@ -160,6 +160,18 @@ class AbTestTest < ActionController::TestCase
     assert_equal 1, on_assignment_called_times
   end
 
+  def test_calls_on_assignment_on_new_assignment_via_chooses
+    on_assignment_called_times = 0
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "6e98ec" }
+      metrics :coolness
+      on_assignment { on_assignment_called_times = on_assignment_called_times+1 }
+    end
+    2.times { experiment(:foobar).chooses("foo") }
+    assert_equal 1, on_assignment_called_times
+  end
+
   def test_returns_the_same_alternative_consistently_when_on_assignment_is_set
     new_ab_test :foobar do
       alternatives "foo", "bar"

@@ -132,26 +132,8 @@ module Vanity
             identity = identity()
             index = connection.ab_showing(@id, identity)
             unless index
-              index = alternative_for(identity)
-              if !@playground.using_js?
-                # if we have an on_assignment block, call it on new assignments
-                if @on_assignment_block
-                  assignment = alternatives[index.to_i]
-                  if !connection.ab_seen @id, identity, assignment
-                    @on_assignment_block.call(Vanity.context, identity, assignment, self)
-                  end
-                end
-                # if we are rebalancing probabilities, keep track of how long it has been since we last rebalanced
-                if @rebalance_frequency
-                  @assignments_since_rebalancing += 1
-                  if @assignments_since_rebalancing >= @rebalance_frequency
-                    @assignments_since_rebalancing = 0
-                    rebalance!
-                  end
-                end
-                connection.ab_add_participant @id, index, identity
-                check_completion!
-              end
+              index = alternative_for(identity).to_i
+              save_assignment(identity, index) unless @playground.using_js?
             end
           else
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
@@ -199,8 +181,7 @@ module Vanity
             index = @alternatives.index(value)
             #add them to the experiment unless they are already in it
             unless index == connection.ab_showing(@id, identity)
-              connection.ab_add_participant @id, index, identity
-              check_completion!
+              save_assignment(identity, index)
             end
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
             if (connection.ab_showing(@id, identity) && connection.ab_showing(@id, identity) != index) ||
@@ -528,6 +509,27 @@ module Vanity
           end
         end
         return Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.size
+      end
+
+      # Saves the assignment of an alternative to a person and performs the necessary housekeeping.
+      def save_assignment(identity, index)
+        # if we have an on_assignment block, call it on new assignments
+        if @on_assignment_block
+          assignment = alternatives[index]
+          if !connection.ab_seen @id, identity, assignment
+            @on_assignment_block.call(Vanity.context, identity, assignment, self)
+          end
+        end
+        # if we are rebalancing probabilities, keep track of how long it has been since we last rebalanced
+        if @rebalance_frequency
+          @assignments_since_rebalancing += 1
+          if @assignments_since_rebalancing >= @rebalance_frequency
+            @assignments_since_rebalancing = 0
+            rebalance!
+          end
+        end
+        connection.ab_add_participant @id, index, identity
+        check_completion!
       end
 
       begin
