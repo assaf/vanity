@@ -207,6 +207,7 @@ module Vanity
     # Loads all metrics and experiments.  Rails calls this during
     # initialization.
     def load!
+      return unless Vanity::Autoconnect.playground_should_autoconnect?
       experiments
       metrics
     end
