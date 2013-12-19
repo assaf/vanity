@@ -66,6 +66,7 @@ Turn Vanity on, and pass a reference to a method that identifies a user. For exa
 
   class ApplicationController < ActionController::Base
     use_vanity :current_user
+    layout false  # exclude this if you want to use your application layout
   end
 
 For more information, please see the {identity documentation}[http://vanity.labnotes.org/identity.html].

@@ -284,11 +284,11 @@ module Vanity
         @experiments = Vanity.playground.experiments
         @experiments_persisted = Vanity.playground.experiments_persisted?
         @metrics = Vanity.playground.metrics
-        render :file=>Vanity.template("_report"), :content_type=>Mime::HTML, :layout=>false
+        render :file=>Vanity.template("_report"), :content_type=>Mime::HTML
       end
 
       def participant
-        render :file=>Vanity.template("_participant"), :locals=>{:participant_id => params[:id], :participant_info => Vanity.playground.participant_info(params[:id])}, :content_type=>Mime::HTML, :layout=>false
+        render :file=>Vanity.template("_participant"), :locals=>{:participant_id => params[:id], :participant_info => Vanity.playground.participant_info(params[:id])}, :content_type=>Mime::HTML
       end
 
       def complete
