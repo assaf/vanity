@@ -66,8 +66,12 @@ module Vanity
     # Logger.
     attr_accessor :logger
 
-    # Path to the add_participant action, necessary if you have called use_js!
+    # Path to the add_participant action.
     attr_accessor :add_participant_path
+
+    attr_accessor :on_datastore_error
+
+    attr_accessor :request_filter
 
     # Defines a new experiment. Generally, do not call this directly,
     # use one of the definition methods (ab_test, measure, etc).
@@ -111,10 +115,11 @@ module Vanity
       participant_array
     end
 
+
     # -- Robot Detection --
 
-    # Call to indicate that participants should be added via js
-    # This helps keep robots from participating in the ab test
+    # Call Vanity.playground.use_js! to indicate that participants should be
+    # added via js This helps keep robots from participating in the ab test
     # and skewing results.
     #
     # If you use this, there are two more steps:
@@ -137,9 +142,11 @@ module Vanity
       @use_js
     end
 
+
     # -- Datastore graceful failover --
 
     # Turns on passing of errors to the Proc returned by #on_datastore_error.
+    # Call Vanity.playground.failover_on_datastore_error! to turn this on.
     #
     # @since 1.9.0
     def failover_on_datastore_error!
@@ -153,9 +160,9 @@ module Vanity
       @failover_on_datastore_error
     end
 
-    # Returns a Proc, passed the parameters of the thrown error, the calling
-    # Class, the calling method, and an array of arguments passed to the
-    # calling method.
+    # Must return a Proc that accepts as parameters: the thrown error, the
+    # calling Class, the calling method, and an array of arguments passed to
+    # the calling method. The return value is ignored.
     #
     #    Proc.new do |error, klass, method, arguments|
     #      ...
@@ -163,8 +170,15 @@ module Vanity
     #
     # The default implementation logs this information to Playground#logger.
     #
+    # Set a custom action by calling Vanity.playground.on_datastore_error =
+    # Proc.new { ... }.
+    #
     # @since 1.9.0
     def on_datastore_error
+      @on_datastore_error || default_on_datastore_error
+    end
+
+    def default_on_datastore_error # :nodoc:
       Proc.new do |error, klass, method, arguments|
         log = "[#{Time.now.iso8601}]"
         log << " [vanity #{klass} #{method}]"
@@ -174,7 +188,43 @@ module Vanity
         nil
       end
     end
+    protected :default_on_datastore_error
 
+
+    # -- Blocking or ignoring visitors --
+
+    # Must return a Proc that accepts as a parameter the request object, if
+    # made available by the implement framework. The return value should be a
+    # boolean whether to ignore the request. This is called only for the JS
+    # callback action.
+    #
+    #    Proc.new do |request|
+    #      ...
+    #    end
+    #
+    # The default implementation does a simple test of whether the request's
+    # HTTP_USER_AGENT header contains a URI, since well behaved bots typically
+    # include a reference URI in their user agent strings. (Original idea:
+    # http://stackoverflow.com/a/9285889.)
+    #
+    # Alternatively, one could filter an explicit list of IPs, add additional
+    # user agent strings to filter, or any custom test. Set a custom filter
+    # by calling Vanity.playground.request_filter = Proc.new { ... }.
+    #
+    # @since 1.9.0
+    def request_filter
+      @request_filter || default_request_filter
+    end
+
+    def default_request_filter # :nodoc:
+      Proc.new do |request|
+        request &&
+          request.env &&
+          request.env["HTTP_USER_AGENT"] &&
+          request.env["HTTP_USER_AGENT"].match(/\(.*https?:\/\/.*\)/)
+      end
+    end
+    protected :default_request_filter
 
     # Returns hash of experiments (key is experiment id). This create the
     # Experiment and persists it to the datastore.
@@ -407,8 +457,8 @@ module Vanity
         if connection_spec
           connection_spec = "redis://" + connection_spec unless connection_spec[/^\w+:/]
           establish_connection connection_spec
-	else
-	  establish_connection
+        else
+          establish_connection
         end
       end
     end

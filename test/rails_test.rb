@@ -47,6 +47,16 @@ class UseVanityControllerTest < ActionController::TestCase
     assert_equal 'false', @response.body
   end
 
+  def test_adds_participant_to_experiment
+    get :index
+    assert_equal 1, experiment(:pie_or_cake).alternatives.map(&:participants).sum
+  end
+
+  def test_does_not_add_invalid_participant_to_experiment
+    @request.user_agent = "Googlebot/2.1 ( http://www.google.com/bot.html)"
+    get :index
+    assert_equal 0, experiment(:pie_or_cake).alternatives.map(&:participants).sum
+  end
 
   def test_vanity_cookie_is_persistent
     get :index

@@ -133,7 +133,7 @@ class AbTestTest < ActionController::TestCase
 
   # -- use_js! --
 
-  def test_does_not_record_participant_when_using_js
+  def test_choose_does_not_record_participant_when_using_js
     Vanity.playground.use_js!
     ids = (0...10).to_a
     new_ab_test :foobar do
@@ -158,6 +158,32 @@ class AbTestTest < ActionController::TestCase
     end
     2.times { experiment(:foobar).choose }
     assert_equal 1, on_assignment_called_times
+  end
+
+  def test_calls_on_assignment_when_given_valid_request
+    on_assignment_called_times = 0
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "6e98ec" }
+      metrics :coolness
+      on_assignment { on_assignment_called_times = on_assignment_called_times+1 }
+    end
+    experiment(:foobar).choose(dummy_request)
+    assert_equal 1, on_assignment_called_times
+  end
+
+  def test_does_not_call_on_assignment_when_given_invalid_request
+    on_assignment_called_times = 0
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "6e98ec" }
+      metrics :coolness
+      on_assignment { on_assignment_called_times = on_assignment_called_times+1 }
+    end
+    request = dummy_request
+    request.user_agent = "Googlebot/2.1 ( http://www.google.com/bot.html)"
+    experiment(:foobar).choose(request)
+    assert_equal 0, on_assignment_called_times
   end
 
   def test_calls_on_assignment_on_new_assignment_via_chooses
@@ -356,6 +382,27 @@ class AbTestTest < ActionController::TestCase
     assert_equal 100, alts.map(&:converted).sum
   end
 
+  def test_choose_records_participants_given_a_valid_request
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "me" }
+      metrics :coolness
+    end
+    experiment(:foobar).choose(dummy_request)
+    assert_equal 1, experiment(:foobar).alternatives.map(&:participants).sum
+  end
+
+  def test_choose_ignores_participants_given_an_invalid_request
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { "me" }
+      metrics :coolness
+    end
+    request = dummy_request
+    request.user_agent = "Googlebot/2.1 ( http://www.google.com/bot.html)"
+    experiment(:foobar).choose(request)
+    assert_equal 0, experiment(:foobar).alternatives.map(&:participants).sum
+  end
 
   def test_destroy_experiment
     new_ab_test :simple do
@@ -477,6 +524,7 @@ class AbTestTest < ActionController::TestCase
 
 
   # -- Scoring --
+
   def test_calculate_score
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
@@ -500,10 +548,10 @@ class AbTestTest < ActionController::TestCase
       metrics :coolness
     end
     # participating, conversions, rate, z-score
-    # Control:      182	35 19.23%	N/A
-    # Treatment A:  180	45 25.00%	1.33
-    # treatment B:  189	28 14.81%	-1.13
-    # treatment C:  188	61 32.45%	2.94
+    # Control:      182 35 19.23% N/A
+    # Treatment A:  180 45 25.00% 1.33
+    # treatment B:  189 28 14.81% -1.13
+    # treatment C:  188 61 32.45% 2.94
     fake :abcd, :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
 
     z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }
@@ -526,10 +574,10 @@ class AbTestTest < ActionController::TestCase
       metrics :coolness
     end
     # participating, conversions, rate, z-score
-    # Control:      182	35 19.23%	N/A
-    # Treatment A:  180	45 25.00%	1.33
-    # treatment B:  189	28 14.81%	-1.13
-    # treatment C:  188	61 32.45%	2.94
+    # Control:      182 35 19.23% N/A
+    # Treatment A:  180 45 25.00% 1.33
+    # treatment B:  189 28 14.81% -1.13
+    # treatment C:  188 61 32.45% 2.94
     fake :abcd, :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
 
     score_result = experiment(:abcd).bayes_bandit_score
@@ -605,10 +653,10 @@ class AbTestTest < ActionController::TestCase
       metrics :coolness
     end
     # participating, conversions, rate, z-score
-    # Control:      182	35 19.23%	N/A
-    # Treatment A:  180	45 25.00%	1.33
-    # treatment B:  189	28 14.81%	-1.13
-    # treatment C:  188	61 32.45%	2.94
+    # Control:      182 35 19.23% N/A
+    # Treatment A:  180 45 25.00% 1.33
+    # treatment B:  189 28 14.81% -1.13
+    # treatment C:  188 61 32.45% 2.94
     fake :abcd, :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
 
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
@@ -929,6 +977,26 @@ This experiment did not run long enough to find a clear winner.
     experiment(:simple).chooses(:b)
     experiment(:simple).chooses(:c)
     assert_equal experiment(:simple).alternatives[2].participants, 1
+  end
+
+  def test_chooses_records_participants_given_a_valid_request
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      metrics :coolness
+    end
+    experiment(:simple).chooses(:a, dummy_request)
+    assert_equal 1, experiment(:simple).alternatives[0].participants
+  end
+
+  def test_chooses_ignores_participants_given_an_invalid_request
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      metrics :coolness
+    end
+    request = dummy_request
+    request.user_agent = "Googlebot/2.1 ( http://www.google.com/bot.html)"
+    experiment(:simple).chooses(:a, request)
+    assert_equal 0, experiment(:simple).alternatives[0].participants
   end
 
   def test_no_collection_and_chooses

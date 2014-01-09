@@ -1,4 +1,4 @@
-module Vanity  
+module Vanity
   # Helper methods available on Object.
   #
   # @example From ERB template
@@ -17,7 +17,7 @@ module Vanity
   #     end
   #   end
   module Helpers
-    
+
     # This method returns one of the alternative values in the named A/B test.
     #
     # @example A/B two alternatives for a page
@@ -34,12 +34,14 @@ module Vanity
     #   end
     # @since 1.2.0
     def ab_test(name, &block)
+      # TODO refactor with Vanity::Rails::Helpers#ab_test
+      request = respond_to?(:request) ? self.request : nil
       if Vanity.playground.using_js?
         @_vanity_experiments ||= {}
-        @_vanity_experiments[name] ||= Vanity.playground.experiment(name).choose
+        @_vanity_experiments[name] ||= Vanity.playground.experiment(name).choose(request)
         value = @_vanity_experiments[name].value
       else
-        value = Vanity.playground.experiment(name).choose.value
+        value = Vanity.playground.experiment(name).choose(request).value
       end
 
       if block

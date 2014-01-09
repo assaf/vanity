@@ -13,6 +13,28 @@ class PlaygroundTest < Test::Unit::TestCase
     assert Vanity.playground.using_js?
   end
 
+  def test_be_failover_on_datastore_error
+    assert !Vanity.playground.failover_on_datastore_error?
+    Vanity.playground.failover_on_datastore_error!
+    assert Vanity.playground.failover_on_datastore_error?
+  end
+
+  def test_default_failover_on_datastore_error
+    proc = Vanity.playground.on_datastore_error
+    assert proc.respond_to?(:call)
+    assert_nothing_raised do
+      proc.call(Exception.new("datastore error"), self.class, caller[0][/`.*'/][1..-2], [1, 2, 3])
+    end
+  end
+
+  def test_request_filter
+    proc = Vanity.playground.request_filter
+    assert proc.respond_to?(:call)
+    assert_nothing_raised do
+      proc.call(dummy_request)
+    end
+  end
+
   def test_chooses_path_sets_default
     assert_equal Vanity.playground.add_participant_path, Vanity::Playground::DEFAULT_ADD_PARTICIPANT_PATH
   end

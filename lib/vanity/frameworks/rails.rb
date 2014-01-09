@@ -7,7 +7,7 @@ module Vanity
       # Do this at the very end of initialization, allowing you to change
       # connection adapter, turn collection on/off, etc.
       ::Rails.configuration.after_initialize do
-	Vanity.playground.load! if Vanity.playground.connected?
+        Vanity.playground.load! if Vanity.playground.connected?
       end
     end
 
@@ -263,7 +263,8 @@ module Vanity
 
       def setup_experiment(name)
         @_vanity_experiments ||= {}
-        @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose
+        request = respond_to?(:request) ? self.request : nil
+        @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose(request)
         @_vanity_experiments[name].value
       end
 
@@ -317,7 +318,7 @@ module Vanity
           return
         end
         exp = Vanity.playground.experiment(params[:e].to_sym)
-        exp.chooses(exp.alternatives[params[:a].to_i].value)
+        exp.chooses(exp.alternatives[params[:a].to_i].value, request)
         render :status => 200, :nothing => true
       end
     end
@@ -339,18 +340,6 @@ if defined?(ActionController)
     extend Vanity::Rails::UseVanity
     include Vanity::Rails::Filters
     helper Vanity::Rails::Helpers
-  end
-
-  module ActionController
-    class TestCase
-      alias :setup_controller_request_and_response_without_vanity :setup_controller_request_and_response
-      # Sets Vanity.context to the current controller, so you can do things like:
-      #   experiment(:simple).chooses(:green)
-      def setup_controller_request_and_response
-        setup_controller_request_and_response_without_vanity
-        Vanity.context = @controller
-      end
-    end
   end
 end
 
