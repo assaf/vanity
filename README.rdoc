@@ -131,11 +131,15 @@ NOTE: By default, Vanity turns collection off in development mode. To turn it on
 
 == Registering participants with Javascript
 
-If robots or spiders make up a significant portion of your sites traffic they can affect your conversion rate.  Vanity can optionally add participants to the experiments using asynchronous javascript callbacks, which will keep almost all robots out.  To set this up simply do the following:
+If robots or spiders make up a significant portion of your sites traffic they can affect your conversion rate. Vanity can optionally add participants to the experiments using asynchronous javascript callbacks, which will keep almost all robots out. To set this up simply do the following:
 
 * Add <code>Vanity.playground.use_js!</code>
-* Set <code>Vanity.playground.add_participant_path = '/path/to/vanity/action'</code>, this should point to the add_participant path that is added with Vanity::Rails::Dashboard, make sure that this action is available to all users
+* Set <code>Vanity.playground.add_participant_path = '/path/to/vanity/action'</code>, this should point to the add_participant path that is added with Vanity::Rails::Dashboard, make sure that this action is accessible by all users (ie does not require authentication).
 * Add <code><%= vanity_js %></code> to any page that needs uses an ab_test. <code>vanity_js</code> needs to be included after your call to ab_test so that it knows which version of the experiment the participant is a member of. The helper will render nothing if the there are no ab_tests running on the current page, so adding <code>vanity_js</code> to the bottom of your layouts is a good option. Keep in mind that if you call <code>use_js!</code> and don't include <code>vanity_js</code> in your view no participants will be recorded.
+
+=== <b>Update regarding using AJAX registration to avoid robots</b>
+
+As of January 2014, as reported in {issue 175}[https://github.com/assaf/vanity/issues/175], Googlebot is now executing AJAX requests to the original domain of the page, which includes the current implementation of the JS callback. This means that Googlebot-originating requests may be included in experiments, greatly skewing results. A fix is being worked on, please follow the issue for further updates.
 
 == Compatibility
 
