@@ -53,6 +53,13 @@ class RailsDashboardTest < ActionController::TestCase
     xhr :post, :add_participant, :e => "food", :a => 0
     assert_response :success
     assert @response.body.blank?
+    assert_equal 1, experiment(:food).alternatives.map(&:participants).sum
+  end
+
+  def test_add_participant_with_invalid_request
+    @request.user_agent = "Googlebot/2.1 ( http://www.google.com/bot.html)"
+    xhr :post, :add_participant, :e => "food", :a => 0
+    assert_equal 0, experiment(:food).alternatives.map(&:participants).sum
   end
 
   def test_add_participant_no_params

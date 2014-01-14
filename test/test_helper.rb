@@ -44,6 +44,9 @@ Vanity::Rails.load!
 if $VERBOSE
   $logger = Logger.new(STDOUT)
   $logger.level = Logger::DEBUG
+else
+  $logger = Logger.new(STDOUT)
+  $logger.level = Logger::FATAL
 end
 
 module VanityTestHelpers
@@ -121,6 +124,10 @@ module VanityTestHelpers
     Vanity.playground.stubs(:connection).returns(stub(:flushdb=>nil))
   end
 
+  def dummy_request
+    defined?(ActionDispatch) ? ActionDispatch::TestRequest.new() : ActionController::TestRequest.new()
+  end
+
   # Defining setup/tear down in a module and including it below doesn't
   # override the built-in setup/teardown methods, so we alias_method_chain
   # them to run.
@@ -144,6 +151,20 @@ if defined?(ActiveSupport::TestCase)
   class ActiveSupport::TestCase
     include WebMock::API
     include VanityTestHelpers
+  end
+end
+
+if defined?(ActionController::TestCase)
+  module ActionController
+    class TestCase
+      alias :setup_controller_request_and_response_without_vanity :setup_controller_request_and_response
+      # Sets Vanity.context to the current controller, so you can do things like:
+      #   experiment(:simple).chooses(:green)
+      def setup_controller_request_and_response
+        setup_controller_request_and_response_without_vanity
+        Vanity.context = @controller
+      end
+    end
   end
 end
 

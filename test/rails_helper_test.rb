@@ -26,6 +26,11 @@ class RailsHelperTest < ActionView::TestCase
     end
   end
 
+  def test_ab_test_adds_participant_to_experiment
+    ab_test(:pie_or_cake)
+    assert_equal 1, experiment(:pie_or_cake).alternatives.map(&:participants).sum
+  end
+
   def test_vanity_track_url_for_returns_url_with_identity_and_metrics
     self.expects(:url_for).with(:controller => "controller", :action => "action", :_identity => '123', :_track => :sugar_high)
     vanity_track_url_for("123", :sugar_high, :controller => "controller", :action => "action")
