@@ -1,11 +1,11 @@
 module Vanity
 
-  # A metric is an object that implements two methods: +name+ and +values+.  It
+  # A metric is an object that implements two methods: +name+ and +values+. It
   # can also respond to addition methods (+track!+, +bounds+, etc), these are
   # optional.
   #
   # This class implements a basic metric that tracks data and stores it in the
-  # database.  You can use this as the basis for your metric, or as reference
+  # database. You can use this as the basis for your metric, or as reference
   # for the methods your metric must and can implement.
   #
   # @since 1.1.0
@@ -50,7 +50,7 @@ module Vanity
       # Helper method to return description for a metric.
       #
       # A metric object may have a +description+ method that returns a detailed
-      # description.  It may also have no description, or no +description+
+      # description. It may also have no description, or no +description+
       # method, in which case return +nil+.
       #
       # @example
@@ -62,7 +62,7 @@ module Vanity
       # Helper method to return bounds for a metric.
       #
       # A metric object may have a +bounds+ method that returns lower and upper
-      # bounds.  It may also have no bounds, or no +bounds+ # method, in which
+      # bounds. It may also have no bounds, or no +bounds+ # method, in which
       # case we return +[nil, nil]+.
       #
       # @example
@@ -71,11 +71,11 @@ module Vanity
         metric.respond_to?(:bounds) && metric.bounds || [nil, nil]
       end
 
-      # Returns data set for a given date range.  The data set is an array of
+      # Returns data set for a given date range. The data set is an array of
       # date, value pairs.
       #
-      # First argument is the metric.  Second argument is the start date, or
-      # number of days to go back in history, defaults to 90 days.  Third
+      # First argument is the metric. Second argument is the start date, or
+      # number of days to go back in history, defaults to 90 days. Third
       # argument is end date, defaults to today.
       #
       # @example These are all equivalent:
@@ -157,7 +157,7 @@ module Vanity
     end
     protected :track_args
 
-    # Metric definitions use this to introduce tracking hook.  The hook is
+    # Metric definitions use this to introduce tracking hook. The hook is
     # called with metric identifier, timestamp, count and possibly additional
     # arguments.
     #
@@ -170,13 +170,13 @@ module Vanity
     end
 
     # This method returns the acceptable bounds of a metric as an array with
-    # two values: low and high.  Use nil for unbounded.
+    # two values: low and high. Use nil for unbounded.
     #
-    # Alerts are created when metric values exceed their bounds.  For example,
+    # Alerts are created when metric values exceed their bounds. For example,
     # a metric of user registration can use historical data to calculate
-    # expected range of new registration for the next day.  If actual metric
+    # expected range of new registration for the next day. If actual metric
     # falls below the expected range, it could indicate registration process is
-    # broken.  Going above higher bound could trigger opening a Champagne
+    # broken. Going above higher bound could trigger opening a Champagne
     # bottle.
     #
     # The default implementation returns +nil+.
@@ -186,11 +186,11 @@ module Vanity
 
     #  -- Reporting --
 
-    # Human readable metric name.  All metrics must implement this method.
+    # Human readable metric name. All metrics must implement this method.
     attr_reader :name
     alias :to_s :name
 
-    # Human readable description.  Use two newlines to break paragraphs.
+    # Human readable description. Use two newlines to break paragraphs.
     attr_accessor :description
 
     # Sets or returns description. For example
@@ -205,7 +205,7 @@ module Vanity
     end
 
     # Given two arguments, a start date and an end date (inclusive), returns an
-    # array of measurements.  All metrics must implement this method.
+    # array of measurements. All metrics must implement this method.
     def values(from, to)
       values = connection.metric_values(@id, from, to)
       values.map { |row| row.first.to_i }

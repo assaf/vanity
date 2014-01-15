@@ -17,7 +17,7 @@ module Vanity
       # Defines the vanity_identity method and the set_identity_context filter.
       #
       # Call with the name of a method that returns an object whose identity
-      # will be used as the Vanity identity.  Confusing?  Let's try by example:
+      # will be used as the Vanity identity. Confusing?  Let's try by example:
       #
       #   class ApplicationController < ActionController::Base
       #     use_vanity :current_user
@@ -29,7 +29,7 @@ module Vanity
       #
       # If that method (current_user in this example) returns nil, Vanity will
       # set the identity for you (using a cookie to remember it across
-      # requests).  It also uses this mechanism if you don't provide an
+      # requests). It also uses this mechanism if you don't provide an
       # identity object, by calling use_vanity with no arguments.
       #
       # Of course you can also use a block:
@@ -95,7 +95,7 @@ module Vanity
     end
 
 
-    # Vanity needs these filters.  They are includes in ActionController and
+    # Vanity needs these filters. They are includes in ActionController and
     # automatically added when you use #use_vanity in your controller.
     module Filters
       # Around filter that sets Vanity.context to controller.
@@ -110,9 +110,9 @@ module Vanity
       # parameter.
       #
       # Each alternative has a unique fingerprint (run vanity list command to
-      # see them all).  A request with the _vanity query parameter is
+      # see them all). A request with the _vanity query parameter is
       # intercepted, the alternative is chosen, and the user redirected to the
-      # same request URL sans _vanity parameter.  This only works for GET
+      # same request URL sans _vanity parameter. This only works for GET
       # requests.
       #
       # For example, if the user requests the page
@@ -137,14 +137,14 @@ module Vanity
         end
       end
 
-      # Before filter to reload Vanity experiments/metrics.  Enabled when
+      # Before filter to reload Vanity experiments/metrics. Enabled when
       # cache_classes is false (typically, testing environment).
       def vanity_reload_filter
         Vanity.playground.reload!
       end
 
-      # Filter to track metrics
-      # pass _track param along to call track! on that alternative
+      # Filter to track metrics. Pass _track param along to call track! on that
+      # alternative.
       def vanity_track_filter
         if request.get? && params[:_track]
           track! params[:_track]
@@ -155,7 +155,7 @@ module Vanity
     end
 
 
-    # Introduces ab_test helper (controllers and views).  Similar to the generic
+    # Introduces ab_test helper (controllers and views). Similar to the generic
     # ab_test method, with the ability to capture content (applicable to views,
     # see examples).
     module Helpers
@@ -312,6 +312,7 @@ module Vanity
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
 
+      # JS callback action used by vanity_js
       def add_participant
         if params[:e].nil? || params[:e].empty?
           render :status => 404, :nothing => true

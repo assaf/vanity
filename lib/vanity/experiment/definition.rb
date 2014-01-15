@@ -1,7 +1,7 @@
 module Vanity
   module Experiment
     # These methods are available from experiment definitions (files located in
-    # the experiments directory, automatically loaded by Vanity).  Use these
+    # the experiments directory, automatically loaded by Vanity). Use these
     # methods to define your experiments, for example:
     #   ab_test "New Banner" do
     #     alternatives :red, :green, :blue

@@ -46,7 +46,7 @@ module Vanity
       # -- Alternatives --
 
       # Call this method once to set alternative values for this experiment
-      # (requires at least two values).  Call without arguments to obtain
+      # (requires at least two values). Call without arguments to obtain
       # current list of alternatives.
       #
       # @example Define A/B test with three alternatives
@@ -84,7 +84,7 @@ module Vanity
         alternatives.find { |alt| alt.value == value }
       end
 
-      # What method to use for calculating score.  Default is :ab_test, but can
+      # What method to use for calculating score. Default is :ab_test, but can
       # also be set to :bayes_bandit_score to calculate probability of each
       # alternative being the best.
       #
@@ -101,7 +101,7 @@ module Vanity
         @score_method
       end
 
-      # Defines an A/B test with two alternatives: false and true.  This is the
+      # Defines an A/B test with two alternatives: false and true. This is the
       # default pair of alternatives, so just syntactic sugar for those who love
       # being explicit.
       #
@@ -116,11 +116,18 @@ module Vanity
       end
       alias true_false false_true
 
-      # Chooses a value for this experiment.  You probably want to use the
+      # Returns fingerprint (hash) for given alternative. Can be used to lookup
+      # alternative for experiment without revealing what values are available
+      # (e.g. choosing alternative from HTTP query parameter).
+      def fingerprint(alternative)
+        Digest::MD5.hexdigest("#{id}:#{alternative.id}")[-10,10]
+      end
+
+      # Chooses a value for this experiment. You probably want to use the
       # Rails helper method ab_test instead.
       #
       # This method picks an alternative for the current identity and returns
-      # the alternative's value.  It will consistently choose the same
+      # the alternative's value. It will consistently choose the same
       # alternative for the same identity, and randomly split alternatives
       # between different identities.
       #
@@ -147,18 +154,11 @@ module Vanity
         alternatives[index.to_i]
       end
 
-      # Returns fingerprint (hash) for given alternative.  Can be used to lookup
-      # alternative for experiment without revealing what values are available
-      # (e.g. choosing alternative from HTTP query parameter).
-      def fingerprint(alternative)
-        Digest::MD5.hexdigest("#{id}:#{alternative.id}")[-10,10]
-      end
 
-
-      # -- Testing --
+      # -- Testing and JS Callback --
 
       # Forces this experiment to use a particular alternative. This may be
-      # used in test cases to force different alternatives to obtain a
+      # used in test cases to force a specific alternative to obtain a
       # deterministic test. This method also is used in the add_participant
       # callback action when adding participants via vanity_js.
       #
@@ -218,7 +218,7 @@ module Vanity
         end
       end
 
-      # Scores alternatives based on the current tracking data.  This method
+      # Scores alternatives based on the current tracking data. This method
       # returns a structure with the following attributes:
       # [:alts]   Ordered list of alternatives, populated with scoring info.
       # [:base]   Second best performing alternative.
@@ -300,7 +300,7 @@ module Vanity
         BayesianBanditScore.new(alternatives, outcome).calculate!
       end
 
-      # Use the result of #score or #bayes_bandit_score to derive a conclusion.  Returns an
+      # Use the result of #score or #bayes_bandit_score to derive a conclusion. Returns an
       # array of claims.
       def conclusion(score = score)
         claims = []
@@ -394,7 +394,7 @@ module Vanity
       # Defines how the experiment can choose the optimal outcome on completion.
       #
       # By default, Vanity will take the best alternative (highest conversion
-      # rate) and use that as the outcome.  You experiment may have different
+      # rate) and use that as the outcome. You experiment may have different
       # needs, maybe you want the least performing alternative, or factor cost
       # in the equation?
       #
@@ -562,7 +562,7 @@ module Vanity
 
 
     module Definition
-      # Define an A/B test with the given name.  For example:
+      # Define an A/B test with the given name. For example:
       #   ab_test "New Banner" do
       #     alternatives :red, :green, :blue
       #   end

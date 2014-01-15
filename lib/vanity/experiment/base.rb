@@ -67,7 +67,7 @@ module Vanity
         self.class.type
       end
 
-      # Defines how we obtain an identity for the current experiment.  Usually
+      # Defines how we obtain an identity for the current experiment. Usually
       # Vanity gets the identity form a session object (see use_vanity), but
       # there are cases where you want a particular experiment to use a
       # different identity.
@@ -115,7 +115,7 @@ module Vanity
 
       # -- Experiment completion --
 
-      # Define experiment completion condition.  For example:
+      # Define experiment completion condition. For example:
       #   complete_if do
       #     !score(95).chosen.nil?
       #   end
@@ -184,7 +184,7 @@ module Vanity
       end
 
       # Returns key for this experiment, or with an argument, return a key
-      # using the experiment as the namespace.  Examples:
+      # using the experiment as the namespace. Examples:
       #   key => "vanity:experiments:green_button"
       #   key("participants") => "vanity:experiments:green_button:participants"
       def key(name = nil)

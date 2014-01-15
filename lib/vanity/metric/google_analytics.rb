@@ -1,9 +1,9 @@
 module Vanity
   class Metric
-    
-    # Use Google Analytics metric.  Note: you must +require "garb"+ before
+
+    # Use Google Analytics metric. Note: you must +require "garb"+ before
     # vanity.
-    # 
+    #
     # @example Page views
     #   metric "Page views" do
     #     google_analytics "UA-1828623-6"
@@ -40,7 +40,7 @@ module Vanity
         end
         (from..to).map { |day| data[day.strftime('%Y%m%d')] || 0 }
       end
-      
+
       # Hooks not supported for GA metrics.
       def hook
         fail "Cannot use hooks with Google Analytics methods"
@@ -59,7 +59,7 @@ module Vanity
       end
 
       class Resource
-        # GA profile used for this report.  Populated after calling results. 
+        # GA profile used for this report. Populated after calling results.
         attr_reader :profile
 
         def initialize(web_property_id, metric)

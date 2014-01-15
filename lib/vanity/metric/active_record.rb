@@ -3,7 +3,7 @@ module Vanity
 
     AGGREGATES = [:average, :minimum, :maximum, :sum]
 
-    # Use an ActiveRecord model to get metric data from database table.  Also
+    # Use an ActiveRecord model to get metric data from database table. Also
     # forwards +after_create+ callbacks to hooks (updating experiments).
     #
     # Supported options:

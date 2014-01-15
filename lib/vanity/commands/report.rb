@@ -7,7 +7,7 @@ module Vanity
   # outside Rails).
   module Render
 
-    # Render the named template.  Used for reporting and the dashboard.
+    # Render the named template. Used for reporting and the dashboard.
     def render(path_or_options, locals = {})
       if path_or_options.respond_to?(:keys)
         render_erb(
@@ -66,7 +66,7 @@ module Vanity
     class << self
       include Render
 
-      # Generate an HTML report.  Outputs to the named file, or stdout with no
+      # Generate an HTML report. Outputs to the named file, or stdout with no
       # arguments.
       def report(output = nil)
         html = render(Vanity.template("report"))

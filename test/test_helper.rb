@@ -91,7 +91,7 @@ module VanityTestHelpers
     Vanity.playground.establish_connection DATABASE
   end
 
-  # Defines the specified metrics (one or more names).  Returns metric, or array
+  # Defines the specified metrics (one or more names). Returns metric, or array
   # of metric (if more than one argument).
   def metric(*names)
     metrics = names.map do |name|

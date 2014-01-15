@@ -16,7 +16,7 @@ module Vanity
     # Vanity.playground.
     #
     # First argument is connection specification (see #redis=), last argument is
-    # a set of options, both are optional.  Supported options are:
+    # a set of options, both are optional. Supported options are:
     # - connection -- Connection specification
     # - namespace -- Namespace to use
     # - load_path -- Path to load experiments/metrics from
@@ -118,22 +118,23 @@ module Vanity
 
     # -- Robot Detection --
 
-    # Call Vanity.playground.use_js! to indicate that participants should be
-    # added via js This helps keep robots from participating in the ab test
-    # and skewing results.
+    # Call to indicate that participants should be added via js. This helps
+    # keep robots from participating in the A/B test and skewing results.
     #
-    # If you use this, there are two more steps:
+    # If you want to use this:
+    # - Add <%= vanity_js %> to any page that needs uses an ab_test. vanity_js
+    #   needs to be included after your call to ab_test so that it knows which
+    #   version of the experiment the participant is a member of. The helper
+    #   will render nothing if the there are no ab_tests running on the current
+    #   page, so adding vanity_js to the bottom of your layouts is a good
+    #   option. Keep in mind that if you call use_js! and don't include
+    #   vanity_js in your view no participants will be recorded.
+    #
+    # Note that a custom JS callback path can be set using:
     # - Set Vanity.playground.add_participant_path = '/path/to/vanity/action',
     #   this should point to the add_participant path that is added with
     #   Vanity::Rails::Dashboard, make sure that this action is available
-    #   to all users
-    # - Add <%= vanity_js %> to any page that needs uses an ab_test. vanity_js
-    #   needs to be included after your call to ab_test so that it knows which
-    #   version of the experiment the participant is a member of.  The helper
-    #   will render nothing if the there are no ab_tests running on the current
-    #   page, so adding vanity_js to the bottom of your layouts is a good
-    #   option.  Keep in mind that if you call use_js! and don't include
-    #   vanity_js in your view no participants will be recorded.
+    #   to all users.
     def use_js!
       @use_js = true
     end
@@ -246,7 +247,7 @@ module Vanity
       experiments.keys.all? { |id| connection.experiment_persisted?(id) }
     end
 
-    # Reloads all metrics and experiments.  Rails calls this for each request in
+    # Reloads all metrics and experiments. Rails calls this for each request in
     # development mode.
     def reload!
       @experiments = nil
@@ -254,7 +255,7 @@ module Vanity
       load!
     end
 
-    # Loads all metrics and experiments.  Rails calls this during
+    # Loads all metrics and experiments. Rails calls this during
     # initialization.
     def load!
       experiments
@@ -416,7 +417,7 @@ module Vanity
       establish_connection(@spec)
     end
 
-    # Deprecated. Use Vanity.playground.collecting = true/false instead.  Under
+    # Deprecated. Use Vanity.playground.collecting = true/false instead. Under
     # Rails, collecting is true in production environment, false in all other
     # environments, which is exactly what you want.
     def test!
@@ -479,13 +480,13 @@ module Vanity
       @playground ||= Playground.new(:rails=>defined?(::Rails))
     end
 
-    # Returns the Vanity context.  For example, when using Rails this would be
+    # Returns the Vanity context. For example, when using Rails this would be
     # the current controller, which can be used to get/set the vanity identity.
     def context
       Thread.current[:vanity_context]
     end
 
-    # Sets the Vanity context.  For example, when using Rails this would be
+    # Sets the Vanity context. For example, when using Rails this would be
     # set by the set_vanity_context before filter (via Vanity::Rails#use_vanity).
     def context=(context)
       Thread.current[:vanity_context] = context
