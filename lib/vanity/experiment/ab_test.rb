@@ -461,9 +461,9 @@ module Vanity
       end
 
       # Called when tracking associated metric.
-      def track!(metric_id, timestamp, count, *args)
+      def track!(metric_id, timestamp, identity, count, *args)
         return unless active?
-        identity = identity() rescue nil
+        identity ||= identity() rescue nil
         if identity
           return if connection.ab_showing(@id, identity)
           index = alternative_for(identity)
