@@ -235,7 +235,7 @@ module Vanity
 
     def call_hooks(timestamp, identity, values)
       @hooks.each do |hook|
-        hook.call @id, timestamp, identity, values.first || 1
+        hook.call @id, timestamp, values.first || 1, {:identity=>identity}
       end
     end
 
