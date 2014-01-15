@@ -79,7 +79,7 @@ module Vanity
           if record = VanityParticipant.first(:conditions=>{ :experiment_id=>experiment.to_s, :identity=>identity.to_s })
             record.update_attributes(update_with) if update_with
           elsif create
-            record = VanityParticipant.create({ :experiment_id=>experiment.to_s, :identity=>identity }.merge(update_with || {}))
+            record = VanityParticipant.create({ :experiment_id=>experiment.to_s, :identity=>identity.to_s }.merge(update_with || {}))
           end
           record
         end
