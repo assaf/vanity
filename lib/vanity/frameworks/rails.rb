@@ -17,8 +17,7 @@ module Vanity
       # Defines the vanity_identity method and the set_identity_context filter.
       #
       # Call with the name of a method that returns an object whose identity
-      # will be used as the Vanity identity if the user is not already
-      # cookied. Confusing?  Let's try by example:
+      # will be used as the Vanity identity. Confusing?  Let's try by example:
       #
       #   class ApplicationController < ActionController::Base
       #     use_vanity :current_user
@@ -29,12 +28,11 @@ module Vanity
       #   end
       #
       # If that method (current_user in this example) returns nil, Vanity will
-      # look for a vanity cookie. If there is none, it will create an identity
-      # (using a cookie to remember it across requests). It also uses this
-      # mechanism if you don't provide an identity object, by calling
-      # use_vanity with no arguments.
+      # set the identity for you (using a cookie to remember it across
+      # requests). It also uses this mechanism if you don't provide an
+      # identity object, by calling use_vanity with no arguments.
       #
-      # You can also use a block:
+      # Of course you can also use a block:
       #   class ProjectController < ApplicationController
       #     use_vanity { |controller| controller.params[:project_id] }
       #   end
@@ -44,20 +42,12 @@ module Vanity
         else
           define_method :vanity_identity do
             return @vanity_identity if @vanity_identity
-
-            # With user sign in, it's possible to visit not-logged in, get
-            # cookied and shown alternative A, then sign in and based on
-            # user.id, get shown alternative B.
-            # This implementation prefers an initial vanity cookie id over a
-            # new user.id to avoid the flash of alternative B (FOAB).
-            if request.get? && params[:_identity]
+            if symbol && object = send(symbol)
+              @vanity_identity = object.id
+            elsif request.get? && params[:_identity]
               @vanity_identity = params[:_identity]
               cookies["vanity_id"] = { :value=>@vanity_identity, :expires=>1.month.from_now }
               @vanity_identity
-            elsif cookies["vanity_id"]
-              @vanity_identity = cookies["vanity_id"]
-            elsif symbol && object = send(symbol)
-              @vanity_identity = object.id
             elsif response # everyday use
               #conditional for Rails2 support
               secure_random = defined?(SecureRandom) ? SecureRandom : ActiveSupport::SecureRandom
