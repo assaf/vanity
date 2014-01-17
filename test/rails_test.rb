@@ -69,17 +69,19 @@ class UseVanityControllerTest < ActionController::TestCase
 
   def test_vanity_cookie_default_id
     get :index
-    assert cookies['vanity_id'] =~ /^[a-f0-9]{32}$/
+    assert cookies["vanity_id"] =~ /^[a-f0-9]{32}$/
   end
 
   def test_vanity_cookie_retains_id
-    @request.cookies['vanity_id'] = "from_last_time"
+    @request.cookies["vanity_id"] = "from_last_time"
     get :index
-    assert_equal "from_last_time", cookies['vanity_id']
+    # Rails 2 funkieness: if the cookie isn't explicitly set in the response,
+    # cookies[] is empty. Just make sure it's not re-set.
+    assert_equal rails3? ? "from_last_time" : nil,  cookies["vanity_id"]
   end
 
   def test_vanity_identity_set_from_cookie
-    @request.cookies['vanity_id'] = "from_last_time"
+    @request.cookies["vanity_id"] = "from_last_time"
     get :index
     assert_equal "from_last_time", @controller.send(:vanity_identity)
   end
@@ -96,7 +98,7 @@ class UseVanityControllerTest < ActionController::TestCase
     end
     @controller.current_user = Object.new
     get :index
-    assert cookies['vanity_id'] =~ /^[a-f0-9]{32}$/
+    assert cookies["vanity_id"] =~ /^[a-f0-9]{32}$/
   end
 
   def test_vanity_identity_set_with_block
@@ -112,11 +114,32 @@ class UseVanityControllerTest < ActionController::TestCase
   def test_vanity_identity_set_with_indentity_paramater
     get :index, :_identity => "id_from_params"
     assert_equal "id_from_params", @controller.send(:vanity_identity)
+  end
 
+  def test_vanity_identity_prefers_block_over_symbol
+    UseVanityController.class_eval do
+      attr_accessor :project_id
+      use_vanity(:current_user) { |controller| controller.project_id }
+    end
+    @controller.project_id = "576"
+    @controller.current_user = stub(:id=>"user_id")
+
+    get :index
+    assert_equal "576", @controller.send(:vanity_identity)
+  end
+
+    def test_vanity_identity_prefers_parameter_over_cookie
     @request.cookies['vanity_id'] = "old_id"
     get :index, :_identity => "id_from_params"
     assert_equal "id_from_params", @controller.send(:vanity_identity)
     assert cookies['vanity_id'], "id_from_params"
+  end
+
+  def test_vanity_identity_prefers_cookie_over_object
+    @request.cookies['vanity_id'] = "from_last_time"
+    @controller.current_user = stub(:id=>"user_id")
+    get :index
+    assert_equal "from_last_time", @controller.send(:vanity_identity)
   end
 
   # query parameter filter
