@@ -1,3 +1,15 @@
+== 1.9.0 (2014-01-18)
+
+Change order of preference for vanity identity, from highest to lowest: URL param, cookie, method call, assignment. (@phillbaker)
+Add Playground#request_filter for AbTest#choose(s) (@phillbaker)
+Call on_assignment and perform rebalance when using js (@tmandry)
+Add Adapter#experiment_persisted? and check before showing Dashboard. (@phillbaker)
+Show info message at top of report if not collection (@hellochar)
+Add gracefull failover when redis is down/unreachable. (@phillbaker)
+Update README and documentation for clarity. (@nextmat)
+Remove hard Redis gem dependency from gemspec. (@phillbaker)
+Update appraisal to v1.0.0. (@phillbaker)
+
 == 1.8.3 (2013-11-20)
 
 Add support for Rails 4. (@phillbaker)
