@@ -45,7 +45,7 @@ class ApplicationController < ActionController::Base
 end
 </pre>
 
-This example assumes you have a @current_user@ controller method which will return a consistent value for each user. 
+This example assumes you have a @current_user@ controller method which will return a consistent value for each user.
 There are other ways to identify people as well, you can read more about the options in Managing Identity.
 
 h4. Configuring datastore
@@ -73,9 +73,9 @@ config.after_initialize do
 end
 </pre>
 
-h4. Enabling experiments outside of the production environment
+h4. Enabling/disable collection
 
-There's generally no need to collect metric and experiment data outside production environment.  Under Rails, Vanity turns collection on only if the environment name is "production". You can control this from @config/environments@ by setting @Vanity.playground.collecting@ to true/false. When collection is off, Vanity doesn't connect to the database server, so there's no need to set a database configuration for these environments.
+When collection is off, Vanity doesn't connect to the database server, so there's no need to set a database configuration for these environments.
 
 
 h3(#dashboard).  Dashboard
@@ -90,7 +90,7 @@ Create a new controller for Vanity:
 
 <pre>
 class VanityController < ApplicationController
-include Vanity::Rails::Dashboard
+  include Vanity::Rails::Dashboard
 end
 </pre>
 
