@@ -57,13 +57,11 @@ module Vanity
 
       # This values method queries the database.
       def values(sdate, edate)
-        begin
-          time = Time.now.in_time_zone
-          difference = time.to_date - Date.today
-          sdate = sdate + difference
-          edate = edate + difference
-        rescue NoMethodError #In Rails 2.3, if no time zone has been set this fails
-        end
+        time = Time.now.in_time_zone
+        difference = time.to_date - Date.today
+        sdate = sdate + difference
+        edate = edate + difference
+
         query = { :conditions=> { @ar_timestamp_table => { @ar_timestamp => (sdate.to_time...(edate + 1).to_time) } },
                   :group=>"date(#{@ar_scoped.quoted_table_name}.#{@ar_scoped.connection.quote_column_name @ar_timestamp})" }
         grouped = @ar_column ? @ar_scoped.send(@ar_aggregate, @ar_column, query) : @ar_scoped.count(query)

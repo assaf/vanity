@@ -13,11 +13,7 @@ class AbTestController < ActionController::Base
   end
 
   def test_capture
-    if defined?(Rails::Railtie)
-      render :inline=>"<%= ab_test :simple do |value| %><%= value %><% end %>"
-    else
-      render :inline=>"<% ab_test :simple do |value| %><%= value %><% end %>"
-    end
+    render :inline=>"<%= ab_test :simple do |value| %><%= value %><% end %>"
   end
 
   def track

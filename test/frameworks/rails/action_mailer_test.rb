@@ -43,22 +43,22 @@ class UseVanityMailerTest < ActionMailer::TestCase
 
   def test_js_enabled_still_adds_participant
     Vanity.playground.use_js!
-    rails3? ? VanityMailer.ab_test_subject(nil, true) : VanityMailer.deliver_ab_test_subject(nil, true)
+    VanityMailer.ab_test_subject(nil, true)
 
     alts = experiment(:pie_or_cake).alternatives
     assert_equal 1, alts.map(&:participants).sum
   end
 
   def test_returns_different_alternatives
-    email = rails3? ? VanityMailer.ab_test_subject(nil, true) : VanityMailer.deliver_ab_test_subject(nil, true)
+    email = VanityMailer.ab_test_subject(nil, true)
     assert_equal 'true', email.subject
 
-    email = rails3? ? VanityMailer.ab_test_subject(nil, false) : VanityMailer.deliver_ab_test_subject(nil, false)
+    email = VanityMailer.ab_test_subject(nil, false)
     assert_equal 'false', email.subject
   end
 
   def test_tracking_image_is_rendered
-    email = rails3? ? VanityMailer.ab_test_content(nil) : VanityMailer.deliver_ab_test_content(nil)
+    email = VanityMailer.ab_test_content(nil)
     assert email.body =~ /<img/
     assert email.body =~ /_identity=/
   end

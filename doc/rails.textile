@@ -20,18 +20,6 @@ Add Vanity to your Gemfile:
 gem "vanity"
 </pre>
 
-<em>Rails 2.x:</em>
-
-<pre>
-Rails::Initializer.run do |config|
-  gem.config "vanity"
-
-  config.after_initialize do
-    require "vanity"
-  end
-end
-</pre>
-
 h3(#config).  Configuring Vanity
 
 h4. Configuring identity

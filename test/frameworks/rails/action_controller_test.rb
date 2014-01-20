@@ -75,9 +75,7 @@ class UseVanityControllerTest < ActionController::TestCase
   def test_vanity_cookie_retains_id
     @request.cookies["vanity_id"] = "from_last_time"
     get :index
-    # Rails 2 funkieness: if the cookie isn't explicitly set in the response,
-    # cookies[] is empty. Just make sure it's not re-set.
-    assert_equal rails3? ? "from_last_time" : nil,  cookies["vanity_id"]
+    assert_equal "from_last_time",  cookies["vanity_id"]
   end
 
   def test_vanity_identity_set_from_cookie
@@ -181,9 +179,6 @@ class UseVanityControllerTest < ActionController::TestCase
 
   def teardown
     super
-    if !rails3?
-      UseVanityController.send(:filter_chain).clear
-    end
   end
 
 end

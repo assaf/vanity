@@ -59,13 +59,10 @@ module Vanity
             elsif symbol && object = send(symbol)
               @vanity_identity = object.id
             elsif response # everyday use
-              #conditional for Rails2 support
-              secure_random = defined?(SecureRandom) ? SecureRandom : ActiveSupport::SecureRandom
-              @vanity_identity = cookies["vanity_id"] || secure_random.hex(16)
+              @vanity_identity = cookies["vanity_id"] || SecureRandom.hex(16)
               cookie = { :value=>@vanity_identity, :expires=>1.month.from_now }
               # Useful if application and admin console are on separate domains.
-              # This only works in Rails 3.x.
-              cookie[:domain] ||= ::Rails.application.config.session_options[:domain] if ::Rails.respond_to?(:application)
+              cookie[:domain] ||= ::Rails.application.config.session_options[:domain]
               cookies["vanity_id"] = cookie
               @vanity_identity
             else # during functional testing
@@ -95,15 +92,13 @@ module Vanity
         else
           class << self
             define_method :vanity_identity do
-              secure_random = defined?(SecureRandom) ? SecureRandom : ActiveSupport::SecureRandom
-              @vanity_identity = @vanity_identity || secure_random.hex(16)
+              @vanity_identity = @vanity_identity || SecureRandom.hex(16)
             end
           end
         end
       end
       protected :use_vanity_mailer
     end
-
 
     # Vanity needs these filters. They are includes in ActionController and
     # automatically added when you use #use_vanity in your controller.
