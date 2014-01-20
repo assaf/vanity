@@ -16,20 +16,8 @@ begin
 rescue LoadError
 end
 
-if defined?(Rails::Railtie)
-  require File.expand_path("../dummy/config/environment.rb",  __FILE__)
-  require "rails/test_help"
-else
-  RAILS_ROOT = File.expand_path("..")
-  require "initializer"
-  require "actionmailer"
-  Rails.configuration = Rails::Configuration.new
-
-  ActionController::Routing::Routes.draw do |map|
-    map.connect ':controller/:action/:id'
-  end
-  require "phusion_passenger/events"
-end
+require File.expand_path("../dummy/config/environment.rb",  __FILE__)
+require "rails/test_help"
 
 require "vanity"
 require "timecop"
@@ -41,8 +29,9 @@ else
 end
 require "webmock/test_unit"
 
-# Due to load order differences in Rails boot and test requires we have to manually
-# require these
+# Due to load order differences in Rails boot and test requires we have to
+# manually require these
+
 require 'vanity/frameworks/rails'
 Vanity::Rails.load!
 
@@ -64,10 +53,6 @@ module VanityTestHelpers
     "active_record"=> { "adapter"=>"active_record", "active_record_adapter"=>"sqlite3", "database"=>"vanity_test.sqlite3", "timeout" => 10000, "busy_timeout" => 1000 },
     "mock"=>"mock:/"
   }[ENV["DB"]] or raise "No support yet for #{ENV["DB"]}"
-
-  def rails3?
-    defined?(Rails::Railtie)
-  end
 
   def setup_after
     FileUtils.mkpath "tmp/experiments/metrics"

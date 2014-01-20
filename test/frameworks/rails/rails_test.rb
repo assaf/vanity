@@ -241,10 +241,10 @@ $:.unshift File.expand_path("../lib")
 RAILS_ROOT = File.expand_path(".")
       RB
       code = code_setup
-      code += defined?(Rails::Railtie) ? load_rails_3_or_4(env) : load_rails_2(env)
+      code += load_rails_3_or_4(env)
       code += %Q{\nrequire "vanity"\n}
       code += before_initialize
-      code += defined?(Rails::Railtie) ? initialize_rails_3_or_4 : initialize_rails_2
+      code += initialize_rails_3_or_4
       code += after_initialize
       tmp.write code
       tmp.flush
@@ -254,17 +254,6 @@ RAILS_ROOT = File.expand_path(".")
     ensure
       tmp.close!
     end
-  end
-
-  def load_rails_2(env)
-    <<-RB
-RAILS_ENV = ENV['RACK_ENV'] = "#{env}"
-require "initializer"
-require "active_support"
-Rails.configuration = Rails::Configuration.new
-initializer = Rails::Initializer.new(Rails.configuration)
-initializer.check_gem_dependencies
-    RB
   end
 
   def load_rails_3_or_4(env)
@@ -284,12 +273,6 @@ module Foo
     ActiveSupport::Deprecation.silenced = true if ActiveSupport::Deprecation.respond_to?(:silenced) && ENV['CI']
   end
 end
-    RB
-  end
-
-  def initialize_rails_2
-    <<-RB
-initializer.after_initialize
     RB
   end
 
