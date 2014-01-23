@@ -17,6 +17,14 @@ module Vanity
         def self.needs_attr_accessible?
           respond_to?(:attr_accessible) && !defined?(ActionController::StrongParameters)
         end
+
+        def self.rails_agnostic_find_or_create_by(method, value)
+          if respond_to? :find_or_create_by
+            find_or_create_by(method => value)
+          else
+            send :"find_or_create_by_#{method}", value
+          end
+        end
       end
 
       # Schema model
@@ -30,7 +38,7 @@ module Vanity
         has_many :vanity_metric_values
 
         def self.retrieve(metric)
-          find_or_create_by_metric_id(metric.to_s)
+          rails_agnostic_find_or_create_by(:metric_id, metric.to_s)
         end
       end
 
@@ -50,11 +58,11 @@ module Vanity
 
         # Finds or creates the experiment
         def self.retrieve(experiment)
-          find_or_create_by_experiment_id(experiment.to_s)
+          rails_agnostic_find_or_create_by(:experiment_id, experiment.to_s)
         end
 
         def increment_conversion(alternative, count = 1)
-          record = vanity_conversions.find_or_create_by_alternative(alternative)
+          record = vanity_conversions.rails_agnostic_find_or_create_by(:alternative, alternative)
           record.increment!(:conversions, count)
         end
       end
