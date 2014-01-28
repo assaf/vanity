@@ -31,7 +31,7 @@
         <li><a href="experimental.html">Experimental</a></li>
       </ul>
       <ul id="stats">
-        <li><a href="http://travis-ci.org/assaf/vanity"><img src="http://travis-ci.org/assaf/vanity.png"></a></li>
+        <li><a href="http://travis-ci.org/assaf/vanity"><img src="https://api.travis-ci.org/assaf/vanity.png?branch=master"></a></li>
         <li><a href="http://wiki.github.com/assaf/vanity/whos-using-vanity">Who's using it?</a></li>
       </ul>
     </div>
@@ -70,7 +70,7 @@ class ApplicationController &lt; ActionController::Base
   use_vanity :current_user
 end
 </pre>
-<p>This example assumes you have a <code>current_user</code> controller method which will return a consistent value for each user. <br />
+<p>This example assumes you have a <code>current_user</code> controller method which will return a consistent value for each user.<br />
 There are other ways to identify people as well, you can read more about the options in Managing Identity.</p>
 <h4>Configuring datastore</h4>
 <p>If you have a <code>config/vanity.yml</code> file, Vanity will read the configuration for the current environment.  For example:</p>
@@ -91,8 +91,8 @@ config.after_initialize do
   Garb::Session.login('..ga email..', '..ga pwd..', account_type: "GOOGLE")
 end
 </pre>
-<h4>Enabling experiments outside of the production environment</h4>
-<p>There&#8217;s generally no need to collect metric and experiment data outside production environment.  Under Rails, Vanity turns collection on only if the environment name is &#8220;production&#8221;. You can control this from <code>config/environments</code> by setting <code>Vanity.playground.collecting</code> to true/false. When collection is off, Vanity doesn&#8217;t connect to the database server, so there&#8217;s no need to set a database configuration for these environments.</p>
+<h4>Enabling/disable collection</h4>
+<p>When collection is off, Vanity doesn&#8217;t connect to the database server, so there&#8217;s no need to set a database configuration for these environments.</p>
 <h3 id="dashboard">Dashboard</h3>
 <p>Start by adding a new resource in <code>config/routes.rb</code>:</p>
 <pre>
@@ -101,7 +101,7 @@ map.vanity "/vanity/:action/:id", :controller=&gt;:vanity
 <p>Create a new controller for Vanity:</p>
 <pre>
 class VanityController &lt; ApplicationController
-include Vanity::Rails::Dashboard
+  include Vanity::Rails::Dashboard
 end
 </pre>
 <p>Now open your browser to <a href="http://localhost:3000/vanity">http://localhost:3000/vanity</a>.</p>
