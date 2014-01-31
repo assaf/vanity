@@ -129,6 +129,10 @@ module Vanity
         record && record.updated_at
       end
 
+      def metric_timestamp_grace_period
+        1.minute
+      end
+
       def metric_track(metric, timestamp, identity, values)
         record = VanityMetric.retrieve(metric)
 
@@ -136,7 +140,8 @@ module Vanity
           record.vanity_metric_values.create(:date => timestamp.to_date.to_s, :index => index, :value => value)
         end
 
-        record.updated_at = Time.now
+        now = Time.now
+        record.updated_at = now if now - record.updated_at >= metric_timestamp_grace_period
         record.save
       end
 
