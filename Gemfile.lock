@@ -33,6 +33,7 @@ GEM
       fast-stemmer (>= 1.0.0)
     crack (0.3.1)
     directory_watcher (1.4.1)
+    durran-validatable (2.0.1)
     fast-stemmer (1.0.0)
     fastthread (1.0.7)
     garb (0.9.1)
@@ -47,6 +48,7 @@ GEM
       liquid (~> 2.3)
       maruku (~> 0.5)
     kramdown (0.13.5)
+    leshill-will_paginate (2.3.11)
     liquid (2.3.0)
     maruku (0.6.0)
       syntax (>= 1.0.0)
@@ -55,6 +57,11 @@ GEM
       metaclass (~> 0.0.1)
     mongo (1.6.0)
       bson (= 1.6.0)
+    mongoid (1.0.6)
+      activesupport (>= 2.2.2)
+      durran-validatable (>= 2.0.1)
+      leshill-will_paginate (>= 2.3.11)
+      mongo (>= 0.18.2)
     mysql (2.8.1)
     passenger (2.2.15)
       fastthread (>= 1.0.1)
@@ -102,6 +109,7 @@ DEPENDENCIES
   jekyll
   mocha
   mongo
+  mongoid
   mysql
   passenger (~> 2.0)
   rack

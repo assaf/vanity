@@ -58,6 +58,7 @@ GEM
       safe_yaml (~> 0.9.0)
     daemon_controller (1.1.7)
     directory_watcher (1.4.1)
+    durran-validatable (2.0.1)
     erubis (2.7.0)
     fast-stemmer (1.0.0)
     garb (0.9.1)
@@ -74,6 +75,7 @@ GEM
       liquid (~> 2.3)
       maruku (~> 0.5)
     kramdown (0.13.5)
+    leshill-will_paginate (2.3.11)
     liquid (2.3.0)
     mail (2.5.4)
       mime-types (~> 1.16)
@@ -87,6 +89,11 @@ GEM
       metaclass (~> 0.0.1)
     mongo (1.9.2)
       bson (~> 1.9.2)
+    mongoid (1.0.6)
+      activesupport (>= 2.2.2)
+      durran-validatable (>= 2.0.1)
+      leshill-will_paginate (>= 2.3.11)
+      mongo (>= 0.18.2)
     multi_json (1.8.2)
     mysql (2.9.1)
     passenger (3.0.21)
@@ -164,6 +171,7 @@ DEPENDENCIES
   jekyll
   mocha
   mongo
+  mongoid
   mysql
   passenger (~> 3.0)
   rack
