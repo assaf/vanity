@@ -34,11 +34,23 @@ module Vanity
 
       # Metric model
       class VanityMetric < VanityRecord
+        UPDATED_AT_GRACE_PERIOD = 1.minute 
         self.table_name = :vanity_metrics
         has_many :vanity_metric_values
 
         def self.retrieve(metric)
           rails_agnostic_find_or_create_by(:metric_id, metric.to_s)
+        end
+
+        def touch_with_grace_period
+          now = Time.now
+          self.updated_at = now if updated_before_grace_period?(now)
+        end
+
+        private
+
+        def updated_before_grace_period?(now)
+          now - updated_at >= UPDATED_AT_GRACE_PERIOD
         end
       end
 
@@ -136,7 +148,7 @@ module Vanity
           record.vanity_metric_values.create(:date => timestamp.to_date.to_s, :index => index, :value => value)
         end
 
-        record.updated_at = Time.now
+        record.touch_with_grace_period
         record.save
       end
 
