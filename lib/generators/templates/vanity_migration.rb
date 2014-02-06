@@ -35,6 +35,7 @@ class VanityMigration < ActiveRecord::Migration
       t.integer :shown
       t.integer :seen
       t.integer :converted
+      t.timestamps
     end
     add_index :vanity_participants, [:experiment_id]
     add_index :vanity_participants, [:experiment_id, :identity], :name => "by_experiment_id_and_identity"
