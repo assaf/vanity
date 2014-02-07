@@ -76,17 +76,11 @@ module VanityTestHelpers
     WebMock.reset!
   end
 
-  # Call this on teardown. It wipes put the playground and any state held in it
-  # (mostly experiments), resets vanity ID, and clears database of all experiments.
-  def nuke_playground
-    Vanity.playground.connection.flushdb
-    new_playground
-  end
-
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
     Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments")
+    Vanity.playground.establish_connection(DATABASE)
   end
 
   # Defines the specified metrics (one or more names). Returns metric, or array
@@ -149,6 +143,9 @@ if defined?(ActiveSupport::TestCase)
   class ActiveSupport::TestCase
     include WebMock::API
     include VanityTestHelpers
+
+    self.use_instantiated_fixtures = false if respond_to?(:use_instantiated_fixtures)
+    self.use_transactional_fixtures = false if respond_to?(:use_transactional_fixtures)
   end
 end
 
@@ -167,12 +164,16 @@ if defined?(ActionController::TestCase)
 end
 
 if ENV["DB"] == "active_record"
-  ActiveRecord::Base.establish_connection :adapter=>"sqlite3", :database=>"vanity_test.sqlite3"
+  connection = {}
+  connection[:adapter] = VanityTestHelpers::DATABASE['active_record_adapter']
+  connection[:database] = VanityTestHelpers::DATABASE['database']
+  ActiveRecord::Base.establish_connection(connection)
   ActiveRecord::Base.logger = $logger
 
   require "generators/templates/vanity_migration"
   VanityMigration.down rescue nil
   VanityMigration.up
+  ActiveRecord::Base.connection_pool.disconnect!
 end
 
 # test/spec/mini v3
