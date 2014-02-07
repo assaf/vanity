@@ -55,7 +55,6 @@ GEM
       metaclass (~> 0.0.1)
     mongo (1.6.0)
       bson (= 1.6.0)
-    mysql (2.8.1)
     passenger (2.2.15)
       fastthread (>= 1.0.1)
       rack
@@ -102,7 +101,6 @@ DEPENDENCIES
   jekyll
   mocha
   mongo
-  mysql
   passenger (~> 2.0)
   rack
   rails (~> 2.3.8)

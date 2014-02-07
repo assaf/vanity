@@ -56,8 +56,7 @@ module VanityTestHelpers
   DATABASE = {
     "redis"=>"redis://localhost/15",
     "mongodb"=>"mongodb://localhost/vanity",
-    "mysql"=> { "adapter"=>"active_record", "active_record_adapter"=>"mysql", "database"=>"vanity_test" },
-    "postgres"=> { "adapter"=>"active_record", "active_record_adapter"=>"postgresql", "database"=>"vanity_test", "username"=>"postgres" },
+    "active_record"=> { "adapter"=>"active_record", "active_record_adapter"=>"sqlite3", "database"=>"vanity_test.sqlite3", "timeout" => 10000, "busy_timeout" => 1000 },
     "mock"=>"mock:/"
   }[ENV["DB"]] or raise "No support yet for #{ENV["DB"]}"
 
@@ -88,7 +87,6 @@ module VanityTestHelpers
   # or reload an experiment (saved by the previous playground).
   def new_playground
     Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments")
-    Vanity.playground.establish_connection DATABASE
   end
 
   # Defines the specified metrics (one or more names). Returns metric, or array
@@ -168,14 +166,10 @@ if defined?(ActionController::TestCase)
   end
 end
 
-if ENV["DB"] == "postgres"
-  ActiveRecord::Base.establish_connection :adapter=>"postgresql", :database=>"vanity_test"
-elsif ENV["DB"] == "mysql"
-  ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test"
-end
-ActiveRecord::Base.logger = $logger
+if ENV["DB"] == "active_record"
+  ActiveRecord::Base.establish_connection :adapter=>"sqlite3", :database=>"vanity_test.sqlite3"
+  ActiveRecord::Base.logger = $logger
 
-if ENV["DB"] == "mysql" || ENV["DB"] == "postgres"
   require "generators/templates/vanity_migration"
   VanityMigration.down rescue nil
   VanityMigration.up

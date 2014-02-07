@@ -264,6 +264,7 @@ context "ActiveRecord Metric" do
       end
     end
     Vanity.playground.metrics
+    Sky.create!
     (1..5).each do |height|
       Sky.create! :height=>height
     end
