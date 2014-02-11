@@ -91,7 +91,6 @@ GEM
     mongo (1.6.0)
       bson (= 1.6.0)
     multi_json (1.1.0)
-    mysql (2.8.1)
     passenger (3.0.11)
       daemon_controller (>= 0.2.5)
       fastthread (>= 1.0.1)
@@ -166,7 +165,6 @@ DEPENDENCIES
   jekyll
   mocha
   mongo
-  mysql
   passenger (~> 3.0)
   rack
   rails (= 3.2.1)

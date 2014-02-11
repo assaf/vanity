@@ -231,12 +231,13 @@ class AbTestTest < ActionController::TestCase
     new_ab_test :foobar do
       alternatives "foo", "bar"
       identify { "6e98ec" }
-      rebalance_frequency 100
+      rebalance_frequency 10
       metrics :coolness
     end
-    assert value = experiment(:foobar).choose.value
+    value = experiment(:foobar).choose.value
+    assert value
     assert_match /foo|bar/, value
-    1000.times do
+    100.times do
       assert_equal value, experiment(:foobar).choose.value
     end
   end
