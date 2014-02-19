@@ -225,6 +225,18 @@ class AbTestTest < ActionController::TestCase
     assert_equal id, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, "6e98ec")
   end
 
+  def test_ab_assigned
+    identity = { :a => :b }
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { identity }
+      metrics :coolness
+    end
+    assert_equal nil, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, identity)
+    assert id = experiment(:foobar).choose.id
+    assert_equal id, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, identity)
+  end
+
   # -- Unequal probabilities --
 
   def test_returns_the_same_alternative_consistently_when_using_probabilities
@@ -253,9 +265,9 @@ class AbTestTest < ActionController::TestCase
     altered_alts[0].probability=30
     altered_alts[1].probability=70
     experiment(:foobar).set_alternative_probabilities altered_alts
-    alts = Array.new(1000) { experiment(:foobar).choose.value }
+    alts = Array.new(600) { experiment(:foobar).choose.value }
     assert_equal %w{bar foo}, alts.uniq.sort
-    assert_in_delta alts.select { |a| a == altered_alts[0].value }.size, 300, 100 # this may fail, such is propability
+    assert_in_delta alts.select { |a| a == altered_alts[0].value }.size, 200, 60 # this may fail, such is propability
   end
 
   # -- Rebalancing probabilities --

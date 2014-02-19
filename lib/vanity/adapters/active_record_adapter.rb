@@ -34,7 +34,7 @@ module Vanity
 
       # Metric model
       class VanityMetric < VanityRecord
-        UPDATED_AT_GRACE_PERIOD = 1.minute 
+        UPDATED_AT_GRACE_PERIOD = 1.minute
         self.table_name = :vanity_metrics
         has_many :vanity_metric_values
 
@@ -90,24 +90,21 @@ module Vanity
         self.table_name = :vanity_participants
         attr_accessible :experiment_id, :identity, :seen, :shown, :converted if needs_attr_accessible?
 
-        # Finds the participant by experiment and identity. If
-        # create is true then it will create the participant
-        # if not found. If a hash is passed then this will be
-        # passed to create if creating, or will be used to
-        # update the found participant.
+        # Finds the participant by experiment and identity. If create is true
+        # then it will create the participant if not found. If a hash is
+        # passed then this will be passed to create if creating, or will be
+        # used to update the found participant.
         def self.retrieve(experiment, identity, create = true, update_with = nil)
           if record = VanityParticipant.first(:conditions=>{ :experiment_id=>experiment.to_s, :identity=>identity.to_s })
             record.update_attributes(update_with) if update_with
           elsif create
-            record = VanityParticipant.create({ :experiment_id=>experiment.to_s, :identity=>identity }.merge(update_with || {}))
+            record = VanityParticipant.create({ :experiment_id=>experiment.to_s, :identity=>identity.to_s }.merge(update_with || {}))
           end
           record
         end
       end
 
       def initialize(options)
-
-
         @options = options.inject({}) { |h,kv| h[kv.first.to_s] = kv.last ; h }
         if @options["active_record_adapter"] && (@options["active_record_adapter"] != "default")
           @options["adapter"] = @options["active_record_adapter"]
@@ -223,9 +220,9 @@ module Vanity
         conversions = record.vanity_conversions.sum(:conversions, :conditions => {:alternative => alternative})
 
         {
-                :participants => participants,
-                :converted => converted,
-                :conversions => conversions
+          :participants => participants,
+          :converted => converted,
+          :conversions => conversions
         }
       end
 
