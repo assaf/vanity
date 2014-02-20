@@ -152,12 +152,12 @@ module Vanity
       when Numeric
         values = [args]
       end
-        identity = Vanity.context.vanity_identity rescue nil
+      identity ||= Vanity.context.vanity_identity rescue nil
       [timestamp || Time.now, identity, values || [1]]
     end
     protected :track_args
 
-    # Metric definitions use this to introduce tracking hook. The hook is
+    # Metric definitions use this to introduce tracking hooks. The hook is
     # called with metric identifier, timestamp, count and possibly additional
     # arguments.
     #
@@ -235,7 +235,7 @@ module Vanity
 
     def call_hooks(timestamp, identity, values)
       @hooks.each do |hook|
-        hook.call @id, timestamp, values.first || 1
+        hook.call @id, timestamp, values.first || 1, :identity=>identity
       end
     end
 

@@ -52,13 +52,21 @@ module Vanity
       end
     end
 
-    # Tracks an action associated with a metric.
+    # Tracks an action associated with a metric. Useful for calling from a
+    # Rack handler. Note that a user should already be added to an experiment
+    # via #ab_test before this is called - otherwise, the conversion will be
+    # tracked, but the user will not be added to the experiment.
     #
     # @example
     #   track! :invitation
+    # @example
+    #   track! :click, { :identity=>Identity.new(env['rack.session']), :values=>[1] }
+    #
+    # @param count_or_options Defaults to a count of 1. Also accepts a hash
+    #   of options passed (eventually) to AbTest#track!.
     # @since 1.2.0
-    def track!(name, count = 1)
-      Vanity.playground.track! name, count
+    def track!(name, count_or_options = 1)
+      Vanity.playground.track! name, count_or_options
     end
   end
 end
