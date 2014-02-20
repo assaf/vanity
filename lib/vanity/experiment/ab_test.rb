@@ -464,6 +464,9 @@ module Vanity
       def track!(metric_id, timestamp, count, *args)
         return unless active?
         identity = identity() rescue nil
+        args.each do |arg|
+          identity ||= arg[:identity] if arg.include? :identity
+        end
         if identity
           return if connection.ab_showing(@id, identity)
           index = alternative_for(identity)
