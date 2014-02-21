@@ -81,7 +81,7 @@ context "Metric tracking" do
     2.times { Vanity.playground.track! :cheers_sec }
     yawns = Vanity.playground.metric(:yawns_sec).values(today, today).first
     cheers = Vanity.playground.metric(:cheers_sec).values(today, today).first
-    assert yawns = 2 * cheers
+    assert yawns == 2 * cheers
   end
 
   test "can tell the time" do

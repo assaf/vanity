@@ -159,10 +159,10 @@ module Vanity
         group_by = "#{connection.quote_column_name('date')}"
 
         values = record.vanity_metric_values.all(
-                :select => select,
-                :conditions => conditions,
-                :order => order,
-                :group => group_by
+          :select => select,
+          :conditions => conditions,
+          :order => order,
+          :group => group_by
         )
 
         dates.map do |date|
