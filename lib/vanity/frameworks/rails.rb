@@ -292,10 +292,11 @@ module Vanity
     # Step 3: Open your browser to http://localhost:3000/vanity
     module Dashboard
       def index
-        @experiments = Vanity.playground.experiments
-        @experiments_persisted = Vanity.playground.experiments_persisted?
-        @metrics = Vanity.playground.metrics
-        render :file=>Vanity.template("_report"), :content_type=>Mime::HTML
+        render :file=>Vanity.template("_report"),:content_type=>Mime::HTML, :locals=>{
+          :experiments=>Vanity.playground.experiments,
+          :experiments_persisted=>Vanity.playground.experiments_persisted?,
+          :metrics=>Vanity.playground.metrics
+        }
       end
 
       def participant

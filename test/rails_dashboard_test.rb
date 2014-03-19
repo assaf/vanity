@@ -23,28 +23,28 @@ class RailsDashboardTest < ActionController::TestCase
     get :index
     assert_response :success
     assert @response.body =~ %r{div class="vanity"}
+    assert @response.body =~ %r{<h2>Experiments</h2>}
+    assert @response.body =~ %r{<h2>Metrics</h2>}
   end
 
-  def test_assigns_experiments
+  def test_index_not_collecting
+    Vanity.playground.collecting = false
     get :index
-    experiments = assigns(:experiments).with_indifferent_access
-
-    assert experiments.respond_to?(:keys)
-    assert experiments.keys.include?("food")
-    assert experiments.values.first.name == :food
+    assert_response :success
+    assert @response.body =~ %r{<div class="alert collecting">}
   end
 
-  def test_assigns_metrics
-    get :index
-    metrics = assigns(:metrics).with_indifferent_access
-    assert metrics.respond_to?(:keys)
-    assert metrics.keys.include?("sugar_high")
-    assert metrics.values.first.name == "sugar_high"
-  end
+  def test_index_not_persisted
+    name = 'Price'
+    id = :price
+    experiment = Vanity::Experiment::AbTest.new(Vanity.playground, id, name)
+    Vanity.playground.experiments[id] = experiment
 
-  def test_assigns_experiments_persisted
     get :index
-    assert assigns(:experiments_persisted)
+    assert_response :success
+    assert @response.body =~ %r{<div class="alert persistance">}
+
+    Vanity.playground.experiments.delete(id)
   end
 
   # --  Actions used in non-admin actions --

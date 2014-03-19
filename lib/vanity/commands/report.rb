@@ -15,7 +15,7 @@ module Vanity
           path_or_options[:locals]
         )
       else
-       render_erb(path_or_options, locals)
+        render_erb(path_or_options, locals)
       end
     end
 
@@ -69,7 +69,11 @@ module Vanity
       # Generate an HTML report. Outputs to the named file, or stdout with no
       # arguments.
       def report(output = nil)
-        html = render(Vanity.template("report"))
+        html = render(Vanity.template("report"),
+          :experiments=>Vanity.playground.experiments,
+          :experiments_persisted=>Vanity.playground.experiments_persisted?,
+          :metrics=>Vanity.playground.metrics
+        )
         if output
           File.open output, 'w' do |file|
             file.write html
