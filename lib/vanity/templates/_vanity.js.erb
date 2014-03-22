@@ -1,6 +1,6 @@
 var httpRequest;
 <% @_vanity_experiments.each do |name, alternative| %>
-  var params = "e=<%= name %>&a=<%= alternative.id %>&authenticity_token=" + encodeURIComponent("<%= form_authenticity_token %>");
+  var params = "e=<%= name %>&a=<%= alternative.id %>&authenticity_token=<%= CGI.escape(form_authenticity_token) %>";
   if (window.XMLHttpRequest) { // Mozilla, Safari, ...
     httpRequest = new XMLHttpRequest();
   } else if (window.ActiveXObject) { // IE
