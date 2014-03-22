@@ -29,6 +29,12 @@ class RedisAdapterTest < Test::Unit::TestCase
     [redis_adapter, mocked_redis]
   end
 
+  def test_connect_to_existing_redis
+    mocked_redis = stub("Redis")
+    adapter = Vanity::Adapters.redis_connection(:redis => mocked_redis)
+    assert_equal mocked_redis, adapter.redis
+  end
+
   def test_graceful_failure_metric_track
     redis_adapter, mocked_redis = stub_redis
     mocked_redis.stubs(:incrby).raises(RuntimeError)
