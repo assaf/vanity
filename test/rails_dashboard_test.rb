@@ -47,7 +47,7 @@ class RailsDashboardTest < ActionController::TestCase
     Vanity.playground.experiments.delete(id)
   end
 
-  # --  Actions used in non-admin actions --
+  # --  Actions used in non-admin actions, e.g. in JS --
 
   def test_add_participant
     xhr :post, :add_participant, :e => "food", :a => 0
