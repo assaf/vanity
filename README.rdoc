@@ -187,11 +187,10 @@ For view tests/specs or integration testing, it's handy to set the outcome of an
 == Contributing
 
 * Fork the project
-* Please use a topic branch to make your changes, it's easier to test them that way
-* To set up the test suite run bundler, then run `rake appraisal:install` to prepare the test suite to run against multiple versions of Rails
+* Please use a feature branch to make your changes, it's easier to test them that way
+* To set up the test suite run `bundle`, then run `appraisal install` to prepare the test suite to run against multiple versions of Rails
 * Fix, patch, enhance, document, improve, sprinkle pixie dust
-* At minimum run `rake appraisal test`, if possible, please run rake test:all
-* Tests. Please. Run rake test, of if you can, rake test:all
+* Tests. Please. Run `appraisal rake test`, of if you can, `rake test:all`. (This project uses Travis CI where the test suite is run against multiple versions of ruby, rails and backends.)
 * Send a pull request on GitHub
 
 
