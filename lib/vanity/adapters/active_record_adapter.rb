@@ -25,6 +25,14 @@ module Vanity
             send :"find_or_create_by_#{method}", value
           end
         end
+
+        def self.rails_agnostic_find_first(conditions)
+          if respond_to? :where
+            where(conditions).first
+          else
+            find(:first, :conditions => conditions)
+          end
+        end
       end
 
       # Schema model
@@ -95,7 +103,7 @@ module Vanity
         # passed then this will be passed to create if creating, or will be
         # used to update the found participant.
         def self.retrieve(experiment, identity, create = true, update_with = nil)
-          if record = VanityParticipant.first(:conditions=>{ :experiment_id=>experiment.to_s, :identity=>identity.to_s })
+          if record = VanityParticipant.rails_agnostic_find_first(:experiment_id=>experiment.to_s, :identity=>identity.to_s)
             record.update_attributes(update_with) if update_with
           elsif create
             record = VanityParticipant.create({ :experiment_id=>experiment.to_s, :identity=>identity.to_s }.merge(update_with || {}))
