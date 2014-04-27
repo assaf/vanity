@@ -64,21 +64,15 @@ task "test:adapters", :adapter do |t, args|
 end
 
 # Run the test suit.
+Rake::TestTask.new(:test) do |task|
+  task.libs << "lib"
+  task.libs << "test"
+  task.pattern = "test/**/*_test.rb"
+  task.verbose = false
+end
 
 task :default=>:test
 desc "Run all tests"
-Rake::TestTask.new do |task|
-  task.test_files = FileList['test/**/*_test.rb']
-  if Rake.application.options.trace
-    #task.warning = true
-    task.verbose = true
-  elsif Rake.application.options.silent
-    task.ruby_opts << "-W0"
-  else
-    task.verbose = true
-  end
-    task.ruby_opts << "-I."
-end
 
 task(:clobber) { rm_rf "tmp" }
 

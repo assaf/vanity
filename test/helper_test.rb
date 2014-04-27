@@ -1,4 +1,4 @@
-require "test/test_helper"
+require "test_helper"
 
 context "Object#track!" do
   test "identity option sets identity" do

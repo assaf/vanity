@@ -31,7 +31,7 @@ else
   require "phusion_passenger/events"
 end
 
-require "lib/vanity"
+require "vanity"
 require "timecop"
 require "webmock/test_unit"
 

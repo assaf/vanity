@@ -1,4 +1,4 @@
-require "test/test_helper"
+require "test_helper"
 
 class UseVanityController < ActionController::Base
   attr_accessor :current_user

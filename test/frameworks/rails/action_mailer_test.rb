@@ -1,4 +1,4 @@
-require "test/test_helper"
+require "test_helper"
 
 class VanityMailer < ActionMailer::Base
   include Vanity::Rails::Helpers

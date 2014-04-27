@@ -1,4 +1,4 @@
-require "test/test_helper"
+require "test_helper"
 
 class VanityController < ActionController::Base
   include Vanity::Rails::Dashboard
