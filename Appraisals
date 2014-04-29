@@ -1,3 +1,8 @@
+appraise "rails2" do
+  gem "rails", "~>2.3.8"
+  gem "passenger", "~>2.0"
+end
+
 appraise "rails3" do
   gem "rails", "3.0.11"
   gem "fastthread", :git => "git://github.com/zoltankiss/fastthread.git", :platforms => :mri_20

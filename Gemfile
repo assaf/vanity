@@ -3,10 +3,6 @@ gemspec
 
 # Frameworks
 gem "rack"
-gem "rails", "~>2.3.8"
-
-# Servers
-gem "passenger", "~>2.0"
 
 # Persistence
 gem "redis", ">= 2.1"
