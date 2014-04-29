@@ -2,6 +2,7 @@ require 'test/test_helper'
 
 class RedisAdapterTest < Test::Unit::TestCase
   def setup
+    super
     require "vanity/adapters/redis_adapter"
     require "redis"
     require "redis/namespace"
