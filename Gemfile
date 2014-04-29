@@ -23,8 +23,6 @@ gem "garb"
 gem "SystemTimer", "1.2.3", :platforms => :mri_18
 
 # Testing
-gem "mocha", :require=>false
-gem "shoulda", :require=>false # Requires test/unit
 gem "timecop", :require=>false
 gem "webmock", :require=>false
 

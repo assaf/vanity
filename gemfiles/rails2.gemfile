@@ -13,12 +13,12 @@ gem "integration"
 gem "rubystats"
 gem "garb"
 gem "SystemTimer", "1.2.3", :platforms=>:mri_18
-gem "mocha", :require=>false
-gem "shoulda", :require=>false
 gem "timecop", :require=>false
 gem "webmock", :require=>false
 gem "rails", "~>2.3.8"
 gem "passenger", "~>2.0"
+gem "mocha", "~> 0.10.5", :require=>false
+gem "minitest", "~>4.2.0"
 
 group :development do
   gem "appraisal", ">= 1.0.0.beta2"

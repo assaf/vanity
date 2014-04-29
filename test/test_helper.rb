@@ -3,9 +3,8 @@ $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
 ENV["RACK_ENV"] = "test"
 ENV["DB"] ||= "redis"
 
-require "test/unit"
+require "minitest/unit"
 require "tmpdir"
-require "mocha"
 require "action_controller"
 require "action_controller/test_case"
 require "action_view/test_case"
@@ -33,10 +32,16 @@ end
 
 require "vanity"
 require "timecop"
+
+if defined?(Mocha::VERSION) && Mocha::VERSION < "0.13.0"
+  require "mocha"
+else
+  require "mocha/mini_test"
+end
 require "webmock/test_unit"
 
-#Do to load order differences in Rails boot and test requires we have to manually
-#require these
+# Due to load order differences in Rails boot and test requires we have to manually
+# require these
 require 'vanity/frameworks/rails'
 Vanity::Rails.load!
 
@@ -138,11 +143,15 @@ class Test::Unit::TestCase
   include VanityTestHelpers
 end
 
-if defined?(ActiveSupport::TestCase)
-  class ActiveSupport::TestCase
+if defined?(MiniTest::Unit::TestCase)
+  class MiniTest::Unit::TestCase
     include WebMock::API
     include VanityTestHelpers
+  end
+end
 
+if defined?(ActiveSupport::TestCase)
+  class ActiveSupport::TestCase
     self.use_instantiated_fixtures = false if respond_to?(:use_instantiated_fixtures)
     self.use_transactional_fixtures = false if respond_to?(:use_transactional_fixtures)
   end
