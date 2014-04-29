@@ -4,6 +4,7 @@ ENV["RACK_ENV"] = "test"
 ENV["DB"] ||= "redis"
 
 require "minitest/unit"
+require "minitest/spec"
 require "tmpdir"
 require "action_controller"
 require "action_controller/test_case"
@@ -143,6 +144,11 @@ class Test::Unit::TestCase
   include VanityTestHelpers
 end
 
+class MiniTest::Spec
+  include WebMock::API
+  include VanityTestHelpers
+end
+
 if defined?(MiniTest::Unit::TestCase)
   class MiniTest::Unit::TestCase
     include WebMock::API
@@ -182,21 +188,4 @@ if ENV["DB"] == "active_record"
   VanityMigration.down rescue nil
   VanityMigration.up
   ActiveRecord::Base.connection_pool.disconnect!
-end
-
-# test/spec/mini v3
-# Source: http://gist.github.com/25455
-def context(*args, &block)
-  return super unless (name = args.first) && block
-  parent = Class === self ? self : (defined?(ActiveSupport::TestCase) ? ActiveSupport::TestCase : Test::Unit::TestCase)
-  klass = Class.new(parent) do
-    def self.test(name, &block)
-      define_method("test_#{name.gsub(/\W/,'_')}", &block) if block
-    end
-    def self.xtest(*args) end
-    def self.setup(&block) define_method(:setup) { super() ; instance_eval &block } end
-    def self.teardown(&block) define_method(:teardown) { super() ; instance_eval &block } end
-  end
-  parent.const_set name.split(/\W+/).map(&:capitalize).join, klass
-  klass.class_eval &block
 end
