@@ -35,15 +35,6 @@ class AbTestTest < ActionController::TestCase
     metric "Coolness"
   end
 
-  def teardown
-    super
-    if RUBY_VERSION == '1.8.7'
-      GC.enable
-      GC.start
-      GC.disable
-    end
-  end
-
   # --  Experiment definition --
 
   def test_requires_at_least_two_alternatives_per_experiment
