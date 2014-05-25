@@ -15,7 +15,7 @@ module Vanity
         self.abstract_class = true
 
         def self.needs_attr_accessible?
-          respond_to?(:attr_accessible) && !defined?(ActionController::StrongParameters)
+          respond_to?(:attr_accessible) && (!defined?(ActionController::StrongParameters) || defined?(ProtectedAttributes))
         end
 
         def self.rails_agnostic_find_or_create_by(method, value)
