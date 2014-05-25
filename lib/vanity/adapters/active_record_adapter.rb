@@ -50,7 +50,7 @@ module Vanity
 
         # Finds or creates the experiment
         def self.retrieve(experiment)
-          find_or_create_by_experiment_id(experiment.to_s)
+          find_or_create_by(:experiment_id => experiment.to_s)
         end
 
         def increment_conversion(alternative, count = 1)
