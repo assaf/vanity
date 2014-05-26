@@ -54,7 +54,7 @@ module Vanity
         end
 
         def increment_conversion(alternative, count = 1)
-          record = vanity_conversions.find_or_create_by_alternative(alternative)
+          record = vanity_conversions.find_or_create_by(alternative: alternative)
           record.increment!(:conversions, count)
         end
       end
@@ -76,7 +76,7 @@ module Vanity
         # passed to create if creating, or will be used to
         # update the found participant.
         def self.retrieve(experiment, identity, create = true, update_with = nil)
-          if record = VanityParticipant.first(:conditions=>{ :experiment_id=>experiment.to_s, :identity=>identity.to_s })
+          if record = VanityParticipant.where(:experiment_id=>experiment.to_s, :identity=>identity.to_s).first
             record.update_attributes(update_with) if update_with
           elsif create
             record = VanityParticipant.create({ :experiment_id=>experiment.to_s, :identity=>identity }.merge(update_with || {}))
@@ -86,8 +86,6 @@ module Vanity
       end
 
       def initialize(options)
-
-
         @options = options.inject({}) { |h,kv| h[kv.first.to_s] = kv.last ; h }
         if @options["active_record_adapter"] && (@options["active_record_adapter"] != "default")
           @options["adapter"] = @options["active_record_adapter"]
