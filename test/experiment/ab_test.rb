@@ -1,4 +1,4 @@
-require "test/test_helper"
+require "test_helper"
 
 class AbTestController < ActionController::Base
   use_vanity :current_user
@@ -33,15 +33,6 @@ class AbTestTest < ActionController::TestCase
   def setup
     super
     metric "Coolness"
-  end
-
-  def teardown
-    super
-    if RUBY_VERSION == '1.8.7'
-      GC.enable
-      GC.start
-      GC.disable
-    end
   end
 
   # --  Experiment definition --

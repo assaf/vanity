@@ -1,4 +1,4 @@
-require "test/test_helper"
+require "test_helper"
 
 # Not supported for rails3
 if !defined?(Rails::Railtie) && ActiveRecord::Base.connected?

@@ -1,4 +1,4 @@
-require "test/test_helper"
+require "test_helper"
 
 class VanityController < ActionController::Base
   include Vanity::Rails::Dashboard
@@ -8,6 +8,7 @@ class RailsDashboardTest < ActionController::TestCase
   tests VanityController
 
   def setup
+    super
     Vanity.playground.collecting = true
     metric :sugar_high
     new_ab_test :food do

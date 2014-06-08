@@ -1,12 +1,11 @@
-GC.disable
 $LOAD_PATH.delete_if { |path| path[/gems\/vanity-\d/] }
 $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
 ENV["RACK_ENV"] = "test"
 ENV["DB"] ||= "redis"
 
-require "test/unit"
+require "minitest/unit"
+require "minitest/spec"
 require "tmpdir"
-require "mocha"
 require "action_controller"
 require "action_controller/test_case"
 require "action_view/test_case"
@@ -32,12 +31,18 @@ else
   require "phusion_passenger/events"
 end
 
-require "lib/vanity"
+require "vanity"
 require "timecop"
+
+if defined?(Mocha::VERSION) && Mocha::VERSION < "0.13.0"
+  require "mocha"
+else
+  require "mocha/mini_test"
+end
 require "webmock/test_unit"
 
-#Do to load order differences in Rails boot and test requires we have to manually
-#require these
+# Due to load order differences in Rails boot and test requires we have to manually
+# require these
 require 'vanity/frameworks/rails'
 Vanity::Rails.load!
 
@@ -139,11 +144,20 @@ class Test::Unit::TestCase
   include VanityTestHelpers
 end
 
-if defined?(ActiveSupport::TestCase)
-  class ActiveSupport::TestCase
+class MiniTest::Spec
+  include WebMock::API
+  include VanityTestHelpers
+end
+
+if defined?(MiniTest::Unit::TestCase)
+  class MiniTest::Unit::TestCase
     include WebMock::API
     include VanityTestHelpers
+  end
+end
 
+if defined?(ActiveSupport::TestCase)
+  class ActiveSupport::TestCase
     self.use_instantiated_fixtures = false if respond_to?(:use_instantiated_fixtures)
     self.use_transactional_fixtures = false if respond_to?(:use_transactional_fixtures)
   end
@@ -174,21 +188,4 @@ if ENV["DB"] == "active_record"
   VanityMigration.down rescue nil
   VanityMigration.up
   ActiveRecord::Base.connection_pool.disconnect!
-end
-
-# test/spec/mini v3
-# Source: http://gist.github.com/25455
-def context(*args, &block)
-  return super unless (name = args.first) && block
-  parent = Class === self ? self : (defined?(ActiveSupport::TestCase) ? ActiveSupport::TestCase : Test::Unit::TestCase)
-  klass = Class.new(parent) do
-    def self.test(name, &block)
-      define_method("test_#{name.gsub(/\W/,'_')}", &block) if block
-    end
-    def self.xtest(*args) end
-    def self.setup(&block) define_method(:setup) { super() ; instance_eval &block } end
-    def self.teardown(&block) define_method(:teardown) { super() ; instance_eval &block } end
-  end
-  parent.const_set name.split(/\W+/).map(&:capitalize).join, klass
-  klass.class_eval &block
 end
