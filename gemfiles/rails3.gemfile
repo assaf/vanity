@@ -7,17 +7,16 @@ gem "redis", ">= 2.1"
 gem "redis-namespace", ">= 1.1.0"
 gem "bson_ext"
 gem "mongo"
-gem "mysql"
 gem "sqlite3"
 gem "backports", :platforms=>:mri_18
 gem "integration"
 gem "rubystats"
 gem "garb"
 gem "SystemTimer", "1.2.3", :platforms=>:mri_18
-gem "mocha", :require=>false
-gem "shoulda", :require=>false
 gem "timecop", :require=>false
 gem "webmock", :require=>false
+gem "mocha", "~> 0.12.8", :require=>false
+gem "minitest", "~>4.2.0"
 gem "rails", "3.0.11"
 gem "fastthread", :git=>"git://github.com/zoltankiss/fastthread.git", :platforms=>:mri_20
 gem "passenger", "~>3.0"

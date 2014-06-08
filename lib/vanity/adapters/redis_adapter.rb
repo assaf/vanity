@@ -155,9 +155,9 @@ module Vanity
       end
 
       def ab_add_participant(experiment, alternative, identity)
-  call_redis_with_failover(experiment, alternative, identity) do
-    @experiments.sadd "#{experiment}:alts:#{alternative}:participants", identity
-  end
+        call_redis_with_failover(experiment, alternative, identity) do
+          @experiments.sadd "#{experiment}:alts:#{alternative}:participants", identity
+        end
       end
 
       def ab_seen(experiment, identity, alternative)
@@ -177,7 +177,7 @@ module Vanity
             if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
               return alternative.id
             end
-                end
+          end
           nil
         end
       end

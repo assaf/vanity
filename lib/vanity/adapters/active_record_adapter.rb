@@ -17,6 +17,22 @@ module Vanity
         def self.needs_attr_accessible?
           respond_to?(:attr_accessible) && !defined?(ActionController::StrongParameters)
         end
+
+        def self.rails_agnostic_find_or_create_by(method, value)
+          if respond_to? :find_or_create_by
+            find_or_create_by(method => value)
+          else
+            send :"find_or_create_by_#{method}", value
+          end
+        end
+
+        def self.rails_agnostic_find_first(conditions)
+          if respond_to? :where
+            where(conditions).first
+          else
+            find(:first, :conditions => conditions)
+          end
+        end
       end
 
       # Schema model
@@ -26,11 +42,23 @@ module Vanity
 
       # Metric model
       class VanityMetric < VanityRecord
+        UPDATED_AT_GRACE_PERIOD = 1.minute
         self.table_name = :vanity_metrics
         has_many :vanity_metric_values
 
         def self.retrieve(metric)
-          find_or_create_by_metric_id(metric.to_s)
+          rails_agnostic_find_or_create_by(:metric_id, metric.to_s)
+        end
+
+        def touch_with_grace_period
+          now = Time.now
+          self.updated_at = now if updated_before_grace_period?(now)
+        end
+
+        private
+
+        def updated_before_grace_period?(now)
+          now - updated_at >= UPDATED_AT_GRACE_PERIOD
         end
       end
 
@@ -50,11 +78,11 @@ module Vanity
 
         # Finds or creates the experiment
         def self.retrieve(experiment)
-          find_or_create_by_experiment_id(experiment.to_s)
+          rails_agnostic_find_or_create_by(:experiment_id, experiment.to_s)
         end
 
         def increment_conversion(alternative, count = 1)
-          record = vanity_conversions.find_or_create_by_alternative(alternative)
+          record = vanity_conversions.rails_agnostic_find_or_create_by(:alternative, alternative)
           record.increment!(:conversions, count)
         end
       end
@@ -70,24 +98,21 @@ module Vanity
         self.table_name = :vanity_participants
         attr_accessible :experiment_id, :identity, :seen, :shown, :converted if needs_attr_accessible?
 
-        # Finds the participant by experiment and identity. If
-        # create is true then it will create the participant
-        # if not found. If a hash is passed then this will be
-        # passed to create if creating, or will be used to
-        # update the found participant.
+        # Finds the participant by experiment and identity. If create is true
+        # then it will create the participant if not found. If a hash is
+        # passed then this will be passed to create if creating, or will be
+        # used to update the found participant.
         def self.retrieve(experiment, identity, create = true, update_with = nil)
-          if record = VanityParticipant.first(:conditions=>{ :experiment_id=>experiment.to_s, :identity=>identity.to_s })
+          if record = VanityParticipant.rails_agnostic_find_first(:experiment_id=>experiment.to_s, :identity=>identity.to_s)
             record.update_attributes(update_with) if update_with
           elsif create
-            record = VanityParticipant.create({ :experiment_id=>experiment.to_s, :identity=>identity }.merge(update_with || {}))
+            record = VanityParticipant.create({ :experiment_id=>experiment.to_s, :identity=>identity.to_s }.merge(update_with || {}))
           end
           record
         end
       end
 
       def initialize(options)
-
-
         @options = options.inject({}) { |h,kv| h[kv.first.to_s] = kv.last ; h }
         if @options["active_record_adapter"] && (@options["active_record_adapter"] != "default")
           @options["adapter"] = @options["active_record_adapter"]
@@ -128,7 +153,7 @@ module Vanity
           record.vanity_metric_values.create(:date => timestamp.to_date.to_s, :index => index, :value => value)
         end
 
-        record.updated_at = Time.now
+        record.touch_with_grace_period
         record.save
       end
 
@@ -142,10 +167,10 @@ module Vanity
         group_by = "#{connection.quote_column_name('date')}"
 
         values = record.vanity_metric_values.all(
-                :select => select,
-                :conditions => conditions,
-                :order => order,
-                :group => group_by
+          :select => select,
+          :conditions => conditions,
+          :order => order,
+          :group => group_by
         )
 
         dates.map do |date|
@@ -203,9 +228,9 @@ module Vanity
         conversions = record.vanity_conversions.sum(:conversions, :conditions => {:alternative => alternative})
 
         {
-                :participants => participants,
-                :converted => converted,
-                :conversions => conversions
+          :participants => participants,
+          :converted => converted,
+          :conversions => conversions
         }
       end
 

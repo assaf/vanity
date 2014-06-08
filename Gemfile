@@ -3,19 +3,13 @@ gemspec
 
 # Frameworks
 gem "rack"
-gem "rails", "~>2.3.8"
-
-# Servers
-gem "passenger", "~>2.0"
 
 # Persistence
 gem "redis", ">= 2.1"
 gem "redis-namespace", ">= 1.1.0"
 gem "bson_ext"
 gem "mongo"
-gem "mysql"
 gem "sqlite3"
-# gem "pg"
 
 # Math libraries
 gem "backports", :platforms => :mri_18
@@ -29,8 +23,6 @@ gem "garb"
 gem "SystemTimer", "1.2.3", :platforms => :mri_18
 
 # Testing
-gem "mocha", :require=>false
-gem "shoulda", :require=>false # Requires test/unit
 gem "timecop", :require=>false
 gem "webmock", :require=>false
 

@@ -1,3 +1,13 @@
+== 1.9.0 (2014-04-20)
+
+Include db:reset in blacklist for autoconnect. (@phillbaker)
+Add grace period to Vanity::Metric updated_at (@stangel)
+Add timestamps to vanity_participants (@inkredabull)
+Use sqlite3 for all active record adapter tests & updates to test tasks (@phillbaker)
+Fix ActiveRecord participant retrieval with non-primitive identities. (@phillbaker)
+Replace instance variables with locals to fix CLI. (@phillbaker)
+Replace js encoding with server-side call. (@phillbaker)
+
 == 1.9.0 (2014-01-18)
 
 Change order of preference for vanity identity, from highest to lowest: URL param, cookie, method call, assignment. (@phillbaker)

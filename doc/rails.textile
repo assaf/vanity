@@ -7,7 +7,6 @@ title: Using with Rails
 # "Installing Vanity":#install
 # "Configuring Vanity":#config
 # "Test Environment":#test
-# "Dashboard":#dashboard
 # "Unicorn and Forking Servers":#fork
 </div>
 
@@ -19,18 +18,6 @@ Add Vanity to your Gemfile:
 
 <pre>
 gem "vanity"
-</pre>
-
-<em>Rails 2.x:</em>
-
-<pre>
-Rails::Initializer.run do |config|
-  gem.config "vanity"
-
-  config.after_initialize do
-    require "vanity"
-  end
-end
 </pre>
 
 h3(#config).  Configuring Vanity
@@ -76,27 +63,6 @@ end
 h4. Enabling/disable collection
 
 When collection is off, Vanity doesn't connect to the database server, so there's no need to set a database configuration for these environments.
-
-
-h3(#dashboard).  Dashboard
-
-Start by adding a new resource in @config/routes.rb@:
-
-<pre>
-map.vanity "/vanity/:action/:id", :controller=>:vanity
-</pre>
-
-Create a new controller for Vanity:
-
-<pre>
-class VanityController < ApplicationController
-  include Vanity::Rails::Dashboard
-end
-</pre>
-
-Now open your browser to "http://localhost:3000/vanity":http://localhost:3000/vanity.
-
-The Dashboard renders complete HTML pages with CSS and all necessary JavaScript libraries.  Thankfully, HTML is forgiving enough that it will render correctly even with your existing application layout.  You can decide to keep your layout, or tell the controller to set @layout false@.
 
 
 h3(#fork).  Unicorn and Forking Servers

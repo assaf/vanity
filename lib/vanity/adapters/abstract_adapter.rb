@@ -4,7 +4,7 @@ module Vanity
     class << self
       # Creates new connection to underlying datastore and returns suitable
       # adapter (adapter object extends AbstractAdapter and wraps the
-      # connection). Vanity.playgroup.establish_connection uses this.
+      # connection). Vanity.playground.establish_connection uses this.
       #
       # @since 1.4.0
       def establish_connection(spec)

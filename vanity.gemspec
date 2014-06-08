@@ -22,4 +22,7 @@ Gem::Specification.new do |spec|
                           "--webcvs", "http://github.com/assaf/#{spec.name}"
 
   spec.required_ruby_version = ">= 1.8.7"
+
+  spec.add_development_dependency "bundler",  ">= 1.0.0"
+  spec.add_development_dependency "minitest", ">= 4.2"
 end

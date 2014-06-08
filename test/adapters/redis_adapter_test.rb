@@ -1,7 +1,8 @@
-require 'test/test_helper'
+require "test_helper"
 
 class RedisAdapterTest < Test::Unit::TestCase
   def setup
+    super
     require "vanity/adapters/redis_adapter"
     require "redis"
     require "redis/namespace"
@@ -27,6 +28,12 @@ class RedisAdapterTest < Test::Unit::TestCase
     redis_adapter = Vanity::Adapters::RedisAdapter.new(:redis => mocked_redis)
 
     [redis_adapter, mocked_redis]
+  end
+
+  def test_connect_to_existing_redis
+    mocked_redis = stub("Redis")
+    adapter = Vanity::Adapters.redis_connection(:redis => mocked_redis)
+    assert_equal mocked_redis, adapter.redis
   end
 
   def test_graceful_failure_metric_track

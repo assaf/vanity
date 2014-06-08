@@ -1,12 +1,11 @@
-GC.disable
 $LOAD_PATH.delete_if { |path| path[/gems\/vanity-\d/] }
 $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
 ENV["RACK_ENV"] = "test"
 ENV["DB"] ||= "redis"
 
-require "test/unit"
+require "minitest/unit"
+require "minitest/spec"
 require "tmpdir"
-require "mocha"
 require "action_controller"
 require "action_controller/test_case"
 require "action_view/test_case"
@@ -17,27 +16,22 @@ begin
 rescue LoadError
 end
 
-if defined?(Rails::Railtie)
-  require File.expand_path("../dummy/config/environment.rb",  __FILE__)
-  require "rails/test_help"
-else
-  RAILS_ROOT = File.expand_path("..")
-  require "initializer"
-  require "actionmailer"
-  Rails.configuration = Rails::Configuration.new
+require File.expand_path("../dummy/config/environment.rb",  __FILE__)
+require "rails/test_help"
 
-  ActionController::Routing::Routes.draw do |map|
-    map.connect ':controller/:action/:id'
-  end
-  require "phusion_passenger/events"
-end
-
-require "lib/vanity"
+require "vanity"
 require "timecop"
+
+if defined?(Mocha::VERSION) && Mocha::VERSION < "0.13.0"
+  require "mocha"
+else
+  require "mocha/mini_test"
+end
 require "webmock/test_unit"
 
-#Do to load order differences in Rails boot and test requires we have to manually
-#require these
+# Due to load order differences in Rails boot and test requires we have to
+# manually require these
+
 require 'vanity/frameworks/rails'
 Vanity::Rails.load!
 
@@ -56,14 +50,9 @@ module VanityTestHelpers
   DATABASE = {
     "redis"=>"redis://localhost/15",
     "mongodb"=>"mongodb://localhost/vanity",
-    "mysql"=> { "adapter"=>"active_record", "active_record_adapter"=>"mysql", "database"=>"vanity_test" },
-    "postgres"=> { "adapter"=>"active_record", "active_record_adapter"=>"postgresql", "database"=>"vanity_test", "username"=>"postgres" },
+    "active_record"=> { "adapter"=>"active_record", "active_record_adapter"=>"sqlite3", "database"=>"vanity_test.sqlite3", "timeout" => 10000, "busy_timeout" => 1000 },
     "mock"=>"mock:/"
   }[ENV["DB"]] or raise "No support yet for #{ENV["DB"]}"
-
-  def rails3?
-    defined?(Rails::Railtie)
-  end
 
   def setup_after
     FileUtils.mkpath "tmp/experiments/metrics"
@@ -77,18 +66,11 @@ module VanityTestHelpers
     WebMock.reset!
   end
 
-  # Call this on teardown. It wipes put the playground and any state held in it
-  # (mostly experiments), resets vanity ID, and clears database of all experiments.
-  def nuke_playground
-    Vanity.playground.connection.flushdb
-    new_playground
-  end
-
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
     Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments")
-    Vanity.playground.establish_connection DATABASE
+    Vanity.playground.establish_connection(DATABASE)
   end
 
   # Defines the specified metrics (one or more names). Returns metric, or array
@@ -147,10 +129,22 @@ class Test::Unit::TestCase
   include VanityTestHelpers
 end
 
-if defined?(ActiveSupport::TestCase)
-  class ActiveSupport::TestCase
+class MiniTest::Spec
+  include WebMock::API
+  include VanityTestHelpers
+end
+
+if defined?(MiniTest::Unit::TestCase)
+  class MiniTest::Unit::TestCase
     include WebMock::API
     include VanityTestHelpers
+  end
+end
+
+if defined?(ActiveSupport::TestCase)
+  class ActiveSupport::TestCase
+    self.use_instantiated_fixtures = false if respond_to?(:use_instantiated_fixtures)
+    self.use_transactional_fixtures = false if respond_to?(:use_transactional_fixtures)
   end
 end
 
@@ -168,32 +162,15 @@ if defined?(ActionController::TestCase)
   end
 end
 
-if ENV["DB"] == "postgres"
-  ActiveRecord::Base.establish_connection :adapter=>"postgresql", :database=>"vanity_test"
-elsif ENV["DB"] == "mysql"
-  ActiveRecord::Base.establish_connection :adapter=>"mysql", :database=>"vanity_test"
-end
-ActiveRecord::Base.logger = $logger
+if ENV["DB"] == "active_record"
+  connection = {}
+  connection[:adapter] = VanityTestHelpers::DATABASE['active_record_adapter']
+  connection[:database] = VanityTestHelpers::DATABASE['database']
+  ActiveRecord::Base.establish_connection(connection)
+  ActiveRecord::Base.logger = $logger
 
-if ENV["DB"] == "mysql" || ENV["DB"] == "postgres"
   require "generators/templates/vanity_migration"
   VanityMigration.down rescue nil
   VanityMigration.up
-end
-
-# test/spec/mini v3
-# Source: http://gist.github.com/25455
-def context(*args, &block)
-  return super unless (name = args.first) && block
-  parent = Class === self ? self : (defined?(ActiveSupport::TestCase) ? ActiveSupport::TestCase : Test::Unit::TestCase)
-  klass = Class.new(parent) do
-    def self.test(name, &block)
-      define_method("test_#{name.gsub(/\W/,'_')}", &block) if block
-    end
-    def self.xtest(*args) end
-    def self.setup(&block) define_method(:setup) { super() ; instance_eval &block } end
-    def self.teardown(&block) define_method(:teardown) { super() ; instance_eval &block } end
-  end
-  parent.const_set name.split(/\W+/).map(&:capitalize).join, klass
-  klass.class_eval &block
+  ActiveRecord::Base.connection_pool.disconnect!
 end

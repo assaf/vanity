@@ -1,29 +1,5 @@
 require "rake/testtask"
-
-# -- Building stuff --
-
-spec = Gem::Specification.load(Dir["*.gemspec"].first)
-
-desc "Build the Gem"
-task :build do
-  sh "gem build #{spec.name}.gemspec"
-end
-
-desc "Install #{spec.name} locally"
-task :install=>:build do
-  sudo = "sudo" unless File.writable?( Gem::ConfigMap[:bindir])
-  sh "#{sudo} gem install #{spec.name}-#{spec.version}.gem"
-end
-
-desc "Push new release to gemcutter and git tag"
-task :push=>["build"] do
-  sh "git push"
-  puts "Tagging version #{spec.version} .."
-  sh "git tag v#{spec.version}"
-  sh "git push --tag"
-  puts "Building and pushing gem .."
-  sh "gem push #{spec.name}-#{spec.version}.gem"
-end
+require "bundler/gem_tasks"
 
 
 # -- Testing stuff --
@@ -70,7 +46,7 @@ task "test:setup" do
 end
 
 # These are all the adapters we're going to test with.
-ADAPTERS = %w{redis mongodb mysql}
+ADAPTERS = %w{redis mongodb active_record}
 
 desc "Test using different back-ends"
 task "test:adapters", :adapter do |t, args|
@@ -80,7 +56,7 @@ task "test:adapters", :adapter do |t, args|
     adapters = args.adapter ? [args.adapter] : ADAPTERS
     adapters.each do |adapter|
       puts "** Testing #{adapter} adapter"
-      sh "rake appraisal test DB=#{adapter} #{'--trace' if Rake.application.options.trace}"
+      sh "bundle exec appraisal rake test DB=#{adapter} #{'--trace' if Rake.application.options.trace}"
     end
   rescue LoadError
     warn "The appraisal gem must be available"
@@ -88,59 +64,33 @@ task "test:adapters", :adapter do |t, args|
 end
 
 # Run the test suit.
+Rake::TestTask.new(:test) do |task|
+  task.libs << "lib"
+  task.libs << "test"
+  task.pattern = "test/**/*_test.rb"
+  task.verbose = false
+end
 
 task :default=>:test
 desc "Run all tests"
-Rake::TestTask.new do |task|
-  task.test_files = FileList['test/**/*_test.rb']
-  if Rake.application.options.trace
-    #task.warning = true
-    task.verbose = true
-  elsif Rake.application.options.silent
-    task.ruby_opts << "-W0"
-  else
-    task.verbose = true
-  end
-    task.ruby_opts << "-I."
-end
 
 task(:clobber) { rm_rf "tmp" }
 
 
-# -- Documenting stuff --
-
-begin
-  require "yard"
-  YARD::Rake::YardocTask.new(:yardoc) do |task|
-    task.files  = FileList["lib/**/*.rb"].exclude("lib/vanity/backport.rb")
-    task.options = "--output", "html/api", "--title", "Vanity #{spec.version}", "--main", "README.rdoc", "--files", "CHANGELOG"
-  end
-rescue LoadError
-end
+# -- Documenting stuff -- #TODO make sure works under 1.9/2.0
 
 desc "Jekyll generates the main documentation (sans API)"
 task(:jekyll) { sh "jekyll", "doc", "html" }
-file "html/vanity.pdf"=>:jekyll do |t|
-  pages = %w{index metrics ab_testing rails email identity configuring contributing}.map{ |p| "html/#{p}.html" }
-  args = %w{--disable-javascript --outline --title Vanity --header-html doc/_layouts/_header.html --print-media-type}
-  args.concat %w{--margin-left 20 --margin-right 20 --margin-top 20 --margin-bottom 20 --header-spacing 5}
-  args.concat pages << t.name
-  sh "wkhtmltopdf", *args
-end
 
-file "html/vanity-api.zip"=>:yardoc do |t|
-  Dir.chdir "html" do
-    sh "zip vanity-api.zip -r api"
-  end
-end
-desc "Create documentation in docs directory (including API)"
-task :docs=>[:jekyll, :yardoc, "html/vanity-api.zip", "html/vanity.pdf"]
+desc "Create documentation in docs directory"
+task :docs=>[:jekyll]
+
 desc "Remove temporary files and directories"
-task(:clobber) { rm_rf "html" ; rm_rf ".yardoc" }
+task(:clobber) { rm_rf "html" }
 
-desc "Publish documentation to vanity.labnotes.org"
+desc "Publish documentation to vanity.labnotes.org via Github Pages on gh-pages git branch"
 task :publish=>[:clobber, :docs] do
-  sh "rsync -cr --del --progress html/ labnotes.org:/var/www/vanity/"
+  # TODO
 end
 
 

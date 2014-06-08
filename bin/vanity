@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-# Is there a better way to detect Rails?
 if File.exist?("config/boot.rb") && File.exist?("config/environment.rb")
   require "./config/environment"
 else

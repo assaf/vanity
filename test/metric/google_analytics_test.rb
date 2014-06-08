@@ -1,9 +1,7 @@
-require "test/test_helper"
+require "test_helper"
 
-
-context "Google Analytics" do
-
-  setup do
+describe "Google Analytics" do
+  before do
     File.open "tmp/experiments/metrics/ga.rb", "w" do |f|
       f.write <<-RUBY
         metric "GA" do
@@ -16,7 +14,7 @@ context "Google Analytics" do
   GA_RESULT = Struct.new(:date, :pageviews, :visits)
   GA_PROFILE = Struct.new(:web_property_id)
 
-  test "fail if Garb not available" do
+  it "fail if Garb not available" do
     File.open "tmp/experiments/metrics/ga.rb", "w" do |f|
       f.write <<-RUBY
         metric "GA" do
@@ -25,28 +23,28 @@ context "Google Analytics" do
         end
       RUBY
     end
-    assert_raise LoadError do
+    assert_raises LoadError do
       Vanity.playground.metrics
     end
   end
 
-  test "constructs a report" do
+  it "constructs a report" do
     Vanity.playground.metrics
     assert metric(:ga).report
   end
 
-  test "default to pageviews metric" do
+  it "default to pageviews metric" do
     Vanity.playground.metrics
     assert_equal [:pageviews], metric(:ga).report.metrics.elements
   end
 
-  test "apply data dimension and sort" do
+  it "apply data dimension and sort" do
     Vanity.playground.metrics
     assert_equal [:date], metric(:ga).report.dimensions.elements
     assert_equal [:date], metric(:ga).report.sort.elements
   end
 
-  test "accept other metrics" do
+  it "accept other metrics" do
     File.open "tmp/experiments/metrics/ga.rb", "w" do |f|
       f.write <<-RUBY
         metric "GA" do
@@ -58,14 +56,14 @@ context "Google Analytics" do
     assert_equal [:visitors], metric(:ga).report.metrics.elements
   end
 
-  test "does not support hooks" do
+  it "does not support hooks" do
     Vanity.playground.metrics
     assert_raises RuntimeError do
       metric(:ga).hook
     end
   end
 
-  test "should find matching profile" do
+  it "should find matching profile" do
     Vanity.playground.metrics
     Garb::Profile.expects(:all).returns(Array.new(3) { |i| GA_PROFILE.new("UA#{i + 1}") })
     metric(:ga).report.stubs(:send_request_for_body).returns(nil)
@@ -74,7 +72,7 @@ context "Google Analytics" do
     assert_equal "UA2", metric(:ga).report.profile.web_property_id
   end
 
-  test "should map results from report" do
+  it "should map results from report" do
     Vanity.playground.metrics
     today = Date.today
     response = mock(:results=>Array.new(3) { |i| GA_RESULT.new("2010021#{i}", i + 1) })
@@ -84,7 +82,7 @@ context "Google Analytics" do
     assert_equal [1,2,3], metric(:ga).values(Date.parse("2010-02-10"), Date.parse("2010-02-12"))
   end
 
-  test "mapping GA metrics to single value" do
+  it "mapping GA metrics to single value" do
     File.open "tmp/experiments/metrics/ga.rb", "w" do |f|
       f.write <<-RUBY
         metric "GA" do
@@ -100,5 +98,4 @@ context "Google Analytics" do
     metric(:ga).report.stubs(:send_request_for_body).returns(nil)
     assert_equal [1,4,9], metric(:ga).values(Date.parse("2010-02-10"), Date.parse("2010-02-12"))
   end
-
 end

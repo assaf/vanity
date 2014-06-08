@@ -16,6 +16,7 @@ module Vanity
       'db:migrate',
       'db:migrate:status',
       'db:rollback',
+      'db:reset',
       'db:schema:cache:clear',
       'db:schema:cache:dump',
       'db:schema:dump',

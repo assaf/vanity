@@ -1,4 +1,4 @@
-require "test/test_helper"
+require "test_helper"
 
 class VanityController < ActionController::Base
   include Vanity::Rails::Dashboard
@@ -8,6 +8,7 @@ class RailsDashboardTest < ActionController::TestCase
   tests VanityController
 
   def setup
+    super
     Vanity.playground.collecting = true
     metric :sugar_high
     new_ab_test :food do
@@ -23,31 +24,31 @@ class RailsDashboardTest < ActionController::TestCase
     get :index
     assert_response :success
     assert @response.body =~ %r{div class="vanity"}
+    assert @response.body =~ %r{<h2>Experiments</h2>}
+    assert @response.body =~ %r{<h2>Metrics</h2>}
   end
 
-  def test_assigns_experiments
+  def test_index_not_collecting
+    Vanity.playground.collecting = false
     get :index
-    experiments = assigns(:experiments).with_indifferent_access
-
-    assert experiments.respond_to?(:keys)
-    assert experiments.keys.include?("food")
-    assert experiments.values.first.name == :food
+    assert_response :success
+    assert @response.body =~ %r{<div class="alert collecting">}
   end
 
-  def test_assigns_metrics
+  def test_index_not_persisted
+    name = 'Price'
+    id = :price
+    experiment = Vanity::Experiment::AbTest.new(Vanity.playground, id, name)
+    Vanity.playground.experiments[id] = experiment
+
     get :index
-    metrics = assigns(:metrics).with_indifferent_access
-    assert metrics.respond_to?(:keys)
-    assert metrics.keys.include?("sugar_high")
-    assert metrics.values.first.name == "sugar_high"
+    assert_response :success
+    assert @response.body =~ %r{<div class="alert persistance">}
+
+    Vanity.playground.experiments.delete(id)
   end
 
-  def test_assigns_experiments_persisted
-    get :index
-    assert assigns(:experiments_persisted)
-  end
-
-  # --  Actions used in non-admin actions --
+  # --  Actions used in non-admin actions, e.g. in JS --
 
   def test_add_participant
     xhr :post, :add_participant, :e => "food", :a => 0

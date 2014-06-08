@@ -21,19 +21,9 @@ Add to your Gemfile:
 
   gem "vanity"
 
-===== Rails 2.x installation
-
-  Rails::Initializer.run do |config|
-    gem.config "vanity"
-
-    config.after_initialize do
-      require "vanity"
-    end
-  end
-
 ==== Step 1.2
 
-Choose a datastore that best fits your needs and preferences for storing experiment results. Choose one of: Redis, MongoDB or an SQL database. While Redis is usually faster, it may add additional complexity to your stack.
+Choose a datastore that best fits your needs and preferences for storing experiment results. Choose one of: Redis, MongoDB or an SQL database. While Redis is usually faster, it may add additional complexity to your stack. Datastores should be configured using a <code>config/vanity.yml</code>.
 
 ===== Redis Setup
 
@@ -42,6 +32,8 @@ Add to your Gemfile:
   gem "redis", ">= 2.1"
   gem "redis-namespace", ">= 1.1.0"
 
+By default Vanity is configured to use Redis on localhost port 6379 with database 0.
+
 ===== MongoDB Setup
 
 Add to your Gemfile:
@@ -49,11 +41,38 @@ Add to your Gemfile:
   gem "bson_ext"
   gem "mongo"
 
+A sample <code>config/vanity.yml</code> might look like:
+
+  development:
+    adapter: mongodb
+    database: analytics
+  test:
+    collecting: false
+  production:
+    adapter: mongodb
+    database: analytics
+
+
 ===== SQL Database Setup
 
 Vanity supports multiple SQL stores (like MySQL, MariaDB, Postgres, Sqlite, etc.) using ActiveRecord, which is built into Rails. If you're using DataMapper, Sequel or another persistence framework, add to your Gemfile:
 
    gem "active_record"
+
+A sample <code>config/vanity.yml</code> might look like:
+
+  development:
+    adapter: active_record
+    active_record_adapter: sqlite3
+    database: db/development.sqlite3
+  test:
+    collecting: false
+  production:
+    adapter: active_record
+    active_record_adapter: mysql
+    database: vanity_test
+    pool: 5
+    timeout: 5000
 
 If you're going to store data in the database, run the generator and migrations to create the database schema:
 
@@ -113,7 +132,7 @@ Conversions are created via the <code>track!</code> method. For example:
 
 To view metrics and experiment results with the dashboard in Rails 3 & Rails 4:
 
-  rails generate controller Vanity
+  rails generate controller --helper=false Vanity
 
 In <code>config/routes.rb</code>, add:
 
@@ -127,15 +146,13 @@ The controller should look like:
 
 == Registering participants with Javascript
 
-If robots or spiders make up a significant portion of your sites traffic they can affect your conversion rate. Vanity can optionally add participants to the experiments using asynchronous javascript callbacks, which will keep almost all robots out. To set this up simply do the following:
+If robots or spiders make up a significant portion of your sites traffic they can affect your conversion rate. Vanity can optionally add participants to the experiments using asynchronous javascript callbacks, which will keep many robots out. For those robots that do execute Javascript and are well-behaved (like Googlebot), Vanity filters out requests based on their user-agent string.
+
+To set this up simply do the following:
 
 * Add <code>Vanity.playground.use_js!</code>
 * Set <code>Vanity.playground.add_participant_path = '/path/to/vanity/action'</code>, this should point to the add_participant path that is added with Vanity::Rails::Dashboard, make sure that this action is accessible by all users (ie does not require authentication).
-* Add <code><%= vanity_js %></code> to any page that needs uses an ab_test. <code>vanity_js</code> needs to be included after your call to ab_test so that it knows which version of the experiment the participant is a member of. The helper will render nothing if the there are no ab_tests running on the current page, so adding <code>vanity_js</code> to the bottom of your layouts is a good option. Keep in mind that if you call <code>use_js!</code> and don't include <code>vanity_js</code> in your view no participants will be recorded.
-
-=== <b>Update regarding using AJAX registration to avoid robots</b>
-
-As of January 2014, as reported in {issue 175}[https://github.com/assaf/vanity/issues/175], Googlebot is now executing AJAX requests to the original domain of the page, which includes the current implementation of the JS callback. This means that Googlebot-originating requests may be included in experiments, greatly skewing results. A fix is being worked on, please follow the issue for further updates.
+* Add <code><%= vanity_js %></code> to any page that XX an ab_test. <code>vanity_js</code> needs to be included after your call to ab_test so that it knows which version of the experiment the participant is a member of. The helper will render nothing if the there are no ab_tests running on the current page, so adding <code>vanity_js</code> to the bottom of your layouts is a good option. Keep in mind that if you call <code>use_js!</code> and don't include <code>vanity_js</code> in your view no participants will be recorded.
 
 == Compatibility
 
@@ -143,7 +160,7 @@ Here's what's tested and known to work:
 
   Ruby 1.8.7
     Persistence: Redis, Mongo, ActiveRecord
-    Rails: 2.3, 3, 3.1, 3.2
+    Rails: 3, 3.1, 3.2
   Ruby 1.9.3
     Persistence: Redis, Mongo, ActiveRecord
     Rails: 3, 3.1, 3.2, 4.0
@@ -160,11 +177,10 @@ For view tests/specs or integration testing, it's handy to set the outcome of an
 == Contributing
 
 * Fork the project
-* Please use a topic branch to make your changes, it's easier to test them that way
-* To set up the test suite run bundler, then run `rake appraisal:install` to prepare the test suite to run against multiple versions of Rails
+* Please use a feature branch to make your changes, it's easier to test them that way
+* To set up the test suite run `bundle`, then run `appraisal install` to prepare the test suite to run against multiple versions of Rails
 * Fix, patch, enhance, document, improve, sprinkle pixie dust
-* At minimum run `rake appraisal test`, if possible, please run rake test:all
-* Tests. Please. Run rake test, of if you can, rake test:all
+* Tests. Please. Run `appraisal rake test`, of if you can, `rake test:all`. (This project uses Travis CI where the test suite is run against multiple versions of ruby, rails and backends.)
 * Send a pull request on GitHub
 
 

@@ -14,23 +14,23 @@
   <body>
     <div class="vanity">
       <% unless Vanity.playground.collecting? %>
-        <div class="alert">
+        <div class="alert collecting">
           Vanity is currently not collecting data or metrics. To turn on data collection, set <span style='font-family: courier'>Vanity.playground.collecting = true;</span> in <span style='font-family: courier'>config/environments/[environment].rb</span>.
         </div>
       <% end %>
 
-      <% if @experiments_persisted %>
-        <% if @experiments.present? %>
+      <% if experiments_persisted %>
+        <% if experiments.present? %>
           <h2>Experiments</h2>
-          <%= render :file=>Vanity.template("_experiments"), :locals=>{:experiments=>@experiments} %>
+          <%= render :file=>Vanity.template("_experiments"), :locals=>{:experiments=>experiments} %>
         <% end %>
 
-        <% unless @metrics.empty? %>
+        <% unless metrics.empty? %>
           <h2>Metrics</h2>
-          <%= render :file=>Vanity.template("_metrics"), :locals=>{:metrics=>@metrics, :experiments=>@experiments} %>
+          <%= render :file=>Vanity.template("_metrics"), :locals=>{:metrics=>metrics, :experiments=>experiments} %>
         <% end %>
       <% else %>
-        <div class="alert">
+        <div class="alert persistance">
           Vanity's cached experiments are out of sync with those on the filesystem and/or those in the datastore. Please restart your server and/or turn on collecting.
         </div>
       <% end %>
