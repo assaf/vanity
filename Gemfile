@@ -12,15 +12,11 @@ gem "mongo"
 gem "sqlite3"
 
 # Math libraries
-gem "backports", :platforms => :mri_18
 gem "integration"
 gem "rubystats"
 
 # APIs
 gem "garb"
-
-# Compatibility
-gem "SystemTimer", "1.2.3", :platforms => :mri_18
 
 # Testing
 gem "timecop", :require=>false

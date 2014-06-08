@@ -3,7 +3,7 @@ require "test_helper"
 class PlaygroundTest < Test::Unit::TestCase
 
   def test_responds_to_version
-    (RUBY_VERSION == "1.8.7" ? Object : IO).any_instance.expects(:puts)
+    IO.any_instance.expects(:puts)
     ARGV.clear
     ARGV << '--version'
     load "bin/vanity"
@@ -12,7 +12,7 @@ class PlaygroundTest < Test::Unit::TestCase
   end
 
   def test_responds_to_help
-    (RUBY_VERSION == "1.8.7" ? Object : IO).any_instance.expects(:puts)
+    IO.any_instance.expects(:puts)
     ARGV.clear
     ARGV << '--help'
     load "bin/vanity"

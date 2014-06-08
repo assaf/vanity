@@ -8,11 +8,9 @@ gem "redis-namespace", ">= 1.1.0"
 gem "bson_ext"
 gem "mongo"
 gem "sqlite3"
-gem "backports", :platforms=>:mri_18
 gem "integration"
 gem "rubystats"
 gem "garb"
-gem "SystemTimer", "1.2.3", :platforms=>:mri_18
 gem "timecop", :require=>false
 gem "webmock", :require=>false
 gem "mocha", "~> 0.12.8", :require=>false

@@ -13,7 +13,6 @@ GEM
   remote: https://rubygems.org/
   specs:
     RedCloth (4.2.9)
-    SystemTimer (1.2.3)
     abstract (1.0.0)
     actionmailer (3.0.11)
       actionpack (= 3.0.11)
@@ -49,7 +48,6 @@ GEM
       rake
       thor (>= 0.14.0)
     arel (2.0.10)
-    backports (3.3.5)
     bson (1.6.0)
     bson_ext (1.6.0)
       bson (= 1.6.0)
@@ -142,9 +140,7 @@ PLATFORMS
 
 DEPENDENCIES
   RedCloth
-  SystemTimer (= 1.2.3)
   appraisal (>= 1.0.0.beta2)
-  backports
   bson_ext
   bundler (>= 1.0.0)
   fastthread!
