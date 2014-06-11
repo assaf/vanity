@@ -1,53 +1,46 @@
 require "test_helper"
 
-class PlaygroundTest < Test::Unit::TestCase
+describe "bin/vanity" do
 
-  def test_responds_to_version
-    IO.any_instance.expects(:puts)
-    ARGV.clear
-    ARGV << '--version'
-    load "bin/vanity"
-  rescue SystemExit => e
-    assert e.status == 0
+  it "responds to version" do
+    proc {
+      IO.any_instance.expects(:puts)
+      ARGV.clear
+      ARGV << '--version'
+      load "bin/vanity"
+    }.must_raise SystemExit
   end
 
-  def test_responds_to_help
-    IO.any_instance.expects(:puts)
-    ARGV.clear
-    ARGV << '--help'
-    load "bin/vanity"
-  rescue SystemExit => e
-    assert e.status == 0
+  it "responds to help" do
+    proc {
+      IO.any_instance.expects(:puts)
+      ARGV.clear
+      ARGV << '--help'
+      load "bin/vanity"
+    }.must_raise SystemExit
   end
 
-  def test_responds_to_list
+  it "responds to list" do
     require "vanity/commands/list"
     Vanity::Commands.expects(:list)
     ARGV.clear
     ARGV << 'list'
     load "bin/vanity"
-  rescue SystemExit => e
-    assert e.status == 0
   end
 
-  def test_responds_to_report
+  it "responds to report" do
     require "vanity/commands/report"
     Vanity::Commands.expects(:report)
     ARGV.clear
     ARGV << 'report'
     load "bin/vanity"
-  rescue SystemExit => e
-    assert e.status == 0
   end
 
-  def test_responds_to_unknown_commands
+  it "responds to unknown commands" do
     require "vanity/commands/upgrade"
     Vanity::Commands.expects(:upgrade)
     ARGV.clear
     ARGV << 'upgrade'
     load "bin/vanity"
-  rescue SystemExit => e
-    assert e.status == 0
   end
-
 end
