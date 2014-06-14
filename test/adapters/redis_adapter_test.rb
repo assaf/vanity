@@ -1,16 +1,14 @@
 require "test_helper"
 
-class RedisAdapterTest < Test::Unit::TestCase
-  def setup
-    super
-    require "vanity/adapters/redis_adapter"
+describe Vanity::Adapters::RedisAdapter do
+  before do
     require "redis"
     require "redis/namespace"
   end
 
-  def test_warn_on_disconnect_error
+  it "warns on disconnect error" do
     if defined?(Redis)
-      assert_nothing_raised do
+      assert_silent do
         Redis.any_instance.stubs(:connect!)
         mocked_redis = stub("Redis")
         mocked_redis.expects(:client).raises(RuntimeError)
@@ -30,98 +28,98 @@ class RedisAdapterTest < Test::Unit::TestCase
     [redis_adapter, mocked_redis]
   end
 
-  def test_connect_to_existing_redis
+  it "connects to existing redis" do
     mocked_redis = stub("Redis")
     adapter = Vanity::Adapters.redis_connection(:redis => mocked_redis)
     assert_equal mocked_redis, adapter.redis
   end
 
-  def test_graceful_failure_metric_track
+  it "gracefully fails in #metric_track" do
     redis_adapter, mocked_redis = stub_redis
     mocked_redis.stubs(:incrby).raises(RuntimeError)
 
-    assert_nothing_raised do
+    assert_silent do
       redis_adapter.metric_track("metric", Time.now.to_s, "3ff62e2fb51f0b22646a342a2d357aec", [1])
     end
   end
 
-  def test_graceful_failure_set_experiment_created_at
+  it "gracefully fails in #set experiment created at" do
     redis_adapter, mocked_redis = stub_redis
     mocked_redis.stubs(:setnx).raises(RuntimeError)
 
-    assert_nothing_raised do
+    assert_silent do
       redis_adapter.set_experiment_created_at("price_options", Time.now)
     end
   end
 
-  def test_graceful_failure_is_experiment_completed?
+  it "gracefully fails in #is_experiment_completed?" do
     redis_adapter, mocked_redis = stub_redis
     mocked_redis.stubs(:exists).raises(RuntimeError)
 
-    assert_nothing_raised do
+    assert_silent do
       redis_adapter.is_experiment_completed?("price_options")
     end
   end
 
-  def test_graceful_failure_ab_show
+  it "gracefully fails in #ab_show" do
     redis_adapter, mocked_redis = stub_redis
     mocked_redis.stubs(:[]=).raises(RuntimeError)
 
-    assert_nothing_raised do
+    assert_silent do
       redis_adapter.ab_show("price_options", "3ff62e2fb51f0b22646a342a2d357aec", 0)
     end
   end
 
-  def test_graceful_failure_ab_showing
+  it "gracefully fails in #ab_showing" do
     redis_adapter, mocked_redis = stub_redis
     mocked_redis.stubs(:[]).raises(RuntimeError)
 
-    assert_nothing_raised do
+    assert_silent do
       redis_adapter.ab_showing("price_options", "3ff62e2fb51f0b22646a342a2d357aec")
     end
   end
 
-  def test_graceful_failure_ab_not_showing
+  it "gracefully fails in #ab_not_showing" do
     redis_adapter, mocked_redis = stub_redis
     mocked_redis.stubs(:del).raises(RuntimeError)
 
-    assert_nothing_raised do
+    assert_silent do
       redis_adapter.ab_not_showing("price_options", "3ff62e2fb51f0b22646a342a2d357aec")
     end
   end
 
-  def test_graceful_failure_ab_add_participant
+  it "gracefully fails in #ab_add_participant" do
     redis_adapter, mocked_redis = stub_redis
     mocked_redis.stubs(:sadd).raises(RuntimeError)
 
-    assert_nothing_raised do
+    assert_silent do
       redis_adapter.ab_add_participant("price_options", "3ff62e2fb51f0b22646a342a2d357aec", 0)
     end
   end
 
-  def test_graceful_failure_ab_seen
+  it "gracefully fails in #ab_seen" do
     redis_adapter, mocked_redis = stub_redis
     mocked_redis.stubs(:sismember).raises(RuntimeError)
 
-    assert_nothing_raised do
+    assert_silent do
       redis_adapter.ab_seen("price_options", "3ff62e2fb51f0b22646a342a2d357aec", 0)
     end
   end
 
-  def test_graceful_failure_ab_assigned
+  it "gracefully fails in #ab_assigned" do
     redis_adapter, mocked_redis = stub_redis
     mocked_redis.stubs(:sismember).raises(RuntimeError)
 
-    assert_nothing_raised do
+    assert_silent do
       redis_adapter.ab_assigned("price_options", "3ff62e2fb51f0b22646a342a2d357aec")
     end
   end
 
-  def test_graceful_failure_ab_add_conversion
+  it "gracefully fails in #ab_add_conversion" do
     redis_adapter, mocked_redis = stub_redis
     mocked_redis.stubs(:sismember).raises(RuntimeError)
 
-    assert_nothing_raised do
+    assert_silent do
       redis_adapter.ab_add_conversion("price_options", 0, "3ff62e2fb51f0b22646a342a2d357aec")
     end
   end
