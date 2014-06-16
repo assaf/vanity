@@ -1,20 +1,19 @@
 require "test_helper"
 
-class ExperimentTest < Test::Unit::TestCase
+describe Vanity::Experiment::Base do
 
-  def setup
-    super
+  before do
     metric "Happiness"
   end
 
   # -- Defining experiment --
 
-  def test_can_access_experiment_by_id
+  it "can access experiment by id" do
     exp = new_ab_test(:ice_cream_flavor) { metrics :happiness }
     assert_equal exp, experiment(:ice_cream_flavor)
   end
 
-  def test_fail_when_defining_same_experiment_twice
+  it "fails when defining same experiment twice" do
     File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
       f.write <<-RUBY
         ab_test "Ice Cream Flavor" do
@@ -33,13 +32,13 @@ class ExperimentTest < Test::Unit::TestCase
 
   # -- Loading experiments --
 
-  def test_fails_if_cannot_load_named_experiment
+  it "fails if cannot load named experiment" do
     assert_raises Vanity::NoExperimentError do
       experiment(:ice_cream_flavor)
     end
   end
 
-  def test_loading_experiment
+  it "loads the experiment" do
     File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
       f.write <<-RUBY
         ab_test "Ice Cream Flavor" do
@@ -53,7 +52,7 @@ class ExperimentTest < Test::Unit::TestCase
     assert_equal "x", experiment(:ice_cream_flavor).xmts
   end
 
-  def test_fails_if_error_loading_experiment
+  it "fails if error loading experiment" do
     File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
       f.write "fail 'yawn!'"
     end
@@ -62,7 +61,7 @@ class ExperimentTest < Test::Unit::TestCase
     end
   end
 
-  def test_complains_if_not_defined_where_expected
+  it "complains if not defined where expected" do
     File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
       f.write ""
     end
@@ -71,7 +70,7 @@ class ExperimentTest < Test::Unit::TestCase
     end
   end
 
-  def test_reloading_experiments
+  it "reloading experiments" do
     new_ab_test(:ab) { metrics :happiness }
     new_ab_test(:cd) { metrics :happiness }
     assert_equal 2, Vanity.playground.experiments.size
@@ -82,13 +81,13 @@ class ExperimentTest < Test::Unit::TestCase
 
   # -- Attributes --
 
-  def test_experiment_mapping_name_to_id
+  it "maps the experiment name to id" do
     experiment = new_ab_test("Ice Cream Flavor/Tastes") { metrics :happiness }
     assert_equal "Ice Cream Flavor/Tastes", experiment.name
     assert_equal :ice_cream_flavor_tastes, experiment.id
   end
 
-  def test_saving_experiment_after_definition
+  it "saves the experiment after definition" do
     File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
       f.write <<-RUBY
         ab_test "Ice Cream Flavor" do
@@ -100,13 +99,13 @@ class ExperimentTest < Test::Unit::TestCase
     Vanity.playground.experiment(:ice_cream_flavor)
   end
 
-  def test_experiment_has_created_timestamp
+  it "has created timestamp" do
     new_ab_test(:ice_cream_flavor) { metrics :happiness }
     assert_kind_of Time, experiment(:ice_cream_flavor).created_at
     assert_in_delta experiment(:ice_cream_flavor).created_at.to_i, Time.now.to_i, 1
   end
 
-  def test_experiment_keeps_created_timestamp_across_definitions
+  it "keeps created timestamp across definitions" do
     past = Date.today - 1
     Timecop.freeze past.to_time do
       new_ab_test(:ice_cream_flavor) { metrics :happiness }
@@ -118,7 +117,7 @@ class ExperimentTest < Test::Unit::TestCase
     assert_equal past.to_time.to_i, experiment(:ice_cream_flavor).created_at.to_i
   end
 
-  def test_experiment_has_description
+  it "has a description" do
     new_ab_test :ice_cream_flavor do
       description "Because 31 is not enough ..."
       metrics :happiness
@@ -126,7 +125,7 @@ class ExperimentTest < Test::Unit::TestCase
     assert_equal "Because 31 is not enough ...", experiment(:ice_cream_flavor).description
   end
 
-  def test_experiment_stores_nothing_when_collection_disabled
+  it "stores nothing when collection disabled" do
     not_collecting!
     new_ab_test(:ice_cream_flavor) { metrics :happiness }
     experiment(:ice_cream_flavor).complete!
@@ -136,7 +135,7 @@ class ExperimentTest < Test::Unit::TestCase
 
   # check_completion is called by derived classes, but since it's
   # part of the base_test I'm testing it here.
-  def test_error_in_check_completion
+  it "handles error in check completion" do
     new_ab_test(:ab) { metrics :happiness }
     e = experiment(:ab)
     e.complete_if { true }
@@ -146,7 +145,7 @@ class ExperimentTest < Test::Unit::TestCase
     e.track!(:a, Time.now, 10)
   end
 
-  def test_complete_updates_completed_at
+  it "complete updates completed_at" do
     new_ab_test(:ice_cream_flavor) { metrics :happiness }
 
     time = Time.utc(2008, 9, 1, 12, 0, 0)
