@@ -18,7 +18,6 @@ module Vanity
     # First argument is connection specification (see #redis=), last argument is
     # a set of options, both are optional. Supported options are:
     # - connection -- Connection specification
-    # - namespace -- Namespace to use
     # - load_path -- Path to load experiments/metrics from
     # - logger -- Logger to use
     # - redis -- A Redis object that will be used for the connection
@@ -41,7 +40,6 @@ module Vanity
 
       @options = defaults.merge(config).merge(options)
 
-      warn "Deprecated: namespace option no longer supported directly" if @options[:namespace]
       @load_path = @options[:load_path] || DEFAULTS[:load_path]
       unless @logger = @options[:logger]
         @logger = Logger.new(STDOUT)
@@ -56,9 +54,6 @@ module Vanity
       self.add_participant_path = DEFAULT_ADD_PARTICIPANT_PATH
       @collecting = !!@options[:collecting]
     end
-
-    # Deprecated. Use redis.server instead.
-    attr_accessor :host, :port, :db, :password, :namespace
 
     # Path to load experiment files from.
     attr_accessor :load_path
@@ -417,39 +412,10 @@ module Vanity
       establish_connection(@spec)
     end
 
-    # Deprecated. Use Vanity.playground.collecting = true/false instead.
-    def test!
-      warn "Deprecated: use collecting = false instead"
-      self.collecting = false
-    end
-
-    # Deprecated. Use establish_connection or configuration file instead.
-    def redis=(spec_or_connection)
-      warn "Deprecated: use establish_connection method instead"
-      case spec_or_connection
-      when String
-        establish_connection "redis://" + spec_or_connection
-      when ::Redis
-        @connection = Adapters::RedisAdapter.new(spec_or_connection)
-      when :mock
-        establish_connection :adapter=>:mock
-      else
-        raise "I don't know what to do with #{spec_or_connection.inspect}"
-      end
-    end
-
-    def redis
-      warn "Deprecated: use connection method instead"
-      connection
-    end
-
     protected
 
     def autoconnect(options, arguments)
-      if options[:host] == 'redis' && options.values_at(:host, :port, :db).any?
-        warn "Deprecated: please specify Redis connection as URL (\"redis://host:port/db\")"
-        establish_connection :adapter=>"redis", :host=>options[:host], :port=>options[:port], :database=>options[:db] || options[:database]
-      elsif options[:redis]
+      if options[:redis]
         @adapter = RedisAdapter.new(:redis=>options[:redis])
       else
         connection_spec = arguments.shift || options[:connection]
@@ -494,21 +460,5 @@ module Vanity
     def template(name)
       File.join(File.dirname(__FILE__), "templates/#{name}")
     end
-  end
-end
-
-
-class Object
-
-  # Use this method to access an experiment by name.
-  #
-  # @example
-  #   puts experiment(:text_size).alternatives
-  #
-  # @see Vanity::Playground#experiment
-  # @deprecated
-  def experiment(name)
-    warn "Deprecated. Please call Vanity.playground.experiment directly."
-    Vanity.playground.experiment(name)
   end
 end

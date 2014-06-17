@@ -211,13 +211,6 @@ $stdout << Vanity.playground.collecting?
     RB
   end
 
-  def test_collection_false_after_test!
-    assert_equal "false", load_rails("", <<-RB)
-Vanity.playground.test!
-$stdout << Vanity.playground.collecting?
-    RB
-  end
-
   def test_playground_loads_if_connected
     assert_equal "{}", load_rails("", <<-RB)
 $stdout << Vanity.playground.instance_variable_get(:@experiments).inspect
