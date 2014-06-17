@@ -21,6 +21,8 @@ Add to your Gemfile:
 
   gem "vanity"
 
+(For support for older versions of Rails and Ruby 1.8, please see the {1.9.x branch}[https://github.com/assaf/vanity/tree/1-9-stable].)
+
 ==== Step 1.2
 
 Choose a datastore that best fits your needs and preferences for storing experiment results. Choose one of: Redis, MongoDB or an SQL database. While Redis is usually faster, it may add additional complexity to your stack. Datastores should be configured using a <code>config/vanity.yml</code>.
