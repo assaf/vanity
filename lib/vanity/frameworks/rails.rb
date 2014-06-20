@@ -357,16 +357,3 @@ ActiveSupport.on_load(:action_mailer) do
   include Vanity::Rails::Filters
   helper Vanity::Rails::Helpers
 end
-
-# Reconnect whenever we fork under Passenger.
-if defined?(PhusionPassenger)
-  PhusionPassenger.on_event(:starting_worker_process) do |forked|
-    if forked
-      begin
-        Vanity.playground.reconnect! if Vanity.playground.collecting?
-      rescue Exception=>ex
-        Rails.logger.error "Error reconnecting: #{ex.to_s}"
-      end
-    end
-  end
-end

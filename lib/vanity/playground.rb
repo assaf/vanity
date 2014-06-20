@@ -55,6 +55,8 @@ module Vanity
       @failover_on_datastore_error = false
       self.add_participant_path = DEFAULT_ADD_PARTICIPANT_PATH
       @collecting = !!@options[:collecting]
+
+      add_passenger_reconnect!
     end
 
     # Deprecated. Use redis.server instead.
@@ -458,6 +460,21 @@ module Vanity
           establish_connection connection_spec
         else
           establish_connection
+        end
+      end
+    end
+
+    def add_passenger_reconnect!
+      # Reconnect whenever we fork under Passenger.
+      if defined?(PhusionPassenger)
+        PhusionPassenger.on_event(:starting_worker_process) do |forked|
+          if forked
+            begin
+              Vanity.playground.reconnect! if Vanity.playground.collecting?
+            rescue Exception=>ex
+              Rails.logger.error "Error reconnecting: #{ex.to_s}"
+            end
+          end
         end
       end
     end
