@@ -7,7 +7,7 @@ GIT
 PATH
   remote: ..
   specs:
-    vanity (1.9.1)
+    vanity (2.0.0.beta)
 
 GEM
   remote: https://rubygems.org/
