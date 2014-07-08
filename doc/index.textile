@@ -21,7 +21,7 @@ Also:
 * "Experiment Driven Development(Introduction to EDD and Vanity)":http://blog.labnotes.org/2009/11/19/vanity-experiment-driven-development-for-rails/
 * "Get the code(Official Github repository)":http://github.com/assaf/vanity
 * "API reference":api/index.html
-* "Join vanity-talk list":http://groups.google.com/group/vanity-talk
+* "Ask questions on StackOverflow":http://stackoverflow.com/questions/tagged/vanity
 * "Contributing to Vanity":contributing.html
 
 h3(#intro). Introduction & setup

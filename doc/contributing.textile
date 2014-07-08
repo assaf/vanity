@@ -15,7 +15,7 @@ By all means.
 
 h3(#contributing).  How To Contribute
 
-Pick on an "open issue":http://github.com/assaf/vanity/issues, "experimental feature":experimental.html, suggestion from the "Google Group":http://groups.google.com/group/vanity-talk, or whatever you feel like contributing.
+Pick on an "open issue":http://github.com/assaf/vanity/issues, "experimental feature":experimental.html, or whatever you feel like contributing.
 
 To contribute new code/changes:
 # "Fork the project":http://github.com/assaf/vanity
@@ -68,7 +68,7 @@ h3(#doc). Documentation
 
 Documentation is written in "Textile":http://redcloth.org/textile/writing-paragraph-text/, and converted to HTML using "Jekyll":http://jekyllrb.com/.
 
-API reference is "RDoc":http://rdoc.sourceforge.net/doc/index.html, converted to HTML using "Yardoc":http://yardoc.org/. 
+API reference is "RDoc":http://rdoc.sourceforge.net/doc/index.html, converted to HTML using "Yardoc":http://yardoc.org/.
 
 To build and view documentation:
 
