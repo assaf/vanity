@@ -1,2 +1,0 @@
-metric "Signups" do
-end
