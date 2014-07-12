@@ -134,7 +134,7 @@ Conversions are created via the <code>track!</code> method. For example:
 
 To view metrics and experiment results with the dashboard in Rails 3 & Rails 4:
 
-  rails generate controller --helper=false Vanity
+  rails generate controller Vanity --helper=false
 
 In <code>config/routes.rb</code>, add:
 
