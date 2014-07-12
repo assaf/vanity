@@ -136,7 +136,7 @@ end
 
 h3(#ga).  Google Analytics
 
-You can easily include Google Analytics metrics in your Vanity dashboard.  You'll need, in addition to Vanity, to use "Garb":http://github.com/vigetlabs/garb, a Ruby wrapper for the Google Analytics API.
+You can easily include Google Analytics metrics in your Vanity dashboard.  You'll need, in addition to Vanity, to use "Garb":http://github.com/vigetlabs/garb, a Ruby wrapper for the Google Analytics API. Note that at least version 0.9.0 is required for Google's latest API.
 
 Login to Google Analytics using either username and password, or OAuth authentication token.  Here's a sample @config/environment@ snippet:
 
@@ -144,8 +144,8 @@ Login to Google Analytics using either username and password, or OAuth authentic
 Rails::Initializer.run do |config|
   gems.config "vanity"
   gems.config "garb"
- 
-  . . . 
+
+  . . .
   config.after_initialize do
     require "garb"
     ga = YAML.load_file(Rails.root + "config/ga.yml")

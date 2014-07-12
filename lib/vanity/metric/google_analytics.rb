@@ -63,7 +63,7 @@ module Vanity
         attr_reader :profile
 
         def initialize(web_property_id, metric)
-          self.class.send :include, Garb::Resource
+          self.class.send :include, Garb::Resource #TODO
           @web_property_id = web_property_id
           metrics metric
           dimensions :date

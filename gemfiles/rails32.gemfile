@@ -10,7 +10,7 @@ gem "mongo"
 gem "sqlite3"
 gem "integration"
 gem "rubystats"
-gem "garb"
+gem "garb", "~> 0.9.8"
 gem "timecop", :require=>false
 gem "webmock", :require=>false
 gem "mocha", "~> 0.12.8", :require=>false
