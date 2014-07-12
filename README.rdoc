@@ -6,8 +6,7 @@ Vanity is an A/B testing framework for Rails that is datastore agnostic.
 * All about Vanity: http://vanity.labnotes.org
 * On Github: http://github.com/assaf/vanity
 
-http://farm3.static.flickr.com/2540/4099665871_497f274f68_o.jpg
-
+{<img src="https://raw.githubusercontent.com/assaf/vanity/bugfix/readme/doc/images/sidebar_test.png" alt="Dashbarod" />}[http://github.com/assaf/vanity]
 
 == A/B Testing With Rails
 
