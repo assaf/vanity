@@ -47,7 +47,7 @@ module Vanity
       locals = struct.new(*locals.values_at(*keys))
       dir, base = File.split(path)
       path = File.join(dir, partialize(base))
-      erb = ERB.new(File.read(path), nil, '<>')
+      erb = ERB.new(File.read(path, '.erb'), nil, '<>')
       erb.filename = path
       erb.result(locals.instance_eval { binding })
     end
