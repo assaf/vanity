@@ -166,12 +166,7 @@ module Vanity
         select = "sum(#{connection.quote_column_name('value')}) AS value, #{connection.quote_column_name('date')}"
         group_by = "#{connection.quote_column_name('date')}"
 
-        values = record.vanity_metric_values.all(
-          :select => select,
-          :conditions => conditions,
-          :order => order,
-          :group => group_by
-        )
+        values = record.vanity_metric_values.select(select).where(conditions).group(group_by)
 
         dates.map do |date|
           value = values.detect{|v| v.date == date }
@@ -223,8 +218,8 @@ module Vanity
       # :conversions.
       def ab_counts(experiment, alternative)
         record = VanityExperiment.retrieve(experiment)
-        participants = VanityParticipant.count(:conditions => {:experiment_id => experiment.to_s, :seen => alternative})
-        converted = VanityParticipant.count(:conditions => {:experiment_id => experiment.to_s, :converted => alternative})
+        participants = VanityParticipant.where(:experiment_id => experiment.to_s, :seen => alternative).count
+        converted = VanityParticipant.where(:experiment_id => experiment.to_s, :converted => alternative).count
         conversions = record.vanity_conversions.sum(:conversions, :conditions => {:alternative => alternative})
 
         {
