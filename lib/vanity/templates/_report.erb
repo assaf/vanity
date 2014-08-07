@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title><%= I18n.t('vanity.report', :timestamp=>l(Time.now, :format=>'%b %d %Y, %I:%M:%P')) %></title>
+    <title><%= I18n.t('vanity.report', :timestamp=>I18n.l(Time.now, :format=>'%b %d %Y, %I:%M:%P')) %></title>
     <style>
       .vanity { margin: 2em auto; width: 40em; font-family: "Helvetica Neue", "Helvetica", "Verdana", sans-serif }
       .vanity h1 { margin: 1em 0; border-bottom: 3px solid #ccc }
@@ -21,12 +21,12 @@
 
       <% if experiments_persisted %>
         <% if experiments.present? %>
-          <h2><%= t 'vanity.experiments' %></h2>
+          <h2><%= I18n.t 'vanity.experiments' %></h2>
           <%= render :file=>Vanity.template("_experiments"), :locals=>{:experiments=>experiments} %>
         <% end %>
 
         <% unless metrics.empty? %>
-          <h2><%= t 'vanity.metrics' %></h2>
+          <h2><%= I18n.t 'vanity.metrics' %></h2>
           <%= render :file=>Vanity.template("_metrics"), :locals=>{:metrics=>metrics, :experiments=>experiments} %>
         <% end %>
       <% else %>

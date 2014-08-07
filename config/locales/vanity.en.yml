@@ -3,7 +3,7 @@ en:
     best_alternative: '(%{probability}% this is best)'
     best_alternative_is_significant: 'With %{probability}% probability this result is statistically significant.'
     best_alternative_probability: 'With %{probability}% probability this result is the best.'
-    best_alternative_measure: 'The best choice is %{best_alternative}: it converted at %{measure} %{better_than}.'
+    best_alternative_measure: 'The best choice is %{best_alternative}: it converted at %{measure}% %{better_than}.'
     better_alternative_than: '(%{probability}% better than %{alternative})'
     choose_experiment: 'Show me this alternative from now on'
     complete_and_confirm_experiment: 'Confirm experiment completion and assignment of all current and future participants to %{name}'
@@ -12,7 +12,7 @@ en:
     completed_at: 'Completed %{timestamp}'
     confirm: 'confirm'
     converted: '%{count} converted'
-    converted_percentage: '%{alternative} converted at %{percentage}'
+    converted_percentage: '%{alternative} converted at %{percentage}%.'
     currently_shown: 'currently shown'
     didnt_convert: '%{alternative} did not convert.'
     experiment_participants:

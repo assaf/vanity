@@ -3,7 +3,7 @@ pt-BR:
     best_alternative: '(%{probability}% de ser a melhor)'
     best_alternative_is_significant: '%{probability}% de probabilidade deste resultado ser estatisticamente significativo.'
     best_alternative_probability: '%{probability}% de probabilidade deste ser o melhor resultado.'
-    best_alternative_measure: 'A melhor escolha é %{best_alternative}: converteu %{measure} %{better_than}.'
+    best_alternative_measure: 'A melhor escolha é %{best_alternative}: converteu %{measure}% %{better_than}.'
     better_alternative_than: '(%{probability}% melhor do que %{alternative})'
     choose_experiment: 'Mostrar esta alternativa a partir de agora'
     complete_and_confirm_experiment: 'Confirme o término da experiência e atribuição de todos os participantes atuais e futuros para %{name}'
@@ -29,7 +29,7 @@ pt-BR:
     no_clear_winner: 'Esta experiência não correu tempo suficiente para definir um vencedor claro.'
     no_participants: 'Não há participantes neste experimento ainda.'
     not_collecting_data: 'Vanity não está a recolher dados ou métricas no momento. Para ativar a coleta de dados, definir %{setting} no %{file}.'
-    option_number: 'opção %{char}'
+    option_number: 'Opção %{char}'
     participant_taking_part_on: 'Participante #%{participant_id} está participando das seguintes experiências:'
     participants:
       one: '1 participante'

@@ -7,33 +7,33 @@
     <tr class="<%= "choice" if score.choice == alt %>">
       <td class="option"><%= alt.name.gsub(/^o/, "O") %>:</td>
       <td class="value"><code><%=vanity_h alt.value.to_s %></code></td>
-      <td class="value"><%= t 'vanity.participants', :count=>alt.participants %></td>
-      <td class="value"><%= t 'vanity.converted', :count=>alt.converted %></td>
+      <td class="value"><%= I18n.t 'vanity.participants', :count=>alt.participants %></td>
+      <td class="value"><%= I18n.t 'vanity.converted', :count=>alt.converted %></td>
       <td>
         <%= "%.1f%%" % [alt.conversion_rate * 100] %>
-        <%= t('vanity.best_alternative', :probabilty=>alt.probability.to_i) if score.method == :bayes_score %>
-        <%= t('vanity.better_alternative_than', :probability=>alt.difference.to_i, :alternative=>score.least.name) if alt.difference && alt.difference >= 1 %>
+        <%= I18n.t('vanity.best_alternative', :probabilty=>alt.probability.to_i) if score.method == :bayes_score %>
+        <%= I18n.t('vanity.better_alternative_than', :probability=>alt.difference.to_i, :alternative=>score.least.name) if alt.difference && alt.difference >= 1 %>
       </td>
       <% if experiment.active? && respond_to?(:url_for) %>
         <td class="action">
           <small>
             <% if experiment.showing?(alt) %>
-              <%= t 'vanity.currently_shown' %>
+              <%= I18n.t 'vanity.currently_shown' %>
             <% else %>
-              <a class="button chooses" title="<%= t 'vanity.choose_experiment' %>" href="#"
-                data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id) %>"><%= t 'vanity.show_me' %></a>
+              <a class="button chooses" title="<%= I18n.t 'vanity.choose_experiment' %>" href="#"
+                data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id) %>"><%= I18n.t 'vanity.show_me' %></a>
             <% end %>
           </small>
         </td>
         <td class="action">
           <small>
             <% if @to_confirm == alt.id %>
-              <%= t 'vanity.complete_and_confirm_experiment_label', :name=>alt.name %>
-              <a class="button chooses" title="<%= t 'vanity.complete_and_confirm_experiment', name: alt.name %>" href="#"
-              data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:complete, :e=>experiment.id, :a=>alt.id, :confirmed=>alt.id) %>"><%= t 'vanity.confirm' %></a>
+              <%= I18n.t 'vanity.complete_and_confirm_experiment_label', :name=>alt.name %>
+              <a class="button chooses" title="<%= I18n.t 'vanity.complete_and_confirm_experiment', name: alt.name %>" href="#"
+              data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:complete, :e=>experiment.id, :a=>alt.id, :confirmed=>alt.id) %>"><%= I18n.t 'vanity.confirm' %></a>
             <% else %>
-              <a class="button chooses" title="<%= t 'vanity.complete_experiment', :name=>alt.name %>" href="#"
-              data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:complete, :e=>experiment.id, :a=>alt.id) %>"><%= t 'vanity.make_permanent' %></a>
+              <a class="button chooses" title="<%= I18n.t 'vanity.complete_experiment', :name=>alt.name %>" href="#"
+              data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:complete, :e=>experiment.id, :a=>alt.id) %>"><%= I18n.t 'vanity.make_permanent' %></a>
             <% end %>
           </small>
         </td>

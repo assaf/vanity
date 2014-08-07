@@ -1,4 +1,4 @@
-<p><%= t 'vanity.participant_taking_part_on', :participant_id=>participant_id %>
+<p><%= I18n.t 'vanity.participant_taking_part_on', :participant_id=>participant_id %>
 <ul class="experiments">
   <% participant_info.each do |experiment, alt| %>
     <li class="experiment <%= experiment.type %>" id="experiment_<%=vanity_h experiment.id.to_s %>">

@@ -321,7 +321,7 @@ module Vanity
           if best.measure > second.measure
             diff = ((best.measure - second.measure) / second.measure * 100).round
             better = I18n.t('vanity.better_alternative_than', :probability=>diff.to_i, :alternative=> second.name) if diff > 0
-            claims << I18n.('vanity.best_alternative_measure', :best_alternative=>best.name, :measure=>'%.1f' % (alt.measure * 100), :better_than=>better)
+            claims << I18n.t('vanity.best_alternative_measure', :best_alternative=>best.name, :measure=>'%.1f' % (best.measure * 100), :better_than=>better)
             if score.method == :bayes_bandit_score
               if best.probability >= 90
                 claims << I18n.t('vanity.best_alternative_probability', :probability=>score.best.probability.to_i)
@@ -339,15 +339,15 @@ module Vanity
           end
           sorted.each do |alt|
             if alt.measure > 0.0
-              claims << I18n.t('vanity.converted_percentage', :alternative=>alt.name.humanize, :percentage=>'%.1f' % (alt.measure * 100))
+              claims << I18n.t('vanity.converted_percentage', :alternative=>alt.name.sub(/^\w/, &:upcase), :percentage=>'%.1f' % (alt.measure * 100))
             else
-              claims << I18n.t('vanity.didnt_convert', :alternative=>alt.name.humanize)
+              claims << I18n.t('vanity.didnt_convert', :alternative=>alt.name.sub(/^\w/, &:upcase))
             end
           end
         else
           claims << I18n.t('vanity.no_clear_winner')
         end
-        claims << I18n.t('vanity.selected_as_best', :alternative=>score.choice.name.humanize) if score.choice
+        claims << I18n.t('vanity.selected_as_best', :alternative=>score.choice.name.sub(/^\w/, &:upcase)) if score.choice
         claims
       end
 

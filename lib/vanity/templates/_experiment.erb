@@ -2,6 +2,6 @@
 <%= experiment.description.to_s.split(/\n\s*\n/).map { |para| vanity_html_safe(%{<p class="description">#{vanity_h para}</p>}) }.join.html_safe %>
 <%= render :file => Vanity.template("_" + experiment.type), :locals => {:experiment => experiment} %>
 <p class="meta">
-  <%= t('vanity.started_at', :timestamp=>l(experiment.created_at, :format=>'%a, %b %d')) %>
-  <%= ' | '+t('vanity.completed_at', :timestamp=>l(experiment.completed_at, :format=>'%a, %b %d')) unless experiment.active? %>
+  <%= I18n.t('vanity.started_at', :timestamp=>I18n.l(experiment.created_at, :format=>'%a, %b %d')) %>
+  <%= ' | '+I18n.t('vanity.completed_at', :timestamp=>I18n.l(experiment.completed_at, :format=>'%a, %b %d')) unless experiment.active? %>
 </p>
