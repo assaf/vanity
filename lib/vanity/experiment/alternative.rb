@@ -7,7 +7,7 @@ module Vanity
       def initialize(experiment, id, value) #, participants, converted, conversions)
         @experiment = experiment
         @id = id
-        @name = "option #{(@id + 65).chr}"
+        @name = I18n.t('vanity.option_number', :char=>(@id + 65).chr)
         @value = value
       end
 
