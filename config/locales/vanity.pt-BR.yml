@@ -14,7 +14,7 @@ pt-BR:
     converted:
       one: '1 convertido'
       other: '%{count} convertidos'
-    converted_percentage: '%{alternative} converteu %{percentage}'
+    converted_percentage: '%{alternative} converteu %{percentage}%'
     currently_shown: 'atualmente exibido'
     didnt_convert: '%{alternative} não converteu.'
     experiment_participants:
