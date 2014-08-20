@@ -1,7 +1,7 @@
 require "test_helper"
 
 class Sky < ActiveRecord::Base
-  scope :high, lambda { { :conditions=>"height >= 4" } }
+  scope :high, lambda { where("height >= 4") }
 end
 
 if ENV["DB"] == "active_record"

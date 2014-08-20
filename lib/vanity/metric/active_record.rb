@@ -39,15 +39,19 @@ module Vanity
         class_or_scope = class_or_scope.constantize if class_or_scope.is_a?(String)
         options = options || {}
         conditions = options.delete(:conditions)
-        @ar_scoped = conditions ? class_or_scope.scoped(:conditions=>conditions) : class_or_scope
+
+        @ar_scoped = conditions ? class_or_scope.where(conditions) : class_or_scope
         @ar_aggregate = AGGREGATES.find { |key| options.has_key?(key) }
         @ar_column = options.delete(@ar_aggregate)
         fail "Cannot use multiple aggregates in a single metric" if AGGREGATES.find { |key| options.has_key?(key) }
+
         @ar_timestamp = options.delete(:timestamp) || :created_at
         @ar_timestamp, @ar_timestamp_table = @ar_timestamp.to_s.split('.').reverse
         @ar_timestamp_table ||= @ar_scoped.table_name
+
         fail "Unrecognized options: #{options.keys * ", "}" unless options.empty?
-        @ar_scoped.after_create self
+
+        @ar_scoped.after_create(self)
         extend ActiveRecord
       end
     end
@@ -65,9 +69,16 @@ module Vanity
         sdate = sdate + difference
         edate = edate + difference
 
-        query = { :conditions=> { @ar_timestamp_table => { @ar_timestamp => (sdate.to_time...(edate + 1).to_time) } },
-                  :group=>"date(#{@ar_scoped.quoted_table_name}.#{@ar_scoped.connection.quote_column_name @ar_timestamp})" }
-        grouped = @ar_column ? @ar_scoped.send(@ar_aggregate, @ar_column, query) : @ar_scoped.count(query)
+        grouped = @ar_scoped
+            .where(@ar_timestamp_table => { @ar_timestamp => (sdate.to_time...(edate + 1).to_time) })
+            .group("date(#{@ar_scoped.quoted_table_name}.#{@ar_scoped.connection.quote_column_name(@ar_timestamp)})")
+
+        if @ar_column
+          grouped = grouped.send(@ar_aggregate, @ar_column)
+        else
+          grouped = grouped.count
+        end
+
         grouped = Hash[grouped.map {|k,v| [k.to_date, v] }]
         (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date] || 0) }
       end
@@ -79,6 +90,7 @@ module Vanity
       end
 
       def last_update_at
+        # SELECT created_at FROM "skies" ORDER BY created_at DESC LIMIT 1
         record = @ar_scoped.find(:first, :order=>"#@ar_timestamp DESC", :limit=>1, :select=>@ar_timestamp)
         record && record.send(@ar_timestamp)
       end
