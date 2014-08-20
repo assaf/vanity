@@ -70,7 +70,7 @@ module VanityTestHelpers
   # or reload an experiment (saved by the previous playground).
   def new_playground
     Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments")
-    Vanity.playground.establish_connection(DATABASE)
+    Vanity.playground.establish_connection(DATABASE) unless Vanity.playground.connected?
   end
 
   # Defines the specified metrics (one or more names). Returns metric, or array

@@ -1,23 +1,22 @@
 require "test_helper"
 
 class Sky < ActiveRecord::Base
-  if connected?
-    connection.drop_table :skies if table_exists?
-    connection.create_table :skies do |t|
+  scope :high, lambda { { :conditions=>"height >= 4" } }
+end
+
+if ENV["DB"] == "active_record"
+
+describe Vanity::Metric::ActiveRecord do
+
+  before do
+    Sky.connection.create_table(:skies) do |t|
       t.integer :height
       t.timestamps
     end
   end
 
-  scope :high, lambda { { :conditions=>"height >= 4" } }
-end
-
-if ActiveRecord::Base.connected?
-
-describe "ActiveRecord Metric" do
-
   after do
-    Sky.delete_all
+    Sky.connection.drop_table(:skies) if Sky.connection.table_exists?(Sky.table_name)
     Sky.reset_callbacks(:create)
     Sky.reset_callbacks(:save)
   end
