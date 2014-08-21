@@ -456,9 +456,6 @@ module Vanity
       Thread.current[:vanity_context] = context
     end
 
-    # Path to template.
-    def template(name)
-      File.join(File.dirname(__FILE__), "templates/#{name}")
-    end
+
   end
 end

@@ -29,6 +29,7 @@ require "vanity/adapters/abstract_adapter"
 require "vanity/adapters/mock_adapter"
 # Playground.
 require "vanity/playground"
+require "vanity/templates"
 require "vanity/autoconnect"
 require "vanity/helpers"
 # Integration with various frameworks.
