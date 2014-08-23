@@ -2,6 +2,17 @@ require "test_helper"
 
 describe "bin/vanity" do
 
+  # Hack for ActiveRecord/sqlite3 threading peculiarities
+  if ENV["DB"] == "active_record"
+    before do
+      Vanity.playground.establish_connection
+    end
+
+    after do
+      Vanity.playground.disconnect!
+    end
+  end
+
   it "responds to version" do
     proc {
       IO.any_instance.expects(:puts)

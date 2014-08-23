@@ -16,7 +16,5 @@ development:
 test:
   adapter: sqlite3
   database: ":memory:"
-
-production:
-  adapter: sqlite3
-  database: ":memory:"
+  timeout: 10000
+  busy_timeout: 1000

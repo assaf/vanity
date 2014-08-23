@@ -50,7 +50,7 @@ module VanityTestHelpers
   DATABASE = {
     "redis"=>"redis://localhost/15",
     "mongodb"=>"mongodb://localhost/vanity",
-    "active_record"=> { "adapter"=>"active_record", "active_record_adapter"=>"sqlite3", "database"=>"vanity_test.sqlite3", "timeout" => 10000, "busy_timeout" => 1000 },
+    "active_record"=> { "adapter"=>"active_record" }, # Let it re-use from ActiveRecord::Base (database.yml)
     "mock"=>"mock:/"
   }[ENV["DB"]] or raise "No support yet for #{ENV["DB"]}"
 
@@ -163,14 +163,9 @@ if defined?(ActionController::TestCase)
 end
 
 if ENV["DB"] == "active_record"
-  connection = {}
-  connection[:adapter] = VanityTestHelpers::DATABASE['active_record_adapter']
-  connection[:database] = VanityTestHelpers::DATABASE['database']
-  ActiveRecord::Base.establish_connection(connection)
   ActiveRecord::Base.logger = $logger
 
   require "generators/templates/vanity_migration"
   VanityMigration.down rescue nil
   VanityMigration.up
-  ActiveRecord::Base.connection_pool.disconnect!
 end
