@@ -29,12 +29,8 @@ opts = OptionParser.new("", 24, "  ") do |opts|
   opts.on "--load_path PATH", "Path to experiments directory (default: #{playground.load_path})" do |path|
     playground.load_path = path
   end
-  opts.on "-d", "--database url", "Database connection URL (e.g. redis:/localhost:6379)" do |conn|
+  opts.on "-d", "--database url", "Database connection URL (e.g. redis://localhost:6379)" do |conn|
     playground.establish_connection conn
-  end
-  opts.on "--redis HOST:PORT:DB", "DEPRECATED: Redis server host (default: localhost:6379)" do |redis|
-    host, port, db = redis.split(":")
-    playground.establish_connection "redis:/#{host}:#{port}/#{db}"
   end
   opts.on_tail "-h", "--help", "Show this message" do
     puts opts.to_s.gsub(/^.*DEPRECATED.*$/s, '')
