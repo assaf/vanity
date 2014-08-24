@@ -49,13 +49,15 @@ describe Vanity::Playground do
     end
   end
 
-  describe "autoconnect" do
-    it "reconnects with existing connection" do
+  describe "reconnect!" do
+    it "reconnects with the same configuration" do
       Vanity.playground.establish_connection "mock:/"
       Vanity.playground.reconnect!
       assert_equal Vanity.playground.connection.to_s, "mock:/"
     end
+  end
 
+  describe "autoconnect" do
     it "establishes connection by default with connection" do
       instance = Vanity::Playground.new(:connection=>"mock:/")
       assert instance.connected?

@@ -236,7 +236,7 @@ describe "ActiveRecord Metric" do
     assert_equal 2, times
   end
 
-  it "do it youself" do
+  it "do it yourself" do
     File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
       f.write <<-RUBY
         metric "Sky is limit" do
