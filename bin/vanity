@@ -16,7 +16,6 @@ opts = OptionParser.new("", 24, "  ") do |opts|
   opts.banner << "Commands:\n"
   opts.banner << "  list    List all experiments and metrics\n"
   opts.banner << "  report  Report on all running experiments/metrics\n"
-  opts.banner << "  upgrade Upgrade your database when deploying new release\n"
 
   opts.separator ""
   opts.separator "Reporting options:"
@@ -56,9 +55,6 @@ ARGV.each do |cmd|
   when "list"
     require "vanity/commands/list"
     Vanity::Commands.list
-  when "upgrade"
-    require "vanity/commands/upgrade"
-    Vanity::Commands.upgrade
   else puts "No such command: #{cmd}"
   end
 end
