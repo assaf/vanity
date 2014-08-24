@@ -107,7 +107,7 @@ module VanityTestHelpers
   end
 
   def dummy_request
-    defined?(ActionDispatch) ? ActionDispatch::TestRequest.new() : ActionController::TestRequest.new()
+    ActionDispatch::TestRequest.new()
   end
 
   # Defining setup/tear down in a module and including it below doesn't
