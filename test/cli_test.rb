@@ -48,10 +48,10 @@ describe "bin/vanity" do
   end
 
   it "responds to unknown commands" do
-    require "vanity/commands/upgrade"
-    Vanity::Commands.expects(:upgrade)
-    ARGV.clear
-    ARGV << 'upgrade'
-    load "bin/vanity"
+    assert_output("No such command: upgrade\n") do
+      ARGV.clear
+      ARGV << 'upgrade'
+      load "bin/vanity"
+    end
   end
 end
