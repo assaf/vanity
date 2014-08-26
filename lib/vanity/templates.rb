@@ -14,15 +14,11 @@ module Vanity
     private
 
     def load_paths
-      [rails_template_path, gem_template_path].compact
+      [Vanity.playground.custom_templates_path, gem_templates_path].compact
     end
 
-    def rails_template_path
-      File.join(::Rails.root, 'app', 'views', 'vanity') if defined?(::Rails)
-    end
-
-    def gem_template_path
-      File.join(File.dirname(__FILE__), 'templates')
+    def gem_templates_path
+      File.expand_path(File.join(File.dirname(__FILE__), 'templates'))
     end
   end
 

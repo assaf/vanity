@@ -72,7 +72,11 @@ If you would like to customize Vanity's dashboard, you can create create copies 
 rails g vanity:views
 </pre>
 
-You can then edit them to your heart's content.
+You can then edit them to your heart's content. If you need to use an alternative location for your custom templates, set the configuration variable @custom_templates_path@ on @Vanity.playground@ like this:
+
+<pre>
+Vanity.playground.custom_templates_path = 'views/vanity'
+</pre>
 
 h3(#fork).  Unicorn and Forking Servers
 
