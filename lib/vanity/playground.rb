@@ -68,6 +68,12 @@ module Vanity
 
     attr_accessor :request_filter
 
+    # Path to custom templates (overriding those in the gem)
+    attr_writer :custom_templates_path
+    def custom_templates_path
+      @custom_templates_path ||= (File.expand_path(File.join(::Rails.root, 'app', 'views', 'vanity')) if defined?(::Rails))
+    end
+
     # Defines a new experiment. Generally, do not call this directly,
     # use one of the definition methods (ab_test, measure, etc).
     #
@@ -456,9 +462,6 @@ module Vanity
       Thread.current[:vanity_context] = context
     end
 
-    # Path to template.
-    def template(name)
-      File.join(File.dirname(__FILE__), "templates/#{name}")
-    end
+
   end
 end

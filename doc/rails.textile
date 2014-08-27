@@ -64,6 +64,19 @@ h4. Enabling/disable collection
 
 When collection is off, Vanity doesn't connect to the database server, so there's no need to set a database configuration for these environments.
 
+h4. Overriding default views
+
+If you would like to customize Vanity's dashboard, you can create create copies of the default views in @app/views/vanity@ by running a generator:
+
+<pre>
+rails g vanity:views
+</pre>
+
+You can then edit them to your heart's content. If you need to use an alternative location for your custom templates, set the configuration variable @custom_templates_path@ on @Vanity.playground@ like this:
+
+<pre>
+Vanity.playground.custom_templates_path = 'views/vanity'
+</pre>
 
 h3(#fork).  Unicorn and Forking Servers
 
