@@ -26,7 +26,7 @@ Let's start with a simple experiment.  We have this idea that a bigger sign-up l
 We already have a "metric":metrics.html we're monitoring, and our experiment will measure against it:
 
 <pre>
-ab_test "Big singup link" do
+ab_test "Big signup link" do
   description "Testing to see if a bigger sign-up link increases number of signups."
   metrics :signup
 end
