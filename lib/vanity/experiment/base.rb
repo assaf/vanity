@@ -153,7 +153,7 @@ module Vanity
         @created_at = @completed_at = nil
       end
 
-      # Called by Playground to save the experiment definition.
+      # Called to save the experiment definition.
       def save
         return unless @playground.collecting?
         connection.set_experiment_created_at @id, Time.now

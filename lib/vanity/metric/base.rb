@@ -27,7 +27,7 @@ module Vanity
       def metric(name, &block)
         fail "Metric #{@metric_id} already defined in playground" if playground.metrics[@metric_id]
         metric = Metric.new(playground, name.to_s, @metric_id)
-        metric.instance_eval &block
+        metric.instance_eval(&block)
         playground.metrics[@metric_id] = metric
       end
 
@@ -222,7 +222,7 @@ module Vanity
     # -- Storage --
 
     def destroy!
-      connection.destroy_metric @id
+      connection.destroy_metric(@id)
     end
 
     def connection

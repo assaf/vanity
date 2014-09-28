@@ -178,7 +178,7 @@ module Vanity
       def chooses(value, request=nil)
         if @playground.collecting?
           if value.nil?
-            connection.ab_not_showing @id, identity
+            connection.ab_not_showing(@id, identity)
           else
             index = @alternatives.index(value)
             save_assignment_if_valid_visitor(identity, index, request)
@@ -385,7 +385,7 @@ module Vanity
         return unless @playground.collecting?
         score_results = bayes_bandit_score
         if score_results.method == :bayes_bandit_score
-          set_alternative_probabilities score_results.alts
+          set_alternative_probabilities(score_results.alts)
         end
       end
 
@@ -435,14 +435,14 @@ module Vanity
           end
         end
         # TODO: logging
-        connection.ab_set_outcome @id, outcome || 0
+        connection.ab_set_outcome(@id, outcome || 0)
       end
 
 
       # -- Store/validate --
 
       def destroy
-        connection.destroy_experiment @id
+        connection.destroy_experiment(@id)
         super
       end
 
@@ -455,8 +455,9 @@ module Vanity
           metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
           @metrics = [metric]
         end
+
         @metrics.each do |metric|
-          metric.hook &method(:track!)
+          metric.hook(:track, &method(:track!))
         end
       end
 
@@ -468,7 +469,7 @@ module Vanity
         if identity
           return if connection.ab_showing(@id, identity)
           index = alternative_for(identity)
-          connection.ab_add_conversion @id, index, identity, count
+          connection.ab_add_conversion(@id, index, identity, count)
           check_completion!
         end
       end
@@ -486,12 +487,12 @@ module Vanity
           participants.times do |identity|
             index = @alternatives.index(value)
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            connection.ab_add_participant @id, index, "#{index}:#{identity}"
+            connection.ab_add_participant(@id, index, "#{index}:#{identity}")
           end
           conversions.times do |identity|
             index = @alternatives.index(value)
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
-            connection.ab_add_conversion @id, index, "#{index}:#{identity}"
+            connection.ab_add_conversion(@id, index, "#{index}:#{identity}")
           end
         end
       end
@@ -502,7 +503,7 @@ module Vanity
       # same experiment).
       def alternative_for(identity)
         if @use_probabilities
-          existing_assignment = connection.ab_assigned @id, identity
+          existing_assignment = connection.ab_assigned(@id, identity)
           return existing_assignment if existing_assignment
           random_outcome = rand()
           @use_probabilities.each do |alternative, max_prob|
