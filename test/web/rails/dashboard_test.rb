@@ -16,6 +16,13 @@ class RailsDashboardTest < ActionController::TestCase
       metrics :sugar_high
       identify { '1' }
     end
+
+    metric :liquidity
+    new_ab_test :drink do
+      alternatives :tea, :coffee
+      metrics :liquidity
+      identify { '1' }
+    end
   end
 
   # --  Test dashboard --
@@ -51,20 +58,34 @@ class RailsDashboardTest < ActionController::TestCase
   # --  Actions used in non-admin actions, e.g. in JS --
 
   def test_add_participant
-    xhr :post, :add_participant, :e => "food", :a => 0
+    xhr :post, :add_participant, :v => 'food=0'
     assert_response :success
     assert @response.body.blank?
     assert_equal 1, experiment(:food).alternatives.map(&:participants).sum
   end
 
+  def test_add_participant_multiple_experiments
+    xhr :post, :add_participant, :v => 'food=0,drink=1'
+    assert_response :success
+    assert @response.body.blank?
+    assert_equal 1, experiment(:food).alternatives.map(&:participants).sum
+    assert_equal 1, experiment(:drink).alternatives.map(&:participants).sum
+  end
+
   def test_add_participant_with_invalid_request
-    @request.user_agent = "Googlebot/2.1 ( http://www.google.com/bot.html)"
-    xhr :post, :add_participant, :e => "food", :a => 0
+    @request.user_agent = 'Googlebot/2.1 ( http://www.google.com/bot.html)'
+    xhr :post, :add_participant, :v => 'food=0'
     assert_equal 0, experiment(:food).alternatives.map(&:participants).sum
   end
 
   def test_add_participant_no_params
     xhr :post, :add_participant
+    assert_response :not_found
+    assert @response.body.blank?
+  end
+
+  def test_add_participant_not_fail_for_unknown_experiment
+    xhr :post, :add_participant, :e => 'unknown=0'
     assert_response :not_found
     assert @response.body.blank?
   end
@@ -99,7 +120,7 @@ class RailsDashboardTest < ActionController::TestCase
   def test_complete_with_confirmation_completes
     xhr :post, :complete, :e => "food", :a => 0, :confirmed => 'true'
     assert_response :success
-    assert !Vanity.playground.experiment('food').active?
+    assert !Vanity.playground.experiment(:food).active?
   end
 
   def test_chooses

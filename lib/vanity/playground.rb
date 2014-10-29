@@ -95,7 +95,7 @@ module Vanity
     # @see Vanity::Experiment
     def experiment(name)
       id = name.to_s.downcase.gsub(/\W/, "_").to_sym
-      warn "Deprecated: pleae call experiment method with experiment identifier (a Ruby symbol)" unless id == name
+      warn "Deprecated: please call experiment method with experiment identifier (a Ruby symbol)" unless id == name
       experiments[id.to_sym] or raise NoExperimentError, "No experiment #{id}"
     end
 
