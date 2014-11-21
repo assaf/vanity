@@ -137,7 +137,11 @@ To view metrics and experiment results with the dashboard in Rails 3 & Rails 4:
 
 In <code>config/routes.rb</code>, add:
 
-  match '/vanity(/:action(/:id(.:format)))', :controller => :vanity, :via => [:get, :post]
+  get '/vanity' =>'vanity#index'
+  get '/vanity/participant/:id' => 'vanity#participant'
+  post '/vanity/complete'
+  post '/vanity/chooses'
+  post '/vanity/add_participant'
 
 The controller should look like:
 
