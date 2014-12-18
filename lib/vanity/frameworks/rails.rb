@@ -320,12 +320,25 @@ module Vanity
 
       # JS callback action used by vanity_js
       def add_participant
-        if params[:e].nil? || params[:e].empty?
+        if params[:v].nil?
           render :status => 404, :nothing => true
           return
         end
-        exp = Vanity.playground.experiment(params[:e].to_sym)
-        exp.chooses(exp.alternatives[params[:a].to_i].value, request)
+
+        h = {}
+        params[:v].split(',').each do |pair|
+          exp_id, answer = pair.split('=')
+          exp = Vanity.playground.experiment(exp_id.to_s.to_sym) rescue nil
+          answer = answer.to_i
+
+          if !exp || !exp.alternatives[answer]
+            render :status => 404, :nothing => true
+            return
+          end
+          h[exp] = exp.alternatives[answer].value
+        end
+
+        h.each{ |e,a| e.chooses(a, request) }
         render :status => 200, :nothing => true
       end
     end
