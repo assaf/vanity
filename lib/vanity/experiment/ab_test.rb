@@ -302,7 +302,7 @@ module Vanity
 
       # Use the result of #score or #bayes_bandit_score to derive a conclusion. Returns an
       # array of claims.
-      def conclusion(score = score)
+      def conclusion(score = score())
         claims = []
         participants = score.alts.inject(0) { |t,alt| t + alt.participants }
         claims << case participants
