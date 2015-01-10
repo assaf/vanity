@@ -305,10 +305,10 @@ module Vanity
       def conclusion(score = score())
         claims = []
         participants = score.alts.inject(0) { |t,alt| t + alt.participants }
-        claims << case participants
-          when 0 ; "There are no participants in this experiment yet."
-          when 1 ; "There is one participant in this experiment."
-          else ; "There are #{participants} participants in this experiment."
+        claims << if participants.zero?
+          I18n.t('vanity.no_participants')
+        else
+          I18n.t('vanity.experiment_participants', :count=>participants)
         end
         # only interested in sorted alternatives with conversion
         sorted = score.alts.select { |alt| alt.measure > 0.0 }.sort_by(&:measure).reverse
@@ -320,34 +320,34 @@ module Vanity
           best, second = sorted[0], sorted[1]
           if best.measure > second.measure
             diff = ((best.measure - second.measure) / second.measure * 100).round
-            better = " (%d%% better than %s)" % [diff, second.name] if diff > 0
-            claims << "The best choice is %s: it converted at %.1f%%%s." % [best.name, best.measure * 100, better]
+            better = I18n.t('vanity.better_alternative_than', :probability=>diff.to_i, :alternative=> second.name) if diff > 0
+            claims << I18n.t('vanity.best_alternative_measure', :best_alternative=>best.name, :measure=>'%.1f' % (best.measure * 100), :better_than=>better)
             if score.method == :bayes_bandit_score
               if best.probability >= 90
-                claims << "With %d%% probability this result is the best." % score.best.probability
+                claims << I18n.t('vanity.best_alternative_probability', :probability=>score.best.probability.to_i)
               else
-                claims << "This result does not have strong confidence behind it, suggest you continue this experiment."
+                claims << I18n.t('vanity.low_result_confidence')
               end
             else
               if best.probability >= 90
-                claims << "With %d%% probability this result is statistically significant." % score.best.probability
+                claims << I18n.t('vanity.best_alternative_is_significant', :probability=>score.best.probability.to_i)
               else
-                claims << "This result is not statistically significant, suggest you continue this experiment."
+                claims << I18n.t('vanity.result_isnt_significant')
               end
             end
             sorted.delete best
           end
           sorted.each do |alt|
             if alt.measure > 0.0
-              claims << "%s converted at %.1f%%." % [alt.name.gsub(/^o/, "O"), alt.measure * 100]
+              claims << I18n.t('vanity.converted_percentage', :alternative=>alt.name.sub(/^\w/, &:upcase), :percentage=>'%.1f' % (alt.measure * 100))
             else
-              claims << "%s did not convert." % alt.name.gsub(/^o/, "O")
+              claims << I18n.t('vanity.didnt_convert', :alternative=>alt.name.sub(/^\w/, &:upcase))
             end
           end
         else
-          claims << "This experiment did not run long enough to find a clear winner."
+          claims << I18n.t('vanity.no_clear_winner')
         end
-        claims << "#{score.choice.name.gsub(/^o/, "O")} selected as the best alternative." if score.choice
+        claims << I18n.t('vanity.selected_as_best', :alternative=>score.choice.name.sub(/^\w/, &:upcase)) if score.choice
         claims
       end
 

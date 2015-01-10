@@ -41,6 +41,8 @@ module Vanity
       @options = defaults.merge(config).merge(options)
 
       @load_path = @options[:load_path] || DEFAULTS[:load_path]
+
+      I18n.load_path += locale_file_paths
       unless @logger = @options[:logger]
         @logger = Logger.new(STDOUT)
         @logger.level = Logger::ERROR
@@ -388,6 +390,11 @@ module Vanity
 
     def load_config_file(basename = "vanity.yml")
       YAML.load(ERB.new(File.read(config_file_root + basename)).result)
+    end
+
+    def locale_file_paths
+      locale_files_dir = File.expand_path('../../config/locales/', File.dirname(__FILE__))
+      Dir[locale_files_dir+'/*.{rb,yml}']
     end
 
     # Returns the current connection. Establishes new connection is necessary.

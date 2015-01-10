@@ -22,6 +22,9 @@ gem "garb"
 gem "timecop", :require=>false
 gem "webmock", :require=>false
 
+# Internacionalization
+gem "i18n"
+
 group :development do
   gem "appraisal", ">= 1.0.0.beta2" # For setting up test Gemfiles
 
