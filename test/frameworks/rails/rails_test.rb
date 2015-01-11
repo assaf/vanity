@@ -1,20 +1,20 @@
 require "test_helper"
 
-class LoadPathAndConnectionConfigurationTest < Test::Unit::TestCase
+describe "Rails load path and connection configuration" do
 
-  def test_load_path
+  it "load_path" do
     assert_equal File.expand_path("tmp/experiments"), load_rails("", <<-RB)
 $stdout << Vanity.playground.load_path
     RB
   end
 
-  def test_settable_load_path
+  it "settable_load_path" do
     assert_equal File.expand_path("tmp/predictions"), load_rails(%Q{\nVanity.playground.load_path = "predictions"\n}, <<-RB)
 $stdout << Vanity.playground.load_path
     RB
   end
 
-  def test_absolute_load_path
+  it "absolute_load_path" do
     Dir.mktmpdir do |dir|
       assert_equal dir, load_rails(%Q{\nVanity.playground.load_path = "#{dir}"\n}, <<-RB)
 $stdout << Vanity.playground.load_path
@@ -23,118 +23,106 @@ $stdout << Vanity.playground.load_path
   end
 
   if ENV['DB'] == 'redis'
-    def test_default_connection
+    it "default_connection" do
       assert_equal "redis://127.0.0.1:6379/0", load_rails("", <<-RB)
 $stdout << Vanity.playground.connection
       RB
     end
 
-    def test_connection_from_string
+    it "connection_from_string" do
       assert_equal "redis://192.168.1.1:6379/5", load_rails(%Q{\nVanity.playground.establish_connection "redis://192.168.1.1:6379/5"\n}, <<-RB)
 $stdout << Vanity.playground.connection
       RB
     end
 
-    def test_connection_from_yaml
-      FileUtils.mkpath "tmp/config"
-      @original_env = ENV["RAILS_ENV"]
-      ENV["RAILS_ENV"] = "production"
-      File.open("tmp/config/vanity.yml", "w") do |io|
-        io.write <<-YML
+    it "connection_from_yaml" do
+      begin
+        FileUtils.mkpath "tmp/config"
+        @original_env = ENV["RAILS_ENV"]
+        ENV["RAILS_ENV"] = "production"
+        File.open("tmp/config/vanity.yml", "w") do |io|
+          io.write <<-YML
 production:
   adapter: redis
   host: somehost
   database: 15
         YML
-      end
-      assert_equal "redis://somehost:6379/15", load_rails("", <<-RB)
+        end
+        assert_equal "redis://somehost:6379/15", load_rails("", <<-RB)
 $stdout << Vanity.playground.connection
-      RB
-    ensure
-      ENV["RAILS_ENV"] = @original_env
-      File.unlink "tmp/config/vanity.yml"
+        RB
+      ensure
+        ENV["RAILS_ENV"] = @original_env
+        File.unlink "tmp/config/vanity.yml"
+      end
     end
 
-    def test_connection_from_yaml_url
-      FileUtils.mkpath "tmp/config"
-      @original_env = ENV["RAILS_ENV"]
-      ENV["RAILS_ENV"] = "production"
-      File.open("tmp/config/vanity.yml", "w") do |io|
-        io.write <<-YML
+    it "connection_from_yaml_url" do
+      begin
+        FileUtils.mkpath "tmp/config"
+        @original_env = ENV["RAILS_ENV"]
+        ENV["RAILS_ENV"] = "production"
+        File.open("tmp/config/vanity.yml", "w") do |io|
+          io.write <<-YML
 production: redis://somehost/15
-        YML
-      end
-      assert_equal "redis://somehost:6379/15", load_rails("", <<-RB)
+          YML
+        end
+        assert_equal "redis://somehost:6379/15", load_rails("", <<-RB)
 $stdout << Vanity.playground.connection
-      RB
-    ensure
-      ENV["RAILS_ENV"] = @original_env
-      File.unlink "tmp/config/vanity.yml"
+        RB
+      ensure
+        ENV["RAILS_ENV"] = @original_env
+        File.unlink "tmp/config/vanity.yml"
+      end
     end
 
-    def test_connection_from_yaml_with_erb
-      FileUtils.mkpath "tmp/config"
-      @original_env = ENV["RAILS_ENV"]
-      ENV["RAILS_ENV"] = "production"
-      # Pass storage URL through environment like heroku does
-      @original_redis_url = ENV["REDIS_URL"]
-      ENV["REDIS_URL"] = "redis://somehost:6379/15"
-      File.open("tmp/config/vanity.yml", "w") do |io|
-        io.write <<-YML
+    it "connection_from_yaml_with_erb" do
+      begin
+        FileUtils.mkpath "tmp/config"
+        @original_env = ENV["RAILS_ENV"]
+        ENV["RAILS_ENV"] = "production"
+        # Pass storage URL through environment like heroku does
+        @original_redis_url = ENV["REDIS_URL"]
+        ENV["REDIS_URL"] = "redis://somehost:6379/15"
+        File.open("tmp/config/vanity.yml", "w") do |io|
+          io.write <<-YML
 production: <%= ENV['REDIS_URL'] %>
         YML
-      end
-      assert_equal "redis://somehost:6379/15", load_rails("", <<-RB)
+        end
+        assert_equal "redis://somehost:6379/15", load_rails("", <<-RB)
 $stdout << Vanity.playground.connection
-      RB
-    ensure
-      ENV["RAILS_ENV"] = @original_env
-      ENV["REDIS_URL"] = @original_redis_url
-      File.unlink "tmp/config/vanity.yml"
+        RB
+      ensure
+        ENV["RAILS_ENV"] = @original_env
+        ENV["REDIS_URL"] = @original_redis_url
+        File.unlink "tmp/config/vanity.yml"
+      end
     end
 
-    def test_connection_from_redis_yml
-      FileUtils.mkpath "tmp/config"
-      yml = File.open("tmp/config/redis.yml", "w")
-      yml << "production: internal.local:6379\n"
-      yml.flush
-      assert_equal "redis://internal.local:6379/0", load_rails("", <<-RB)
+    it "connection_from_redis_yml" do
+      begin
+        FileUtils.mkpath "tmp/config"
+        yml = File.open("tmp/config/redis.yml", "w")
+        yml << "production: internal.local:6379\n"
+        yml.flush
+        assert_equal "redis://internal.local:6379/0", load_rails("", <<-RB)
 $stdout << Vanity.playground.connection
-      RB
-    ensure
-      File.unlink yml.path
+        RB
+      ensure
+        File.unlink yml.path
+      end
     end
   end
 
   if ENV['DB'] == 'mongo'
-    def test_mongo_connection_from_yaml
-      FileUtils.mkpath "tmp/config"
-      File.open("tmp/config/vanity.yml", "w") do |io|
-        io.write <<-YML
-mongodb:
-  adapter: mongodb
-  host: localhost
-  port: 27017
-  database: vanity_test
-        YML
-      end
-
-      assert_equal "mongodb://localhost:27017/vanity_test", load_rails("", <<-RB, "mongodb")
-$stdout << Vanity.playground.connection
-      RB
-    ensure
-      File.unlink "tmp/config/vanity.yml"
-    end
-
-    unless ENV['CI'] == 'true' #TODO this doesn't get tested on CI
-      def test_mongodb_replica_set_connection
+    it "mongo_connection_from_yaml" do
+      begin
         FileUtils.mkpath "tmp/config"
         File.open("tmp/config/vanity.yml", "w") do |io|
           io.write <<-YML
 mongodb:
   adapter: mongodb
-  hosts:
-    - localhost
+  host: localhost
   port: 27017
   database: vanity_test
           YML
@@ -143,81 +131,109 @@ mongodb:
         assert_equal "mongodb://localhost:27017/vanity_test", load_rails("", <<-RB, "mongodb")
 $stdout << Vanity.playground.connection
         RB
-
-        assert_equal "Mongo::ReplSetConnection", load_rails("", <<-RB, "mongodb")
-$stdout << Vanity.playground.connection.mongo.class
-        RB
       ensure
         File.unlink "tmp/config/vanity.yml"
       end
     end
+
+    unless ENV['CI'] == 'true' #TODO this doesn't get tested on CI
+      it "mongodb_replica_set_connection" do
+        begin
+          FileUtils.mkpath "tmp/config"
+          File.open("tmp/config/vanity.yml", "w") do |io|
+            io.write <<-YML
+mongodb:
+  adapter: mongodb
+  hosts:
+    - localhost
+  port: 27017
+  database: vanity_test
+            YML
+          end
+
+          assert_equal "mongodb://localhost:27017/vanity_test", load_rails("", <<-RB, "mongodb")
+$stdout << Vanity.playground.connection
+          RB
+
+          assert_equal "Mongo::ReplSetConnection", load_rails("", <<-RB, "mongodb")
+$stdout << Vanity.playground.connection.mongo.class
+          RB
+        ensure
+          File.unlink "tmp/config/vanity.yml"
+        end
+      end
+    end
   end
 
-  def test_connection_from_yaml_missing
-    FileUtils.mkpath "tmp/config"
-    File.open("tmp/config/vanity.yml", "w") do |io|
-      io.write <<-YML
+  it "connection_from_yaml_missing" do
+    begin
+      FileUtils.mkpath "tmp/config"
+      File.open("tmp/config/vanity.yml", "w") do |io|
+        io.write <<-YML
 production:
   adapter: redis
       YML
-    end
+      end
 
-     assert_equal "No configuration for development", load_rails("\nbegin\n", <<-RB, "development")
+       assert_equal "No configuration for development", load_rails("\nbegin\n", <<-RB, "development")
 rescue RuntimeError => e
   $stdout << e.message
 end
       RB
-  ensure
-    File.unlink "tmp/config/vanity.yml"
+    ensure
+      File.unlink "tmp/config/vanity.yml"
+    end
   end
 
-  def test_collection_from_vanity_yaml
-    FileUtils.mkpath "tmp/config"
-    File.open("tmp/config/vanity.yml", "w") do |io|
-      io.write <<-YML
+  it "collection_from_vanity_yaml" do
+    begin
+      FileUtils.mkpath "tmp/config"
+      File.open("tmp/config/vanity.yml", "w") do |io|
+        io.write <<-YML
 production:
   collecting: false
   adapter: mock
-      YML
-    end
-    assert_equal "false", load_rails("", <<-RB)
+        YML
+      end
+      assert_equal "false", load_rails("", <<-RB)
 $stdout << Vanity.playground.collecting?
-    RB
-  ensure
-    File.unlink "tmp/config/vanity.yml"
+      RB
+    ensure
+      File.unlink "tmp/config/vanity.yml"
+    end
   end
 
-  def test_collection_true_in_production_by_default
+  it "collection_true_in_production_by_default" do
     assert_equal "true", load_rails("", <<-RB)
 $stdout << Vanity.playground.collecting?
     RB
   end
 
-  def test_collection_false_in_production_when_configured
+  it "collection_false_in_production_when_configured" do
     assert_equal "false", load_rails("\nVanity.playground.collecting = false\n", <<-RB)
 $stdout << Vanity.playground.collecting?
     RB
   end
 
-  def test_collection_true_in_development_by_default
+  it "collection_true_in_development_by_default" do
     assert_equal "true", load_rails("", <<-RB, "development")
 $stdout << Vanity.playground.collecting?
     RB
   end
 
-  def test_collection_true_in_development_when_configured
+  it "collection_true_in_development_when_configured" do
     assert_equal "true", load_rails("\nVanity.playground.collecting = true\n", <<-RB, "development")
 $stdout << Vanity.playground.collecting?
     RB
   end
 
-  def test_playground_loads_if_connected
+  it "playground_loads_if_connected" do
     assert_equal "{}", load_rails("", <<-RB)
 $stdout << Vanity.playground.instance_variable_get(:@experiments).inspect
     RB
   end
 
-  def test_playground_does_not_load_if_not_connected
+  it "playground_does_not_load_if_not_connected" do
     ENV['VANITY_DISABLED'] = '1'
     assert_equal "nil", load_rails("", <<-RB)
 $stdout << Vanity.playground.instance_variable_get(:@experiments).inspect
