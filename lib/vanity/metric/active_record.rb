@@ -91,7 +91,7 @@ module Vanity
 
       def last_update_at
         # SELECT created_at FROM "skies" ORDER BY created_at DESC LIMIT 1
-        record = @ar_scoped.find(:first, :order=>"#@ar_timestamp DESC", :limit=>1, :select=>@ar_timestamp)
+        record = @ar_scoped.order("#{@ar_timestamp} DESC").select(@ar_timestamp).first
         record && record.send(@ar_timestamp)
       end
 
