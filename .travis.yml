@@ -18,6 +18,7 @@ env:
 gemfile:
   - gemfiles/rails32.gemfile
   - gemfiles/rails4.gemfile
+  - gemfiles/rails41.gemfile
 before_script:
 - 'echo ''gem: --no-ri --no-rdoc'' > ~/.gemrc' # skip installing docs for gems
 matrix:

@@ -1,14 +1,12 @@
 module Vanity
-  module Templates
-    extend self
-
-    # Path to template.
-    def template(name)
-      File.join(template_directory, name)
+  class Templates
+    def initialize
+      @template_directory = load_paths.find { |dir| File.exists?(dir) }
     end
 
-    def template_directory
-      @template_directory ||= load_paths.find { |dir| File.exists?(dir) }
+    # Path to template.
+    def path(name)
+      File.join(@template_directory, name)
     end
 
     private
@@ -24,7 +22,8 @@ module Vanity
 
   class << self
     def template(name)
-      Templates.template(name)
+      @templates ||= Templates.new
+      @templates.path(name)
     end
   end
 end

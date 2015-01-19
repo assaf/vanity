@@ -3,8 +3,7 @@ $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
 ENV["RACK_ENV"] = "test"
 ENV["DB"] ||= "redis"
 
-require "minitest/unit"
-require "minitest/spec"
+require "minitest/autorun"
 require "tmpdir"
 require "action_controller"
 require "action_controller/test_case"
@@ -27,7 +26,7 @@ if defined?(Mocha::VERSION) && Mocha::VERSION < "0.13.0"
 else
   require "mocha/mini_test"
 end
-require "webmock/test_unit"
+require "webmock/minitest"
 
 # Due to load order differences in Rails boot and test requires we have to
 # manually require these
@@ -124,40 +123,39 @@ module VanityTestHelpers
   end
 end
 
-class Test::Unit::TestCase
-  include WebMock::API
-  include VanityTestHelpers
+if defined?(Test)
+  class Test::Unit::TestCase
+    include VanityTestHelpers
+  end
 end
 
 class MiniTest::Spec
-  include WebMock::API
   include VanityTestHelpers
 end
 
 if defined?(MiniTest::Unit::TestCase)
   class MiniTest::Unit::TestCase
-    include WebMock::API
     include VanityTestHelpers
   end
 end
 
 if defined?(ActiveSupport::TestCase)
   class ActiveSupport::TestCase
+    include VanityTestHelpers
+
     self.use_instantiated_fixtures = false if respond_to?(:use_instantiated_fixtures)
     self.use_transactional_fixtures = false if respond_to?(:use_transactional_fixtures)
   end
 end
 
 if defined?(ActionController::TestCase)
-  module ActionController
-    class TestCase
-      alias :setup_controller_request_and_response_without_vanity :setup_controller_request_and_response
-      # Sets Vanity.context to the current controller, so you can do things like:
-      #   experiment(:simple).chooses(:green)
-      def setup_controller_request_and_response
-        setup_controller_request_and_response_without_vanity
-        Vanity.context = @controller
-      end
+  class ActionController::TestCase
+    alias :setup_controller_request_and_response_without_vanity :setup_controller_request_and_response
+    # Sets Vanity.context to the current controller, so you can do things like:
+    #   experiment(:simple).chooses(:green)
+    def setup_controller_request_and_response
+      setup_controller_request_and_response_without_vanity
+      Vanity.context = @controller
     end
   end
 end
