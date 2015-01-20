@@ -99,6 +99,19 @@ describe Vanity::Playground do
     end
   end
 
+  describe "#experiments" do
+    it "saves experiments exactly once" do
+      File.open "tmp/experiments/foobar.rb", "w" do |f|
+        f.write <<-RUBY
+          ab_test :foobar do
+          end
+        RUBY
+      end
+      Vanity::Experiment::AbTest.any_instance.expects(:save).once
+      Vanity.playground.experiments
+    end
+  end
+
   describe "participant_info" do
     it "returns participant's experiments" do
       assert_equal [], Vanity.playground.participant_info("abcdef")
