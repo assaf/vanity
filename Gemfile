@@ -12,7 +12,7 @@ gem "mongo"
 gem "sqlite3"
 
 # Math libraries
-gem "integration"
+gem "integration", "<= 0.1.0"
 gem "rubystats"
 
 # APIs
