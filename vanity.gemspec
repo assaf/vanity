@@ -23,6 +23,8 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = ">= 1.9.3"
 
+  spec.add_runtime_dependency "i18n"
+
   spec.add_development_dependency "bundler",  ">= 1.0.0"
   spec.add_development_dependency "minitest", ">= 4.2"
 end

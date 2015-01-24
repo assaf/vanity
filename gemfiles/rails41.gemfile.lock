@@ -8,6 +8,7 @@ PATH
   remote: .././
   specs:
     vanity (2.0.0.beta4)
+      i18n
 
 GEM
   remote: https://rubygems.org/
