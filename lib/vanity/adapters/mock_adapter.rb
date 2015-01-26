@@ -156,10 +156,6 @@ module Vanity
       def destroy_experiment(experiment)
         @experiments.delete experiment
       end
-
-      def reset_experiment(experiment)
-        @experiments[experiment] = {}
-      end
     end
   end
 end

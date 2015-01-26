@@ -15,6 +15,7 @@ en:
     converted_percentage: '%{alternative} converted at %{percentage}%.'
     currently_shown: 'currently shown'
     didnt_convert: '%{alternative} did not convert.'
+    experiment_has_been_reset: '%{name} experiment has been reset.'
     experiment_participants:
       one: 'There is one participant in this experiment.'
       other: 'There are %{count} participants in this experiment.'
@@ -32,6 +33,7 @@ en:
     participants:
       one: '1 participant'
       other: '%{count} participants'
+    reset: 'Reset'
     report: 'Vanity Report: %{timestamp}'
     result_isnt_significant: 'This result is not statistically significant, suggest you continue this experiment.'
     selected_as_best: '%{alternative} selected as the best alternative.'

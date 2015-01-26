@@ -321,7 +321,8 @@ module Vanity
       def reset
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.reset
-        redirect_to url_for(:action=>:index)
+        flash[:notice] = I18n.t 'vanity.experiment_has_been_reset', name: exp.name
+        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
 
       # JS callback action used by vanity_js
