@@ -15,7 +15,6 @@ module Vanity
 end
 
 require "vanity/version"
-require "vanity/backport" if RUBY_VERSION < "1.9"
 # Metrics.
 require "vanity/metric/base"
 require "vanity/metric/active_record"
