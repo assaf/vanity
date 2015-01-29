@@ -142,6 +142,7 @@ In <code>config/routes.rb</code>, add:
   post '/vanity/complete'
   post '/vanity/chooses'
   post '/vanity/add_participant'
+  get '/vanity/image'
 
 The controller should look like:
 
