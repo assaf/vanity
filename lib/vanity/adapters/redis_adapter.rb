@@ -223,7 +223,6 @@ module Vanity
           end
         end
       end
-
     end
   end
 end

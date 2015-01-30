@@ -445,6 +445,14 @@ module Vanity
         connection.destroy_experiment @id
         super
       end
+      
+      # clears all collected data for the experiment
+      def reset
+        connection.destroy_experiment @id
+        connection.set_experiment_created_at @id, Time.now
+        @outcome = @completed_at = nil
+        self
+      end
 
       def save
         true_false unless @alternatives

@@ -27,11 +27,6 @@ module Vanity
         end
       end
 
-      # Schema model
-      class VanitySchema < VanityRecord
-        self.table_name = :vanity_schema
-      end
-
       # Metric model
       class VanityMetric < VanityRecord
         UPDATED_AT_GRACE_PERIOD = 1.minute

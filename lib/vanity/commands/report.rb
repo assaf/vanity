@@ -28,6 +28,15 @@ module Vanity
       text
     end
 
+    class ProxyEmpty < String
+      def method_missing(method, *args, &block); self.class.new end
+    end
+
+    # prevent certain url helper methods from failing so we can run erb templates outside of rails for reports.
+    def method_missing(method, *args, &block)
+      %w(url_for flash).include?(method.to_s) ? ProxyEmpty.new : super
+    end
+
     # Dumbed down from Rails' simple_format.
     def vanity_simple_format(text, options={})
       open = "<p #{options.map { |k,v| "#{k}=\"#{CGI.escapeHTML v}\"" }.join(" ")}>"
