@@ -609,7 +609,7 @@ class AbTestTest < ActionController::TestCase
     assert experiment(:abcd).score.alts.all? { |alt| alt.difference.nil? }
     assert_equal 1, experiment(:abcd).score.best.id
     assert_nil experiment(:abcd).score.choice
-    assert_equal 2, experiment(:abcd).score.base.id
+    assert_includes [0,2,3], experiment(:abcd).score.base.id
     assert_equal 1, experiment(:abcd).score.least.id
   end
 
