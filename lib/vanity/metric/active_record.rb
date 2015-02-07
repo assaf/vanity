@@ -99,7 +99,7 @@ module Vanity
       def after_create(record)
         return unless @playground.collecting?
         count = @ar_column ? (record.send(@ar_column) || 0) : 1
-        call_hooks record.send(@ar_timestamp), nil, [count] if count > 0 && @ar_scoped.exists?(record)
+        call_hooks record.send(@ar_timestamp), nil, [count] if count > 0 && @ar_scoped.exists?(record.id)
       end
     end
   end
