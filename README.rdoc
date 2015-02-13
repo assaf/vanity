@@ -86,7 +86,6 @@ Turn Vanity on, and pass a reference to a method that identifies a user. For exa
 
   class ApplicationController < ActionController::Base
     use_vanity :current_user
-    layout false  # exclude this if you want to use your application layout
   end
 
 For more information, please see the {identity documentation}[http://vanity.labnotes.org/identity.html].
@@ -141,6 +140,7 @@ In <code>config/routes.rb</code>, add:
   get '/vanity/participant/:id' => 'vanity#participant'
   post '/vanity/complete'
   post '/vanity/chooses'
+  post '/vanity/reset'
   post '/vanity/add_participant'
   get '/vanity/image'
 
@@ -148,6 +148,7 @@ The controller should look like:
 
   class VanityController < ApplicationController
     include Vanity::Rails::Dashboard
+    layout false  # exclude this if you want to use your application layout
   end
 
 == Registering participants with Javascript
