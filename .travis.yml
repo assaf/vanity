@@ -25,5 +25,7 @@ before_script:
 - 'echo ''gem: --no-ri --no-rdoc'' > ~/.gemrc' # skip installing docs for gems
 matrix:
   exclude:
+    - rvm: 2.2.0
+      gemfile: gemfiles/rails32.gemfile
   allow_failures:
     - rvm: ruby-head
