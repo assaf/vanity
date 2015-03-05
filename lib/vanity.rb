@@ -24,6 +24,7 @@ require "vanity/metric/remote"
 require "vanity/experiment/base"
 require "vanity/experiment/ab_test"
 # Database adapters
+require "vanity/adapters"
 require "vanity/adapters/abstract_adapter"
 require "vanity/adapters/mock_adapter"
 # Playground.
