@@ -20,7 +20,7 @@ module Vanity
 
         def self.rails_agnostic_find_or_create_by(method, value)
           if respond_to? :find_or_create_by
-            find_or_create_by(method => value)
+            find_or_create_by_without_protection(method => value)
           else
             send :"find_or_create_by_#{method}", value
           end
