@@ -1,5 +1,5 @@
 var httpRequest;
-var params = "v=<%= @_vanity_experiments.map{|name, alternative| "#{name}=#{alternative.id}" }.join(',') %>&authenticity_token=<%= CGI.escape(form_authenticity_token) %>";
+var params = "v=<%= Vanity.context._vanity_experiments.map{|name, alternative| "#{name}=#{alternative.id}" }.join(',') %>&authenticity_token=<%= CGI.escape(form_authenticity_token) %>";
 if (window.XMLHttpRequest) { // Mozilla, Safari, ...
   httpRequest = new XMLHttpRequest();
 } else if (window.ActiveXObject) { // IE

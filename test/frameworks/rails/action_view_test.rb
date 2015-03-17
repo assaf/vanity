@@ -5,6 +5,7 @@ class RailsHelperTest < ActionView::TestCase
 
   def setup
     super
+    TestController.send :use_vanity
     metric :sugar_high
     new_ab_test :pie_or_cake do
       metrics :sugar_high
