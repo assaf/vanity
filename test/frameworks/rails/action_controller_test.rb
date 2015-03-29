@@ -1,5 +1,6 @@
 require "test_helper"
 
+# Pages accessible to everyone, e.g. sign in, community search.
 class UseVanityController < ActionController::Base
   attr_accessor :current_user
 
@@ -13,7 +14,30 @@ class UseVanityController < ActionController::Base
   end
 end
 
-# Pages accessible to everyone, e.g. sign in, community search.
+# class UseVanityControllerTest < ActionController::TestCase
+#   tests UseVanityController
+
+#   def setup
+#     super
+#     new_ab_test :pie_or_cake do
+#       metrics :sugar_high
+#     end
+
+#     # Class eval this instead of including in the controller to delay
+#     # execution until the request exists in the context of the test
+#     UseVanityController.class_eval do
+#       use_vanity :current_user
+#     end
+#   end
+
+#   def teardown
+#     super
+#   end
+
+#   def test_bootstraps_metric
+#   end
+# end
+
 class UseVanityControllerTest < ActionController::TestCase
   tests UseVanityController
 
@@ -23,12 +47,21 @@ class UseVanityControllerTest < ActionController::TestCase
     new_ab_test :pie_or_cake do
       metrics :sugar_high
     end
+
+    # Class eval this instead of including in the controller to delay
+    # execution until the request exists in the context of the test
     UseVanityController.class_eval do
       use_vanity :current_user
     end
-    if ::Rails.respond_to?(:application) # Rails 3 configuration
+
+    # Rails 3 configuration for cookies
+    if ::Rails.respond_to?(:application)
       ::Rails.application.config.session_options[:domain] = '.foo.bar'
     end
+  end
+
+  def teardown
+    super
   end
 
   def test_render_js_for_tests
@@ -109,7 +142,7 @@ class UseVanityControllerTest < ActionController::TestCase
     assert_equal "576", @controller.send(:vanity_identity)
   end
 
-  def test_vanity_identity_set_with_indentity_paramater
+  def test_vanity_identity_set_with_identity_paramater
     get :index, :_identity => "id_from_params"
     assert_equal "id_from_params", @controller.send(:vanity_identity)
   end
@@ -175,10 +208,6 @@ class UseVanityControllerTest < ActionController::TestCase
   def test_cookie_domain_from_rails_configuration
     get :index
     assert_match /domain=.foo.bar/, @response["Set-Cookie"] if ::Rails.respond_to?(:application)
-  end
-
-  def teardown
-    super
   end
 
 end

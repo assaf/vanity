@@ -32,6 +32,7 @@ module Vanity
         UPDATED_AT_GRACE_PERIOD = 1.minute
         self.table_name = :vanity_metrics
         has_many :vanity_metric_values
+        attr_accessible :metric_id if needs_attr_accessible?
 
         def self.retrieve(metric)
           rails_agnostic_find_or_create_by(:metric_id, metric.to_s)

@@ -63,6 +63,17 @@ describe "Metric via playground" do
     assert Vanity.playground.metrics.empty?
   end
 
+  it "bootstraps the metric" do
+    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "yawns/hour" do
+        end
+      RUBY
+    end
+    Vanity.playground.track!(:yawns_sec)
+    Vanity.playground.track!(:yawns_sec)
+    assert Vanity.playground.connection.get_metric_last_update_at(:yawns_sec)
+  end
 end
 
 
