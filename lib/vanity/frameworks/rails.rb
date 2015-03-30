@@ -214,7 +214,7 @@ module Vanity
       end
 
       def vanity_js
-        return if @_vanity_experiments.nil? || @_vanity_experiments.empty?
+        return if experiment_alternatives.nil? || experiment_alternatives.empty?
         javascript_tag do
           render :file => Vanity.template("_vanity"), :formats => [:js]
         end
@@ -254,10 +254,9 @@ module Vanity
       #     </script>
       #   <% end %>
       def vanity_experiments
-        @_vanity_experiments ||= {}
         experiments = {}
 
-        @_vanity_experiments.each do |name, alternative|
+        experiment_alternatives.each do |name, alternative|
           experiments[name] = alternative.clone
         end
 
@@ -266,11 +265,14 @@ module Vanity
 
       protected
 
-      def setup_experiment(name)
+      def experiment_alternatives
         @_vanity_experiments ||= {}
+      end
+
+      def setup_experiment(name)
         request = respond_to?(:request) ? self.request : nil
-        @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose(request)
-        @_vanity_experiments[name].value
+        experiment_alternatives[name] ||= Vanity.playground.experiment(name.to_sym).choose(request)
+        experiment_alternatives[name].value
       end
 
     end
@@ -317,7 +319,7 @@ module Vanity
         exp.chooses(exp.alternatives[params[:a].to_i].value)
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
-      
+
       def reset
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.reset
