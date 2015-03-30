@@ -49,7 +49,7 @@ module VanityTestHelpers
   DATABASE = {
     "redis"=>"redis://localhost/15",
     "mongodb"=>"mongodb://localhost/vanity",
-    "active_record"=> { "adapter"=>"active_record", "active_record_adapter"=>"sqlite3", "database"=>"vanity_test.sqlite3", "timeout" => 10000, "busy_timeout" => 1000 },
+    "active_record"=> { "adapter"=>"active_record", "active_record_adapter"=>"default" },
     "mock"=>"mock:/"
   }[ENV["DB"]] or raise "No support yet for #{ENV["DB"]}"
 
@@ -69,7 +69,8 @@ module VanityTestHelpers
   # or reload an experiment (saved by the previous playground).
   def new_playground
     Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments")
-    Vanity.playground.establish_connection(DATABASE) unless Vanity.playground.connected?
+    ActiveRecord::Base.establish_connection
+    Vanity.playground.establish_connection(DATABASE)
   end
 
   # Defines the specified metrics (one or more names). Returns metric, or array
@@ -161,14 +162,10 @@ if defined?(ActionController::TestCase)
 end
 
 if ENV["DB"] == "active_record"
-  connection = {}
-  connection[:adapter] = VanityTestHelpers::DATABASE['active_record_adapter']
-  connection[:database] = VanityTestHelpers::DATABASE['database']
-  ActiveRecord::Base.establish_connection(connection)
+  ActiveRecord::Base.establish_connection
   ActiveRecord::Base.logger = $logger
 
   require "generators/templates/vanity_migration"
   VanityMigration.down rescue nil
   VanityMigration.up
-  ActiveRecord::Base.connection_pool.disconnect!
 end

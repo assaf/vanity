@@ -1,6 +1,10 @@
 require "test_helper"
 
 describe Vanity::Templates do
+  before do
+    not_collecting!
+  end
+
   describe "template" do
     it "resolves templates from the gem by default" do
       custom_view_path = File.expand_path(File.join(Rails.root, 'app', 'views', 'vanity'))

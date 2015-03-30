@@ -9,14 +9,6 @@
 # Set databases in all environments since we may test loading Rails in non-
 # test environments
 
-development:
-  adapter: sqlite3
-  database: ":memory:"
-
 test:
   adapter: sqlite3
-  database: ":memory:"
-
-production:
-  adapter: sqlite3
-  database: ":memory:"
+  database: vanity_test.sqlite3

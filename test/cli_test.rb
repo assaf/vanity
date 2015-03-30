@@ -2,6 +2,10 @@ require "test_helper"
 
 describe "bin/vanity" do
 
+  before do
+    not_collecting!
+  end
+
   it "responds to version" do
     proc {
       IO.any_instance.expects(:puts)

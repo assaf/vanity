@@ -109,7 +109,7 @@ module Vanity
       end
 
       def active?
-        VanityRecord.connected?
+        VanityRecord.connected? && VanityRecord.connection.active?
       end
 
       def disconnect!
