@@ -35,6 +35,15 @@ Add to your Gemfile:
 
 By default Vanity is configured to use Redis on localhost port 6379 with database 0.
 
+A sample <code>config/vanity.yml</code> might look like:
+
+  test:
+    collecting: false
+  production:
+    adapter: redis
+    connection: redis://<%= ENV["REDIS_USER"] %>:<%= ENV["REDIS_PASSWORD"] %>@<%= ENV["REDIS_HOST"] %>:<%= ENV["REDIS_PORT"] %>/0
+
+
 ===== MongoDB Setup
 
 Add to your Gemfile:
@@ -70,10 +79,7 @@ A sample <code>config/vanity.yml</code> might look like:
     collecting: false
   production:
     adapter: active_record
-    active_record_adapter: mysql
-    database: vanity_test
-    pool: 5
-    timeout: 5000
+    active_record_adapter: default
 
 If you're going to store data in the database, run the generator and migrations to create the database schema:
 
