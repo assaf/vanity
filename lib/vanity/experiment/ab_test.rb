@@ -59,21 +59,11 @@ module Vanity
       #   alts = experiment(:background_color).alternatives
       #   puts "#{alts.count} alternatives, with the colors: #{alts.map(&:value).join(", ")}"
       def alternatives(*args)
-        @alternatives = args.empty? ? [true, false] : args.clone
-        class << self
-          define_method :alternatives, instance_method(:_alternatives)
+        @alternatives ||= args.empty? ? [true, false] : args.clone
+        @alternatives.each_with_index.map do |value, i|
+          Alternative.new(self, i, value)
         end
-        nil
       end
-
-      def _alternatives
-        alts = []
-        @alternatives.each_with_index do |value, i|
-          alts << Alternative.new(self, i, value)
-        end
-        alts
-      end
-      private :_alternatives
 
       # Returns an Alternative with the specified value.
       #
@@ -415,7 +405,7 @@ module Vanity
       def outcome
         return unless @playground.collecting?
         outcome = connection.ab_get_outcome(@id)
-        outcome && _alternatives[outcome]
+        outcome && alternatives[outcome]
       end
 
       def complete!(outcome = nil)
