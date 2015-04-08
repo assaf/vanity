@@ -39,10 +39,6 @@ module Vanity
       #     use_vanity { |controller| controller.params[:project_id] }
       #   end
       def use_vanity(symbol = nil, &block)
-        define_method :_vanity_experiments do
-          @_vanity_experiments ||= {}
-        end
-        
         if block
           define_method(:vanity_identity) { block.call(self) }
         else
@@ -87,13 +83,6 @@ module Vanity
       def use_vanity_mailer(symbol = nil)
         # Context is the instance of ActionMailer::Base
         Vanity.context = self
-        
-        class << self
-          define_method :_vanity_experiments do
-            @_vanity_experiments ||= {}
-          end
-        end
-        
         if symbol && (@object = symbol)
           class << self
             define_method :vanity_identity do
@@ -225,7 +214,7 @@ module Vanity
       end
 
       def vanity_js
-        return if Vanity.context._vanity_experiments.empty?
+        return if @_vanity_experiments.nil? || @_vanity_experiments.empty?
         javascript_tag do
           render :file => Vanity.template("_vanity"), :formats => [:js]
         end
@@ -265,9 +254,10 @@ module Vanity
       #     </script>
       #   <% end %>
       def vanity_experiments
+        @_vanity_experiments ||= {}
         experiments = {}
 
-        Vanity.context._vanity_experiments.each do |name, alternative|
+        @_vanity_experiments.each do |name, alternative|
           experiments[name] = alternative.clone
         end
 
@@ -277,9 +267,10 @@ module Vanity
       protected
 
       def setup_experiment(name)
+        @_vanity_experiments ||= {}
         request = respond_to?(:request) ? self.request : nil
-        Vanity.context._vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose(request)
-        Vanity.context._vanity_experiments[name].value
+        @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose(request)
+        @_vanity_experiments[name].value
       end
 
     end

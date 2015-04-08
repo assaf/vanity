@@ -160,18 +160,6 @@ if defined?(ActionController::TestCase)
   end
 end
 
-if defined?(ActionView::TestCase)
-  class ActionView::TestCase
-    alias :setup_with_controller_without_vanity :setup_with_controller
-    # Sets Vanity.context to the current controller, so you can do things like:
-    #   experiment(:simple).chooses(:green)
-    def setup_with_controller
-      setup_with_controller_without_vanity
-      Vanity.context = @controller
-    end
-  end
-end
-
 if ENV["DB"] == "active_record"
   connection = {}
   connection[:adapter] = VanityTestHelpers::DATABASE['active_record_adapter']

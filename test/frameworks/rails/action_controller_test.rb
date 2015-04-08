@@ -1,11 +1,5 @@
 require "test_helper"
 
-class TestModel
-  def test_method
-    ab_test(:pie_or_cake)
-  end
-end
-
 class UseVanityController < ActionController::Base
   attr_accessor :current_user
 
@@ -15,11 +9,6 @@ class UseVanityController < ActionController::Base
 
   def js
     ab_test(:pie_or_cake)
-    render :inline => "<%= vanity_js -%>"
-  end
-  
-  def model_js
-    TestModel.new.test_method
     render :inline => "<%= vanity_js -%>"
   end
 end
@@ -45,12 +34,6 @@ class UseVanityControllerTest < ActionController::TestCase
   def test_render_js_for_tests
     Vanity.playground.use_js!
     get :js
-    assert_match /script.*v=pie_or_cake=.*script/m, @response.body
-  end
-  
-  def test_render_model_js_for_tests
-    Vanity.playground.use_js!
-    get :model_js
     assert_match /script.*v=pie_or_cake=.*script/m, @response.body
   end
 
