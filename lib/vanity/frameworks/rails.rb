@@ -39,6 +39,12 @@ module Vanity
       #     use_vanity { |controller| controller.params[:project_id] }
       #   end
       def use_vanity(symbol = nil, &block)
+        define_method :vanity_store_experiment_for_js do |name, alternative|
+          @_vanity_experiments ||= {}
+          @_vanity_experiments[name] ||= alternative
+          @_vanity_experiments[name].value
+        end
+        
         if block
           define_method(:vanity_identity) { block.call(self) }
         else

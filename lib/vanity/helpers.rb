@@ -37,9 +37,7 @@ module Vanity
       # TODO refactor with Vanity::Rails::Helpers#ab_test
       request = respond_to?(:request) ? self.request : nil
       if Vanity.playground.using_js?
-        @_vanity_experiments ||= {}
-        @_vanity_experiments[name] ||= Vanity.playground.experiment(name).choose(request)
-        value = @_vanity_experiments[name].value
+        value = Vanity.context.vanity_store_experiment_for_js name, Vanity.playground.experiment(name).choose(request)
       else
         value = Vanity.playground.experiment(name).choose(request).value
       end
