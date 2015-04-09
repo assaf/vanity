@@ -8,7 +8,7 @@ desc "Test everything"
 task "test:all"=>"test:adapters"
 
 # Ruby versions we're testing with.
-RUBIES = %w{1.9.3 2.0.0}
+RUBIES = %w{1.9.3 2.0.0 jruby-1.7.13}
 
 # Use rake test:rubies to run all combination of tests (see test:adapters) using
 # all the versions of Ruby specified in RUBIES. Or to test a specific version of
@@ -24,10 +24,10 @@ task "test:rubies", :ruby do |t, args|
   rubies.each do |ruby|
     puts "** Setup #{ruby}"
     sh "env rvm_install_on_use_flag=1 rvm_gemset_create_on_use_flag=1 rvm use #{ruby}@vanity"
-    sh "rvm #{ruby}@vanity rake test:setup"
+    sh "rvm #{ruby}@vanity do rake test:setup"
     puts
     puts "** Test using #{ruby}"
-    sh "rvm #{ruby}@vanity -S bundle exec rake test:adapters #{'--trace' if Rake.application.options.trace}"
+    sh "rvm #{ruby}@vanity do rake test:adapters #{'--trace' if Rake.application.options.trace}"
   end
 end
 
@@ -38,11 +38,11 @@ task "test:setup" do
   rescue LoadError
     sh "gem install bundler"
   end
-  begin # Make sure we got all the dependencies
-    sh "bundle exec ruby -e puts > /dev/null"
-  rescue
-    sh "bundle install"
-  end
+
+  # Make sure we got all the dependencies
+  sh "bundle check || bundle install"
+
+  sh "appraisal install" # Make sure that all of the gemsets are set up
 end
 
 # These are all the adapters we're going to test with.
