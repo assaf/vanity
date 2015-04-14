@@ -509,9 +509,10 @@ module Vanity
       # identity, and randomly distributed alternatives for each identity (in the
       # same experiment).
       def alternative_for(identity)
+        existing_assignment = connection.ab_assigned @id, identity
+        return existing_assignment if existing_assignment
+
         if @use_probabilities
-          existing_assignment = connection.ab_assigned @id, identity
-          return existing_assignment if existing_assignment
           random_outcome = rand()
           @use_probabilities.each do |alternative, max_prob|
             return alternative.id if random_outcome < max_prob
