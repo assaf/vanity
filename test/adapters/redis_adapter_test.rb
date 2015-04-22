@@ -90,7 +90,7 @@ describe Vanity::Adapters::RedisAdapter do
 
   it "gracefully fails in #ab_add_participant" do
     redis_adapter, mocked_redis = stub_redis
-    mocked_redis.stubs(:sadd).raises(RuntimeError)
+    mocked_redis.stubs(:sismember).raises(RuntimeError)
 
     assert_silent do
       redis_adapter.ab_add_participant("price_options", "3ff62e2fb51f0b22646a342a2d357aec", 0)

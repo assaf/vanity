@@ -306,6 +306,20 @@ module Vanity
       metric(id).track! count
     end
 
+    # Determines if a user has seen one the variations
+    def saw_variation_for_experiment(name)
+      # get the unique identity of a user
+      identity = experiment(name).get_identity()
+      # deterimine if the identity has been assigned a variation
+      # if they haven't been assigned a variation then they never saw one
+      connection.ab_assigned(name, identity)
+    end
+
+    def get_saw_variation_time(name)
+      # get the unique identity of a user
+      identity = experiment(name).get_identity()
+      connection.get_saw_variation_time(name, identity)
+    end
 
     # -- Connection management --
 
