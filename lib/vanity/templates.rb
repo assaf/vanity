@@ -1,7 +1,7 @@
 module Vanity
   class Templates
     def initialize
-      @template_directory = load_paths.find { |dir| File.exists?(dir) }
+      @template_directory = determine_template_directory
     end
 
     # Path to template.
@@ -11,8 +11,20 @@ module Vanity
 
     private
 
-    def load_paths
-      [Vanity.playground.custom_templates_path, gem_templates_path].compact
+    def determine_template_directory
+      if custom_template_path_valid?
+        Vanity.playground.custom_templates_path
+      else
+        gem_templates_path
+      end
+    end
+
+    # Check to make sure we set a custome path, it exists, and there are non-
+    # dotfiles in the directory.
+    def custom_template_path_valid?
+      Vanity.playground.custom_templates_path &&
+        File.exists?(Vanity.playground.custom_templates_path) &&
+        !Dir[File.join(Vanity.playground.custom_templates_path, '*')].empty?
     end
 
     def gem_templates_path

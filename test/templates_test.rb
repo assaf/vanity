@@ -28,5 +28,19 @@ describe Vanity::Templates do
         FileUtils.rm_rf(custom_view_path)
       end
     end
+
+    it "ignores an empty view directory" do
+      begin
+        custom_view_path = File.expand_path(File.join(Rails.root, 'app', 'views', 'vanity'))
+        FileUtils.mkpath(custom_view_path)
+
+        gem_view_path = File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'vanity', 'templates'))
+        expected = File.join(gem_view_path, 'foo.html')
+
+        assert_equal expected, Vanity::Templates.new.path('foo.html')
+      ensure
+        FileUtils.rm_rf(custom_view_path)
+      end
+    end
   end
 end
