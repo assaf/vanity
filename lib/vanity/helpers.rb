@@ -66,6 +66,15 @@ module Vanity
     def track!(name, count_or_options = 1)
       Vanity.playground.track! name, count_or_options
     end
+
+    # Determines if a user has seen one the variations
+    def saw_variation_for_experiment(name)
+      return Vanity.playground.saw_variation_for_experiment(name).nil? ? false : true
+    end
+
+    def get_saw_variation_time(name)
+      return Vanity.playground.get_saw_variation_time(name)
+    end
   end
 end
 

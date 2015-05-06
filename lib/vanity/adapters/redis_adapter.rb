@@ -59,6 +59,7 @@ module Vanity
         @redis = @options[:redis] || Redis.new(@options)
         @metrics = Redis::Namespace.new("vanity:metrics", :redis=>redis)
         @experiments = Redis::Namespace.new("vanity:experiments", :redis=>redis)
+        @variation_timestamps = Redis::Namespace.new("vanity:variation_timestamps", :redis=>redis)
       end
 
       def to_s
@@ -156,6 +157,9 @@ module Vanity
 
       def ab_add_participant(experiment, alternative, identity)
         call_redis_with_failover(experiment, alternative, identity) do
+          if !@experiments.sismember "#{experiment}:alts:#{alternative}:participants", identity
+            @variation_timestamps.set "#{experiment}:participant:#{identity}", Time.now
+          end
           @experiments.sadd "#{experiment}:alts:#{alternative}:participants", identity
         end
       end
@@ -207,6 +211,12 @@ module Vanity
         @experiments.del "#{experiment}:outcome", "#{experiment}:created_at", "#{experiment}:completed_at"
         alternatives = @experiments.keys("#{experiment}:alts:*")
         @experiments.del *alternatives unless alternatives.empty?
+      end
+
+      def get_saw_variation_time(experiment, identity)
+        call_redis_with_failover(experiment, identity) do
+          @variation_timestamps.get "#{experiment}:participant:#{identity}"
+        end
       end
 
       protected
