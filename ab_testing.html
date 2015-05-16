@@ -15,7 +15,7 @@
     </div>
     <div id="links">
       <a href="http://github.com/assaf/vanity">Source code</a> |
-      <a href="http://groups.google.com/group/vanity-talk" title="vanity-talk google group">Google Group</a> |
+      <a href="http://stackoverflow.com/questions/tagged/vanity" title="stackoverflow vanity tag">StackOverflow Tag</a> |
       <a href="http://rdoc.info/gems/vanity">API reference</a>
     </div>
     <div id="sidebar">
@@ -55,7 +55,7 @@
 <p>Let&#8217;s start with a simple experiment.  We have this idea that a bigger sign-up link will increase the number of people who sign up for our service.  Let&#8217;s see how well our hypothesis holds.</p>
 <p>We already have a <a href="metrics.html">metric</a> we&#8217;re monitoring, and our experiment will measure against it:</p>
 <pre>
-ab_test "Big singup link" do
+ab_test "Big signup link" do
   description "Testing to see if a bigger sign-up link increases number of signups."
   metrics :signup
 end
