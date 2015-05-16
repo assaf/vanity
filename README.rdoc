@@ -190,6 +190,17 @@ For view tests/specs or integration testing, it's handy to set the outcome of an
 
   Vanity.playground.experiment(:price_options).chooses(19)
 
+== Updating documentation
+
+Documenation is written in the textile format in the [docs](docs/) directory, and is hosted on Github Pages. To update the docs commit changes to the master branch in this repository, then:
+
+  bundle exec rake docs # output HTML files into html/
+  git checkout gh-pages
+  mv html/* . # Move generated html to the top of the repo
+  git commit # Add, commit and push any changes!
+
+Go ahead and target a pull request against the `gh-pages` branch.
+
 == Contributing
 
 * Fork the project
