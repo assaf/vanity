@@ -445,7 +445,7 @@ module Vanity
         connection.destroy_experiment @id
         super
       end
-      
+
       # clears all collected data for the experiment
       def reset
         connection.destroy_experiment @id
@@ -471,12 +471,12 @@ module Vanity
       # Called via a hook by the associated metric.
       def track!(metric_id, timestamp, count, *args)
         return unless active?
-        identity = identity() rescue nil
-        identity ||= args.last[:identity] if args.last.is_a?(Hash) && args.last[:identity]
+        identity = args.last[:identity] if args.last.is_a?(Hash)
+        identity ||= identity() rescue nil
         if identity
           return if connection.ab_showing(@id, identity)
           index = alternative_for(identity)
-          connection.ab_add_conversion @id, index, identity, count
+          connection.ab_add_conversion(@id, index, identity, count)
           check_completion!
         end
       end

@@ -118,6 +118,23 @@ class AbTestTest < ActionController::TestCase
     assert_equal 1, experiment(:abcd).alternatives.sum(&:conversions)
   end
 
+  # -- track! --
+
+  def test_track_with_identity_overrides_default
+    identities = ["quux"]
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      identify { identities.pop || "6e98ec" }
+      metrics :coolness
+    end
+    2.times { experiment(:foobar).choose }
+    assert_equal 0, experiment(:foobar).alternatives.sum(&:converted)
+    experiment(:foobar).track!(:coolness, Time.now, 1)
+    assert_equal 1, experiment(:foobar).alternatives.sum(&:converted)
+    experiment(:foobar).track!(:coolness, Time.now, 1, :identity=>"quux")
+    assert_equal 2, experiment(:foobar).alternatives.sum(&:converted)
+  end
+
   # -- use_js! --
 
   def test_choose_does_not_record_participant_when_using_js
@@ -1021,7 +1038,7 @@ This experiment did not run long enough to find a clear winner.
     assert [:a, :b, :c].include?(choice)
     assert_equal choice, experiment(:simple).choose.value
   end
-  
+
   def test_reset_clears_participants
     new_ab_test :simple do
       alternatives :a, :b, :c
@@ -1032,7 +1049,7 @@ This experiment did not run long enough to find a clear winner.
     experiment(:simple).reset
     assert_equal experiment(:simple).alternatives[1].participants, 0
   end
-  
+
   def test_clears_outcome_and_completed_at
     new_ab_test :simple do
       alternatives :a, :b, :c
