@@ -39,9 +39,7 @@ module Vanity
       class VanityMetricValue < VanityRecord
         attr_accessible :date, :index, :value if needs_attr_accessible?
 
-        self.table_name = :vanity_metric_values,
-          :class_name => 'Vanity::Adapters::ActiveRecordAdapter::VanityMetric'
-
+        self.table_name = :vanity_metric_values
         belongs_to :vanity_metric,
           :class_name => 'Vanity::Adapters::ActiveRecordAdapter::VanityMetric'
       end
@@ -51,7 +49,6 @@ module Vanity
         self.table_name = :vanity_experiments
         has_many :vanity_conversions, :dependent => :destroy,
           :class_name => 'Vanity::Adapters::ActiveRecordAdapter::VanityConversion'
-
         attr_accessible :experiment_id if needs_attr_accessible?
 
         # Finds or creates the experiment
