@@ -27,7 +27,8 @@ module Vanity
       # Metric model
       class VanityMetric < VanityRecord
         self.table_name = :vanity_metrics
-        has_many :vanity_metric_values
+        has_many :vanity_metric_values,
+          :class_name => 'Vanity::Adapters::ActiveRecordAdapter::VanityMetricValue'
 
         def self.retrieve(metric)
           find_or_create_by_metric_id(metric.to_s)
@@ -39,13 +40,15 @@ module Vanity
         attr_accessible :date, :index, :value if needs_attr_accessible?
 
         self.table_name = :vanity_metric_values
-        belongs_to :vanity_metric
+        belongs_to :vanity_metric,
+          :class_name => 'Vanity::Adapters::ActiveRecordAdapter::VanityMetric'
       end
 
       # Experiment model
       class VanityExperiment < VanityRecord
         self.table_name = :vanity_experiments
-        has_many :vanity_conversions, :dependent => :destroy
+        has_many :vanity_conversions, :dependent => :destroy,
+          :class_name => 'Vanity::Adapters::ActiveRecordAdapter::VanityConversion'
         attr_accessible :experiment_id if needs_attr_accessible?
 
         # Finds or creates the experiment
@@ -62,7 +65,8 @@ module Vanity
       # Conversion model
       class VanityConversion < VanityRecord
         self.table_name = :vanity_conversions
-        belongs_to :vanity_experiment
+        belongs_to :vanity_experiment,
+          :class_name => 'Vanity::Adapters::ActiveRecordAdapter::VanityExperiment'
       end
 
       # Participant model
