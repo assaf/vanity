@@ -29,6 +29,7 @@ require "vanity/adapters/abstract_adapter"
 require "vanity/adapters/redis_adapter"
 require "vanity/adapters/mongodb_adapter"
 require "vanity/adapters/mock_adapter"
+require "vanity/adapters/active_record_adapter"
 # Playground.
 require "vanity/playground"
 require "vanity/autoconnect"
