@@ -20,12 +20,7 @@ require "rails/test_help"
 
 require "vanity"
 require "timecop"
-
-if defined?(Mocha::VERSION) && Mocha::VERSION < "0.13.0"
-  require "mocha"
-else
-  require "mocha/mini_test"
-end
+require "mocha/mini_test"
 require "webmock/minitest"
 
 # Due to load order differences in Rails boot and test requires we have to
