@@ -137,7 +137,7 @@ module Vanity
         if @playground.collecting?
           if active?
             identity = identity()
-            index = connection.ab_showing(@id, identity)
+            index = connection.ab_showing(@id, identity) || connection.ab_assigned(@id, identity)
             unless index
               index = alternative_for(identity).to_i
               save_assignment_if_valid_visitor(identity, index, request) unless @playground.using_js?
@@ -151,6 +151,7 @@ module Vanity
           @showing[identity] ||= alternative_for(identity)
           index = @showing[identity]
         end
+
         alternatives[index.to_i]
       end
 
@@ -517,7 +518,8 @@ module Vanity
             return alternative.id if random_outcome < max_prob
           end
         end
-        return Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.size
+
+        Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.size
       end
 
       # Saves the assignment of an alternative to a person and performs the

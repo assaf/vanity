@@ -344,6 +344,24 @@ class AbTestTest < ActionController::TestCase
     end
   end
 
+  def test_respects_out_of_band_assignment
+    new_ab_test :foobar do
+      alternatives "a", "b", "c"
+      identify { "6e98ec" }
+      metrics :coolness
+    end
+    # Note that this is explicitly not the alternative id that alternative_for
+    # would assign based on identity
+    assigned_alternative_id = 1
+    Vanity.playground.connection.ab_add_participant(
+      experiment(:foobar).id,
+      assigned_alternative_id,
+      "6e98ec"
+    )
+    chosen_alternative_id = experiment(:foobar).choose.id
+    assert_equal assigned_alternative_id, chosen_alternative_id
+  end
+
   def test_returns_different_alternatives_for_each_participant
     new_ab_test :foobar do
       alternatives "foo", "bar"
