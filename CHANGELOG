@@ -1,3 +1,7 @@
+== 1.8.4 (2015-06-27)
+
+In AR model classes, provide association class names with full namespace for Rails 2.3. (@troy)
+
 == 1.8.3 (2013-11-20)
 
 Add support for Rails 4. (@phillbaker)
