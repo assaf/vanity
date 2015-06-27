@@ -14,6 +14,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     RedCloth (4.2.9)
+    RedCloth (4.2.9-java)
     actionmailer (4.0.13)
       actionpack (= 4.0.13)
       mail (~> 2.5, >= 2.5.4)
@@ -32,6 +33,8 @@ GEM
       activesupport (= 4.0.13)
       arel (~> 4.0.0)
     activerecord-deprecated_finders (1.0.3)
+    activerecord-jdbc-adapter (1.3.15)
+      activerecord (>= 2.2)
     activesupport (4.0.13)
       i18n (~> 0.6, >= 0.6.9)
       minitest (~> 4.2)
@@ -41,29 +44,31 @@ GEM
     addressable (2.3.5)
     albino (1.3.3)
       posix-spawn (>= 0.3.6)
-    appraisal (1.0.0.beta2)
+    appraisal (1.0.3)
       bundler
       rake
       thor (>= 0.14.0)
     arel (4.0.2)
     bson (1.9.2)
+    bson (1.9.2-java)
     bson_ext (1.9.2)
       bson (~> 1.9.2)
     builder (3.1.4)
-    classifier (1.3.3)
+    classifier (1.3.4)
       fast-stemmer (>= 1.0.0)
     crack (0.4.1)
       safe_yaml (~> 0.9.0)
     daemon_controller (1.1.7)
     directory_watcher (1.4.1)
     erubis (2.7.0)
-    fast-stemmer (1.0.0)
+    fast-stemmer (1.0.2)
     garb (0.9.1)
       activesupport (>= 2.2.0)
       crack (>= 0.1.6)
     hike (1.2.3)
     i18n (0.7.0)
     integration (0.1.0)
+    jdbc-sqlite3 (3.8.7)
     jekyll (0.11.2)
       albino (~> 1.3)
       classifier (~> 1.3)
@@ -72,11 +77,10 @@ GEM
       liquid (~> 2.3)
       maruku (~> 0.5)
     kramdown (0.13.5)
-    liquid (2.3.0)
+    liquid (2.6.2)
     mail (2.6.3)
       mime-types (>= 1.16, < 3)
-    maruku (0.6.0)
-      syntax (>= 1.0.0)
+    maruku (0.7.0)
     metaclass (0.0.4)
     mime-types (2.4.3)
     minitest (4.7.5)
@@ -90,7 +94,7 @@ GEM
       fastthread (>= 1.0.1)
       rack
       rake (>= 0.8.1)
-    posix-spawn (0.3.6)
+    posix-spawn (0.3.11)
     power_assert (0.2.2)
     rack (1.5.2)
     rack-test (0.6.3)
@@ -124,11 +128,11 @@ GEM
       activesupport (>= 3.0)
       sprockets (>= 2.8, < 4.0)
     sqlite3 (1.3.10)
-    syntax (1.0.0)
     test-unit (3.0.9)
       power_assert
     thor (0.19.1)
     thread_safe (0.3.4)
+    thread_safe (0.3.4-java)
     tilt (1.4.1)
     timecop (0.6.3)
     tzinfo (0.3.43)
@@ -138,16 +142,19 @@ GEM
     yard (0.7.5)
 
 PLATFORMS
+  java
   ruby
 
 DEPENDENCIES
   RedCloth
-  appraisal (>= 1.0.0.beta2)
+  activerecord-jdbc-adapter
+  appraisal (~> 1.0.2)
   bson_ext
   bundler (>= 1.0.0)
   fastthread!
   garb (< 0.9.2)
   integration (<= 0.1.0)
+  jdbc-sqlite3
   jekyll
   minitest (>= 4.2)
   mocha (~> 1.0)

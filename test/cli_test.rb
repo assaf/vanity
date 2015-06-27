@@ -7,21 +7,23 @@ describe "bin/vanity" do
   end
 
   it "responds to version" do
-    proc {
-      IO.any_instance.expects(:puts)
-      ARGV.clear
-      ARGV << '--version'
-      load "bin/vanity"
-    }.must_raise SystemExit
+    assert_output(nil) do
+      proc {
+        ARGV.clear
+        ARGV << '--version'
+        load "bin/vanity"
+      }.must_raise SystemExit
+    end
   end
 
   it "responds to help" do
-    proc {
-      IO.any_instance.expects(:puts)
-      ARGV.clear
-      ARGV << '--help'
-      load "bin/vanity"
-    }.must_raise SystemExit
+    assert_output(nil) do
+      proc {
+        ARGV.clear
+        ARGV << '--help'
+        load "bin/vanity"
+      }.must_raise SystemExit
+    end
   end
 
   it "responds to list" do
