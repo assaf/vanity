@@ -69,6 +69,7 @@ module Vanity
   end
 end
 
+# TODO do we actually want to do this?
 Object.class_eval do
   include Vanity::Helpers
 end

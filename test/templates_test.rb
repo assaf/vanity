@@ -6,7 +6,7 @@ describe Vanity::Templates do
   end
 
   describe "template" do
-    it "resolves templates from the gem by default" do
+    it "resolves templates from the configured path" do
       custom_view_path = File.expand_path(File.join(Rails.root, 'app', 'views', 'vanity'))
       gem_view_path = File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'vanity', 'templates'))
       expected = File.join(gem_view_path, 'foo.html')
@@ -14,9 +14,10 @@ describe Vanity::Templates do
       assert_equal expected, Vanity::Templates.new.path('foo.html')
     end
 
-    it "resolves templates from the Rails view directory if it exists" do
+    it "resolves templates from a Rails view directory when configured" do
       begin
         custom_view_path = File.expand_path(File.join(Rails.root, 'app', 'views', 'vanity'))
+        Vanity.configuration.templates_path = custom_view_path
 
         expected = File.expand_path(File.join(custom_view_path, 'foo.html'))
 

@@ -111,7 +111,7 @@ describe Vanity::Experiment::Base do
       new_ab_test(:ice_cream_flavor) { metrics :happiness }
     end
 
-    new_playground
+    vanity_reset
     metric :happiness
     new_ab_test(:ice_cream_flavor) { metrics :happiness }
     assert_equal past.to_time.to_i, experiment(:ice_cream_flavor).created_at.to_i

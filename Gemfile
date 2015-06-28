@@ -14,11 +14,12 @@ gem "integration", "<= 0.1.0"
 gem "rubystats"
 
 # APIs
-gem "garb", "< 0.9.2" # API changes at this version
+gem "garb", "< 0.9.2", :require => false # API changes at this version
 
 # Testing
 gem "timecop", :require=>false
 gem "webmock", :require=>false
+gem "fakefs", :require => "fakefs/safe"
 
 platform :ruby do
   gem "bson_ext"
