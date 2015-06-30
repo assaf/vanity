@@ -43,6 +43,11 @@ A sample <code>config/vanity.yml</code> might look like:
     adapter: redis
     connection: redis://<%= ENV["REDIS_USER"] %>:<%= ENV["REDIS_PASSWORD"] %>@<%= ENV["REDIS_HOST"] %>:<%= ENV["REDIS_PORT"] %>/0
 
+If you want to use your test environment with RSpec you will need to add an adapter to test:
+
+  test:
+  adapter: redis
+  collecting: false
 
 ===== MongoDB Setup
 
@@ -183,6 +188,8 @@ Here's what's tested and known to work:
   Ruby 2.2
     Persistence: Redis, Mongo, ActiveRecord
     Rails: 4.0
+
+If you receive 'a warning: circular argument reference - score' this was fixed in [2.0.7 beta](https://github.com/assaf/vanity/commit/1b5bf18636caa5eae279e2aef2e24c923e63b141)
 
 == Testing
 
