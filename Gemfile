@@ -22,7 +22,7 @@ gem "webmock", :require=>false
 
 platform :ruby do
   gem "bson_ext"
-  gem "sqlite3"
+  gem "sqlite3", "~> 1.3.10"
 end
 
 platform :jruby do

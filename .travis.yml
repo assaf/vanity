@@ -7,16 +7,15 @@ services:
   - mongodb
   - redis-server
 rvm:
-- 1.9.3
-- 2.0.0
-- 2.1.0
-- 2.2.0
-- ruby-head
-- jruby-19mode
+  - 1.9.3
+  - 2.0.0
+  - 2.1.0
+  - 2.2.0
+  - jruby-19mode
 env:
-- DB=mongodb
-- DB=redis
-- DB=active_record
+  - DB=mongodb
+  - DB=redis
+  - DB=active_record
 gemfile:
   - gemfiles/rails32.gemfile
   - gemfiles/rails4.gemfile
@@ -24,9 +23,3 @@ gemfile:
   - gemfiles/rails42.gemfile
 before_script:
 - 'echo ''gem: --no-ri --no-rdoc'' > ~/.gemrc' # skip installing docs for gems
-matrix:
-  exclude:
-    - rvm: 2.2.0
-      gemfile: gemfiles/rails32.gemfile
-  allow_failures:
-    - rvm: ruby-head
