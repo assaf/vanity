@@ -47,47 +47,9 @@ $ rake DB=mysql
 </pre>
 
 
-Before making a release, we run the full test suite against multiple Ruby VMs
-and using multiple database adapters.  Doing this on your own is easier than it
-sounds:
+Before making a release, we run the full test suite against multiple Ruby VMs and using multiple database adapters.  Doing this on your own is easier than it sounds:
 
 # "Fork the project":http://github.com/assaf/vanity
 # Go to "Travis CI":http://travis-ci.org/, setup a new account if you don't already have one
 # "In your profile page":http://travis-ci.org/profile, tell Travis to build your fork
 # @git push@ your changes into your fork and "watch Travis":http://travis-ci.org/ run the tests
-
-
-To package Vanity as a gem and install on your machine:
-
-<pre>
-$ rake install
-</pre>
-
-
-h3(#doc). Documentation
-
-Documentation is written in "Textile":http://redcloth.org/textile/writing-paragraph-text/, and converted to HTML using "Jekyll":http://jekyllrb.com/.
-
-API reference is "RDoc":http://rdoc.sourceforge.net/doc/index.html, converted to HTML using "Yardoc":http://yardoc.org/.
-
-To build and view documentation:
-
-<pre>
-$ rake docs
-$ open html/index.html
-</pre>
-
-To clean up after yourself:
-
-<pre>
-$ rake clobber
-</pre>
-
-
-h3(#open). Open Issues
-
-<notextile>
-<table id="issues">
-  <tbody></tbody>
-</table>
-</notextile>

@@ -26,18 +26,46 @@ The available database adapters are:
 * +mongodb+ -- Available options are host, port, database (defaults to "vanity"), username and password.
 * +active_record+ -- Uses existing ActiveRecord configuration, by you can over-ride by supplying different options. To pick different underlying adapter, set +active_record_adapter+.
 
+h4. Configuration Options
+
 Available configuration options are:
 
-|_. name      |_. Is all about ...                      |_. Default      |
-| load_path   | Directory containing experiment files   | experiments    |
-| logger      | This should be obvious                  | default/Rails  |
-| collecting  | False if you won't want data collected  | true           |
+|_. name                     |_. Is all about ...                    |_. Default      |
+| add_participant_route      | URL to use to add participants via JS | /vanity/add_participant |
+| collecting                 | False if you won't want data collected| true           |
+| config_file                | File name to use to configure vanity  | vanity.yml     |
+| config_path                | Path to the config_file               | ./config/      |
+| environment                | What environment use for configuration| development    |
+| experiments_path           | Directory containing experiment files | ./experiments  |
+| failover_on_datastore_error| Whether to pass errors to on_datastore_error | false   |
+| locales_path               | Path to locales for translations      | in the gem     |
+| logger                     | This should be obvious                | default/Rails  |
+| on_datastore_error         | A proc that handles datastore errors  | logs to logger |
+| request_filter             | A proc that returns whether to to ignore the request for the add JS participant route | Ignore requests with a HTTP_USER_AGENT that contain a URL |
+| templates_path             | Path to templates for Vanity admin | the templates in the gem |
+| use_js                     | Whether to use JS to add particpants, useful to ignore bots | false |
 
 When "running under Rails":rails.html, Vanity defaults to using the Rails logger, locates the load_path relative to Rails root, uses the @config/vanity.yml@ configuration file (if present) and turns collection on only in production mode.
 
-If you run a different setup, use the playground object to configure Vanity.  For example:
+Use the playground object to configure Vanity. For example:
 
 <pre>
-Vanity.playground.load_path = "exp"
-Vanity.playground.establish_connection "redis://db.example.com"
+Vanity.configure do |config|
+  config.use_js = true
+  config.experiments_path = 'config/ab_tests'
+  config.add_participant_route = '/vanity/participant/new'
+  # ...
+end
+</pre>
+
+
+h4. Using metrics from Google Analytics
+
+If you want to use Vanity with metrics from Google Analytics, you must require the @garb@ gem, and login for a new session.  You'll want to do that for production, not for development if you like developing offline. For example in Rails, in the config/:
+
+<pre>
+config.after_initialize do
+  require "garb"
+  Garb::Session.login('..ga email..', '..ga pwd..', account_type: "GOOGLE")
+end
 </pre>
