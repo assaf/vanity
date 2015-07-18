@@ -1,6 +1,10 @@
 sudo: false
 cache: bundler
 language: ruby
+before_script:
+  - 'echo ''gem: --no-ri --no-rdoc'' > ~/.gemrc' # skip installing docs for gems
+before_install:
+  - gem install bundler -v="1.8.0" # Minimum version of bundler required
 bundler_args: --without development
 script: 'bundle exec rake test'
 services:
@@ -21,5 +25,3 @@ gemfile:
   - gemfiles/rails4.gemfile
   - gemfiles/rails41.gemfile
   - gemfiles/rails42.gemfile
-before_script:
-- 'echo ''gem: --no-ri --no-rdoc'' > ~/.gemrc' # skip installing docs for gems
