@@ -62,6 +62,7 @@ GEM
     directory_watcher (1.4.1)
     erubis (2.7.0)
     fast-stemmer (1.0.2)
+    fakefs (0.6.7)
     garb (0.9.1)
       activesupport (>= 2.2.0)
       crack (>= 0.1.6)
@@ -151,6 +152,7 @@ DEPENDENCIES
   appraisal (~> 1.0.2)
   bson_ext
   bundler (>= 1.0.0)
+  fakefs
   fastthread!
   garb (< 0.9.2)
   integration (<= 0.1.0)

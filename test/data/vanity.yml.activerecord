@@ -1,0 +1,6 @@
+development:
+  adapter: active_record
+  active_record_adapter: default
+test:
+  adapter: active_record
+  active_record_adapter: default

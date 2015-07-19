@@ -138,7 +138,7 @@ class AbTestTest < ActionController::TestCase
   # -- use_js! --
 
   def test_choose_does_not_record_participant_when_using_js
-    Vanity.playground.use_js!
+    Vanity.configuration.use_js = true
     ids = (0...10).to_a
     new_ab_test :foobar do
       alternatives "foo", "bar"

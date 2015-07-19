@@ -1,0 +1,5 @@
+test:
+  adapter: redis
+  collecting: false
+production:
+  adapter: redis

@@ -1,20 +1,20 @@
 require "test_helper"
 
-describe "Rails load path and connection configuration" do
+describe "deprecated Rails load_path and deprecated connection configuration" do
 
   it "load_path" do
-    assert_equal File.expand_path("tmp/experiments"), load_rails("", <<-RB)
+    assert_equal "./experiments", load_rails("", <<-RB)
 $stdout << Vanity.playground.load_path
     RB
   end
 
-  it "settable_load_path" do
-    assert_equal File.expand_path("tmp/predictions"), load_rails(%Q{\nVanity.playground.load_path = "predictions"\n}, <<-RB)
+  it "settable load_path" do
+    assert_equal "predictions", load_rails(%Q{\nVanity.playground.load_path = "predictions"\n}, <<-RB)
 $stdout << Vanity.playground.load_path
     RB
   end
 
-  it "absolute_load_path" do
+  it "absolute load_path" do
     Dir.mktmpdir do |dir|
       assert_equal dir, load_rails(%Q{\nVanity.playground.load_path = "#{dir}"\n}, <<-RB)
 $stdout << Vanity.playground.load_path
@@ -23,19 +23,19 @@ $stdout << Vanity.playground.load_path
   end
 
   if ENV['DB'] == 'redis'
-    it "default_connection" do
+    it "default connection" do
       assert_equal "redis://127.0.0.1:6379/0", load_rails("", <<-RB)
 $stdout << Vanity.playground.connection
       RB
     end
 
-    it "connection_from_string" do
+    it "connection from string" do
       assert_equal "redis://192.168.1.1:6379/5", load_rails(%Q{\nVanity.playground.establish_connection "redis://192.168.1.1:6379/5"\n}, <<-RB)
 $stdout << Vanity.playground.connection
       RB
     end
 
-    it "connection_from_yaml" do
+    it "connection from yaml" do
       begin
         FileUtils.mkpath "tmp/config"
         @original_env = ENV["RAILS_ENV"]
@@ -57,7 +57,7 @@ $stdout << Vanity.playground.connection
       end
     end
 
-    it "connection_from_yaml_url" do
+    it "connection from yaml url" do
       begin
         FileUtils.mkpath "tmp/config"
         @original_env = ENV["RAILS_ENV"]
@@ -76,7 +76,7 @@ $stdout << Vanity.playground.connection
       end
     end
 
-    it "connection_from_yaml_with_erb" do
+    it "connection from yaml with erb" do
       begin
         FileUtils.mkpath "tmp/config"
         @original_env = ENV["RAILS_ENV"]
@@ -99,13 +99,13 @@ $stdout << Vanity.playground.connection
       end
     end
 
-    it "connection_from_redis_yml" do
+    it "connection from redis yml" do
       begin
         FileUtils.mkpath "tmp/config"
         yml = File.open("tmp/config/redis.yml", "w")
         yml << "production: internal.local:6379\n"
         yml.flush
-        assert_equal "redis://internal.local:6379/0", load_rails("", <<-RB)
+        assert_match %r{redis://internal.local:6379/0\Z}, load_rails("", <<-RB)
 $stdout << Vanity.playground.connection
         RB
       ensure
@@ -115,7 +115,7 @@ $stdout << Vanity.playground.connection
   end
 
   if ENV['DB'] == 'mongo'
-    it "mongo_connection_from_yaml" do
+    it "mongo connection from yaml" do
       begin
         FileUtils.mkpath "tmp/config"
         File.open("tmp/config/vanity.yml", "w") do |io|
@@ -136,8 +136,8 @@ $stdout << Vanity.playground.connection
       end
     end
 
-    unless ENV['CI'] == 'true' #TODO this doesn't get tested on CI
-      it "mongodb_replica_set_connection" do
+    unless ENV['CI'] == 'true' # See http://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
+      it "mongodb replica set connection" do
         begin
           FileUtils.mkpath "tmp/config"
           File.open("tmp/config/vanity.yml", "w") do |io|
@@ -165,7 +165,7 @@ $stdout << Vanity.playground.connection.mongo.class
     end
   end
 
-  it "connection_from_yaml_missing" do
+  it "connection from yaml missing" do
     begin
       FileUtils.mkpath "tmp/config"
       File.open("tmp/config/vanity.yml", "w") do |io|
@@ -176,7 +176,7 @@ production:
       end
 
        assert_equal "No configuration for development", load_rails("\nbegin\n", <<-RB, "development")
-rescue RuntimeError => e
+rescue => e
   $stdout << e.message
 end
       RB
@@ -185,7 +185,7 @@ end
     end
   end
 
-  it "collection_from_vanity_yaml" do
+  it "collection from vanity yaml" do
     begin
       FileUtils.mkpath "tmp/config"
       File.open("tmp/config/vanity.yml", "w") do |io|
@@ -203,42 +203,46 @@ $stdout << Vanity.playground.collecting?
     end
   end
 
-  it "collection_true_in_production_by_default" do
+  it "collection true in production by default" do
     assert_equal "true", load_rails("", <<-RB)
 $stdout << Vanity.playground.collecting?
     RB
   end
 
-  it "collection_false_in_production_when_configured" do
+  it "collection false in production when configured" do
     assert_equal "false", load_rails("\nVanity.playground.collecting = false\n", <<-RB)
 $stdout << Vanity.playground.collecting?
     RB
   end
 
-  it "collection_true_in_development_by_default" do
+  it "collection true in development by default" do
     assert_equal "true", load_rails("", <<-RB, "development")
 $stdout << Vanity.playground.collecting?
     RB
   end
 
-  it "collection_true_in_development_when_configured" do
+  it "collection true in development when configured" do
     assert_equal "true", load_rails("\nVanity.playground.collecting = true\n", <<-RB, "development")
 $stdout << Vanity.playground.collecting?
     RB
   end
 
-  it "playground_loads_if_connected" do
+  it "playground loads experiments if connected" do
     assert_equal "{}", load_rails("", <<-RB)
-$stdout << Vanity.playground.instance_variable_get(:@experiments).inspect
+$stdout << Vanity.playground.experiments.inspect
     RB
   end
 
-  it "playground_does_not_load_if_not_connected" do
-    ENV['VANITY_DISABLED'] = '1'
-    assert_equal "nil", load_rails("", <<-RB)
-$stdout << Vanity.playground.instance_variable_get(:@experiments).inspect
-    RB
-    ENV['VANITY_DISABLED'] = nil
+  it "playground does not instantiate connection if disabled" do
+    begin
+      ENV['VANITY_DISABLED'] = '1'
+      assert_equal "false", load_rails("", <<-RB)
+Vanity.playground.experiments.inspect
+$stdout << !!Vanity.playground.connected?
+      RB
+    ensure
+      ENV['VANITY_DISABLED'] = nil
+    end
   end
 
   def load_rails(before_initialize, after_initialize, env="production")

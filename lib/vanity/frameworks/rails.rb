@@ -1,13 +1,15 @@
 module Vanity
   module Rails
     def self.load!
-      Vanity.playground.load_path = ::Rails.root + Vanity.playground.load_path
-      Vanity.playground.logger ||= ::Rails.logger
+      ::Rails.configuration.before_initialize do
+        Vanity.configuration.logger ||= ::Rails.logger
+        Vanity.configuration.setup_locales
+      end
 
       # Do this at the very end of initialization, allowing you to change
       # connection adapter, turn collection on/off, etc.
       ::Rails.configuration.after_initialize do
-        Vanity.playground.load! if Vanity.playground.connected?
+        Vanity.load! if Vanity.connection.connected?
       end
     end
 
@@ -44,7 +46,7 @@ module Vanity
           @_vanity_experiments[name] ||= alternative
           @_vanity_experiments[name].value
         end
-        
+
         if block
           define_method(:vanity_identity) { block.call(self) }
         else
@@ -323,7 +325,7 @@ module Vanity
         exp.chooses(exp.alternatives[params[:a].to_i].value)
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
-      
+
       def reset
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.reset

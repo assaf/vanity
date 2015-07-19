@@ -2,24 +2,24 @@ require "test_helper"
 
 describe "Remote metrics" do
   before do
-    FileUtils.mkpath "tmp/config"
-    File.open "tmp/config/vanity.yml", "w" do |f|
+    File.open "tmp/experiments/metrics/sandbox.rb", "w" do |f|
       f.write <<-RUBY
-        metrics:
-          sandbox: http://api.vanitydash.com/metrics/sandbox
+        metric "Sandbox" do
+          remote "http://api.vanitydash.com/metrics/sandbox"
+        end
       RUBY
     end
-    ::Rails.stubs(:root).returns(Pathname.new(File.expand_path("tmp")))
+
     Dir.chdir "tmp" do
       Vanity.playground.load!
     end
   end
 
-  it "loads from configuration file" do
-    assert Vanity.playground.metrics[:sandbox]
+  it "loads from metrics files" do
+    assert Vanity.playground.metric(:sandbox)
   end
 
-  it "creates remote metric from configuration file" do
+  it "creates remote metric from metric file" do
     stub_request :post, /vanitydash/
     metric(:sandbox).track!
     assert_requested :post, /api\.vanitydash\.com/
