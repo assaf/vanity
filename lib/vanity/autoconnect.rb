@@ -24,6 +24,7 @@ module Vanity
       'db:seed',
       'db:setup',
       'db:structure:dump',
+      'db:test:load',
       'db:version',
       'doc:app',
       'log:clear',
