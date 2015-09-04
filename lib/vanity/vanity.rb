@@ -128,7 +128,10 @@ module Vanity
   #
   # @since 2.0.0
   def self.load!
-    @playground = Playground.new
+    @playground = Playground.new.tap do |p|
+      p.experiments
+      p.metrics
+    end
   end
 
   # @since 2.0.0
