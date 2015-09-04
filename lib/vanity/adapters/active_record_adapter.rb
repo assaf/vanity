@@ -79,6 +79,7 @@ module Vanity
       class VanityConversion < VanityRecord
         self.table_name = :vanity_conversions
         belongs_to :vanity_experiment
+        attr_accessible :alternative if needs_attr_accessible?
       end
 
       # Participant model
