@@ -1,4 +1,8 @@
-== 1.9.0 (2014-04-20)
+== 1.9.3 (2015-10-04)
+
+Cherry-pick fix for ruby 2.2.
+
+== 1.9.1 (2014-04-20)
 
 Include db:reset in blacklist for autoconnect. (@phillbaker)
 Add grace period to Vanity::Metric updated_at (@stangel)
