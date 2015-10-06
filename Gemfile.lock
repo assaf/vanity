@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vanity (1.9.2)
+    vanity (1.9.3)
 
 GEM
   remote: https://rubygems.org/
