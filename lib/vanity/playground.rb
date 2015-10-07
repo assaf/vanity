@@ -198,7 +198,26 @@ module Vanity
     def experiment(name)
       id = name.to_s.downcase.gsub(/\W/, "_").to_sym
       Vanity.logger.warn("Deprecated: Please call experiment method with experiment identifier (a Ruby symbol)") unless id == name
-      experiments[id.to_sym] or raise NoExperimentError, "No experiment #{id}"
+
+      if experiments[id.to_sym]
+        experiments[id.to_sym]
+      else
+        dynamic_experiment = Vanity::Adapters::ActiveRecordAdapter::VanityDynamicExperiment.find_by(name: id.to_s)
+        raise NoExperimentError, "No experiment '#{id}'" if !dynamic_experiment
+
+        # TODO: this is whack, but I couldn't figure out
+        # any other way to load experimetns other than to
+        # write this file out to disk
+        filename = "/tmp/dynamic_#{dynamic_experiment.name}.rb"
+        file = File.open(filename, 'w') { |file| file.write(
+        "ab_test '#{dynamic_experiment.name}' do
+          description '#{dynamic_experiment.description}'
+          alternatives #{dynamic_experiment.alternatives.collect{|a| ":" + a.name}.join(",")}
+          metrics #{ dynamic_experiment.metrics.collect{|m|":" + m.metric_id}.join(",")}
+        end")}
+
+        Experiment::Base.load(self, @loading, filename)
+      end
     end
 
 
