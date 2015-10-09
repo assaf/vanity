@@ -202,7 +202,7 @@ module Vanity
       if experiments[id.to_sym]
         experiments[id.to_sym]
       else
-        dynamic_experiment = Vanity::Adapters::ActiveRecordAdapter::VanityDynamicExperiment.find_by(name: id.to_s)
+        dynamic_experiment = VanityDynamicExperiment.find_by(experiment_name: id.to_s)
         raise NoExperimentError, "No experiment '#{id}'" if !dynamic_experiment
 
         # TODO: this is whack, but I couldn't figure out
