@@ -43,6 +43,10 @@ module Vanity
           self.updated_at = now if updated_before_grace_period?(now)
         end
 
+        def to_label
+          metric_id
+        end
+
         private
 
         def updated_before_grace_period?(now)
@@ -75,27 +79,7 @@ module Vanity
         end
       end
 
-      class VanityDynamicExperiment < VanityRecord
-        self.table_name = :vanity_dynamic_experiments
 
-        has_many :dynamic_experiment_metrics, foreign_key: 'dynamic_experiment_id', class_name: "VanityDynamicExperimentMetric"
-        has_many :metrics, :through => :dynamic_experiment_metrics, class_name: "VanityMetric", foreign_key: 'metric'
-
-        has_many :alternatives, class_name: "VanityDynamicExperimentAlternative", foreign_key: 'dynamic_experiment_id'
-        attr_accessible :metrics, :alternatives if needs_attr_accessible?
-      end
-
-      class VanityDynamicExperimentMetric < VanityRecord
-        self.table_name = :vanity_dynamic_experiment_metrics
-
-        belongs_to :dynamic_experiment, class_name: "VanityDynamicExperiment"
-        belongs_to :metric
-      end
-
-      class VanityDynamicExperimentAlternative < VanityRecord
-        self.table_name = :vanity_dynamic_experiment_alternatives
-        # name
-      end
 
       # Conversion model
       class VanityConversion < VanityRecord
