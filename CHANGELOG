@@ -1,3 +1,16 @@
+== 2.0.0 (2015-12-14)
+
+Extract configuration from Vanity::Playground to Vanity::Configuration (@phillbaker)
+Reduce test frameworks to just minitest (@phillbaker)
+Replace deprecated ActiveRecord finders (@bogdan-dumitru, @leematos, @aaronjensen)
+Add date to vanity_metric_values index (@aaronjensen)
+Fix insecure wildcard route (@modosc)
+Introduce Ruby 2.2 support. (@sebjacobs)
+Added support for testing against jruby. (@Matt343)
+Adding internationalization to reports (@teonimesic)
+Allow Rails applications to override default views (@rsslldnphy)
+Add support to reset experiments (@davidguthu)
+
 == 1.9.0 (2014-04-20)
 
 Include db:reset in blacklist for autoconnect. (@phillbaker)
