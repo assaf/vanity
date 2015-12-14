@@ -2,6 +2,8 @@
 # Run time configuration and helpers
 #
 module Vanity
+  extend Vanity::Helpers
+
   # Returns the current configuration.
   #
   # @see Vanity::Configuration

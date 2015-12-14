@@ -4,50 +4,26 @@ require "test_helper"
 class UseVanityController < ActionController::Base
   class TestModel
     def test_method
-      ab_test(:pie_or_cake)
+      Vanity.ab_test(:pie_or_cake)
     end
   end
-  
+
   attr_accessor :current_user
 
   def index
-    render :text=>ab_test(:pie_or_cake)
+    render :text=>Vanity.ab_test(:pie_or_cake)
   end
 
   def js
-    ab_test(:pie_or_cake)
+    Vanity.ab_test(:pie_or_cake)
     render :inline => "<%= vanity_js -%>"
   end
-  
+
   def model_js
     TestModel.new.test_method
     render :inline => "<%= vanity_js -%>"
   end
 end
-
-# class UseVanityControllerTest < ActionController::TestCase
-#   tests UseVanityController
-
-#   def setup
-#     super
-#     new_ab_test :pie_or_cake do
-#       metrics :sugar_high
-#     end
-
-#     # Class eval this instead of including in the controller to delay
-#     # execution until the request exists in the context of the test
-#     UseVanityController.class_eval do
-#       use_vanity :current_user
-#     end
-#   end
-
-#   def teardown
-#     super
-#   end
-
-#   def test_bootstraps_metric
-#   end
-# end
 
 class UseVanityControllerTest < ActionController::TestCase
   tests UseVanityController
@@ -80,7 +56,7 @@ class UseVanityControllerTest < ActionController::TestCase
     get :js
     assert_match /script.*v=pie_or_cake=.*script/m, @response.body
   end
-  
+
   def test_render_model_js_for_tests
     Vanity.playground.use_js!
     get :model_js
@@ -103,6 +79,7 @@ class UseVanityControllerTest < ActionController::TestCase
   end
 
   def test_does_not_add_invalid_participant_to_experiment
+    Vanity.playground.use_js!
     @request.user_agent = "Googlebot/2.1 ( http://www.google.com/bot.html)"
     get :index
     assert_equal 0, experiment(:pie_or_cake).alternatives.map(&:participants).sum
