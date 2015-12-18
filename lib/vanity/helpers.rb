@@ -6,14 +6,14 @@ module Vanity
   # @example From Rails controller
   #   class AccountController < ApplicationController
   #     def create
-  #       track! :signup
-  #       Acccount.create! params[:account]
+  #       Vanity.track!(:signup)
+  #       Acccount.create!(params[:account])
   #     end
   #   end
   # @example From ActiveRecord
   #   class Posts < ActiveRecord::Base
   #     after_create do |post|
-  #       track! :images if post.type == :image
+  #       Vanity.track!(:images if post.type == :image)
   #     end
   #   end
   module Helpers
@@ -22,7 +22,7 @@ module Vanity
     #
     # @example A/B two alternatives for a page
     #   def index
-    #     if ab_test(:new_page) # true/false test
+    #     if Vanity.ab_test(:new_page) # true/false test
     #       render action: "new_page"
     #     else
     #       render action: "index"
@@ -30,11 +30,12 @@ module Vanity
     #   end
     # @example Similar, alternative value is page name
     #   def index
-    #     render action: ab_test(:new_page)
+    #     render action: Vanity.ab_test(:new_page)
     #   end
     # @since 1.2.0
     def ab_test(name, &block)
-      # TODO refactor with Vanity::Rails::Helpers#ab_test
+      # TODO refactor with Vanity::Rails::Helpers#ab_test, however that's used
+      # within Rails views
       request = respond_to?(:request) ? self.request : nil
       if Vanity.playground.using_js?
         value = Vanity.context.vanity_store_experiment_for_js name, Vanity.playground.experiment(name).choose(request)
@@ -44,7 +45,6 @@ module Vanity
 
       if block
         content = capture(value, &block)
-        block_called_from_erb?(block) ? concat(content) : content
       else
         value
       end
@@ -56,9 +56,9 @@ module Vanity
     # tracked, but the user will not be added to the experiment.
     #
     # @example
-    #   track! :invitation
+    #   Vanity.track!(:invitation)
     # @example
-    #   track! :click, { :identity=>Identity.new(env['rack.session']), :values=>[1] }
+    #   Vanity.track!(:click, { :identity=>Identity.new(env['rack.session']), :values=>[1] })
     #
     # @param count_or_options Defaults to a count of 1. Also accepts a hash
     #   of options passed (eventually) to AbTest#track!.
@@ -67,9 +67,4 @@ module Vanity
       Vanity.playground.track! name, count_or_options
     end
   end
-end
-
-# TODO do we actually want to do this?
-Object.class_eval do
-  include Vanity::Helpers
 end

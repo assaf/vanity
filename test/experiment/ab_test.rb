@@ -5,7 +5,7 @@ class AbTestController < ActionController::Base
   attr_accessor :current_user
 
   def test_render
-    render :text=>ab_test(:simple)
+    render :text=>Vanity.ab_test(:simple)
   end
 
   def test_view
@@ -13,11 +13,11 @@ class AbTestController < ActionController::Base
   end
 
   def test_capture
-    render :inline=>"<%= ab_test :simple do |value| %><%= value %><% end %>"
+    render :inline=>"<%= ab_test(:simple) do |value| %><%= value %><% end %>"
   end
 
   def track
-    track! :coolness
+    Vanity.track!(:coolness)
     render :text=>""
   end
 end

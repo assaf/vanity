@@ -4,18 +4,18 @@ require "test_helper"
 class UseVanityController < ActionController::Base
   class TestModel
     def test_method
-      ab_test(:pie_or_cake)
+      Vanity.ab_test(:pie_or_cake)
     end
   end
 
   attr_accessor :current_user
 
   def index
-    render :text=>ab_test(:pie_or_cake)
+    render :text=>Vanity.ab_test(:pie_or_cake)
   end
 
   def js
-    ab_test(:pie_or_cake)
+    Vanity.ab_test(:pie_or_cake)
     render :inline => "<%= vanity_js -%>"
   end
 
@@ -79,6 +79,7 @@ class UseVanityControllerTest < ActionController::TestCase
   end
 
   def test_does_not_add_invalid_participant_to_experiment
+    Vanity.playground.use_js!
     @request.user_agent = "Googlebot/2.1 ( http://www.google.com/bot.html)"
     get :index
     assert_equal 0, experiment(:pie_or_cake).alternatives.map(&:participants).sum

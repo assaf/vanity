@@ -1,6 +1,6 @@
 require "test_helper"
 
-describe Object do
+describe Vanity::Helpers do
   describe "#track!" do
     it "identity option sets identity" do
       metric "Coolness"
@@ -8,7 +8,7 @@ describe Object do
         alternatives "foo", "bar"
         metrics :coolness
       end
-      track!(:coolness, :identity=>'quux')
+      Vanity.track!(:coolness, :identity=>'quux')
 
       assert_equal 1, experiment(:foobar).alternatives.sum(&:conversions)
     end
@@ -19,7 +19,7 @@ describe Object do
         alternatives "foo", "bar"
         metrics :coolness
       end
-      track!(:coolness, :identity=>'quux', :values=>[2])
+      Vanity.track!(:coolness, :identity=>'quux', :values=>[2])
 
       assert_equal 2, experiment(:foobar).alternatives.sum(&:conversions)
     end

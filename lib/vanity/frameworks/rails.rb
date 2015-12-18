@@ -160,7 +160,7 @@ module Vanity
       # alternative.
       def vanity_track_filter
         if request.get? && params[:_track]
-          track! params[:_track]
+          Vanity.track! params[:_track]
         end
       end
 
