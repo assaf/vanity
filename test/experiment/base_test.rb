@@ -17,13 +17,12 @@ describe Vanity::Experiment::Base do
     File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
       f.write <<-RUBY
         ab_test "Ice Cream Flavor" do
-          metrics :happiness
         end
         ab_test "Ice Cream Flavor" do
-          metrics :happiness
         end
       RUBY
     end
+    Vanity.unload!
     assert_raises NameError do
       experiment(:ice_cream_flavor)
     end
@@ -45,10 +44,10 @@ describe Vanity::Experiment::Base do
           def xmts
             "x"
           end
-          metrics :happiness
         end
       RUBY
     end
+    Vanity.unload!
     assert_equal "x", experiment(:ice_cream_flavor).xmts
   end
 
@@ -56,6 +55,7 @@ describe Vanity::Experiment::Base do
     File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
       f.write "fail 'yawn!'"
     end
+    Vanity.unload!
     assert_raises NameError do
       experiment(:ice_cream_flavor)
     end
@@ -65,6 +65,7 @@ describe Vanity::Experiment::Base do
     File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
       f.write ""
     end
+    Vanity.unload!
     assert_raises NameError do
       experiment(:ice_cream_flavor)
     end
@@ -91,11 +92,10 @@ describe Vanity::Experiment::Base do
     File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
       f.write <<-RUBY
         ab_test "Ice Cream Flavor" do
-          metrics :happiness
-          expects(:save).at_least_once
         end
       RUBY
     end
+    Vanity.unload!
     Vanity.playground.experiment(:ice_cream_flavor)
   end
 

@@ -16,10 +16,12 @@ describe "Remote metrics" do
   end
 
   it "loads from metrics files" do
+    Vanity.unload!
     assert Vanity.playground.metric(:sandbox)
   end
 
   it "creates remote metric from metric file" do
+    Vanity.unload!
     stub_request :post, /vanitydash/
     metric(:sandbox).track!
     assert_requested :post, /api\.vanitydash\.com/

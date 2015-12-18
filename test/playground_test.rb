@@ -7,45 +7,73 @@ describe Vanity::Playground do
     assert_equal instance, Vanity.playground
   end
 
-  describe "#use_js!" do
-    it "sets via use_js" do
-      assert !Vanity.playground.using_js?
-      Vanity.playground.use_js!
-      assert Vanity.playground.using_js?
+  it "creates metrics hooks on initialization for tracking" do
+    File.open "tmp/experiments/metrics/coolness.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "coolness" do
+        end
+      RUBY
     end
+
+    File.open "tmp/experiments/foobar.rb", "w" do |f|
+      f.write <<-RUBY
+        ab_test :foobar do
+          metrics :coolness
+        end
+      RUBY
+    end
+
+    # new_ab_test :foobar do
+    #   alternatives "foo", "bar"
+    #   identify { "abcdef" }
+    #   metrics :coolness
+    # end
+
+    Vanity::Metric.any_instance.expects(:hook).once
+    Vanity::Playground.new
   end
 
-  describe "#failover_on_datastore_error" do
-    it "sets failover_on_datastore_error" do
-      assert !Vanity.playground.failover_on_datastore_error?
-      Vanity.playground.failover_on_datastore_error!
-      assert Vanity.playground.failover_on_datastore_error?
-    end
-  end
-
-  describe "#on_datastore_error" do
-    it "has a default failover_on_datastore_error" do
-      proc = Vanity.playground.on_datastore_error
-      assert proc.respond_to?(:call)
-      assert_silent do
-        proc.call(Exception.new("datastore error"), self.class, caller[0][/`.*'/][1..-2], [1, 2, 3])
+  describe "deprecated settings" do
+    describe "#use_js!" do
+      it "sets via use_js" do
+        assert !Vanity.playground.using_js?
+        Vanity.playground.use_js!
+        assert Vanity.playground.using_js?
       end
     end
-  end
 
-  describe "#request_filter" do
-    it "sets request_filter" do
-      proc = Vanity.playground.request_filter
-      assert proc.respond_to?(:call)
-      assert_silent do
-        proc.call(dummy_request)
+    describe "#failover_on_datastore_error" do
+      it "sets failover_on_datastore_error" do
+        assert !Vanity.playground.failover_on_datastore_error?
+        Vanity.playground.failover_on_datastore_error!
+        assert Vanity.playground.failover_on_datastore_error?
       end
     end
-  end
 
-  describe "#add_participant_path" do
-    it "sets a default add participant path" do
-      assert_equal Vanity.playground.add_participant_path, Vanity::Configuration::DEFAULTS[:add_participant_route]
+    describe "#on_datastore_error" do
+      it "has a default failover_on_datastore_error" do
+        proc = Vanity.playground.on_datastore_error
+        assert proc.respond_to?(:call)
+        assert_silent do
+          proc.call(Exception.new("datastore error"), self.class, caller[0][/`.*'/][1..-2], [1, 2, 3])
+        end
+      end
+    end
+
+    describe "#request_filter" do
+      it "sets request_filter" do
+        proc = Vanity.playground.request_filter
+        assert proc.respond_to?(:call)
+        assert_silent do
+          proc.call(dummy_request)
+        end
+      end
+    end
+
+    describe "#add_participant_path" do
+      it "sets a default add participant path" do
+        assert_equal Vanity.playground.add_participant_path, Vanity::Configuration::DEFAULTS[:add_participant_route]
+      end
     end
   end
 

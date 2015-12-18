@@ -5,11 +5,25 @@ module Vanity
   # Vanity::Configuration, for connection management, please see
   # Vanity::Connection.
   class Playground
+    # Returns hash of metrics (key is metric id).
+    #
+    # @see Vanity::Metric
+    # @since 1.1.0
+    # @deprecated
+    attr_reader :metrics
+
+    # Returns hash of experiments (key is experiment id). This creates the
+    # Experiment and persists it to the datastore.
+    #
+    # @see Vanity::Experiment
+    attr_reader :experiments
 
     # Created new Playground. Unless you need to, use the global
     # Vanity.playground.
     def initialize
       @loading = []
+      set_metrics
+      set_experiments
     end
 
     # @deprecated
@@ -136,21 +150,6 @@ module Vanity
       Vanity.load!
     end
 
-    # Returns hash of experiments (key is experiment id). This creates the
-    # Experiment and persists it to the datastore.
-    #
-    # @see Vanity::Experiment
-    def experiments
-      return @experiments if @experiments
-
-      @experiments = {}
-      Vanity.logger.info("Vanity: loading experiments from #{Vanity.configuration.experiments_path}")
-      Dir[File.join(Vanity.configuration.experiments_path, "*.rb")].each do |file|
-        Experiment::Base.load(self, @loading, file)
-      end
-      @experiments
-    end
-
     def experiments_persisted?
       experiments.keys.all? { |id| connection.experiment_persisted?(id) }
     end
@@ -161,23 +160,6 @@ module Vanity
     # @since 1.1.0
     def metric(id)
       metrics[id.to_sym] or raise NameError, "No metric #{id}"
-    end
-
-    # Returns hash of metrics (key is metric id).
-    #
-    # @see Vanity::Metric
-    # @since 1.1.0
-    # @deprecated
-    def metrics
-      unless @metrics
-        @metrics = {}
-        Vanity.logger.info("Vanity: loading metrics from #{Vanity.configuration.experiments_path}/metrics")
-
-        Dir[File.join(Vanity.configuration.experiments_path, "metrics/*.rb")].each do |file|
-          Metric.load(self, @loading, file)
-        end
-      end
-      @metrics
     end
 
     # Tracks an action associated with a metric.
@@ -253,6 +235,28 @@ module Vanity
     # @deprecated
     def reconnect!
       Vanity.reconnect!
+    end
+
+    private
+
+    def set_experiments
+      @experiments = {}
+
+      Vanity.logger.info("Vanity: loading experiments from #{Vanity.configuration.experiments_path}")
+
+      Dir[File.join(Vanity.configuration.experiments_path, "*.rb")].each do |file|
+        Experiment::Base.load(self, @loading, file)
+      end
+    end
+
+    def set_metrics
+      @metrics = {}
+
+      Vanity.logger.info("Vanity: loading metrics from #{Vanity.configuration.experiments_path}/metrics")
+
+      Dir[File.join(Vanity.configuration.experiments_path, "metrics/*.rb")].each do |file|
+        Metric.load(self, @loading, file)
+      end
     end
   end
 end
