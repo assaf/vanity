@@ -7,7 +7,7 @@ GIT
 PATH
   remote: ..
   specs:
-    vanity (2.0.0.beta9)
+    vanity (2.0.0)
       i18n
 
 GEM
@@ -61,8 +61,8 @@ GEM
     daemon_controller (1.1.7)
     directory_watcher (1.4.1)
     erubis (2.7.0)
-    fast-stemmer (1.0.2)
     fakefs (0.6.7)
+    fast-stemmer (1.0.2)
     garb (0.9.1)
       activesupport (>= 2.2.0)
       crack (>= 0.1.6)
