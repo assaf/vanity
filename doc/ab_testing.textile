@@ -59,7 +59,7 @@ Remember that we're measuring signups, so we already have this in the code:
 class SignupController < ApplicationController
   def signup
     Account.create(params[:account])
-    track!(:signup)
+    Vanity.track!(:signup)
   end
 end
 </pre>
@@ -113,7 +113,7 @@ end
 The @ab_test@ method returns the value of one of the chosen alternatives, so in your views you can write:
 
 <pre>
-<h2>Get started for only $<%= ab_test :price_options %> a month!</h2>
+<h2>Get started for only $<%= ab_test(:price_options) %> a month!</h2>
 </pre>
 
 !images/price_options.png!
@@ -123,7 +123,7 @@ If you don't given any values, Vanity will run your experiment with the values f
 <pre>
 def index
   # alternatives are names of templates
-  render template: ab_test(:new_page)
+  render template: Vanity.ab_test(:new_page)
 end
 </pre>
 
@@ -132,7 +132,7 @@ end
 </pre>
 
 <pre>
-<% ab_test :features do |count| %>
+<% ab_test(:features) do |count| %>
   <%= count %> features to choose from!
 <% end %>
 </pre>

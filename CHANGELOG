@@ -1,6 +1,7 @@
 == 2.0.0 (2015-12-14)
 
 Extract configuration from Vanity::Playground to Vanity::Configuration (@phillbaker)
+Remove `track!` and `ab_test` from the global scope, they're now available on the `Vanity` module. (@phillbaker)
 Reduce test frameworks to just minitest (@phillbaker)
 Replace deprecated ActiveRecord finders (@bogdan-dumitru, @leematos, @aaronjensen)
 Add date to vanity_metric_values index (@aaronjensen)

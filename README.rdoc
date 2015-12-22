@@ -123,13 +123,13 @@ If the experiment uses a metric as above ("signups"), there needs to be a corres
 
 === <b>Step 4:</b> Measure conversion
 
-Conversions are created via the <code>track!</code> method. For example:
+Conversions are created via the <code>Vanity.track!</code> method. For example:
 
   class SignupController < ApplicationController
     def signup
       @account = Account.new(params[:account])
       if @account.save
-        track! :signups
+        Vanity.track!(:signups)
         redirect_to @acccount
       else
         render action: :offer
