@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vanity (2.0.0.beta9)
+    vanity (2.0.0)
       i18n
 
 GEM
@@ -34,10 +34,9 @@ GEM
     coffee-script-source (1.9.1)
     colorator (0.1)
     crack (0.3.1)
-    directory_watcher (1.4.1)
     execjs (2.5.2)
-    fast-stemmer (1.0.2)
     fakefs (0.6.7)
+    fast-stemmer (1.0.2)
     ffi (1.9.8)
     garb (0.9.1)
       activesupport (>= 2.2.0)
