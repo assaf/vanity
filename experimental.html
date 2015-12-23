@@ -52,8 +52,8 @@
 metric :purchase do
   columns :count, :total
 end
-metric(:purchase).track! p.items.length. p.total
-metric(:purchase).track! :total=&gt;p.total, :count=&gt;p.items.length
+metric(:purchase).track!(p.items.length. p.total)
+metric(:purchase).track!(:total=&gt;p.total, :count=&gt;p.items.length)
 </pre>
 <p>The metric&#8217;s <code>values</code> method will have to be changed to return an array of arrays, or new method introduced to keep the <span class="caps">API</span> backward compatible. And, of course, UI modified to display multiple series in a single graph.</p>
     </div>

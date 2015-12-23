@@ -61,25 +61,6 @@ end
 </pre>
 <p>This example assumes you have a <code>current_user</code> controller method which will return a consistent value for each user.<br />
 There are other ways to identify people as well, you can read more about the options in Managing Identity.</p>
-<h4>Configuring datastore</h4>
-<p>If you have a <code>config/vanity.yml</code> file, Vanity will read the configuration for the current environment.  For example:</p>
-<pre>
-staging:
-  adapter: redis
-  host: staging.internal
-production:
-  adapter: mongo
-  host: live.internal
-  database: vanity
-</pre>
-<h4>Using metrics from Google Analytics</h4>
-<p>If you want to use Vanity with metrics from Google Analytics, you must also tell Rails to include the <code>garb</code> gem, and login for a new session.  You&#8217;ll want to do that for production, not for development if you like developing offline:</p>
-<pre>
-config.after_initialize do
-  require "garb"
-  Garb::Session.login('..ga email..', '..ga pwd..', account_type: "GOOGLE")
-end
-</pre>
 <h4>Enabling/disable collection</h4>
 <p>When collection is off, Vanity doesn&#8217;t connect to the database server, so there&#8217;s no need to set a database configuration for these environments.</p>
 <h4>Overriding default views</h4>
@@ -89,7 +70,9 @@ rails g vanity:views
 </pre>
 <p>You can then edit them to your heart&#8217;s content. If you need to use an alternative location for your custom templates, set the configuration variable <code>custom_templates_path</code> on <code>Vanity.playground</code> like this:</p>
 <pre>
-Vanity.playground.custom_templates_path = 'views/vanity'
+Vanity.configure do |config|
+  config.templates_path = 'views/vanity'
+end
 </pre>
 <h3 id="fork">Unicorn and Forking Servers</h3>
 <p>Unicorn forks the master process to create worker processes efficiently.  Since the master processes opens a connection to the database, all workers end up sharing that connection, resulting in ugly contention issues.</p>
@@ -100,7 +83,7 @@ after_fork do |server, worker|
   Vanity.playground.establish_connection
 end
 </pre>
-<p>You&#8217;ll run into this issue with other forking servers.  Vanity can detect when it runs under Passenger and automatically reconnect each forked process.</p>
+<p>You&#8217;ll run into this issue with other forking servers like Passenger as well.</p>
     </div>
     <div id="footer"><a href="credits.html">Credits / License</a></div>
     <script type="text/javascript">var _gaq=_gaq||[];_gaq.push(["_setAccount", "UA-1828623-6"], ["_trackPageview"]);(function(){var ga=document.createElement("script");ga.src=("https:"==document.location.protocol?"https://ssl":"http://www")+".google-analytics.com/ga.js";ga.setAttribute("async", "true");document.documentElement.firstChild.appendChild(ga);})();</script>

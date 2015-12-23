@@ -71,7 +71,7 @@ class AccountsController &lt; ApplicationController
   def create
     @person = Person.new(params[:person])
     if @person.save
-      track! :signup      # track successful sign up
+      Vanity.track!(:signup)      # track successful sign up
       UserSession.create person
       redirect_to root_url
     else
@@ -85,7 +85,7 @@ end
 <p>You can call <code>track!</code> with a value to track.  This example tracks how many items were bought during the day:</p>
 <pre>
 def checkout
-  track! :items, @cart.items.count
+  Vanity.track!(:items, @cart.items.count)
   . . .
 end
 </pre>
@@ -143,8 +143,8 @@ end
 Rails::Initializer.run do |config|
   gems.config "vanity"
   gems.config "garb"
- 
-  . . . 
+
+  . . .
   config.after_initialize do
     require "garb"
     ga = YAML.load_file(Rails.root + "config/ga.yml")

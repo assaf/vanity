@@ -75,7 +75,7 @@ end
 class SignupController &lt; ApplicationController
   def signup
     Account.create(params[:account])
-    track! :signup
+    Vanity.track!(:signup)
   end
 end
 </pre>
@@ -106,14 +106,14 @@ end
 </pre>
 <p>The <code>ab_test</code> method returns the value of one of the chosen alternatives, so in your views you can write:</p>
 <pre>
-&lt;h2&gt;Get started for only $&lt;%= ab_test :price_options %&gt; a month!&lt;/h2&gt;
+&lt;h2&gt;Get started for only $&lt;%= ab_test(:price_options) %&gt; a month!&lt;/h2&gt;
 </pre>
 <p><img src="images/price_options.png" alt="" /></p>
 <p>If you don&#8217;t given any values, Vanity will run your experiment with the values false and true.  Here are other examples for rendering A/B tests with multiple values:</p>
 <pre>
 def index
-  # alternatives are names of templates 
-  render template: ab_test(:new_page)
+  # alternatives are names of templates
+  render template: Vanity.ab_test(:new_page)
 end
 </pre>
 
@@ -122,7 +122,7 @@ end
 </pre>
 
 <pre>
-&lt;% ab_test :features do |count| %&gt;
+&lt;% ab_test(:features) do |count| %&gt;
   &lt;%= count %&gt; features to choose from!
 &lt;% end %&gt;
 </pre>
@@ -139,7 +139,7 @@ end
 <p>Here&#8217;s another example using Webrat:</p>
 <pre>
 def test_price_option
-  [19, 25, 29].each do |price| 
+  [19, 25, 29].each do |price|
     experiment(:price_options).chooses(price)
     visit root_path
     assert_contain "Get started for only $#{price} a month!"

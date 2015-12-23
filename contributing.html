@@ -70,35 +70,13 @@ $ rake DB=redis
 $ rake DB=mongodb
 $ rake DB=mysql
 </pre>
-<p>Before making a release, we run the full test suite against multiple Ruby VMs<br />
-and using multiple database adapters.  Doing this on your own is easier than it<br />
-sounds:</p>
+<p>Before making a release, we run the full test suite against multiple Ruby VMs and using multiple database adapters.  Doing this on your own is easier than it sounds:</p>
 <ol>
 	<li><a href="http://github.com/assaf/vanity">Fork the project</a></li>
 	<li>Go to <a href="http://travis-ci.org/">Travis CI</a>, setup a new account if you don&#8217;t already have one</li>
 	<li><a href="http://travis-ci.org/profile">In your profile page</a>, tell Travis to build your fork</li>
 	<li><code>git push</code> your changes into your fork and <a href="http://travis-ci.org/">watch Travis</a> run the tests</li>
 </ol>
-<p>To package Vanity as a gem and install on your machine:</p>
-<pre>
-$ rake install
-</pre>
-<h3 id="doc">Documentation</h3>
-<p>Documentation is written in <a href="http://redcloth.org/textile/writing-paragraph-text/">Textile</a>, and converted to <span class="caps">HTML</span> using <a href="http://jekyllrb.com/">Jekyll</a>.</p>
-<p><span class="caps">API</span> reference is <a href="http://rdoc.sourceforge.net/doc/index.html">RDoc</a>, converted to <span class="caps">HTML</span> using <a href="http://yardoc.org/">Yardoc</a>.</p>
-<p>To build and view documentation:</p>
-<pre>
-$ rake docs
-$ open html/index.html
-</pre>
-<p>To clean up after yourself:</p>
-<pre>
-$ rake clobber
-</pre>
-<h3 id="open">Open Issues</h3>
-<table id="issues">
-  <tbody></tbody>
-</table>
     </div>
     <div id="footer"><a href="credits.html">Credits / License</a></div>
     <script type="text/javascript">var _gaq=_gaq||[];_gaq.push(["_setAccount", "UA-1828623-6"], ["_trackPageview"]);(function(){var ga=document.createElement("script");ga.src=("https:"==document.location.protocol?"https://ssl":"http://www")+".google-analytics.com/ga.js";ga.setAttribute("async", "true");document.documentElement.firstChild.appendChild(ga);})();</script>

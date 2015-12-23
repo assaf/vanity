@@ -56,34 +56,97 @@ production:
 	<li><ins>mongodb</ins> &#8212; Available options are host, port, database (defaults to &#8220;vanity&#8221;), username and password.</li>
 	<li><ins>active_record</ins> &#8212; Uses existing ActiveRecord configuration, by you can over-ride by supplying different options. To pick different underlying adapter, set <ins>active_record_adapter</ins>.</li>
 </ul>
+<h4>Configuration Options</h4>
 <p>Available configuration options are:</p>
 <table>
 	<tr>
-		<th>name      </th>
-		<th>Is all about &#8230;                      </th>
+		<th>name                     </th>
+		<th>Is all about &#8230;                    </th>
 		<th>Default      </th>
 	</tr>
 	<tr>
-		<td> load_path   </td>
-		<td> Directory containing experiment files   </td>
-		<td> experiments    </td>
+		<td> add_participant_route      </td>
+		<td> <span class="caps">URL</span> to use to add participants via JS </td>
+		<td> /vanity/add_participant </td>
 	</tr>
 	<tr>
-		<td> logger      </td>
-		<td> This should be obvious                  </td>
+		<td> collecting                 </td>
+		<td> False if you won&#8217;t want data collected</td>
+		<td> true           </td>
+	</tr>
+	<tr>
+		<td> config_file                </td>
+		<td> File name to use to configure vanity  </td>
+		<td> vanity.yml     </td>
+	</tr>
+	<tr>
+		<td> config_path                </td>
+		<td> Path to the config_file               </td>
+		<td> ./config/      </td>
+	</tr>
+	<tr>
+		<td> environment                </td>
+		<td> What environment use for configuration</td>
+		<td> development    </td>
+	</tr>
+	<tr>
+		<td> experiments_path           </td>
+		<td> Directory containing experiment files </td>
+		<td> ./experiments  </td>
+	</tr>
+	<tr>
+		<td> failover_on_datastore_error</td>
+		<td> Whether to pass errors to on_datastore_error </td>
+		<td> false   </td>
+	</tr>
+	<tr>
+		<td> locales_path               </td>
+		<td> Path to locales for translations      </td>
+		<td> in the gem     </td>
+	</tr>
+	<tr>
+		<td> logger                     </td>
+		<td> This should be obvious                </td>
 		<td> default/Rails  </td>
 	</tr>
 	<tr>
-		<td> collecting  </td>
-		<td> False if you won&#8217;t want data collected  </td>
-		<td> true           </td>
+		<td> on_datastore_error         </td>
+		<td> A proc that handles datastore errors  </td>
+		<td> logs to logger </td>
+	</tr>
+	<tr>
+		<td> request_filter             </td>
+		<td> A proc that returns whether to to ignore the request for the add JS participant route </td>
+		<td> Ignore requests with a HTTP_USER_AGENT that contain a <span class="caps">URL</span> </td>
+	</tr>
+	<tr>
+		<td> templates_path             </td>
+		<td> Path to templates for Vanity admin </td>
+		<td> the templates in the gem </td>
+	</tr>
+	<tr>
+		<td> use_js                     </td>
+		<td> Whether to use JS to add particpants, useful to ignore bots </td>
+		<td> false </td>
 	</tr>
 </table>
 <p>When <a href="rails.html">running under Rails</a>, Vanity defaults to using the Rails logger, locates the load_path relative to Rails root, uses the <code>config/vanity.yml</code> configuration file (if present) and turns collection on only in production mode.</p>
-<p>If you run a different setup, use the playground object to configure Vanity.  For example:</p>
+<p>Use the playground object to configure Vanity. For example:</p>
 <pre>
-Vanity.playground.load_path = "exp"
-Vanity.playground.establish_connection "redis://db.example.com"
+Vanity.configure do |config|
+  config.use_js = true
+  config.experiments_path = 'config/ab_tests'
+  config.add_participant_route = '/vanity/participant/new'
+  # ...
+end
+</pre>
+<h4>Using metrics from Google Analytics</h4>
+<p>If you want to use Vanity with metrics from Google Analytics, you must require the <code>garb</code> gem, and login for a new session.  You&#8217;ll want to do that for production, not for development if you like developing offline. For example in Rails, in the config/:</p>
+<pre>
+config.after_initialize do
+  require "garb"
+  Garb::Session.login('..ga email..', '..ga pwd..', account_type: "GOOGLE")
+end
 </pre>
     </div>
     <div id="footer"><a href="credits.html">Credits / License</a></div>
