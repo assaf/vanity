@@ -2,6 +2,8 @@ require "test_helper"
 
 class Sky < ActiveRecord::Base
   scope :high, lambda { where("height >= 4") }
+
+  attr_accessible :height if defined?(ProtectedAttributes)
 end
 
 if ENV["DB"] == "active_record"
