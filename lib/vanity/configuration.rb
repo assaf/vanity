@@ -33,21 +33,21 @@ module Vanity
     end
 
     DEFAULTS = {
-      collecting: true,
-      experiments_path: File.join(Pathname.new("."), "experiments"),
       add_participant_route: "/vanity/add_participant",
-      logger: default_logger,
+      collecting: true,
+      config_file: "vanity.yml",
+      config_path: File.join(Pathname.new("."), "config"),
+      environment: ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development",
+      experiments_path: File.join(Pathname.new("."), "experiments"),
       failover_on_datastore_error: false,
+      locales_path: File.expand_path(File.join(File.dirname(__FILE__), 'locales')),
+      logger: default_logger,
       on_datastore_error: ->(error, klass, method, arguments) {
         default_on_datastore_error(error, klass, method, arguments)
       },
       request_filter: ->(request) { default_request_filter(request) },
       templates_path: File.expand_path(File.join(File.dirname(__FILE__), 'templates')),
-      locales_path: File.expand_path(File.join(File.dirname(__FILE__), 'locales')),
       use_js: false,
-      config_path: File.join(Pathname.new("."), "config"),
-      config_file: "vanity.yml",
-      environment: ENV["RACK_ENV"] || ENV["RAILS_ENV"] || "development"
     }.freeze
 
     # True if saving results to the datastore (participants and conversions).
