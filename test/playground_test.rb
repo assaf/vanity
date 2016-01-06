@@ -19,6 +19,7 @@ describe Vanity::Playground do
       f.write <<-RUBY
         ab_test :foobar do
           metrics :coolness
+          default false
         end
       RUBY
     end
@@ -84,6 +85,7 @@ describe Vanity::Playground do
         alternatives "foo", "bar"
         identify { "abcdef" }
         metrics :coolness
+        default "foo"
       end
 
       assert Vanity.playground.experiments_persisted?
@@ -122,6 +124,7 @@ describe Vanity::Playground do
         alternatives "foo", "bar"
         identify { "abcdef" }
         metrics :coolness
+        default "foo"
       end
       alt = experiment(:foobar).choose
       assert_equal [[Vanity.playground.experiment(:foobar), alt]], Vanity.playground.participant_info("abcdef")

@@ -17,6 +17,7 @@ class VanityMigration < ActiveRecord::Migration
     create_table :vanity_experiments do |t|
       t.string :experiment_id
       t.integer :outcome
+      t.boolean :enabled
       t.datetime :created_at
       t.datetime :completed_at
     end

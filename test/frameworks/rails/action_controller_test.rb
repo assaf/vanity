@@ -33,6 +33,8 @@ class UseVanityControllerTest < ActionController::TestCase
     metric :sugar_high
     new_ab_test :pie_or_cake do
       metrics :sugar_high
+      alternatives :pie, :cake
+      default :pie
     end
 
     # Class eval this instead of including in the controller to delay
@@ -64,13 +66,13 @@ class UseVanityControllerTest < ActionController::TestCase
   end
 
   def test_chooses_sets_alternatives_for_rails_tests
-    experiment(:pie_or_cake).chooses(true)
+    experiment(:pie_or_cake).chooses(:pie)
     get :index
-    assert_equal 'true', @response.body
+    assert_equal 'pie', @response.body
 
-    experiment(:pie_or_cake).chooses(false)
+    experiment(:pie_or_cake).chooses(:cake)
     get :index
-    assert_equal 'false', @response.body
+    assert_equal 'cake', @response.body
   end
 
   def test_adds_participant_to_experiment

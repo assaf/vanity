@@ -31,6 +31,8 @@ end
 
 If you use either block or method name and they return @nil@, Vanity will fallback on persistent cookie mechanism.
 
+Note that @current_user@ in this case must return @nil@ for non-persisted accounts.  That is, @current_user.id@ *must* be non-@nil@.
+
 An identity can be anything.  For example, if you're running an experiment to test a new feature that will be available in some projects but not others, you'll want to slice the audience by project identifier, not user ID.
 
 You can also give each experiment a different identity using the @identify@ callback.  Here's an example that tells one experiment to use a project identifier:

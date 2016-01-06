@@ -17,6 +17,10 @@ pt-BR:
     converted_percentage: '%{alternative} converteu %{percentage}%'
     currently_shown: 'atualmente exibido'
     didnt_convert: '%{alternative} não converteu.'
+    disable: 'Desativar'
+    disabled: 'Desativado'
+    enable: 'Activar'
+    enabled: 'Activado'
     experiment_participants:
       one: 'Há um participante neste experimento.'
       other: 'Há %{count} participantes neste experimento.'

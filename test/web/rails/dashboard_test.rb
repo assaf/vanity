@@ -14,12 +14,14 @@ class RailsDashboardTest < ActionController::TestCase
     new_ab_test :food do
       alternatives :apple, :orange
       metrics :sugar_high
+      default :apple
       identify { '1' }
     end
 
     metric :liquidity
     new_ab_test :drink do
       alternatives :tea, :coffee
+      default :tea
       metrics :liquidity
       identify { '1' }
     end

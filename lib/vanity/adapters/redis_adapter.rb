@@ -127,6 +127,16 @@ module Vanity
         end
       end
 
+      def set_experiment_enabled(experiment, enabled)
+        call_redis_with_failover do
+          @experiments.set "#{experiment}:enabled", enabled
+        end
+      end
+
+      def is_experiment_enabled?(experiment)
+        @experiments["#{experiment}:enabled"] == 'true'
+      end
+
       def ab_counts(experiment, alternative)
         {
           :participants => @experiments.scard("#{experiment}:alts:#{alternative}:participants").to_i,

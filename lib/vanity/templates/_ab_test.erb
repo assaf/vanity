@@ -2,10 +2,17 @@
 <table>
   <caption>
     <%= experiment.conclusion(score).join(" ") %>
+    <% if experiment.active? && !experiment.enabled? %>
+      <div class='disabled_info'><%=I18n.t( 'vanity.experiment_has_been_disabled', name: experiment.default.name )%></div>
+    <% end %>
   </caption>
   <% score.alts.each do |alt| %>
     <tr class="<%= "choice" if score.choice == alt %>">
-      <td class="option"><%= alt.name.gsub(/^o/, "O") %>:</td>
+      <td class="option"><%= alt.name.gsub(/^o/, "O") %>:
+        <% if alt.default? %>
+          <div class='default'><%=I18n.t( 'vanity.default' )%></div>
+        <% end %>
+      </td>
       <td class="value"><code><%=vanity_h alt.value.to_s %></code></td>
       <td class="value"><%= I18n.t 'vanity.participants', :count=>alt.participants %></td>
       <td class="value"><%= I18n.t 'vanity.converted', :count=>alt.converted %></td>
@@ -14,7 +21,7 @@
         <%= I18n.t('vanity.best_alternative', :probabilty=>alt.probability.to_i) if score.method == :bayes_score %>
         <%= I18n.t('vanity.better_alternative_than', :probability=>alt.difference.to_i, :alternative=>score.least.name) if alt.difference && alt.difference >= 1 %>
       </td>
-      <% if experiment.active? && respond_to?(:url_for) %>
+      <% if experiment.enabled? && experiment.active? && respond_to?(:url_for) %>
         <td class="action">
           <small>
             <% if experiment.showing?(alt) %>

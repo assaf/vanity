@@ -81,6 +81,21 @@ module VanityTestHelpers
     Vanity.unload!
   end
 
+  # Call this on teardown. It wipes put the playground and any state held in it
+  # (mostly experiments), resets vanity ID, and clears database of all experiments.
+  def nuke_playground
+    Vanity.playground.connection.flushdb
+    new_playground
+  end
+
+  # Call this if you need a new playground, e.g. to re-define the same experiment,
+  # or reload an experiment (saved by the previous playground).
+  def new_playground
+    Vanity.playground = Vanity::Playground.new
+    Vanity.playground.establish_connection DATABASE
+  end
+
+
   # Defines the specified metrics (one or more names). Returns metric, or array
   # of metric (if more than one argument).
   def metric(*names)
@@ -92,11 +107,20 @@ module VanityTestHelpers
   end
 
   # Defines an A/B experiment.
-  def new_ab_test(name, &block)
+  # @param [Hash] options Options include:
+  #   [Boolean] enable (default true) - Whether or not to enable this ab_test when it gets instantiated;
+  # this flag is here to simply the testing of experiment features, and also to allow
+  # testing of the default behavior of an experiment when it gets loaded.
+  # Note that :enable => false does NOT mean to set the ab_test to false; it
+  # means to not set enabled at all (the 'actual' behavior).
+  def new_ab_test(name, options = {}, &block)
+    enable = options.fetch(:enable, true)
     id = name.to_s.downcase.gsub(/\W/, "_").to_sym
     experiment = Vanity::Experiment::AbTest.new(Vanity.playground, id, name)
-    experiment.instance_eval(&block)
+    experiment.instance_eval &block if block
     experiment.save
+    # new experiments start off as disabled, enable them for testing
+    experiment.enabled = true if enable
     Vanity.playground.experiments[id] = experiment
   end
 

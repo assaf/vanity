@@ -71,7 +71,7 @@ module Vanity
 
         def increment_conversion(alternative, count = 1)
           record = vanity_conversions.rails_agnostic_find_or_create_by(:alternative, alternative)
-          record.increment!(:conversions, count)
+          record.class.update_counters record.id, conversions: count
         end
       end
 
@@ -200,6 +200,14 @@ module Vanity
       # Returns true if experiment completed.
       def is_experiment_completed?(experiment)
         !!VanityExperiment.retrieve(experiment).completed_at
+      end
+
+      def set_experiment_enabled(experiment, enabled)
+        VanityExperiment.retrieve(experiment).update_attribute(:enabled, enabled)
+      end
+
+      def is_experiment_enabled?(experiment)
+        VanityExperiment.retrieve(experiment).enabled == true
       end
 
       # Returns counts for given A/B experiment and alternative (by index).

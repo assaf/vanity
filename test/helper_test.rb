@@ -6,6 +6,7 @@ describe Vanity::Helpers do
       metric "Coolness"
       new_ab_test :foobar do
         alternatives "foo", "bar"
+        default "foo"
         metrics :coolness
       end
       Vanity.track!(:coolness, :identity=>'quux')
@@ -17,6 +18,7 @@ describe Vanity::Helpers do
       metric "Coolness"
       new_ab_test :foobar do
         alternatives "foo", "bar"
+        default "foo"
         metrics :coolness
       end
       Vanity.track!(:coolness, :identity=>'quux', :values=>[2])

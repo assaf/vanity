@@ -15,6 +15,7 @@ describe Vanity::Commands do
           alternatives "foo", "bar"
           identify { "me" }
           metrics :coolness
+          default "foo"
         end
         experiment(:foobar).choose
 

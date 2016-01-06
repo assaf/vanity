@@ -1,4 +1,24 @@
-<h3><%=vanity_h experiment.name %> <span class="type">(<%= experiment.class.friendly_name %>)</span></h3>
+<% if experiment.active? %>
+  <% status = experiment.enabled? ? 'status_enabled' : 'status_disabled' %>
+<% else %>
+  <% status = 'status_completed' %>
+<% end %>
+<div class="inner <%= status %>">
+<h3>
+  <%=vanity_h experiment.name %><span class="type">(<%= experiment.class.friendly_name %>)</span>
+  <% if experiment.type == 'ab_test' && experiment.active? && experiment.playground.collecting? %>
+    <span class='enabled-links'>
+      <% action = experiment.enabled? ? :disable : :enable %>
+      
+      <% if experiment.enabled? %> <%= I18n.t( 'vanity.enabled' ) %> | <% end %>
+      <a title='<%=I18n.t( action, scope: 'vanity.act_on_this_experiment' )%>' href='#'
+         data-id='<%= experiment.id %>' data-url='<%= url_for(:action=>action, :e => experiment.id) %>'>
+        <%= action %></a>
+      <% if !experiment.enabled? %> | <%= I18n.t( 'vanity.disabled' ) %> <% end %>
+      
+    </span>
+  <% end %>
+</h3>
 <%= experiment.description.to_s.split(/\n\s*\n/).map { |para| vanity_html_safe(%{<p class="description">#{vanity_h para}</p>}) }.join.html_safe %>
 <% if flash.notice %>
   <p>

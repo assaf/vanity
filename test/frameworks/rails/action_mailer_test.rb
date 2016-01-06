@@ -28,13 +28,15 @@ class UseVanityMailerTest < ActionMailer::TestCase
     metric :sugar_high
     new_ab_test :pie_or_cake do
       metrics :sugar_high
+      alternatives :pie, :cake
+      default :pie
     end
   end
 
   def test_js_enabled_still_adds_participant
     Vanity.playground.use_js!
     experiment(:pie_or_cake).identify { }
-    experiment(:pie_or_cake).chooses(true)
+    experiment(:pie_or_cake).chooses(:pie)
     VanityMailer.ab_test_subject(nil)
 
 
@@ -45,13 +47,13 @@ class UseVanityMailerTest < ActionMailer::TestCase
   def test_returns_different_alternatives
     experiment(:pie_or_cake).identify { }
 
-    experiment(:pie_or_cake).chooses(true)
+    experiment(:pie_or_cake).chooses(:pie)
     email = VanityMailer.ab_test_subject(nil)
-    assert_equal 'true', email.subject
+    assert_equal 'pie', email.subject
 
-    experiment(:pie_or_cake).chooses(false)
+    experiment(:pie_or_cake).chooses(:cake)
     email = VanityMailer.ab_test_subject(nil)
-    assert_equal 'false', email.subject
+    assert_equal 'cake', email.subject
   end
 
   def test_tracking_image_is_rendered

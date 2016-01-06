@@ -37,15 +37,18 @@ class AbTestTest < ActionController::TestCase
     assert_raises RuntimeError do
       new_ab_test :none do
         alternatives []
+        default nil
       end
     end
     assert_raises RuntimeError do
       new_ab_test :one do
         alternatives "foo"
+        default "foo"
       end
     end
     new_ab_test :two do
       alternatives "foo", "bar"
+      default "foo"
       metrics :coolness
     end
   end
@@ -53,6 +56,7 @@ class AbTestTest < ActionController::TestCase
   def test_returning_alternative_by_value
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     assert_equal experiment(:abcd).alternatives[1], experiment(:abcd).alternative(:b)
@@ -62,6 +66,7 @@ class AbTestTest < ActionController::TestCase
   def test_alternative_name
     new_ab_test :abcd do
       alternatives :a, :b
+      default :a
       metrics :coolness
     end
     assert_equal "option A", experiment(:abcd).alternative(:a).name
@@ -72,10 +77,12 @@ class AbTestTest < ActionController::TestCase
     new_ab_test :ab do
       metrics :coolness
       alternatives :a, :b
+      default :a
     end
     new_ab_test :cd do
       metrics :coolness
       alternatives :a, :b
+      default :a
     end
     fingerprints = Vanity.playground.experiments.map { |id, exp| exp.alternatives.map { |alt| exp.fingerprint(alt) } }.flatten
     assert_equal 4, fingerprints.uniq.size
@@ -84,6 +91,7 @@ class AbTestTest < ActionController::TestCase
   def test_alternative_fingerprint_is_consistent
     new_ab_test :ab do
       alternatives :a, :b
+      default :a
       metrics :coolness
     end
     fingerprints = experiment(:ab).alternatives.map { |alt| experiment(:ab).fingerprint(alt) }
@@ -93,18 +101,262 @@ class AbTestTest < ActionController::TestCase
     assert_equal fingerprints.first, experiment(:ab).fingerprint(experiment(:ab).alternatives.first)
   end
 
+  def test_ab_has_default
+    new_ab_test :ice_cream_flavor do
+      metrics :coolness
+      alternatives :a, :b, :c
+      default :b
+    end
+    exp = experiment(:ice_cream_flavor)
+    assert_equal exp.default, exp.alternative(:b)
+  end
 
+  def test_ab_sets_default_default
+    new_ab_test :ice_cream_flavor do
+      metrics :coolness
+      alternatives :a, :b, :c
+      # no default specified
+    end
+    exp = experiment(:ice_cream_flavor)
+    assert_equal exp.default, exp.alternative(:a)
+  end
+
+  def test_ab_overrides_unknown_default
+    new_ab_test :ice_cream_flavor do
+      metrics :coolness
+      alternatives :a, :b, :c
+      default :badname
+    end
+    exp = experiment(:ice_cream_flavor)
+    assert_equal exp.default, exp.alternative(:a)
+  end
+
+  def test_ab_can_only_set_default_once
+    assert_raise ArgumentError do
+      new_ab_test :ice_cream_flavor do
+        metrics :coolness
+        alternative :a, :b, :c
+        default :a
+        default :b
+      end
+    end
+  end
+
+  def test_ab_can_only_have_one_default
+    assert_raise ArgumentError do
+      new_ab_test :ice_cream_flavor do
+        metrics :coolness
+        alternative :a, :b, :c
+        default :a, :b
+      end
+    end
+  end
+
+  def test_ab_cannot_get_default_before_specified
+    assert_raise ArgumentError do
+      new_ab_test :ice_cream_flavor do
+        metrics :coolness
+        alternative :a, :b, :c
+        default
+      end
+    end
+  end
+
+  def test_ab_accepts_nil_default
+    new_ab_test :nil_default do
+      metrics :coolness
+      alternatives nil, 'foo'
+      default nil
+    end
+    exp = experiment(:nil_default)
+    assert_equal exp.default, exp.alternative(nil)
+  end
+
+  def test_ab_chooses_nil_default_default
+    new_ab_test :nil_default_default do
+      metrics :coolness
+      alternatives nil, 'foo'
+      # no default specified
+    end
+    exp = experiment(:nil_default_default)
+    assert_equal exp.default, exp.alternative(nil)
+  end
+  
+  
+  # -- Experiment Enabled/disabled --
+  
+  # @example new test should be enabled regardless of collecting?
+  #   regardless_of "Vanity.playground.collecting" do
+  #     assert (new_ab_test :test).enabled?
+  #   end
+  def regardless_of(attr_name, &block)
+    prev_val = eval "#{attr_name}?"
+    
+    eval "#{attr_name}=true"
+    block.call(eval "#{attr_name}?")
+    nuke_playground
+    
+    eval "#{attr_name}=false"
+    block.call(eval "#{attr_name}?")
+    nuke_playground
+    
+    eval "#{attr_name}=prev_val"
+  end
+  
+  def test_new_test_is_disabled
+    exp = new_ab_test :test, enable: false do
+      metrics :coolness
+      default false
+    end
+    assert !exp.enabled?
+  end
+  
+  def test_complete_sets_enabled_false
+    Vanity.playground.collecting = true
+    exp = new_ab_test :test do
+      metrics :coolness
+      default false
+    end
+    exp.complete! #active? => false
+
+    assert !exp.enabled?, "experiment should not be enabled but it is!"
+  end
+
+  def test_complete_keeps_enabled_true_while_not_collecting
+    exp = new_ab_test :test do
+      metrics :coolness
+      default false
+    end
+    Vanity.playground.collecting = false
+    exp.enabled = false
+    assert exp.enabled?
+  end
+
+  def test_set_enabled_while_active
+    Vanity.playground.collecting = true
+    exp = new_ab_test :test do
+      metrics :coolness
+      default false
+    end
+    
+    exp.enabled = true
+    assert exp.enabled?
+    
+    exp.enabled = false
+    assert !exp.enabled?
+  end
+  
+  def test_cannot_set_enabled_for_inactive
+    Vanity.playground.collecting = true
+    exp = new_ab_test :test do
+      metrics :coolness
+      default false
+    end
+    exp.complete! #active? => false
+    assert !exp.enabled?
+    exp.enabled = true
+    assert !exp.enabled?
+  end
+
+  def test_always_enabled_while_not_collecting
+    Vanity.playground.collecting = false
+    exp = new_ab_test :test do
+      metrics :coolness
+      default false
+    end
+    assert exp.enabled?
+    exp.enabled = false
+    assert exp.enabled?
+  end
+  
+  def test_enabled_persists_across_definitions
+    Vanity.playground.collecting = true
+    new_ab_test :test, :enable => false do 
+      metrics :coolness
+      default false
+    end
+    assert !experiment(:test).enabled? #starts off false
+    
+    new_playground
+    metric "Coolness"
+    
+    new_ab_test :test, :enable => false do
+      metrics :coolness
+      default false
+    end
+    assert !experiment(:test).enabled? #still false
+    experiment(:test).enabled = true
+    assert experiment(:test).enabled? #now true
+    
+    new_playground
+    metric "Coolness"
+    
+    new_ab_test :test, :enable => false do
+      metrics :coolness
+      default false
+    end
+    assert experiment(:test).enabled? #still true
+    experiment(:test).enabled = false
+    assert !experiment(:test).enabled? #now false again
+  end
+  
+  def test_choose_random_when_enabled
+    regardless_of "Vanity.playground.collecting" do
+      metric "Coolness"
+
+      exp = new_ab_test :test do 
+        metrics :coolness
+        true_false
+        default false
+        identify { rand }
+      end
+      results = Set.new
+      100.times do
+        results << exp.choose.value
+      end
+      assert_equal results, [true, false].to_set
+    end
+  end
+  
+  def test_choose_default_when_disabled
+    exp = new_ab_test :test do
+      metrics :coolness
+      alternatives 0, 1, 2, 3, 4, 5
+      default 3
+    end
+    
+    exp.enabled = false
+    100.times.each do
+      assert_equal 3, exp.choose.value
+    end
+  end
+  
+  def test_choose_outcome_when_finished
+    exp = new_ab_test :test do
+      metrics :coolness
+      alternatives 0,1,2,3,4,5
+      default 3
+      outcome_is { alternative(5) }
+    end
+    exp.complete!
+    100.times.each do
+      assert_equal 5, exp.choose.value
+    end
+  end
+  
   # -- Experiment metric --
 
   def test_explicit_metric
     new_ab_test :abcd do
       metrics :coolness
+      default false
     end
     assert_equal [Vanity.playground.metric(:coolness)], experiment(:abcd).metrics
   end
 
   def test_implicit_metric
     new_ab_test :abcd do
+      default false
     end
     assert_equal [Vanity.playground.metric(:abcd)], experiment(:abcd).metrics
   end
@@ -113,6 +365,7 @@ class AbTestTest < ActionController::TestCase
     metric "Coolness"
     new_ab_test :abcd do
       metrics :coolness
+      default false
     end
     Vanity.playground.track! :coolness
     assert_equal 1, experiment(:abcd).alternatives.sum(&:conversions)
@@ -123,6 +376,7 @@ class AbTestTest < ActionController::TestCase
   def test_track_with_identity_overrides_default
     identities = ["quux"]
     new_ab_test :foobar do
+      default "foo"
       alternatives "foo", "bar"
       identify { identities.pop || "6e98ec" }
       metrics :coolness
@@ -141,6 +395,7 @@ class AbTestTest < ActionController::TestCase
     Vanity.configuration.use_js = true
     ids = (0...10).to_a
     new_ab_test :foobar do
+      default "foo"
       alternatives "foo", "bar"
       identify { ids.pop }
       metrics :coolness
@@ -155,6 +410,7 @@ class AbTestTest < ActionController::TestCase
   def test_calls_on_assignment_on_new_assignment
     on_assignment_called_times = 0
     new_ab_test :foobar do
+      default "foo"
       alternatives "foo", "bar"
       identify { "6e98ec" }
       metrics :coolness
@@ -167,6 +423,7 @@ class AbTestTest < ActionController::TestCase
   def test_calls_on_assignment_when_given_valid_request
     on_assignment_called_times = 0
     new_ab_test :foobar do
+      default "foo"
       alternatives "foo", "bar"
       identify { "6e98ec" }
       metrics :coolness
@@ -179,6 +436,7 @@ class AbTestTest < ActionController::TestCase
   def test_does_not_call_on_assignment_when_given_invalid_request
     on_assignment_called_times = 0
     new_ab_test :foobar do
+      default "foo"
       alternatives "foo", "bar"
       identify { "6e98ec" }
       metrics :coolness
@@ -194,6 +452,7 @@ class AbTestTest < ActionController::TestCase
     on_assignment_called_times = 0
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { "6e98ec" }
       metrics :coolness
       on_assignment { on_assignment_called_times = on_assignment_called_times+1 }
@@ -205,6 +464,7 @@ class AbTestTest < ActionController::TestCase
   def test_returns_the_same_alternative_consistently_when_on_assignment_is_set
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { "6e98ec" }
       on_assignment {}
       metrics :coolness
@@ -221,6 +481,7 @@ class AbTestTest < ActionController::TestCase
   def test_ab_assigned
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { "6e98ec" }
       metrics :coolness
     end
@@ -233,6 +494,7 @@ class AbTestTest < ActionController::TestCase
     identity = { :a => :b }
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { identity }
       metrics :coolness
     end
@@ -246,6 +508,7 @@ class AbTestTest < ActionController::TestCase
   def test_returns_the_same_alternative_consistently_when_using_probabilities
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { "6e98ec" }
       rebalance_frequency 10
       metrics :coolness
@@ -272,6 +535,7 @@ class AbTestTest < ActionController::TestCase
   def test_uses_probabilities_for_new_assignments
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { rand }
       rebalance_frequency 10000
       metrics :coolness
@@ -290,6 +554,7 @@ class AbTestTest < ActionController::TestCase
   def test_rebalances_probabilities_after_rebalance_frequency_calls
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { rand }
       rebalance_frequency 12
       metrics :coolness
@@ -313,6 +578,7 @@ class AbTestTest < ActionController::TestCase
   def test_rebalance_uses_bayes_score_probabilities_to_update_probabilities
     new_ab_test :foobar do
       alternatives "foo", "bar", "baa"
+      default "foo"
       identify { rand }
       rebalance_frequency 12
       metrics :coolness
@@ -345,6 +611,7 @@ class AbTestTest < ActionController::TestCase
   def test_returns_the_same_alternative_consistently
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { "6e98ec" }
       metrics :coolness
     end
@@ -358,6 +625,7 @@ class AbTestTest < ActionController::TestCase
   def test_respects_out_of_band_assignment
     new_ab_test :foobar do
       alternatives "a", "b", "c"
+      default "a"
       identify { "6e98ec" }
       metrics :coolness
     end
@@ -376,6 +644,7 @@ class AbTestTest < ActionController::TestCase
   def test_returns_different_alternatives_for_each_participant
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { rand }
       metrics :coolness
     end
@@ -388,6 +657,7 @@ class AbTestTest < ActionController::TestCase
     ids = (Array.new(200) { |i| i } * 5).shuffle
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { ids.pop }
       metrics :coolness
     end
@@ -401,6 +671,7 @@ class AbTestTest < ActionController::TestCase
     ids = ((1..100).map { |i| [i,i] } * 5).shuffle.flatten # 3,3,1,1,7,7 etc
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { ids.pop }
       metrics :coolness
     end
@@ -416,6 +687,7 @@ class AbTestTest < ActionController::TestCase
     ids = ((1..100).map { |i| [-i,i,i] } * 5).shuffle.flatten # -3,3,3,-1,1,1,-7,7,7 etc
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { ids.pop }
       metrics :coolness
     end
@@ -431,6 +703,7 @@ class AbTestTest < ActionController::TestCase
   def test_choose_records_participants_given_a_valid_request
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { "me" }
       metrics :coolness
     end
@@ -441,6 +714,7 @@ class AbTestTest < ActionController::TestCase
   def test_choose_ignores_participants_given_an_invalid_request
     new_ab_test :foobar do
       alternatives "foo", "bar"
+      default "foo"
       identify { "me" }
       metrics :coolness
     end
@@ -454,6 +728,7 @@ class AbTestTest < ActionController::TestCase
     new_ab_test :simple do
       identify { "me" }
       metrics :coolness
+      default false
       complete_if { alternatives.map(&:converted).sum >= 1 }
       outcome_is { alternative(true) }
     end
@@ -483,6 +758,7 @@ class AbTestTest < ActionController::TestCase
   def test_ab_test_chooses_in_render
     new_ab_test :simple do
       metrics :coolness
+      default false
     end
     responses = Array.new(100) do
       @controller = nil ; setup_controller_request_and_response
@@ -495,6 +771,7 @@ class AbTestTest < ActionController::TestCase
   def test_ab_test_chooses_view_helper
     new_ab_test :simple do
       metrics :coolness
+      default false
     end
     responses = Array.new(100) do
       @controller = nil ; setup_controller_request_and_response
@@ -507,6 +784,7 @@ class AbTestTest < ActionController::TestCase
   def test_ab_test_with_capture
     new_ab_test :simple do
       metrics :coolness
+      default false
     end
     responses = Array.new(100) do
       @controller = nil ; setup_controller_request_and_response
@@ -519,6 +797,7 @@ class AbTestTest < ActionController::TestCase
   def test_ab_test_track
     new_ab_test :simple do
       metrics :coolness
+      default false
     end
     responses = Array.new(100) do
       @controller.send(:cookies).each{ |cookie| @controller.send(:cookies).delete(cookie.first) }
@@ -533,6 +812,7 @@ class AbTestTest < ActionController::TestCase
   def test_with_given_choice
     new_ab_test :simple do
       alternatives :a, :b, :c
+      default :a
       metrics :coolness
     end
     100.times do |i|
@@ -546,6 +826,7 @@ class AbTestTest < ActionController::TestCase
   def test_which_chooses_non_existent_alternative
     new_ab_test :simple do
       metrics :coolness
+      default false
     end
     assert_raises ArgumentError do
       experiment(:simple).chooses(404)
@@ -556,6 +837,7 @@ class AbTestTest < ActionController::TestCase
     new_ab_test :simple  do
       identify { rand }
       alternatives :a, :b, :c
+      default :a
       metrics :coolness
     end
     responses = Array.new(100) { |i|
@@ -574,6 +856,7 @@ class AbTestTest < ActionController::TestCase
   def test_calculate_score
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     score_result = experiment(:abcd).calculate_score
@@ -581,6 +864,7 @@ class AbTestTest < ActionController::TestCase
 
     new_ab_test :bayes_abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
       score_method :bayes_bandit_score
     end
@@ -591,6 +875,7 @@ class AbTestTest < ActionController::TestCase
   def test_scoring
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     # participating, conversions, rate, z-score
@@ -617,6 +902,7 @@ class AbTestTest < ActionController::TestCase
   def test_bayes_scoring
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     # participating, conversions, rate, z-score
@@ -634,6 +920,7 @@ class AbTestTest < ActionController::TestCase
   def test_scoring_with_no_performers
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
@@ -647,6 +934,7 @@ class AbTestTest < ActionController::TestCase
   def test_scoring_with_one_performer
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     fake :abcd, :b=>[10,8]
@@ -662,6 +950,7 @@ class AbTestTest < ActionController::TestCase
   def test_scoring_with_some_performers
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     fake :abcd, :b=>[10,8], :d=>[12,5]
@@ -681,6 +970,7 @@ class AbTestTest < ActionController::TestCase
   def test_scoring_with_different_probability
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     fake :abcd, :b=>[10,8], :d=>[12,5]
@@ -696,6 +986,7 @@ class AbTestTest < ActionController::TestCase
   def test_conclusion
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     # participating, conversions, rate, z-score
@@ -719,6 +1010,7 @@ Option D selected as the best alternative.
   def test_conclusion_with_some_performers
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     fake :abcd, :b=>[180, 45], :d=>[188, 61]
@@ -737,6 +1029,7 @@ Option D selected as the best alternative.
   def test_conclusion_without_clear_winner
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     fake :abcd, :b=>[180, 58], :d=>[188, 61]
@@ -754,6 +1047,7 @@ Option C did not convert.
   def test_conclusion_without_close_performers
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     fake :abcd, :b=>[186, 60], :d=>[188, 61]
@@ -771,6 +1065,7 @@ Option C did not convert.
   def test_conclusion_without_equal_performers
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     fake :abcd, :b=>[188, 61], :d=>[188, 61]
@@ -787,6 +1082,7 @@ Option C did not convert.
   def test_conclusion_with_one_performers
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     fake :abcd, :b=>[180, 45]
@@ -800,6 +1096,7 @@ This experiment did not run long enough to find a clear winner.
   def test_conclusion_with_no_performers
     new_ab_test :abcd do
       alternatives :a, :b, :c, :d
+      default :a
       metrics :coolness
     end
     assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
@@ -816,6 +1113,7 @@ This experiment did not run long enough to find a clear winner.
       identify { rand }
       complete_if { true }
       metrics :coolness
+      default false
     end
     experiment(:simple).choose
     assert !experiment(:simple).active?
@@ -826,6 +1124,7 @@ This experiment did not run long enough to find a clear winner.
       identify { rand }
       complete_if { fail "Testing complete_if raises exception" }
       metrics :coolness
+      default false
     end
     experiment(:simple).choose
     assert experiment(:simple).active?
@@ -837,6 +1136,7 @@ This experiment did not run long enough to find a clear winner.
       identify { ids.pop }
       complete_if { alternatives.map(&:participants).sum >= 100 }
       metrics :coolness
+      default false
     end
     99.times do |i|
       experiment(:simple).choose
@@ -854,6 +1154,7 @@ This experiment did not run long enough to find a clear winner.
       complete_if { alternatives.map(&:participants).sum >= 100 }
       outcome_is { alternatives[1] }
       metrics :coolness
+      default false
     end
     # Run experiment to completion (100 participants)
     results = Set.new
@@ -881,6 +1182,7 @@ This experiment did not run long enough to find a clear winner.
     new_ab_test :quick do
       outcome_is { alternatives[1] }
       metrics :coolness
+      default false
     end
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
@@ -889,6 +1191,7 @@ This experiment did not run long enough to find a clear winner.
   def test_completion_with_outcome
     new_ab_test :quick do
       metrics :coolness
+      default false
     end
     experiment(:quick).complete!(1)
     assert_equal experiment(:quick).alternatives[1], experiment(:quick).outcome
@@ -898,6 +1201,7 @@ This experiment did not run long enough to find a clear winner.
     new_ab_test :quick do
       outcome_is { raise RuntimeError }
       metrics :coolness
+      default false
     end
     e = experiment(:quick)
     e.expects(:warn)
@@ -910,6 +1214,7 @@ This experiment did not run long enough to find a clear winner.
     new_ab_test :quick do
       outcome_is { nil }
       metrics :coolness
+      default false
     end
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternatives.first, experiment(:quick).outcome
@@ -919,6 +1224,7 @@ This experiment did not run long enough to find a clear winner.
     new_ab_test :quick do
       outcome_is { "error" }
       metrics :coolness
+      default false
     end
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternatives.first, experiment(:quick).outcome
@@ -928,6 +1234,7 @@ This experiment did not run long enough to find a clear winner.
     new_ab_test :quick do
       outcome_is { fail "Testing outcome_is raising exception" }
       metrics :coolness
+      default false
     end
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternatives.first, experiment(:quick).outcome
@@ -936,6 +1243,7 @@ This experiment did not run long enough to find a clear winner.
   def test_outcome_choosing_best_alternative
     new_ab_test :quick do
       metrics :coolness
+      default false
     end
     fake :quick, false=>[2,0], true=>10
     experiment(:quick).complete!
@@ -945,6 +1253,7 @@ This experiment did not run long enough to find a clear winner.
   def test_outcome_only_performing_alternative
     new_ab_test :quick do
       metrics :coolness
+      default false
     end
     fake :quick, true=>2
     experiment(:quick).complete!
@@ -954,6 +1263,7 @@ This experiment did not run long enough to find a clear winner.
   def test_outcome_choosing_equal_alternatives
     new_ab_test :quick do
       metrics :coolness
+      default false
     end
     fake :quick, false=>8, true=>8
     experiment(:quick).complete!
@@ -968,6 +1278,7 @@ This experiment did not run long enough to find a clear winner.
     metric "Coolness"
     new_ab_test :abcd do
       metrics :coolness
+      default false
     end
     Vanity.playground.track! :coolness
     assert_equal 0, experiment(:abcd).alternatives.sum(&:conversions)
@@ -978,6 +1289,7 @@ This experiment did not run long enough to find a clear winner.
     new_ab_test :quick do
       outcome_is { alternatives[1] }
       metrics :coolness
+      default false
     end
     experiment(:quick).complete!
     assert_nil experiment(:quick).outcome
@@ -986,6 +1298,7 @@ This experiment did not run long enough to find a clear winner.
   def test_chooses_records_participants
     new_ab_test :simple do
       alternatives :a, :b, :c
+      default :a
       metrics :coolness
     end
     experiment(:simple).chooses(:b)
@@ -995,6 +1308,7 @@ This experiment did not run long enough to find a clear winner.
   def test_chooses_moves_participant_to_new_alternative
     new_ab_test :simple do
       alternatives :a, :b, :c
+      default :a
       metrics :coolness
       identify { "1" }
     end
@@ -1009,6 +1323,7 @@ This experiment did not run long enough to find a clear winner.
   def test_chooses_records_participants_only_once
     new_ab_test :simple do
       alternatives :a, :b, :c
+      default :a
       metrics :coolness
     end
     2.times { experiment(:simple).chooses(:b) }
@@ -1018,6 +1333,7 @@ This experiment did not run long enough to find a clear winner.
   def test_chooses_records_participants_for_new_alternatives
     new_ab_test :simple do
       alternatives :a, :b, :c
+      default :a
       metrics :coolness
     end
     experiment(:simple).chooses(:b)
@@ -1028,6 +1344,7 @@ This experiment did not run long enough to find a clear winner.
   def test_chooses_records_participants_given_a_valid_request
     new_ab_test :simple do
       alternatives :a, :b, :c
+      default :a
       metrics :coolness
     end
     experiment(:simple).chooses(:a, dummy_request)
@@ -1037,6 +1354,7 @@ This experiment did not run long enough to find a clear winner.
   def test_chooses_ignores_participants_given_an_invalid_request
     new_ab_test :simple do
       alternatives :a, :b, :c
+      default :a
       metrics :coolness
     end
     request = dummy_request
@@ -1049,6 +1367,7 @@ This experiment did not run long enough to find a clear winner.
     not_collecting!
     new_ab_test :simple do
       alternatives :a, :b, :c
+      default :a
       metrics :coolness
     end
     assert !experiment(:simple).showing?(experiment(:simple).alternatives[1])
@@ -1061,16 +1380,56 @@ This experiment did not run long enough to find a clear winner.
     not_collecting!
     new_ab_test :simple do
       alternatives :a, :b, :c
+      default :a
       metrics :coolness
     end
     choice = experiment(:simple).choose.value
     assert [:a, :b, :c].include?(choice)
     assert_equal choice, experiment(:simple).choose.value
   end
+  
+  # -- Reset --
+  
+  def test_reset_clears_participants
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      default :a
+      metrics :coolness
+    end
+    experiment(:simple).chooses(:b)
+    assert_equal experiment(:simple).alternatives[1].participants, 1
+    experiment(:simple).reset
+    assert_equal experiment(:simple).alternatives[1].participants, 0
+  end
+  
+  def test_clears_outcome_and_completed_at
+     new_ab_test :simple do
+       alternatives :a, :b, :c
+       default :a
+       metrics :coolness	
+     end	  	
+    experiment(:simple).reset	  	
+    assert_nil experiment(:simple).outcome  	
+    assert_nil experiment(:simple).completed_at
+  end
+  
+  # -- Pick Winner --
+  
+  def test_complete_with_argument_sets_outcome_and_completes
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      default :a
+      metrics :coolness
+    end
+    experiment(:simple).complete!(experiment(:simple).alternatives[1].id)
+    assert_equal experiment(:simple).alternatives[1], experiment(:simple).outcome
+    assert_not_nil experiment(:simple).completed_at
+  end
 
   def test_reset_clears_participants
     new_ab_test :simple do
       alternatives :a, :b, :c
+      default :a
       metrics :coolness
     end
     experiment(:simple).chooses(:b)
@@ -1082,6 +1441,7 @@ This experiment did not run long enough to find a clear winner.
   def test_clears_outcome_and_completed_at
     new_ab_test :simple do
       alternatives :a, :b, :c
+      default :a
       metrics :coolness
     end
     experiment(:simple).reset

@@ -10,6 +10,7 @@ class RailsHelperTest < ActionView::TestCase
       metrics :sugar_high
       identify { '1' }
       alternatives :pie, :cake
+      default :pie
     end
   end
 
