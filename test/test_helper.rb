@@ -92,7 +92,9 @@ module VanityTestHelpers
   # or reload an experiment (saved by the previous playground).
   def new_playground
     Vanity.playground = Vanity::Playground.new
-    Vanity.playground.establish_connection DATABASE
+    Vanity.disconnect!
+    ActiveRecord::Base.establish_connection
+    Vanity.connect!(DATABASE)
   end
 
 
