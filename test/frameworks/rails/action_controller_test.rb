@@ -91,7 +91,7 @@ class UseVanityControllerTest < ActionController::TestCase
     assert_match /vanity_id=[a-f0-9]{32};/, cookie
     expires = cookie[/expires=(.*)(;|$)/, 1]
     assert expires
-    assert_in_delta Time.parse(expires), Time.now + 1.month, 1.day
+    assert_in_delta Time.parse(expires), Time.now + 20.years, 1.day
   end
 
   def test_vanity_cookie_default_id
@@ -103,6 +103,12 @@ class UseVanityControllerTest < ActionController::TestCase
     @request.cookies["vanity_id"] = "from_last_time"
     get :index
     assert_equal "from_last_time",  cookies["vanity_id"]
+  end
+
+  def test_vanity_cookie_uses_configuration
+    Vanity.configuration.cookie = { name: "new_id" }
+    get :index
+    assert cookies["new_id"] =~ /^[a-f0-9]{32}$/
   end
 
   def test_vanity_identity_set_from_cookie

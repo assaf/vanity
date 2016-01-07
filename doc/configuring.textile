@@ -44,6 +44,7 @@ Available configuration options are:
 | request_filter             | A proc that returns whether to to ignore the request for the add JS participant route | Ignore requests with a HTTP_USER_AGENT that contain a URL |
 | templates_path             | Path to templates for Vanity admin | the templates in the gem |
 | use_js                     | Whether to use JS to add particpants, useful to ignore bots | false |
+| cookie                     | Setting the parameters of the tracking cookie (if used) | @name: vanity_id@ |
 
 When "running under Rails":rails.html, Vanity defaults to using the Rails logger, locates the load_path relative to Rails root, uses the @config/vanity.yml@ configuration file (if present) and turns collection on only in production mode.
 

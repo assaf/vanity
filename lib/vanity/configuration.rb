@@ -48,6 +48,7 @@ module Vanity
       request_filter: ->(request) { default_request_filter(request) },
       templates_path: File.expand_path(File.join(File.dirname(__FILE__), 'templates')),
       use_js: false,
+      cookie: { name: 'vanity_id', domain: nil, path: nil, secure: false, httponly: false }
     }.freeze
 
     # True if saving results to the datastore (participants and conversions).
@@ -146,6 +147,14 @@ module Vanity
     attr_writer :config_file
     # In order of precedence, RACK_ENV, RAILS_ENV or `development`.
     attr_writer :environment
+
+    # A hash of cookie options, by default:
+    #
+    #   { name: 'vanity_id', expires: 1.month, domain: nil }
+    #
+    # If domain is nil then the domain from
+    # Rails.application.config.session_options[:domain] will be substituted.
+    attr_writer :cookie
 
 
     # We independently list each attr_accessor to includes docs, otherwise

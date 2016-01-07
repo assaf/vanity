@@ -53,6 +53,16 @@ module Vanity
           define_method :vanity_identity do
             return @vanity_identity if @vanity_identity
 
+            cookie = lambda do |value|
+              result = { value: value, 
+                path: Vanity.configuration.cookie[:path],
+                domain: Vanity.configuration.cookie[:domain],
+                secure: Vanity.configuration.cookie[:secure],
+                httponly: Vanity.configuration.cookie[:httponly] }
+              result[:domain] ||= ::Rails.application.config.session_options[:domain]
+              result
+            end
+
             # With user sign in, it's possible to visit not-logged in, get
             # cookied and shown alternative A, then sign in and based on
             # user.id, get shown alternative B.
@@ -60,18 +70,15 @@ module Vanity
             # new user.id to avoid the flash of alternative B (FOAB).
             if request.get? && params[:_identity]
               @vanity_identity = params[:_identity]
-              cookies["vanity_id"] = { :value=>@vanity_identity, :expires=>1.month.from_now }
+              cookies.permanent[ Vanity.configuration.cookie[:name] ] = cookie.call( @vanity_identity )
               @vanity_identity
-            elsif cookies["vanity_id"]
-              @vanity_identity = cookies["vanity_id"]
+            elsif cookies[ Vanity.configuration.cookie[:name] ]
+              @vanity_identity = cookies[ Vanity.configuration.cookie[:name] ]
             elsif symbol && object = send(symbol)
               @vanity_identity = object.id
             elsif response # everyday use
-              @vanity_identity = cookies["vanity_id"] || SecureRandom.hex(16)
-              cookie = { :value=>@vanity_identity, :expires=>1.month.from_now }
-              # Useful if application and admin console are on separate domains.
-              cookie[:domain] ||= ::Rails.application.config.session_options[:domain]
-              cookies["vanity_id"] = cookie
+              @vanity_identity = cookies[ Vanity.configuration.cookie[:name] ] || SecureRandom.hex(16)
+              cookies.permanent[ Vanity.configuration.cookie[:name] ] = cookie.call( @vanity_identity )
               @vanity_identity
             else # during functional testing
               @vanity_identity = "test"
