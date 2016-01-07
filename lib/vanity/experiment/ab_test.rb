@@ -46,15 +46,13 @@ module Vanity
         @default = value
         @is_default_set = true
         class << self
-          define_method :default, instance_method(:_default)
+          define_method :default do |*args|
+            raise ArgumentError, "default has already been set to #{@default.inspect}" unless args.empty?
+            alternative(@default)
+          end
         end
         nil
       end
-
-      def _default
-        alternative(@default)
-      end
-      private :_default
 
       # -- Enabled --
       
