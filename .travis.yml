@@ -21,7 +21,6 @@ env:
   - DB=active_record
 gemfile:
   - gemfiles/rails32.gemfile
-  - gemfiles/rails4.gemfile
   - gemfiles/rails41.gemfile
   - gemfiles/rails42.gemfile
   - gemfiles/rails42_protected_attributes.gemfile
