@@ -24,11 +24,14 @@ module Vanity
         nil
       end
 
+      # 
+      # Filter all User-Agents that have 'bot', 'crawler', 'spider', URL. 
+      # 
       def default_request_filter(request) # :nodoc:
         request &&
-          request.env &&
-          request.env["HTTP_USER_AGENT"] &&
-          request.env["HTTP_USER_AGENT"].match(/\(.*https?:\/\/.*\)/)
+        request.env &&
+        request.env["HTTP_USER_AGENT"] &&
+        request.env["HTTP_USER_AGENT"].match( /(?:https?:\/\/)|(?:bot|spider|crawler)/i )
       end
     end
 
@@ -100,8 +103,9 @@ module Vanity
     #    end
     #
     # The default implementation does a simple test of whether the request's
-    # HTTP_USER_AGENT header contains a URI, since well behaved bots typically
-    # include a reference URI in their user agent strings. (Original idea:
+    # HTTP_USER_AGENT header contains a URI, or the words 'bot', 'crawler', or
+    # 'spider' since well behaved bots typically include a reference URI in
+    # their user agent strings. (Original idea:
     # http://stackoverflow.com/a/9285889.)
     #
     # Alternatively, one could filter an explicit list of IPs, add additional
