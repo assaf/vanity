@@ -258,6 +258,17 @@ class AbTestTest < ActionController::TestCase
     end
   end
 
+  def test_uses_configured_probabilities_for_new_assignments
+    new_ab_test :foobar do
+      alternatives "foo" => 30, "bar" => 70
+      identify { rand }
+      metrics :coolness
+    end
+    alts = Array.new(10_000) { experiment(:foobar).choose.value }.reduce({}) { |h,k| h[k] ||= 0; h[k] += 1; h }
+    assert_equal %w{bar foo}, alts.keys.sort
+    assert_in_delta 3000, alts["foo"], 200 # this may fail, such is propability
+  end
+
   def test_uses_probabilities_for_new_assignments
     new_ab_test :foobar do
       alternatives "foo", "bar"

@@ -47,7 +47,8 @@ module Vanity
 
       # Call this method once to set alternative values for this experiment
       # (requires at least two values). Call without arguments to obtain
-      # current list of alternatives.
+      # current list of alternatives. Call with a hash to set custom
+      # probabilities.
       #
       # @example Define A/B test with three alternatives
       #   ab_test "Background color" do
@@ -55,13 +56,36 @@ module Vanity
       #     alternatives "red", "blue", "orange"
       #   end
       #
+      # @example Define A/B test with custom probabilities
+      #   ab_test "Background color" do
+      #     metrics :coolness
+      #     alternatives "red" => 10, "blue" => 5, "orange => 1
+      #     default "red"
+      #   end
+      #
       # @example Find out which alternatives this test uses
       #   alts = experiment(:background_color).alternatives
       #   puts "#{alts.count} alternatives, with the colors: #{alts.map(&:value).join(", ")}"
       def alternatives(*args)
-        @alternatives ||= args.empty? ? [true, false] : args.clone
-        @alternatives.each_with_index.map do |value, i|
-          Alternative.new(self, i, value)
+        if @alternatives.nil? && args.size == 1 && args[0].instance_of?(Hash)
+          @alternatives = args[0]
+          sum_of_probability = @alternatives.values.reduce(0) { |a,b| a+b }
+          cumulative_probability = 0.0
+          @use_probabilities = []
+          result = []
+          @alternatives = @alternatives.each_with_index.map do |(value, probability), i|
+            result << alternative = Alternative.new( self, i, value )
+            probability = probability.to_f / sum_of_probability
+            @use_probabilities << [ alternative, cumulative_probability += probability ]
+            value
+          end
+
+          result
+        else
+          @alternatives ||= args.empty? ? [true, false] : args.clone
+          @alternatives.each_with_index.map do |value, i|
+            Alternative.new(self, i, value)
+          end
         end
       end
 
