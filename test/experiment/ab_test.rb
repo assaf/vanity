@@ -344,21 +344,19 @@ class AbTestTest < ActionController::TestCase
   end
   
   def test_choose_random_when_enabled
-    regardless_of "Vanity.playground.collecting" do
-      metric "Coolness"
+    metric "Coolness"
 
-      exp = new_ab_test :test do 
-        metrics :coolness
-        true_false
-        default false
-        identify { rand }
-      end
-      results = Set.new
-      100.times do
-        results << exp.choose.value
-      end
-      assert_equal results, [true, false].to_set
+    exp = new_ab_test :test do 
+      metrics :coolness
+      true_false
+      default false
+      identify { rand }
     end
+    results = Set.new
+    100.times do
+      results << exp.choose.value
+    end
+    assert_equal results, [true, false].to_set
   end
   
   def test_choose_default_when_disabled
@@ -1336,6 +1334,24 @@ This experiment did not run long enough to find a clear winner.
     end
     experiment(:quick).complete!
     assert_nil experiment(:quick).outcome
+  end
+
+  def test_no_collection_returns_default
+    not_collecting!
+    metric "Coolness"
+
+    exp = new_ab_test :abcd do
+      metrics :coolness
+      alternatives :a, :b, :c, :d
+      default :b
+      identify { rand }
+    end
+
+    results = Set.new
+    100.times do
+      results << exp.choose.value
+    end
+    assert_equal results, [:b].to_set
   end
 
   def test_chooses_records_participants

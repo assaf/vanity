@@ -197,11 +197,8 @@ module Vanity
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
           end
         else
-          # If collecting=false, show the alternative, but don't track anything.
-          identity = identity()
-          @showing ||= {}
-          @showing[identity] ||= alternative_for(identity)
-          index = @showing[identity]
+          # If collecting=false, show the default, but don't track anything.
+          return default
         end
 
         alternatives[index.to_i]
