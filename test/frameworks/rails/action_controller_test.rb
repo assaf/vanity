@@ -106,7 +106,7 @@ class UseVanityControllerTest < ActionController::TestCase
   end
 
   def test_vanity_cookie_uses_configuration
-    Vanity.configuration.cookie = { name: "new_id" }
+    Vanity.configuration.cookie_name = "new_id"
     get :index
     assert cookies["new_id"] =~ /^[a-f0-9]{32}$/
   end
