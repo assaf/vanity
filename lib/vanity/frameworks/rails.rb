@@ -56,7 +56,7 @@ module Vanity
             cookie = lambda do |value|
               result = {
                 value: value,
-                expires: Vanity.configuration.cookie_expires.from_now,
+                expires: Time.now + Vanity.configuration.cookie_expires,
                 path: Vanity.configuration.cookie_path,
                 domain: Vanity.configuration.cookie_domain,
                 secure: Vanity.configuration.cookie_secure,
