@@ -31,7 +31,8 @@ module Vanity
       # -- Default --
 
       # Call this method once to set a default alternative. Call without 
-      # arguments to obtain the current default.
+      # arguments to obtain the current default. If default is not specified,
+      # the first alternative is used.
       #
       # @example Set the default alternative
       #   ab_test "Background color" do
@@ -40,7 +41,6 @@ module Vanity
       #   end
       # @example Get the default alternative
       #   assert experiment(:background_color).default == "red"
-      # TODO document default choice if not explicitly chosen (first alternative specified)
       #
       def default(value)
         @default = value
@@ -64,9 +64,9 @@ module Vanity
       # Enable or disable the experiment. Only works if the playground is collecting
       # and this experiment is enabled.
       #
-      # **Note** You should set the enabled/disabled status of an experiment until 
-      # it exists in the database. Ensure that your experiment has had #save invoked
-      # previous to any enabled= calls.
+      # **Note** You should *not* set the enabled/disabled status of an
+      # experiment until it exists in the database. Ensure that your experiment
+      # has had #save invoked previous to any enabled= calls.
       def enabled=(bool)
         return unless @playground.collecting? && active?
         if created_at.nil?
@@ -187,12 +187,7 @@ module Vanity
         if @playground.collecting?
           if active?
             if enabled?
-              identity = identity()
-              index = connection.ab_showing(@id, identity) || connection.ab_assigned(@id, identity)
-              unless index
-                index = alternative_for(identity).to_i
-                save_assignment_if_valid_visitor(identity, index, request) unless @playground.using_js?
-              end
+              index = alternative_index_for_identity(request)    
             else
               # Show the default if experiment is disabled. 
               index = alternatives.index(default)
@@ -211,7 +206,6 @@ module Vanity
 
         alternatives[index.to_i]
       end
-
 
       # -- Testing and JS Callback --
 
@@ -495,30 +489,30 @@ module Vanity
           end
         end
         # TODO: logging
-        connection.ab_set_outcome @id, outcome || 0
+        connection.ab_set_outcome(@id, outcome || 0)
       end
 
 
       # -- Store/validate --
 
       def destroy
-        connection.destroy_experiment @id
+        connection.destroy_experiment(@id)
         super
       end
       
       # clears all collected data for the experiment
       def reset
         return unless @playground.collecting?
-        connection.destroy_experiment @id
-        connection.set_experiment_created_at @id, Time.now
+        connection.destroy_experiment(@id)
+        connection.set_experiment_created_at(@id, Time.now)
         @outcome = @completed_at = nil
         self
       end
 
       # clears all collected data for the experiment
       def reset
-        connection.destroy_experiment @id
-        connection.set_experiment_created_at @id, Time.now
+        connection.destroy_experiment(@id)
+        connection.set_experiment_created_at(@id, Time.now)
         @outcome = @completed_at = nil
         self
       end
@@ -590,6 +584,18 @@ module Vanity
             connection.ab_add_conversion @id, index, "#{index}:#{identity}"
           end
         end
+      end
+
+      # Returns the assigned alternative, previously chosen alternative, or
+      # alternative_for for a given identity.  
+      def alternative_index_for_identity(request)
+        identity = identity()
+        index = connection.ab_showing(@id, identity) || connection.ab_assigned(@id, identity)
+        unless index
+          index = alternative_for(identity).to_i
+          save_assignment_if_valid_visitor(identity, index, request) unless @playground.using_js?
+        end
+        index
       end
 
       # Chooses an alternative for the identity and returns its index. This

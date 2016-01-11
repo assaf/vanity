@@ -71,7 +71,7 @@ module Vanity
 
         def increment_conversion(alternative, count = 1)
           record = vanity_conversions.rails_agnostic_find_or_create_by(:alternative, alternative)
-          record.class.update_counters record.id, conversions: count
+          record.class.update_counters(record.id, conversions: count)
         end
       end
 
