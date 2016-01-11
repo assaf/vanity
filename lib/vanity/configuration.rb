@@ -49,7 +49,7 @@ module Vanity
       templates_path: File.expand_path(File.join(File.dirname(__FILE__), 'templates')),
       use_js: false,
       cookie_name: 'vanity_id',
-      cookie_expires: 20.years,
+      cookie_expires: 20 * 365 * 24 * 60 * 60, # 20 years, give or take.
       cookie_domain: nil,
       cookie_path: nil,
       cookie_secure: false,
@@ -156,7 +156,7 @@ module Vanity
     # Cookie name. By default 'vanity_id'
     attr_writer :cookie_name
 
-    # Cookie duration. By default 20.years.
+    # Cookie duration. By default 20 years.
     attr_writer :cookie_expires
 
     # Cookie domain.  By default nil.  If domain is nil then the domain from

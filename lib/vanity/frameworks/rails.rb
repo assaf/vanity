@@ -54,12 +54,14 @@ module Vanity
             return @vanity_identity if @vanity_identity
 
             cookie = lambda do |value|
-              result = { value: value, 
+              result = {
+                value: value,
                 expires: Vanity.configuration.cookie_expires.from_now,
                 path: Vanity.configuration.cookie_path,
                 domain: Vanity.configuration.cookie_domain,
                 secure: Vanity.configuration.cookie_secure,
-                httponly: Vanity.configuration.cookie_httponly }
+                httponly: Vanity.configuration.cookie_httponly
+              }
               result[:domain] ||= ::Rails.application.config.session_options[:domain]
               result
             end
@@ -71,15 +73,15 @@ module Vanity
             # new user.id to avoid the flash of alternative B (FOAB).
             if request.get? && params[:_identity]
               @vanity_identity = params[:_identity]
-              cookies[ Vanity.configuration.cookie_name ] = cookie.call( @vanity_identity )
+              cookies[Vanity.configuration.cookie_name] = cookie.call(@vanity_identity)
               @vanity_identity
-            elsif cookies[ Vanity.configuration.cookie_name ]
-              @vanity_identity = cookies[ Vanity.configuration.cookie_name ]
+            elsif cookies[Vanity.configuration.cookie_name]
+              @vanity_identity = cookies[Vanity.configuration.cookie_name]
             elsif symbol && object = send(symbol)
               @vanity_identity = object.id
             elsif response # everyday use
-              @vanity_identity = cookies[ Vanity.configuration.cookie_name ] || SecureRandom.hex(16)
-              cookies[ Vanity.configuration.cookie_name ] = cookie.call( @vanity_identity )
+              @vanity_identity = cookies[Vanity.configuration.cookie_name] || SecureRandom.hex(16)
+              cookies[Vanity.configuration.cookie_name] = cookie.call(@vanity_identity)
               @vanity_identity
             else # during functional testing
               @vanity_identity = "test"

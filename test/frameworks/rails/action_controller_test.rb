@@ -91,7 +91,7 @@ class UseVanityControllerTest < ActionController::TestCase
     assert_match /vanity_id=[a-f0-9]{32};/, cookie
     expires = cookie[/expires=(.*)(;|$)/, 1]
     assert expires
-    assert_in_delta Time.parse(expires), Time.now + 20.years, 1.day
+    assert_in_delta Time.parse(expires), Time.now + 20 * 365 * 24 * 60 * 60, 1.day
   end
 
   def test_vanity_cookie_default_id
