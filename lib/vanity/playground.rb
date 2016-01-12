@@ -219,7 +219,7 @@ module Vanity
     # @deprecated
     # @see Vanity.connection
     def connected?
-      Vanity.connection.connected?
+      Vanity.connected?
     end
 
     # @since 1.4.0

@@ -70,6 +70,10 @@ module Vanity
     end
   end
 
+  def self.connected?
+    @connection && @connection.connected?
+  end
+
   # This is the preferred way to programmatically create a new connection (or
   # switch to a new connection). If no connection was established, the
   # playground will create a new one by calling this method with no arguments.
