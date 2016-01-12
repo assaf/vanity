@@ -51,6 +51,12 @@ module Vanity
       request_filter: ->(request) { default_request_filter(request) },
       templates_path: File.expand_path(File.join(File.dirname(__FILE__), 'templates')),
       use_js: false,
+      cookie_name: 'vanity_id',
+      cookie_expires: 20 * 365 * 24 * 60 * 60, # 20 years, give or take.
+      cookie_domain: nil,
+      cookie_path: nil,
+      cookie_secure: false,
+      cookie_httponly: false,
     }.freeze
 
     # True if saving results to the datastore (participants and conversions).
@@ -151,6 +157,24 @@ module Vanity
     # In order of precedence, RACK_ENV, RAILS_ENV or `development`.
     attr_writer :environment
 
+    # Cookie name. By default 'vanity_id'
+    attr_writer :cookie_name
+
+    # Cookie duration. By default 20 years.
+    attr_writer :cookie_expires
+
+    # Cookie domain.  By default nil.  If domain is nil then the domain from
+    # Rails.application.config.session_options[:domain] will be substituted.
+    attr_writer :cookie_domain
+
+    # Cookie path. By default nil.
+    attr_writer :cookie_path
+
+    # Cookie secure. If true, cookie will only be transmitted to SSL pages. By default false.
+    attr_writer :cookie_secure
+
+    # Cookie path. If true, cookie will not be available to JS. By default false.
+    attr_writer :cookie_httponly
 
     # We independently list each attr_accessor to includes docs, otherwise
     # something like DEFAULTS.each { |key, value| attr_accessor key } would be

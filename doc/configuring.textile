@@ -44,6 +44,12 @@ Available configuration options are:
 | request_filter             | A proc that returns whether to to ignore the request for the add JS participant route | Ignore requests with a HTTP_USER_AGENT that contain a URL |
 | templates_path             | Path to templates for Vanity admin | the templates in the gem |
 | use_js                     | Whether to use JS to add particpants, useful to ignore bots | false |
+| cookie_name                | The name of the anonymous tracking cookie | @vanity_id@ |
+| cookie_expires             | The duration of the cookie                | 20 years |
+| cookie_domain              | The domain for the cookie. Rails.application.config.session_options[:domain] will be substituted if @nil@.  @nil@ |
+| cookie_path                | The path of the cookie | @nil@ |
+| cookie_secure              | The secure (ssl-only) parameter of the cookie. | @false@ |
+| cookie_httponly            | The httponly parameter of the cookie | @false@ |
 
 When "running under Rails":rails.html, Vanity defaults to using the Rails logger, locates the load_path relative to Rails root, uses the @config/vanity.yml@ configuration file (if present) and turns collection on only in production mode.
 
