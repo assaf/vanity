@@ -1,6 +1,12 @@
 require "test_helper"
 
+class User < ActiveRecord::Base
+  has_many :skies
+
+  attr_accessible :height if defined?(ProtectedAttributes)
+end
 class Sky < ActiveRecord::Base
+  belongs_to :user
   scope :high, lambda { where("height >= 4") }
 
   attr_accessible :height if defined?(ProtectedAttributes)
@@ -11,13 +17,20 @@ if ENV["DB"] == "active_record"
 describe Vanity::Metric::ActiveRecord do
 
   before do
+    User.connection.create_table(:users) do |t|
+      t.timestamps
+    end
     Sky.connection.create_table(:skies) do |t|
+      t.integer :user_id
       t.integer :height
       t.timestamps
     end
   end
 
   after do
+    User.connection.drop_table(:users) if User.connection.table_exists?(User.table_name)
+    User.reset_callbacks(:create)
+    User.reset_callbacks(:save)
     Sky.connection.drop_table(:skies) if Sky.connection.table_exists?(Sky.table_name)
     Sky.reset_callbacks(:create)
     Sky.reset_callbacks(:save)
@@ -235,6 +248,47 @@ describe Vanity::Metric::ActiveRecord do
       Sky.last.update_attributes! :height=>height
     end
     assert_equal 2, times
+  end
+
+  it "with model identity" do
+    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
+      f.write <<-RUBY
+        metric "Sky is limit" do
+          model Sky, :identity => lambda { |record| record.user_id }
+        end
+      RUBY
+    end
+
+    File.open "tmp/experiments/simple.rb", "w" do |f|
+      f.write <<-RUBY
+        ab_test "simple" do
+          metrics :sky_is_limit
+          alternatives :a, :b
+          identity { "me" }
+        end
+      RUBY
+    end
+
+    user = User.create
+    Vanity.context = stub( vanity_identity: user.id )
+    experiment = Vanity.playground.experiment(:simple)
+    experiment.choose
+
+    Vanity.context = nil
+    Sky.create do |sky|
+      sky.user_id = user.id
+    end
+    Sky.create do |sky|
+      sky.user_id = user.id + 1
+    end
+
+    Vanity.context = stub( vanity_identity: "other" )
+    experiment.choose
+    Sky.create( user_id: nil ) 
+
+    assert_equal 3, Sky.count
+    assert_equal 2, experiment.alternatives.map(&:participants).sum
+    assert_equal 3, experiment.alternatives.map(&:conversions).sum
   end
 
   it "do it yourself" do
