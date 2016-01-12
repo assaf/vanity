@@ -98,6 +98,13 @@ module Vanity
     end
 
     module UseVanityMailer
+      # Should be called from within the mailer function. For example:
+      #
+      #   def invite_email(user)
+      #     use_vanity_mailer user
+      #     mail to: user.email, subject: ab_test(:invite_subject)
+      #   end
+      #
       def use_vanity_mailer(symbol = nil)
         # Context is the instance of ActionMailer::Base
         Vanity.context = self
