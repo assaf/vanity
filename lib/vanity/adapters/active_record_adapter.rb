@@ -207,7 +207,12 @@ module Vanity
       end
 
       def is_experiment_enabled?(experiment)
-        VanityExperiment.retrieve(experiment).enabled == true
+        record = VanityExperiment.retrieve(experiment)
+        if Vanity.configuration.experiments_start_enabled
+          record.enabled != false
+        else
+          record.enabled == true
+        end
       end
 
       # Returns counts for given A/B experiment and alternative (by index).

@@ -203,12 +203,22 @@ class AbTestTest < ActionController::TestCase
     eval "#{attr_name}=prev_val"
   end
   
-  def test_new_test_is_disabled
+  def test_new_test_is_disabled_when_experiments_start_enabled_is_false
+    Vanity.configuration.experiments_start_enabled = false
     exp = new_ab_test :test, enable: false do
       metrics :coolness
       default false
     end
     assert !exp.enabled?
+  end
+
+  def test_new_test_is_enabled_when_experiments_start_enabled_is_true
+    Vanity.configuration.experiments_start_enabled = true
+    exp = new_ab_test :test, enable: false do
+      metrics :coolness
+      default false
+    end
+    assert exp.enabled?
   end
   
   def test_complete_sets_enabled_false
@@ -270,6 +280,7 @@ class AbTestTest < ActionController::TestCase
   end
   
   def test_enabled_persists_across_definitions
+    Vanity.configuration.experiments_start_enabled = false
     Vanity.playground.collecting = true
     new_ab_test :test, :enable => false do 
       metrics :coolness
@@ -298,6 +309,38 @@ class AbTestTest < ActionController::TestCase
     assert experiment(:test).enabled? #still true
     experiment(:test).enabled = false
     assert !experiment(:test).enabled? #now false again
+  end
+
+  def test_enabled_persists_across_definitions_when_starting_enabled
+    Vanity.configuration.experiments_start_enabled = true
+    Vanity.playground.collecting = true
+    new_ab_test :test, :enable => false do 
+      metrics :coolness
+      default false
+    end
+    assert experiment(:test).enabled? #starts off true
+    
+    new_playground
+    metric "Coolness"
+    
+    new_ab_test :test, :enable => false do
+      metrics :coolness
+      default false
+    end
+    assert experiment(:test).enabled? #still true
+    experiment(:test).enabled = false
+    assert !experiment(:test).enabled? #now false
+    
+    new_playground
+    metric "Coolness"
+    
+    new_ab_test :test, :enable => false do
+      metrics :coolness
+      default false
+    end
+    assert !experiment(:test).enabled? #still false
+    experiment(:test).enabled = true
+    assert experiment(:test).enabled? #now true again
   end
   
   def test_choose_random_when_enabled

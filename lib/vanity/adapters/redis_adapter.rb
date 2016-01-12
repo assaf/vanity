@@ -134,7 +134,12 @@ module Vanity
       end
 
       def is_experiment_enabled?(experiment)
-        @experiments["#{experiment}:enabled"] == 'true'
+        value = @experiments["#{experiment}:enabled"]
+        if Vanity.configuration.experiments_start_enabled
+          value != 'false'
+        else
+          value == 'true'
+        end
       end
 
       def ab_counts(experiment, alternative)

@@ -136,7 +136,11 @@ module Vanity
 
       def is_experiment_enabled?(experiment)
         record = @experiments.find_one({ :_id=>experiment}, { :fields=>[:enabled] })
-        record && (record["enabled"] == true)
+        if Vanity.configuration.experiments_start_enabled
+          record == nil || record["enabled"] != false
+        else
+          record && record["enabled"] == true
+        end
       end
 
       def ab_counts(experiment, alternative)

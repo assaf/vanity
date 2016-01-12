@@ -102,8 +102,12 @@ module Vanity
       end
 
       def is_experiment_enabled?(experiment)
-        # NOTE: default is true for mock_adapter, but false for all other adapters
-        @experiments[experiment] && (@experiments[experiment][:enabled] == true)
+        record = @experiments[experiment]
+        if Vanity.configuration.experiments_start_enabled
+          record == nil || record[:enabled] != false
+        else
+          record && record[:enabled] == true
+        end
       end
 
       def ab_counts(experiment, alternative)
