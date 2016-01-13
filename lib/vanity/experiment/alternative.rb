@@ -88,6 +88,10 @@ module Vanity
           @participants = @converted = @conversions = 0
         end
       end
+
+      def default?
+        @experiment.default == self
+      end
     end
   end
 end

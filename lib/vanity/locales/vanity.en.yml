@@ -1,5 +1,8 @@
 en:
   vanity:
+    act_on_this_experiment:
+      enable: 'Enable this experiment'
+      disable: 'Disable this experiment'
     best_alternative: '(%{probability}% this is best)'
     best_alternative_is_significant: 'With %{probability}% probability this result is statistically significant.'
     best_alternative_probability: 'With %{probability}% probability this result is the best.'
@@ -14,8 +17,14 @@ en:
     converted: '%{count} converted'
     converted_percentage: '%{alternative} converted at %{percentage}%.'
     currently_shown: 'currently shown'
+    default: '(Default)'
     didnt_convert: '%{alternative} did not convert.'
+    disable: 'Disable'
+    disabled: 'Disabled'
+    enable: 'Enable'
+    enabled: 'Enabled'
     experiment_has_been_reset: '%{name} experiment has been reset.'
+    experiment_has_been_disabled: 'This experiment is currently disabled, and will always choose the default %{name}.'
     experiment_participants:
       one: 'There is one participant in this experiment.'
       other: 'There are %{count} participants in this experiment.'

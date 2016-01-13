@@ -95,6 +95,20 @@ module Vanity
       def is_experiment_completed?(experiment)
         @experiments[experiment] && @experiments[experiment][:completed_at]
       end
+      
+      def set_experiment_enabled(experiment, enabled)
+        @experiments[experiment] ||= {}
+        @experiments[experiment][:enabled] = enabled
+      end
+
+      def is_experiment_enabled?(experiment)
+        record = @experiments[experiment]
+        if Vanity.configuration.experiments_start_enabled
+          record == nil || record[:enabled] != false
+        else
+          record && record[:enabled] == true
+        end
+      end
 
       def ab_counts(experiment, alternative)
         @experiments[experiment] ||= {}

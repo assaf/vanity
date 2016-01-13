@@ -51,6 +51,7 @@ module Vanity
       request_filter: ->(request) { default_request_filter(request) },
       templates_path: File.expand_path(File.join(File.dirname(__FILE__), 'templates')),
       use_js: false,
+      experiments_start_enabled: true,
       cookie_name: 'vanity_id',
       cookie_expires: 20 * 365 * 24 * 60 * 60, # 20 years, give or take.
       cookie_domain: nil,
@@ -156,6 +157,9 @@ module Vanity
     attr_writer :config_file
     # In order of precedence, RACK_ENV, RAILS_ENV or `development`.
     attr_writer :environment
+    # By default experiments start enabled. If you want experiments to be
+    # explicitly enabled after a production release, then set to false.
+    attr_writer :experiments_start_enabled
 
     # Cookie name. By default 'vanity_id'
     attr_writer :cookie_name

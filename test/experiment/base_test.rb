@@ -9,7 +9,7 @@ describe Vanity::Experiment::Base do
   # -- Defining experiment --
 
   it "can access experiment by id" do
-    exp = new_ab_test(:ice_cream_flavor) { metrics :happiness }
+    exp = new_ab_test(:ice_cream_flavor) { metrics :happiness; default false }
     assert_equal exp, experiment(:ice_cream_flavor)
   end
 
@@ -17,8 +17,10 @@ describe Vanity::Experiment::Base do
     File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
       f.write <<-RUBY
         ab_test "Ice Cream Flavor" do
+          default false
         end
         ab_test "Ice Cream Flavor" do
+          default false
         end
       RUBY
     end
@@ -44,6 +46,7 @@ describe Vanity::Experiment::Base do
           def xmts
             "x"
           end
+          default false
         end
       RUBY
     end
@@ -72,8 +75,8 @@ describe Vanity::Experiment::Base do
   end
 
   it "reloading experiments" do
-    new_ab_test(:ab) { metrics :happiness }
-    new_ab_test(:cd) { metrics :happiness }
+    new_ab_test(:ab) { metrics :happiness; default false }
+    new_ab_test(:cd) { metrics :happiness; default false }
     assert_equal 2, Vanity.playground.experiments.size
     Vanity.playground.reload!
     assert Vanity.playground.experiments.empty?
@@ -83,7 +86,7 @@ describe Vanity::Experiment::Base do
   # -- Attributes --
 
   it "maps the experiment name to id" do
-    experiment = new_ab_test("Ice Cream Flavor/Tastes") { metrics :happiness }
+    experiment = new_ab_test("Ice Cream Flavor/Tastes") { metrics :happiness; default false }
     assert_equal "Ice Cream Flavor/Tastes", experiment.name
     assert_equal :ice_cream_flavor_tastes, experiment.id
   end
@@ -92,15 +95,17 @@ describe Vanity::Experiment::Base do
     File.open "tmp/experiments/ice_cream_flavor.rb", "w" do |f|
       f.write <<-RUBY
         ab_test "Ice Cream Flavor" do
+          default false
         end
       RUBY
     end
     Vanity.unload!
+    metric :happiness
     Vanity.playground.experiment(:ice_cream_flavor)
   end
 
   it "has created timestamp" do
-    new_ab_test(:ice_cream_flavor) { metrics :happiness }
+    new_ab_test(:ice_cream_flavor) { metrics :happiness; default false }
     assert_kind_of Time, experiment(:ice_cream_flavor).created_at
     assert_in_delta experiment(:ice_cream_flavor).created_at.to_i, Time.now.to_i, 1
   end
@@ -108,12 +113,12 @@ describe Vanity::Experiment::Base do
   it "keeps created timestamp across definitions" do
     past = Date.today - 1
     Timecop.freeze past.to_time do
-      new_ab_test(:ice_cream_flavor) { metrics :happiness }
+      new_ab_test(:ice_cream_flavor) { metrics :happiness; default false }
     end
 
     vanity_reset
     metric :happiness
-    new_ab_test(:ice_cream_flavor) { metrics :happiness }
+    new_ab_test(:ice_cream_flavor) { metrics :happiness; default false }
     assert_equal past.to_time.to_i, experiment(:ice_cream_flavor).created_at.to_i
   end
 
@@ -121,13 +126,14 @@ describe Vanity::Experiment::Base do
     new_ab_test :ice_cream_flavor do
       description "Because 31 is not enough ..."
       metrics :happiness
+      default false
     end
     assert_equal "Because 31 is not enough ...", experiment(:ice_cream_flavor).description
   end
 
   it "stores nothing when collection disabled" do
     not_collecting!
-    new_ab_test(:ice_cream_flavor) { metrics :happiness }
+    new_ab_test(:ice_cream_flavor) { metrics :happiness; default false }
     experiment(:ice_cream_flavor).complete!
   end
 
@@ -136,7 +142,7 @@ describe Vanity::Experiment::Base do
   # check_completion is called by derived classes, but since it's
   # part of the base_test I'm testing it here.
   it "handles error in check completion" do
-    new_ab_test(:ab) { metrics :happiness }
+    new_ab_test(:ab) { metrics :happiness; default false }
     e = experiment(:ab)
     e.complete_if { true }
     e.stubs(:complete!).raises(RuntimeError, "A forced error")
@@ -146,7 +152,7 @@ describe Vanity::Experiment::Base do
   end
 
   it "complete updates completed_at" do
-    new_ab_test(:ice_cream_flavor) { metrics :happiness }
+    new_ab_test(:ice_cream_flavor) { metrics :happiness; default false }
 
     time = Time.utc(2008, 9, 1, 12, 0, 0)
     Timecop.freeze(time) do

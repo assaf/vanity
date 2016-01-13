@@ -25,6 +25,56 @@ module Vanity
         super
         @score_method = DEFAULT_SCORE_METHOD
         @use_probabilities = nil
+        @is_default_set = false
+      end
+        
+      # -- Default --
+
+      # Call this method once to set a default alternative. Call without 
+      # arguments to obtain the current default. If default is not specified,
+      # the first alternative is used.
+      #
+      # @example Set the default alternative
+      #   ab_test "Background color" do
+      #     alternatives "red", "blue", "orange"
+      #     default "red"
+      #   end
+      # @example Get the default alternative
+      #   assert experiment(:background_color).default == "red"
+      #
+      def default(value)
+        @default = value
+        @is_default_set = true
+        class << self
+          define_method :default do |*args|
+            raise ArgumentError, "default has already been set to #{@default.inspect}" unless args.empty?
+            alternative(@default)
+          end
+        end
+        nil
+      end
+
+      # -- Enabled --
+      
+      # Returns true if experiment is enabled, false if disabled.
+      def enabled?
+        !@playground.collecting? || ( active? && connection.is_experiment_enabled?(@id) )
+      end
+      
+      # Enable or disable the experiment. Only works if the playground is collecting
+      # and this experiment is enabled.
+      #
+      # **Note** You should *not* set the enabled/disabled status of an
+      # experiment until it exists in the database. Ensure that your experiment
+      # has had #save invoked previous to any enabled= calls.
+      def enabled=(bool)
+        return unless @playground.collecting? && active?
+        if created_at.nil?
+          warn 'DB has no created_at for this experiment! This most likely means' + 
+               'you didn\'t call #save before calling enabled=, which you should.'
+        else
+          connection.set_experiment_enabled(@id, bool)
+        end
       end
 
       # -- Metric --
@@ -136,16 +186,18 @@ module Vanity
       def choose(request=nil)
         if @playground.collecting?
           if active?
-            identity = identity()
-            index = connection.ab_showing(@id, identity) || connection.ab_assigned(@id, identity)
-            unless index
-              index = alternative_for(identity).to_i
-              save_assignment_if_valid_visitor(identity, index, request) unless @playground.using_js?
+            if enabled?
+              index = alternative_index_for_identity(request)    
+            else
+              # Show the default if experiment is disabled. 
+              index = alternatives.index(default)
             end
           else
+            # If inactive, always show the outcome. Fallback to generation if one can't be found.
             index = connection.ab_get_outcome(@id) || alternative_for(identity)
           end
         else
+          # If collecting=false, show the alternative, but don't track anything.
           identity = identity()
           @showing ||= {}
           @showing[identity] ||= alternative_for(identity)
@@ -154,7 +206,6 @@ module Vanity
 
         alternatives[index.to_i]
       end
-
 
       # -- Testing and JS Callback --
 
@@ -419,7 +470,9 @@ module Vanity
       end
 
       def complete!(outcome = nil)
+        # This statement is equivalent to: return unless collecting?
         return unless @playground.collecting? && active?
+        self.enabled = false
         super
 
         unless outcome
@@ -436,28 +489,56 @@ module Vanity
           end
         end
         # TODO: logging
-        connection.ab_set_outcome @id, outcome || 0
+        connection.ab_set_outcome(@id, outcome || 0)
       end
 
 
       # -- Store/validate --
 
       def destroy
-        connection.destroy_experiment @id
+        connection.destroy_experiment(@id)
         super
       end
-
+      
       # clears all collected data for the experiment
       def reset
-        connection.destroy_experiment @id
-        connection.set_experiment_created_at @id, Time.now
+        return unless @playground.collecting?
+        connection.destroy_experiment(@id)
+        connection.set_experiment_created_at(@id, Time.now)
         @outcome = @completed_at = nil
         self
       end
 
+      # clears all collected data for the experiment
+      def reset
+        connection.destroy_experiment(@id)
+        connection.set_experiment_created_at(@id, Time.now)
+        @outcome = @completed_at = nil
+        self
+      end
+
+      # Set up tracking for metrics and ensure that the attributes of the ab_test
+      # are valid (e.g. has alternatives, has a default, has metrics).
+      # If collecting, this method will also store this experiment into the db.
+      # In most cases, you call this method right after the experiment's been instantiated
+      # and declared.
       def save
+        if @saved
+          warn "Experiment #{name} has already been saved"
+          return
+        end
+        @saved = true
         true_false unless @alternatives
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
+        if !@is_default_set
+          default(@alternatives.first)
+          warn "No default alternative specified; choosing #{@default} as default."
+        elsif alternative(@default).nil?
+          #Specified a default that wasn't listed as an alternative; warn and override.
+          warn "Attempted to set unknown alternative #{@default} as default! Using #{@alternatives.first} instead."
+          #Set the instance variable directly since default(value) is no longer defined
+          @default = @alternatives.first
+        end
         super
         if @metrics.nil? || @metrics.empty?
           warn "Please use metrics method to explicitly state which metric you are measuring against."
@@ -471,7 +552,7 @@ module Vanity
 
       # Called via a hook by the associated metric.
       def track!(metric_id, timestamp, count, *args)
-        return unless active?
+        return unless active? && enabled?
         identity = args.last[:identity] if args.last.is_a?(Hash)
         identity ||= identity() rescue nil
         if identity
@@ -503,6 +584,18 @@ module Vanity
             connection.ab_add_conversion @id, index, "#{index}:#{identity}"
           end
         end
+      end
+
+      # Returns the assigned alternative, previously chosen alternative, or
+      # alternative_for for a given identity.  
+      def alternative_index_for_identity(request)
+        identity = identity()
+        index = connection.ab_showing(@id, identity) || connection.ab_assigned(@id, identity)
+        unless index
+          index = alternative_for(identity).to_i
+          save_assignment_if_valid_visitor(identity, index, request) unless @playground.using_js?
+        end
+        index
       end
 
       # Chooses an alternative for the identity and returns its index. This
