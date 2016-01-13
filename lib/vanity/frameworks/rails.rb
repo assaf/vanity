@@ -298,7 +298,7 @@ module Vanity
     # add_participant_route.
     #
     # Step 1: Add a new resource in config/routes.rb:
-    #   match "/vanity/add_participant" => "vanity#add_participant"
+    #   post "/vanity/add_participant" => "vanity#add_participant"
     #
     # Step 2: Include Vanity::Rails::AddParticipant (or Vanity::Rails::Dashboard) in VanityController
     #   class VanityController < ApplicationController
