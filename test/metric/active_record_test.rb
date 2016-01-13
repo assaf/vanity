@@ -270,21 +270,21 @@ describe Vanity::Metric::ActiveRecord do
     end
 
     user = User.create
-    Vanity.context = stub( vanity_identity: user.id )
+    Vanity.context = stub(vanity_identity: user.id)
     experiment = Vanity.playground.experiment(:simple)
     experiment.choose
 
     Vanity.context = nil
-    Sky.create do |sky|
-      sky.user_id = user.id
-    end
-    Sky.create do |sky|
-      sky.user_id = user.id + 1
-    end
+    # Should count as a conversion for the user in the experiment.
+    user.skies.create
 
-    Vanity.context = stub( vanity_identity: "other" )
+    # Should count as a conversion for the newly created User.
+    User.create.skies.create
+
+    Vanity.context = stub(vanity_identity: "other")
     experiment.choose
-    Sky.create( user_id: nil ) 
+    # Should count as a conversion for "other"
+    Sky.create(user_id: nil) 
 
     assert_equal 3, Sky.count
     assert_equal 2, experiment.alternatives.map(&:participants).sum

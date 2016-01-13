@@ -104,7 +104,7 @@ module Vanity
 
         identity = Vanity.context.vanity_identity rescue nil
         identity ||= if @ar_identity_block
-          @ar_identity_block.call( record )
+          @ar_identity_block.call(record)
         end
         
         call_hooks record.send(@ar_timestamp), identity, [count] if count > 0 && @ar_scoped.exists?(record.id)
