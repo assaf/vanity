@@ -58,7 +58,7 @@ module Vanity
       
       # Returns true if experiment is enabled, false if disabled.
       def enabled?
-        !@playground.collecting? || ( active? && connection.is_experiment_enabled?(@id) )
+        !@playground.collecting? || (active? && connection.is_experiment_enabled?(@id))
       end
       
       # Enable or disable the experiment. Only works if the playground is collecting
@@ -233,7 +233,7 @@ module Vanity
             connection.ab_not_showing @id, identity
           else
             index = @alternatives.index(value)
-            save_assignment(identity, index, request) unless filter_visitor?( request, identity )
+            save_assignment(identity, index, request) unless filter_visitor?(request, identity)
 
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
             if (connection.ab_showing(@id, identity) && connection.ab_showing(@id, identity) != index) ||
@@ -590,7 +590,7 @@ module Vanity
       # alternative_for for a given identity.  
       def assignment_for_identity(request)
         identity = identity()
-        if filter_visitor?( request, identity )
+        if filter_visitor?(request, identity)
           default
         else
           index = connection.ab_showing(@id, identity) || connection.ab_assigned(@id, identity)
@@ -634,7 +634,7 @@ module Vanity
 
       def filter_visitor?(request, identity)
         @playground.request_filter.call(request) || 
-          ( @request_filter_block && @request_filter_block.call(request, identity) )
+          (@request_filter_block && @request_filter_block.call(request, identity))
       end
 
       def call_on_assignment_if_available(identity, index)
@@ -669,9 +669,9 @@ module Vanity
         @use_probabilities = []
         result = []
         @alternatives = @alternatives.each_with_index.map do |(value, probability), i|
-          result << alternative = Alternative.new( self, i, value )
+          result << alternative = Alternative.new(self, i, value)
           probability = probability.to_f / sum_of_probability
-          @use_probabilities << [ alternative, cumulative_probability += probability ]
+          @use_probabilities << [alternative, cumulative_probability += probability]
           value
         end
 
