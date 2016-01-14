@@ -294,6 +294,44 @@ module Vanity
     end
 
 
+    # When configuring use_js to true, you must set up a route to
+    # add_participant_route.
+    #
+    # Step 1: Add a new resource in config/routes.rb:
+    #   post "/vanity/add_participant" => "vanity#add_participant"
+    #
+    # Step 2: Include Vanity::Rails::AddParticipant (or Vanity::Rails::Dashboard) in VanityController
+    #   class VanityController < ApplicationController
+    #     include Vanity::Rails::AddParticipant
+    #   end
+    #
+    # Step 3: Open your browser to http://localhost:3000/vanity
+    module AddParticipant
+      # JS callback action used by vanity_js
+      def add_participant
+        if params[:v].nil?
+          render :status => 404, :nothing => true
+          return
+        end
+
+        h = {}
+        params[:v].split(',').each do |pair|
+          exp_id, answer = pair.split('=')
+          exp = Vanity.playground.experiment(exp_id.to_s.to_sym) rescue nil
+          answer = answer.to_i
+
+          if !exp || !exp.alternatives[answer]
+            render :status => 404, :nothing => true
+            return
+          end
+          h[exp] = exp.alternatives[answer].value
+        end
+
+        h.each{ |e,a| e.chooses(a, request) }
+        render :status => 200, :nothing => true
+      end
+    end
+
     # Step 1: Add a new resource in config/routes.rb:
     #   map.vanity "/vanity/:action/:id", :controller=>:vanity
     #
@@ -355,29 +393,7 @@ module Vanity
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
 
-      # JS callback action used by vanity_js
-      def add_participant
-        if params[:v].nil?
-          render :status => 404, :nothing => true
-          return
-        end
-
-        h = {}
-        params[:v].split(',').each do |pair|
-          exp_id, answer = pair.split('=')
-          exp = Vanity.playground.experiment(exp_id.to_s.to_sym) rescue nil
-          answer = answer.to_i
-
-          if !exp || !exp.alternatives[answer]
-            render :status => 404, :nothing => true
-            return
-          end
-          h[exp] = exp.alternatives[answer].value
-        end
-
-        h.each{ |e,a| e.chooses(a, request) }
-        render :status => 200, :nothing => true
-      end
+      include AddParticipant
     end
 
     module TrackingImage
