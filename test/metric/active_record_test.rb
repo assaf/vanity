@@ -284,7 +284,7 @@ describe Vanity::Metric::ActiveRecord do
     Vanity.context = stub(vanity_identity: "other")
     experiment.choose
     # Should count as a conversion for "other"
-    Sky.create(user_id: nil) 
+    Sky.create
 
     assert_equal 3, Sky.count
     assert_equal 2, experiment.alternatives.map(&:participants).sum
