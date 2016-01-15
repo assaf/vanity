@@ -133,6 +133,16 @@ metric "Signups (Unlimited)" do
 end
 </pre>
 
+The @model@ specifier can also take an @:identity@ option.  @:identity:@ should be a @Proc@ that specifies how to fetch the identity of the experiment participant.  This is useful when constructing objects outside the ActionController context (perhaps in a background task).  However, note that your experiment participants may still be identified by their anonymous cookie identifier, if you started any experiments before the user was identifiable.
+
+This example will record conversions for the Account to which the Subscription belongs:
+
+<pre>
+metric "Subscriptions finished on backend" do
+  description "These signups were actually created in a background task."
+  model Subscription, :identity => lambda { |record| record.account_id }
+end
+</pre>
 
 h3(#ga).  Google Analytics
 

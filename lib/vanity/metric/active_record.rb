@@ -49,6 +49,8 @@ module Vanity
         @ar_timestamp, @ar_timestamp_table = @ar_timestamp.to_s.split('.').reverse
         @ar_timestamp_table ||= @ar_scoped.table_name
 
+        @ar_identity_block = options.delete(:identity)
+
         fail "Unrecognized options: #{options.keys * ", "}" unless options.empty?
 
         @ar_scoped.after_create(self)
@@ -99,7 +101,13 @@ module Vanity
       def after_create(record)
         return unless @playground.collecting?
         count = @ar_column ? (record.send(@ar_column) || 0) : 1
-        call_hooks record.send(@ar_timestamp), nil, [count] if count > 0 && @ar_scoped.exists?(record.id)
+
+        identity = Vanity.context.vanity_identity rescue nil
+        identity ||= if @ar_identity_block
+          @ar_identity_block.call(record)
+        end
+        
+        call_hooks record.send(@ar_timestamp), identity, [count] if count > 0 && @ar_scoped.exists?(record.id)
       end
     end
   end
