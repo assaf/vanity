@@ -48,7 +48,7 @@ test:
   collecting: false
 production:
   adapter: redis
-  connection: redis://<%= ENV["REDIS_USER"] %>:<%= ENV["REDIS_PASSWORD"] %>@<%= ENV["REDIS_HOST"] %>:<%= ENV["REDIS_PORT"] %>/0
+  url: redis://<%= ENV["REDIS_USER"] %>:<%= ENV["REDIS_PASSWORD"] %>@<%= ENV["REDIS_HOST"] %>:<%= ENV["REDIS_PORT"] %>/0
 ```
 
 If you want to use your test environment with RSpec you will need to add an

@@ -4,6 +4,7 @@ module Vanity
   class Configuration
     class MissingEnvironment < StandardError; end
 
+    LEGACY_CONNECTION_KEY = :connection
     LEGACY_REDIS_CONFIG_FILE = "redis.yml"
 
     class<<self
@@ -221,6 +222,26 @@ module Vanity
           params_for_environment.inject({}) { |h,kv| h[kv.first.to_sym] = kv.last ; h }
         else
           params_for_environment
+        end
+      end
+    end
+
+    # @deprecated
+    def connection_url
+      connection_config = connection_params
+
+      return unless connection_config && connection_config.respond_to?(:has_key?)
+
+      connection_url = connection_config[LEGACY_CONNECTION_KEY]
+
+      if connection_url
+        logger.warn(%q{Deprecated: Please specify connection urls using the `url` key with a protocol prefix instead of `connection`. This fallback will be removed in a future version.})
+
+        # Legacy lack of protocol handling
+        if connection_url =~ /^\w+:/
+          connection_url
+        else
+          "redis://" + connection_url
         end
       end
     end
