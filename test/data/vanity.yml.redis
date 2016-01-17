@@ -1,5 +1,6 @@
 test:
   adapter: redis
   collecting: false
+  connection: "redis://:p4ssw0rd@10.0.1.1:6380/15"
 production:
   adapter: redis

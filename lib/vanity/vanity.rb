@@ -79,17 +79,21 @@ module Vanity
   def self.connect!(spec_or_nil=nil)
     spec_or_nil ||= configuration.connection_params
 
+    # Legacy special config variables permitted in connection spec
+    update_configuration_from_connection_params(spec_or_nil)
+
     # Legacy redis.yml fallback
     if spec_or_nil.nil?
       redis_url = configuration.redis_url_from_file
-
       if redis_url
         spec_or_nil = redis_url
       end
     end
 
-    # Legacy special config variables permitted in connection spec
-    update_configuration_from_connection_params(spec_or_nil)
+    # Legacy connection url fallback
+    if configuration.connection_url
+      spec_or_nil = configuration.connection_url
+    end
 
     @connection = Connection.new(spec_or_nil)
   end
@@ -159,7 +163,7 @@ module Vanity
 
     private
 
-    def update_configuration_from_connection_params(spec_or_nil) # # :nodoc:
+    def update_configuration_from_connection_params(spec_or_nil) # :nodoc:
       return unless spec_or_nil.respond_to?(:has_key?)
 
       configuration.collecting = spec_or_nil[:collecting] if spec_or_nil.has_key?(:collecting)

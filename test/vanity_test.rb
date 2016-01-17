@@ -65,6 +65,57 @@ describe Vanity do
     it "returns a new connection" do
       refute_same Vanity.connect!, Vanity.connect!
     end
+
+    describe "deprecated settings" do
+      before do
+        FakeFS.activate!
+      end
+
+      after do
+        FakeFS.deactivate!
+        FakeFS::FileSystem.clear
+      end
+
+      it "uses legacy connection key" do
+        connection_config = VanityTestHelpers::VANITY_CONFIGS["vanity.yml.redis"]
+
+        FileUtils.mkpath "./config"
+        File.open("./config/vanity.yml", "w") do |f|
+          f.write(connection_config)
+        end
+
+        Vanity::Connection.expects(:new).with("redis://:p4ssw0rd@10.0.1.1:6380/15")
+        Vanity.disconnect!
+        Vanity.connect!
+      end
+
+      it "uses redis.yml" do
+        FileUtils.mkpath "./config"
+        File.open("./config/redis.yml", "w") do |f|
+          f.write VanityTestHelpers::VANITY_CONFIGS["redis.yml.url"]
+        end
+
+        Vanity::Connection.expects(:new).with("localhost:6379/15")
+        Vanity.disconnect!
+        Vanity.connect!
+      end
+
+      it "uses legacy collecting key" do
+        connection_config = VanityTestHelpers::VANITY_CONFIGS["vanity.yml.redis"]
+
+        FileUtils.mkpath "./config"
+        File.open("./config/vanity.yml", "w") do |f|
+          f.write(connection_config)
+        end
+
+        Vanity.reset!
+        Vanity.disconnect!
+        Vanity::Connection.stubs(:new)
+        Vanity.connect!
+
+        assert_equal false, Vanity.configuration.collecting
+      end
+    end
   end
 
   describe "#disconnect!" do

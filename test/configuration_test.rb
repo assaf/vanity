@@ -1,7 +1,11 @@
 require "test_helper"
 
 describe Vanity::Configuration do
-  let(:config) { Vanity::Configuration.new }
+  let(:config) do
+    config = Vanity::Configuration.new
+    config.logger = $logger
+    config
+  end
 
   it "returns default values" do
     assert_equal Vanity::Configuration.new.collecting, Vanity::Configuration::DEFAULTS[:collecting]
@@ -54,6 +58,30 @@ describe Vanity::Configuration do
 
       mock_connection_string = "localhost:6379/15"
       assert_equal mock_connection_string, config.connection_params("redis.yml")
+    end
+
+    it "pulls from the connection config key" do
+      connection_config = VanityTestHelpers::VANITY_CONFIGS["vanity.yml.redis"]
+
+      FileUtils.mkpath "./config"
+      File.open("./config/vanity.yml", "w") do |f|
+        f.write(connection_config)
+      end
+
+      assert_equal "redis://:p4ssw0rd@10.0.1.1:6380/15", config.connection_url
+    end
+
+    it "renders erb" do
+      connection_config = VanityTestHelpers::VANITY_CONFIGS["vanity.yml.redis-erb"]
+      ENV["VANITY_TEST_REDIS_URL"] = "redis://:p4ssw0rd@10.0.1.1:6380/15"
+
+      FileUtils.mkpath "./config"
+      File.open("./config/vanity.yml", "w") do |f|
+        f.write(connection_config)
+      end
+
+      connection_hash = { adapter: "redis", url: "redis://:p4ssw0rd@10.0.1.1:6380/15" }
+      assert_equal connection_hash, config.connection_params
     end
 
     it "returns nil if the file doesn't exist" do

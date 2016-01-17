@@ -63,7 +63,7 @@ module VanityTestHelpers
   def teardown_after
     Vanity.context = nil
     FileUtils.rm_rf "tmp"
-    Vanity.connection.adapter.flushdb if Vanity.connection.connected?
+    Vanity.connection.adapter.flushdb if Vanity.connection(false) && Vanity.connection.connected?
     WebMock.reset!
   end
 
