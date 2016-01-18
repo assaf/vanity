@@ -60,6 +60,7 @@ class ApplicationController &lt; ActionController::Base
 end
 </pre>
 <p>If you use either block or method name and they return <code>nil</code>, Vanity will fallback on persistent cookie mechanism.</p>
+<p>Note that <code>current_user</code> in this case must return <code>nil</code> for non-persisted accounts.  That is, <code>current_user.id</code> <strong>must</strong> be non-<code>nil</code>.</p>
 <p>An identity can be anything.  For example, if you&#8217;re running an experiment to test a new feature that will be available in some projects but not others, you&#8217;ll want to slice the audience by project identifier, not user ID.</p>
 <p>You can also give each experiment a different identity using the <code>identify</code> callback.  Here&#8217;s an example that tells one experiment to use a project identifier:</p>
 <pre>

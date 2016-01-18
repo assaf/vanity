@@ -136,6 +136,14 @@ metric "Signups (Unlimited)" do
   end
 end
 </pre>
+<p>The <code>model</code> specifier can also take an <code>:identity</code> option.  <code>:identity:</code> should be a <code>Proc</code> that specifies how to fetch the identity of the experiment participant.  This is useful when constructing objects outside the ActionController context (perhaps in a background task).  However, note that your experiment participants may still be identified by their anonymous cookie identifier, if you started any experiments before the user was identifiable.</p>
+<p>This example will record conversions for the Account to which the Subscription belongs:</p>
+<pre>
+metric "Subscriptions finished on backend" do
+  description "These signups were actually created in a background task."
+  model Subscription, :identity =&gt; lambda { |record| record.account_id }
+end
+</pre>
 <h3 id="ga">Google Analytics</h3>
 <p>You can easily include Google Analytics metrics in your Vanity dashboard.  You&#8217;ll need, in addition to Vanity, to use <a href="http://github.com/vigetlabs/garb">Garb</a>, a Ruby wrapper for the Google Analytics <span class="caps">API</span>.</p>
 <p>Login to Google Analytics using either username and password, or OAuth authentication token.  Here&#8217;s a sample <code>config/environment</code> snippet:</p>

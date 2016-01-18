@@ -129,6 +129,41 @@ production:
 		<td> Whether to use JS to add particpants, useful to ignore bots </td>
 		<td> false </td>
 	</tr>
+	<tr>
+		<td> experiments_start_enabled  </td>
+		<td> Whether new experiments start in the enabled or disabled state </td>
+		<td> true </td>
+	</tr>
+	<tr>
+		<td> cookie_name                </td>
+		<td> The name of the anonymous tracking cookie </td>
+		<td> <code>vanity_id</code> </td>
+	</tr>
+	<tr>
+		<td> cookie_expires             </td>
+		<td> The duration of the cookie                </td>
+		<td> 20 years </td>
+	</tr>
+	<tr>
+		<td> cookie_domain              </td>
+		<td> The domain for the cookie. Rails.application.config.session_options[:domain] will be substituted if <code>nil</code>. </td>
+		<td> <code>nil</code> </td>
+	</tr>
+	<tr>
+		<td> cookie_path                </td>
+		<td> The path of the cookie </td>
+		<td> <code>nil</code> </td>
+	</tr>
+	<tr>
+		<td> cookie_secure              </td>
+		<td> The secure (ssl-only) parameter of the cookie. </td>
+		<td> <code>false</code> </td>
+	</tr>
+	<tr>
+		<td> cookie_httponly            </td>
+		<td> The httponly parameter of the cookie </td>
+		<td> <code>false</code> </td>
+	</tr>
 </table>
 <p>When <a href="rails.html">running under Rails</a>, Vanity defaults to using the Rails logger, locates the load_path relative to Rails root, uses the <code>config/vanity.yml</code> configuration file (if present) and turns collection on only in production mode.</p>
 <p>Use the playground object to configure Vanity. For example:</p>
