@@ -17,8 +17,8 @@ Gem::Specification.new do |spec|
   spec.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.extra_rdoc_files = "README.rdoc", "CHANGELOG"
-  spec.rdoc_options     = "--title", "Vanity #{spec.version}", "--main", "README.rdoc",
+  spec.extra_rdoc_files = "README.md", "CHANGELOG"
+  spec.rdoc_options     = "--title", "Vanity #{spec.version}", "--main", "README.md",
                           "--webcvs", "http://github.com/assaf/#{spec.name}"
 
   spec.required_ruby_version = ">= 1.9.3"
