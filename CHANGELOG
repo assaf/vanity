@@ -1,3 +1,13 @@
+== 2.1.0 (2015-1-19)
+
+Add ability to define test alternatives with custom probabilities, #283. (@peterkovacs)
+Allow ActiveRecord model metrics to provide their own identity source, #285. (@peterkovacs)
+Add individual cookie options for name, domain, path, secure, and httponly properties of the cookie in the `Vanity.configuration`, #282. (@peterkovacs)
+Update default_request_filter to exclude more bots, #284. (@peterkovacs)
+Remove testing support for ruby 1.9.3. (@phillbaker)
+Remove testing support for rails 4.0. (@phillbaker)
+Add attr_accessible for VanityConversion model alternative attribute (@mikem836)
+
 == 2.0.0 (2015-12-14)
 
 Extract configuration from Vanity::Playground to Vanity::Configuration (@phillbaker)

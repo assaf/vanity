@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vanity (2.0.0)
+    vanity (2.1.0)
       i18n
 
 GEM
@@ -136,3 +136,6 @@ DEPENDENCIES
   vanity!
   webmock
   yard
+
+BUNDLED WITH
+   1.11.2
