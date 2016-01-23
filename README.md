@@ -100,10 +100,17 @@ development:
   active_record_adapter: sqlite3
   database: db/development.sqlite3
 test:
-  collecting: false
-production:
   adapter: active_record
   active_record_adapter: default
+  collecting: false
+production:
+  active_record_adapter: postgresql
+  <% uri = URI.parse(ENV['DATABASE_URL']) %>
+  host:     <%= uri.host %>
+  username: <%= uri.username %>
+  password: <%= uri.password %>
+  port:     <%= uri.port %>
+  database: <%= uri.path.sub('/', '') %>
 ```
 
 If you're going to store data in the database, run the generator and
