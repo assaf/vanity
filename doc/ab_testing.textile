@@ -51,6 +51,9 @@ The other half will see this one:
 <a href="#" style="font:14pt;font-weight:bold">Sign up</a>
 </notextile>
 
+
+h3(#interpret). Interpreting the Results
+
 An A/B test has two parts, we just covered the part which decides which alternative to show.  The second part measures the effectiveness of each alternative.  This happens as result of measuring the metric.
 
 Remember that we're measuring signups, so we already have this in the code:
@@ -64,8 +67,6 @@ class SignupController < ApplicationController
 end
 </pre>
 
-
-h3(#interpret). Interpreting the Results
 
 We're going to let the experiment run for a while and track the results using "the dashboard":rails.html#dashboard, or by running the command @vanity report@.
 
@@ -137,6 +138,32 @@ end
 <% end %>
 </pre>
 
+h3(#weights). Weighted alternatives & Multi-arm bandits
+
+By default, for n variations, Vanity will assign each of those with a probability of 1/n. If non-uniform weights for alternatives are desired, weights can be assigned to different alternatives. For example:
+
+<pre>
+ab_test "Background color" do
+  metrics :coolness
+  alternatives "red" => 10, "blue" => 5, "orange => 1
+  default "red"
+end
+</pre>
+
+This would make "red" 10 times as likely to appear as orange. (Note that these are weights, not percentanges, so the probability of assigning red above is about 62%, while blue is 31% and orange is 6%.) This is useful, for example, to assign a higher weight to a 'control' variation to ensure that most users continue having the default experience while assigning lower probabilities to test variations.
+
+h4(#bandits). Multi-arm bandits
+
+Another alternative to uniform splits of traffic is called "multi-armed bandits", and the specific implementation included is Bayesian. In this mode, most traffic is sent to the currently best performing alternative (called exploitation). The minority of traffic is split between the available alternatives (called exploration). Since worse performing alternatives receive much less traffic, this leads to higher average conversion rates in bandit-driven experiments than traditional A/B split testing. The disadvantage is that in the worst case scenario, it can take a lot more traffic to declare a conclusion with statistical significance.
+
+This can be enabled in the experiment definition, for example:
+<pre>
+ab_test "noodle_test" do
+  alternatives "spaghetti", "linguine"
+  metrics :signup
+  score_method :bayes_bandit_score
+end
+</pre>
 
 h3(#test).  A/B Testing and Code Testing
 
