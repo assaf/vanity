@@ -158,6 +158,20 @@ module Vanity
         return unless @playground.collecting?
         connection.set_experiment_created_at @id, Time.now
       end
+      
+      # -- Filtering Particpants --
+
+      # Define an experiment specific request filter.  For example:
+      #
+      #   reject do |request|
+      #     true if Vanity.context.cookies["somecookie"]
+      #   end
+      #
+      def reject(&block)
+        fail "Missing block" unless block
+        raise "filter already called on this experiment" if @request_filter_block
+        @request_filter_block = block
+      end
 
     protected
 

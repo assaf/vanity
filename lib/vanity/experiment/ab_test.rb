@@ -58,7 +58,7 @@ module Vanity
       
       # Returns true if experiment is enabled, false if disabled.
       def enabled?
-        !@playground.collecting? || ( active? && connection.is_experiment_enabled?(@id) )
+        !@playground.collecting? || (active? && connection.is_experiment_enabled?(@id))
       end
       
       # Enable or disable the experiment. Only works if the playground is collecting
@@ -187,10 +187,10 @@ module Vanity
         if @playground.collecting?
           if active?
             if enabled?
-              index = alternative_index_for_identity(request)    
+              return assignment_for_identity(request)    
             else
               # Show the default if experiment is disabled. 
-              index = alternatives.index(default)
+              return default
             end
           else
             # If inactive, always show the outcome. Fallback to generation if one can't be found.
@@ -233,7 +233,7 @@ module Vanity
             connection.ab_not_showing @id, identity
           else
             index = @alternatives.index(value)
-            save_assignment_if_valid_visitor(identity, index, request)
+            save_assignment(identity, index, request) unless filter_visitor?(request, identity)
 
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
             if (connection.ab_showing(@id, identity) && connection.ab_showing(@id, identity) != index) ||
@@ -588,14 +588,18 @@ module Vanity
 
       # Returns the assigned alternative, previously chosen alternative, or
       # alternative_for for a given identity.  
-      def alternative_index_for_identity(request)
+      def assignment_for_identity(request)
         identity = identity()
-        index = connection.ab_showing(@id, identity) || connection.ab_assigned(@id, identity)
-        unless index
-          index = alternative_for(identity).to_i
-          save_assignment_if_valid_visitor(identity, index, request) unless @playground.using_js?
+        if filter_visitor?(request, identity)
+          default
+        else
+          index = connection.ab_showing(@id, identity) || connection.ab_assigned(@id, identity)
+          unless index
+            index = alternative_for(identity).to_i
+            save_assignment(identity, index, request) unless @playground.using_js?
+          end
+          alternatives[index.to_i]
         end
-        index
       end
 
       # Chooses an alternative for the identity and returns its index. This
@@ -618,8 +622,8 @@ module Vanity
       # Saves the assignment of an alternative to a person and performs the
       # necessary housekeeping. Ignores repeat identities and filters using
       # Playground#request_filter.
-      def save_assignment_if_valid_visitor(identity, index, request)
-        return if index == connection.ab_showing(@id, identity) || filter_visitor?(request)
+      def save_assignment(identity, index, request)
+        return if index == connection.ab_showing(@id, identity)
 
         call_on_assignment_if_available(identity, index)
         rebalance_if_necessary!
@@ -628,8 +632,9 @@ module Vanity
         check_completion!
       end
 
-      def filter_visitor?(request)
-        @playground.request_filter.call(request)
+      def filter_visitor?(request, identity)
+        @playground.request_filter.call(request) || 
+          (@request_filter_block && @request_filter_block.call(request, identity))
       end
 
       def call_on_assignment_if_available(identity, index)
@@ -664,9 +669,9 @@ module Vanity
         @use_probabilities = []
         result = []
         @alternatives = @alternatives.each_with_index.map do |(value, probability), i|
-          result << alternative = Alternative.new( self, i, value )
+          result << alternative = Alternative.new(self, i, value)
           probability = probability.to_f / sum_of_probability
-          @use_probabilities << [ alternative, cumulative_probability += probability ]
+          @use_probabilities << [alternative, cumulative_probability += probability]
           value
         end
 

@@ -1430,6 +1430,24 @@ This experiment did not run long enough to find a clear winner.
     assert [:a, :b, :c].include?(choice)
     assert_equal choice, experiment(:simple).choose.value
   end
+
+  def test_filter_visitor_always_returns_default
+    exp = new_ab_test :simple do
+      alternatives :a, :b, :c
+      default :b
+      metrics :coolness
+
+      reject do |request, identity|
+        true
+      end
+    end
+
+    results = Set.new
+    100.times do
+      results << exp.choose.value
+    end
+    assert_equal results, [:b].to_set
+  end
   
   # -- Reset --
   
