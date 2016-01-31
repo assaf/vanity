@@ -266,6 +266,9 @@ an experiment. This may be done using the `chooses` method. For example:
 
 ```ruby
 Vanity.playground.experiment(:price_options).chooses(19)
+```
+
+See [the docs on testing](http://vanity.labnotes.org/ab_testing.html#test) for more.
 
 ## Updating documentation
 
