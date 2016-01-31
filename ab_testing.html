@@ -69,6 +69,7 @@ end
 <a href="#">Sign up</a>
 <p>The other half will see this one:</p>
 <a href="#" style="font:14pt;font-weight:bold">Sign up</a>
+<h3 id="interpret">Interpreting the Results</h3>
 <p>An A/B test has two parts, we just covered the part which decides which alternative to show.  The second part measures the effectiveness of each alternative.  This happens as result of measuring the metric.</p>
 <p>Remember that we&#8217;re measuring signups, so we already have this in the code:</p>
 <pre>
@@ -79,7 +80,6 @@ class SignupController &lt; ApplicationController
   end
 end
 </pre>
-<h3 id="interpret">Interpreting the Results</h3>
 <p>We&#8217;re going to let the experiment run for a while and track the results using <a href="rails.html#dashboard">the dashboard</a>, or by running the command <code>vanity report</code>.</p>
 <p>Vanity splits the audience randomly &#8212; using <a href="identity.html">cookies and other mechanisms</a> &#8212; and records who got to see each alternative, and how many in each group converted (in our case, signed up).  Dividing conversions by participants gives you the conversion rate.</p>
 <p><img src="images/clear_winner.png" alt="" /></p>
@@ -126,6 +126,26 @@ end
   &lt;%= count %&gt; features to choose from!
 &lt;% end %&gt;
 </pre>
+<h3 id="weights">Weighted alternatives &amp; Multi-arm bandits</h3>
+<p>By default, for n variations, Vanity will assign each of those with a probability of 1/n. If non-uniform weights for alternatives are desired, weights can be assigned to different alternatives. For example:</p>
+<pre>
+ab_test "Background color" do
+  metrics :coolness
+  alternatives "red" =&gt; 10, "blue" =&gt; 5, "orange =&gt; 1
+  default "red"
+end
+</pre>
+<p>This would make &#8220;red&#8221; 10 times as likely to appear as orange. (Note that these are weights, not percentanges, so the probability of assigning red above is about 62%, while blue is 31% and orange is 6%.) This is useful, for example, to assign a higher weight to a &#8216;control&#8217; variation to ensure that most users continue having the default experience while assigning lower probabilities to test variations.</p>
+<h4 id="bandits">Multi-arm bandits</h4>
+<p>Another alternative to uniform splits of traffic is called &#8220;multi-armed bandits&#8221;, and the specific implementation included is Bayesian. In this mode, most traffic is sent to the currently best performing alternative (called exploitation). The minority of traffic is split between the available alternatives (called exploration). Since worse performing alternatives receive much less traffic, this leads to higher average conversion rates in bandit-driven experiments than traditional A/B split testing. The disadvantage is that in the worst case scenario, it can take a lot more traffic to declare a conclusion with statistical significance.</p>
+<p>This can be enabled in the experiment definition, for example:<br />
+<pre><br />
+ab_test &#8220;noodle_test&#8221; do<br />
+  alternatives &#8220;spaghetti&#8221;, &#8220;linguine&#8221;<br />
+  metrics :signup<br />
+  score_method :bayes_bandit_score<br />
+end<br />
+</pre></p>
 <h3 id="test">A/B Testing and Code Testing</h3>
 <p>If you&#8217;re presenting more than one alternative to visitors of your site, you&#8217;ll want to test more than one alternative.  Don&#8217;t let A/B testing become A/broken.</p>
 <p>You can force a functional/integration test to choose a given alternative:</p>
