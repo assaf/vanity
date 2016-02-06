@@ -1,30 +1,5 @@
 require "test_helper"
 
-# Pages accessible to everyone, e.g. sign in, community search.
-class UseVanityController < ActionController::Base
-  class TestModel
-    def test_method
-      Vanity.ab_test(:pie_or_cake)
-    end
-  end
-
-  attr_accessor :current_user
-
-  def index
-    render :text=>Vanity.ab_test(:pie_or_cake)
-  end
-
-  def js
-    Vanity.ab_test(:pie_or_cake)
-    render :inline => "<%= vanity_js -%>"
-  end
-
-  def model_js
-    TestModel.new.test_method
-    render :inline => "<%= vanity_js -%>"
-  end
-end
-
 class UseVanityControllerTest < ActionController::TestCase
   tests UseVanityController
 
@@ -120,7 +95,7 @@ class UseVanityControllerTest < ActionController::TestCase
   end
 
   def test_vanity_identity_set_from_user
-    @controller.current_user = mock("user", :id=>"user_id")
+    @controller.current_user = stub("user", :id=>"user_id")
     get :index
     assert_equal "user_id", @controller.send(:vanity_identity)
   end
