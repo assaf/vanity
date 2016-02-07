@@ -16,7 +16,7 @@ module Vanity
     # The use_vanity method will setup the controller to allow testing and
     # tracking of the current user.
     module UseVanity
-      # Defines the vanity_identity method and the set_identity_context filter.
+      # Defines the vanity_identity method and the vanity_context_filter filter.
       #
       # Call with the name of a method that returns an object whose identity
       # will be used as the Vanity identity if the user is not already
@@ -40,61 +40,65 @@ module Vanity
       #   class ProjectController < ApplicationController
       #     use_vanity { |controller| controller.params[:project_id] }
       #   end
-      def use_vanity(symbol = nil, &block)
+      def use_vanity(method_name = nil, &block)
         define_method :vanity_store_experiment_for_js do |name, alternative|
           @_vanity_experiments ||= {}
           @_vanity_experiments[name] ||= alternative
           @_vanity_experiments[name].value
         end
 
-        if block
-          define_method(:vanity_identity) { block.call(self) }
-        else
-          define_method :vanity_identity do
-            return @vanity_identity if @vanity_identity
+        define_method(:vanity_identity_block) { block }
+        define_method(:vanity_identity_method) { method_name }
 
-            cookie = lambda do |value|
-              result = {
-                value: value,
-                expires: Time.now + Vanity.configuration.cookie_expires,
-                path: Vanity.configuration.cookie_path,
-                domain: Vanity.configuration.cookie_domain,
-                secure: Vanity.configuration.cookie_secure,
-                httponly: Vanity.configuration.cookie_httponly
-              }
-              result[:domain] ||= ::Rails.application.config.session_options[:domain]
-              result
-            end
-
-            # With user sign in, it's possible to visit not-logged in, get
-            # cookied and shown alternative A, then sign in and based on
-            # user.id, get shown alternative B.
-            # This implementation prefers an initial vanity cookie id over a
-            # new user.id to avoid the flash of alternative B (FOAB).
-            if request.get? && params[:_identity]
-              @vanity_identity = params[:_identity]
-              cookies[Vanity.configuration.cookie_name] = cookie.call(@vanity_identity)
-              @vanity_identity
-            elsif cookies[Vanity.configuration.cookie_name]
-              @vanity_identity = cookies[Vanity.configuration.cookie_name]
-            elsif symbol && object = send(symbol)
-              @vanity_identity = object.id
-            elsif response # everyday use
-              @vanity_identity = cookies[Vanity.configuration.cookie_name] || SecureRandom.hex(16)
-              cookies[Vanity.configuration.cookie_name] = cookie.call(@vanity_identity)
-              @vanity_identity
-            else # during functional testing
-              @vanity_identity = "test"
-            end
-          end
-        end
-        protected :vanity_identity
         around_filter :vanity_context_filter
         before_filter :vanity_reload_filter unless ::Rails.configuration.cache_classes
         before_filter :vanity_query_parameter_filter
         after_filter :vanity_track_filter
       end
       protected :use_vanity
+    end
+
+    module Identity
+      def vanity_identity # :nodoc:
+        return vanity_identity_block.call(self) if vanity_identity_block
+        return @vanity_identity if @vanity_identity
+
+        # With user sign in, it's possible to visit not-logged in, get
+        # cookied and shown alternative A, then sign in and based on
+        # user.id, get shown alternative B.
+        # This implementation prefers an initial vanity cookie id over a
+        # new user.id to avoid the flash of alternative B (FOAB).
+        if request.get? && params[:_identity]
+          @vanity_identity = params[:_identity]
+          cookies[Vanity.configuration.cookie_name] = build_vanity_cookie(@vanity_identity)
+          @vanity_identity
+        elsif cookies[Vanity.configuration.cookie_name]
+          @vanity_identity = cookies[Vanity.configuration.cookie_name]
+        elsif vanity_identity_method && object = send(vanity_identity_method)
+          @vanity_identity = object.id
+        elsif response # everyday use
+          @vanity_identity = cookies[Vanity.configuration.cookie_name] || SecureRandom.hex(16)
+          cookies[Vanity.configuration.cookie_name] = build_vanity_cookie(@vanity_identity)
+          @vanity_identity
+        else # during functional testing
+          @vanity_identity = "test"
+        end
+      end
+      protected :vanity_identity
+
+      def build_vanity_cookie(identity) # :nodoc:
+        result = {
+          value: identity,
+          expires: Time.now + Vanity.configuration.cookie_expires,
+          path: Vanity.configuration.cookie_path,
+          domain: Vanity.configuration.cookie_domain,
+          secure: Vanity.configuration.cookie_secure,
+          httponly: Vanity.configuration.cookie_httponly
+        }
+        result[:domain] ||= ::Rails.application.config.session_options[:domain]
+        result
+      end
+      private :build_vanity_cookie
     end
 
     module UseVanityMailer
@@ -380,7 +384,7 @@ module Vanity
         exp.enabled = false
         render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
       end
-      
+
       def enable
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.enabled = true
@@ -419,6 +423,7 @@ ActiveSupport.on_load(:action_controller) do
   ActionController::Base.class_eval do
     extend Vanity::Rails::UseVanity
     include Vanity::Rails::Filters
+    include Vanity::Rails::Identity
     helper Vanity::Rails::Helpers
   end
 end
