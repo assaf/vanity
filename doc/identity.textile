@@ -9,29 +9,45 @@ For effective A/B tests, you want to:
 # Know which alternative you're showing and tracking
 # When running multiple tests at once, keep them independent
 
-Vanity will assign each visitor a unique identifier and store it in a cookie that persists across sessions.  That way, each visitor will get to see the same alternatives on repeating visits.  Assuming they use the same browser on all visits.
+Vanity can assign each visitor a unique identifier and store it in a cookie that persists across sessions. That way, each visitor will get to see the same alternatives on repeating visits. (Assuming they use the same browser on all visits.)
 
-If you have a better way of tracking visitors, e.g. using sign in, you'll want to use that instead.  That way the same person gets treated to the same experiment, even if they switch between machines and browsers.
+If you have a more persistant way of tracking visitors, e.g. using sign in, you'll want to use that instead. That way the same person gets treated to the same experiment, even if they switch between machines and browsers.
 
-You can choose either option using the @use_vanity@ method.  In the first case, just call @use_vanity@ from within the @ApplicationController@.  In the second case, you'll want to pass @use_vanity@ either a block that returns an identity value, or the name of a method that returns an object which provides the identity.
+You can choose either option using the @use_vanity@ method.  In the first case, just call @use_vanity@ from within the @ApplicationController@. In the second case, you'll want to pass @use_vanity@ either a block that returns an identity value, or the name of a method that returns an object which provides the identity when @id@ is called on it. If you pass a method name and it returns @nil@, Vanity will fallback on the persistent cookie mechanism.
 
-Sounds complicated?  These two examples are equivalent:
+Sounds complicated? These two examples are equivalent:
 
 <pre>
 class ApplicationController < ActionController::Base
   use_vanity :current_user
+
+  def current_user
+    User.find(session[:user_id])
+  end
 end
 </pre>
 
 <pre>
 class ApplicationController < ActionController::Base
-  use_vanity { |c| c.current_user && c.current_user.id }
+  use_vanity :current_user
+
+  def current_user
+    user = User.find(session[:user_id])
+
+    user if user && user.id
+  end
 end
 </pre>
 
-If you use either block or method name and they return @nil@, Vanity will fallback on persistent cookie mechanism.
+If @current_user@ does not return @nil@ for non-persisted accounts, e.g. it returns a @NullUser@, the @id@ call should return @nil@.
 
-Note that @current_user@ in this case must return @nil@ for non-persisted accounts.  That is, @current_user.id@ *must* be non-@nil@.
+If you pass a block, it must return a non-nil value. For example:
+
+<pre>
+class ProjectController < ApplicationController
+  use_vanity { |controller| controller.params[:project_id] ||  }
+end
+</pre>
 
 An identity can be anything.  For example, if you're running an experiment to test a new feature that will be available in some projects but not others, you'll want to slice the audience by project identifier, not user ID.
 

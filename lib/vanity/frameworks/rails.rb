@@ -74,8 +74,8 @@ module Vanity
           @vanity_identity
         elsif cookies[Vanity.configuration.cookie_name]
           @vanity_identity = cookies[Vanity.configuration.cookie_name]
-        elsif vanity_identity_method && object = send(vanity_identity_method)
-          @vanity_identity = object.id
+        elsif identity = vanity_identity_from_method(vanity_identity_method)
+          @vanity_identity = identity
         elsif response # everyday use
           @vanity_identity = cookies[Vanity.configuration.cookie_name] || SecureRandom.hex(16)
           cookies[Vanity.configuration.cookie_name] = build_vanity_cookie(@vanity_identity)
@@ -85,6 +85,14 @@ module Vanity
         end
       end
       protected :vanity_identity
+
+      def vanity_identity_from_method(method_name) # :nodoc:
+        return unless method_name
+
+        object = send(method_name)
+        object.try(:id)
+      end
+      private :vanity_identity_from_method
 
       def build_vanity_cookie(identity) # :nodoc:
         result = {

@@ -100,6 +100,12 @@ class UseVanityControllerTest < ActionController::TestCase
     assert_equal "user_id", @controller.send(:vanity_identity)
   end
 
+  def test_vanity_identity_with_null_user_falls_back_to_cookie
+    @controller.current_user = stub("user", :id=>nil)
+    get :index
+    assert cookies["vanity_id"] =~ /^[a-f0-9]{32}$/
+  end
+
   def test_vanity_identity_with_no_user_model
     UseVanityController.class_eval do
       use_vanity nil
