@@ -1,3 +1,9 @@
+== 2.1.1 (2015-1-19)
+
+* Allow method passed to `use_vanity` to return NullObjects. (@phillbaker)
+* Add testing support for ruby 2.3. (@phillbaker)
+* Add `reject` method to experiment definition. #290 (@peterkovacs)
+
 == 2.1.0 (2015-1-19)
 
 Add ability to define test alternatives with custom probabilities, #283. (@peterkovacs)
