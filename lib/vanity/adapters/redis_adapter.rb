@@ -231,8 +231,8 @@ module Vanity
         begin
           yield
         rescue => e
-          if Vanity.playground.failover_on_datastore_error?
-            Vanity.playground.on_datastore_error.call(e, self.class, calling_method, arguments)
+          if Vanity.configuration.failover_on_datastore_error
+            Vanity.configuration.on_datastore_error.call(e, self.class, calling_method, arguments)
           else
             raise e
           end
