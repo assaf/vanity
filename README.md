@@ -65,8 +65,7 @@ test:
 Add to your Gemfile:
 
 ```ruby
-gem "bson_ext"
-gem "mongo"
+gem "mongo", "~> 2.0" # For Mongo 1.x support see Vanity versions 2.1 and below.
 ```
 
 A sample `config/vanity.yml` might look like:

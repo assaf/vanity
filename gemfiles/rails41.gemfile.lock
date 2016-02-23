@@ -50,10 +50,7 @@ GEM
       thor (>= 0.14.0)
     arel (5.0.1.20140414130214)
     blankslate (2.1.2.4)
-    bson (1.10.0)
-    bson (1.10.0-java)
-    bson_ext (1.10.0)
-      bson (~> 1.10.0)
+    bson (4.0.2)
     builder (3.2.2)
     celluloid (0.16.0)
       timers (~> 4.0.0)
@@ -119,10 +116,8 @@ GEM
     minitest (5.5.1)
     mocha (1.1.0)
       metaclass (~> 0.0.1)
-    mongo (1.10.0)
-      bson (~> 1.10.0)
-    mongo (1.10.0-java)
-      bson (~> 1.10.0)
+    mongo (2.2.3)
+      bson (~> 4.0)
     multi_json (1.10.1)
     parslet (1.5.0)
       blankslate (~> 2.0)
@@ -199,7 +194,6 @@ DEPENDENCIES
   RedCloth
   activerecord-jdbc-adapter
   appraisal (~> 1.0.2)
-  bson_ext
   bundler (>= 1.8.0)
   fakefs
   fastthread!
@@ -209,7 +203,7 @@ DEPENDENCIES
   jekyll
   minitest (>= 4.2)
   mocha (~> 1.0)
-  mongo
+  mongo (~> 2.1)
   passenger (~> 3.0)
   rack
   rails (= 4.1.9)

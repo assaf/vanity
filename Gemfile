@@ -7,7 +7,7 @@ gem "rack"
 # Persistence
 gem "redis", ">= 2.1"
 gem "redis-namespace", ">= 1.1.0"
-gem "mongo"
+gem "mongo", "~> 2.1"
 
 # Math libraries
 gem "integration", "<= 0.1.0"
@@ -22,7 +22,7 @@ gem "webmock", :require=>false
 gem "fakefs", :require => "fakefs/safe"
 
 platform :ruby do
-  gem "bson_ext"
+  # gem "bson_ext"
   gem "sqlite3", "~> 1.3.10"
 end
 

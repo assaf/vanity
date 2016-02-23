@@ -55,9 +55,7 @@ GEM
       rake
       thor (>= 0.14.0)
     arel (6.0.3)
-    bson (1.12.5)
-    bson_ext (1.12.5)
-      bson (~> 1.12.5)
+    bson (4.0.2)
     builder (3.2.2)
     colorator (0.1)
     concurrent-ruby (1.0.0)
@@ -105,8 +103,8 @@ GEM
     minitest (5.8.3)
     mocha (1.1.0)
       metaclass (~> 0.0.1)
-    mongo (1.12.5)
-      bson (= 1.12.5)
+    mongo (2.2.3)
+      bson (~> 4.0)
     nokogiri (1.6.7.1)
       mini_portile2 (~> 2.0.0.rc2)
     passenger (3.0.21)
@@ -180,7 +178,6 @@ DEPENDENCIES
   RedCloth
   activerecord-jdbc-adapter
   appraisal (~> 1.0.2)
-  bson_ext
   bundler (>= 1.8.0)
   fakefs
   fastthread!
@@ -190,7 +187,7 @@ DEPENDENCIES
   jekyll
   minitest (>= 4.2)
   mocha (~> 1.0)
-  mongo
+  mongo (~> 2.1)
   passenger (~> 3.0)
   protected_attributes (= 1.1.0)
   rack
