@@ -249,9 +249,6 @@ your view no participants will be recorded.
 
 Here's what's tested and known to work:
 
-    Ruby 2.0
-      Persistence: Redis, Mongo, ActiveRecord
-      Rails: 3.2, 4.1, 4.2
     Ruby 2.1
       Persistence: Redis, Mongo, ActiveRecord
       Rails: 3.2, 4.1, 4.2
