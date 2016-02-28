@@ -146,7 +146,7 @@ describe Vanity::Experiment::Base do
     e = experiment(:ab)
     e.complete_if { true }
     e.stubs(:complete!).raises(RuntimeError, "A forced error")
-    e.expects(:warn)
+    Vanity.logger.expects(:warn)
     e.stubs(:identity).returns(:b)
     e.track!(:a, Time.now, 10)
   end

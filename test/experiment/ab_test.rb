@@ -1247,7 +1247,7 @@ This experiment did not run long enough to find a clear winner.
       default false
     end
     e = experiment(:quick)
-    e.expects(:warn)
+    Vanity.logger.expects(:warn)
     assert_nothing_raised do
       e.complete!
     end

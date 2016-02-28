@@ -70,8 +70,10 @@ module Vanity
       def enabled=(bool)
         return unless @playground.collecting? && active?
         if created_at.nil?
-          warn 'DB has no created_at for this experiment! This most likely means' + 
-               'you didn\'t call #save before calling enabled=, which you should.'
+          Vanity.logger.warn(
+            'DB has no created_at for this experiment! This most likely means' +
+            'you didn\'t call #save before calling enabled=, which you should.'
+          )
         else
           connection.set_experiment_enabled(@id, bool)
         end
@@ -340,13 +342,13 @@ module Vanity
           require "integration"
           require "rubystats"
         rescue LoadError
-          fail "to use bayes_bandit_score, install integration and rubystats gems"
+          fail("to use bayes_bandit_score, install integration and rubystats gems")
         end
 
         begin
           require "gsl"
         rescue LoadError
-          warn "for better integration performance, install gsl gem"
+          Vanity.logger.warn("for better integration performance, install gsl gem")
         end
 
         BayesianBanditScore.new(alternatives, outcome).calculate!
@@ -480,8 +482,8 @@ module Vanity
             begin
               result = @outcome_is.call
               outcome = result.id if Alternative === result && result.experiment == self
-            rescue
-              warn "Error in AbTest#complete!: #{$!}"
+            rescue => e
+              Vanity.logger.warn("Error in AbTest#complete!: #{e}")
             end
           else
             best = score.best
@@ -524,7 +526,7 @@ module Vanity
       # and declared.
       def save
         if @saved
-          warn "Experiment #{name} has already been saved"
+          Vanity.logger.warn("Experiment #{name} has already been saved")
           return
         end
         @saved = true
@@ -532,21 +534,21 @@ module Vanity
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
         if !@is_default_set
           default(@alternatives.first)
-          warn "No default alternative specified; choosing #{@default} as default."
+          Vanity.logger.warn("No default alternative specified; choosing #{@default} as default.")
         elsif alternative(@default).nil?
-          #Specified a default that wasn't listed as an alternative; warn and override.
-          warn "Attempted to set unknown alternative #{@default} as default! Using #{@alternatives.first} instead."
-          #Set the instance variable directly since default(value) is no longer defined
+          # Specified a default that wasn't listed as an alternative; warn and override.
+          Vanity.logger.warn("Attempted to set unknown alternative #{@default} as default! Using #{@alternatives.first} instead.")
+          # Set the instance variable directly since default(value) is no longer defined
           @default = @alternatives.first
         end
         super
         if @metrics.nil? || @metrics.empty?
-          warn "Please use metrics method to explicitly state which metric you are measuring against."
+          Vanity.logger.warn("Please use metrics method to explicitly state which metric you are measuring against.")
           metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
           @metrics = [metric]
         end
         @metrics.each do |metric|
-          metric.hook &method(:track!)
+          metric.hook(&method(:track!))
         end
       end
 

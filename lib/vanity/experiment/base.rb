@@ -191,8 +191,8 @@ module Vanity
         if @complete_block
           begin
             complete! if @complete_block.call
-          rescue
-            warn "Error in Vanity::Experiment::Base: #{$!}"
+          rescue => e
+            Vanity.logger.warn("Error in Vanity::Experiment::Base: #{e}")
           end
         end
       end

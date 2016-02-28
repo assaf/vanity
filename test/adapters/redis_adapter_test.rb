@@ -14,7 +14,7 @@ describe Vanity::Adapters::RedisAdapter do
         mocked_redis.expects(:client).raises(RuntimeError)
         redis_adapter = Vanity::Adapters::RedisAdapter.new({})
         redis_adapter.stubs(:redis).returns(mocked_redis)
-        redis_adapter.expects(:warn).with("Error while disconnecting from redis: RuntimeError")
+        Vanity.logger.expects(:warn).with("Error while disconnecting from redis: RuntimeError")
         redis_adapter.disconnect!
       end
     end
