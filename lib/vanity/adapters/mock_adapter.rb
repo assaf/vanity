@@ -95,7 +95,7 @@ module Vanity
       def is_experiment_completed?(experiment)
         @experiments[experiment] && @experiments[experiment][:completed_at]
       end
-      
+
       def set_experiment_enabled(experiment, enabled)
         @experiments[experiment] ||= {}
         @experiments[experiment][:enabled] = enabled

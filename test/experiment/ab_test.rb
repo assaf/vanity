@@ -181,28 +181,28 @@ class AbTestTest < ActionController::TestCase
     exp = experiment(:nil_default_default)
     assert_equal exp.default, exp.alternative(nil)
   end
-  
-  
+
+
   # -- Experiment Enabled/disabled --
-  
+
   # @example new test should be enabled regardless of collecting?
   #   regardless_of "Vanity.playground.collecting" do
   #     assert (new_ab_test :test).enabled?
   #   end
   def regardless_of(attr_name, &block)
     prev_val = eval "#{attr_name}?"
-    
+
     eval "#{attr_name}=true"
     block.call(eval "#{attr_name}?")
     nuke_playground
-    
+
     eval "#{attr_name}=false"
     block.call(eval "#{attr_name}?")
     nuke_playground
-    
+
     eval "#{attr_name}=prev_val"
   end
-  
+
   def test_new_test_is_disabled_when_experiments_start_enabled_is_false
     Vanity.configuration.experiments_start_enabled = false
     exp = new_ab_test :test, enable: false do
@@ -220,7 +220,7 @@ class AbTestTest < ActionController::TestCase
     end
     assert exp.enabled?
   end
-  
+
   def test_complete_sets_enabled_false
     Vanity.playground.collecting = true
     exp = new_ab_test :test do
@@ -248,14 +248,14 @@ class AbTestTest < ActionController::TestCase
       metrics :coolness
       default false
     end
-    
+
     exp.enabled = true
     assert exp.enabled?
-    
+
     exp.enabled = false
     assert !exp.enabled?
   end
-  
+
   def test_cannot_set_enabled_for_inactive
     Vanity.playground.collecting = true
     exp = new_ab_test :test do
@@ -278,19 +278,19 @@ class AbTestTest < ActionController::TestCase
     exp.enabled = false
     assert exp.enabled?
   end
-  
+
   def test_enabled_persists_across_definitions
     Vanity.configuration.experiments_start_enabled = false
     Vanity.playground.collecting = true
-    new_ab_test :test, :enable => false do 
+    new_ab_test :test, :enable => false do
       metrics :coolness
       default false
     end
     assert !experiment(:test).enabled? #starts off false
-    
+
     new_playground
     metric "Coolness"
-    
+
     new_ab_test :test, :enable => false do
       metrics :coolness
       default false
@@ -298,10 +298,10 @@ class AbTestTest < ActionController::TestCase
     assert !experiment(:test).enabled? #still false
     experiment(:test).enabled = true
     assert experiment(:test).enabled? #now true
-    
+
     new_playground
     metric "Coolness"
-    
+
     new_ab_test :test, :enable => false do
       metrics :coolness
       default false
@@ -314,15 +314,15 @@ class AbTestTest < ActionController::TestCase
   def test_enabled_persists_across_definitions_when_starting_enabled
     Vanity.configuration.experiments_start_enabled = true
     Vanity.playground.collecting = true
-    new_ab_test :test, :enable => false do 
+    new_ab_test :test, :enable => false do
       metrics :coolness
       default false
     end
     assert experiment(:test).enabled? #starts off true
-    
+
     new_playground
     metric "Coolness"
-    
+
     new_ab_test :test, :enable => false do
       metrics :coolness
       default false
@@ -330,10 +330,10 @@ class AbTestTest < ActionController::TestCase
     assert experiment(:test).enabled? #still true
     experiment(:test).enabled = false
     assert !experiment(:test).enabled? #now false
-    
+
     new_playground
     metric "Coolness"
-    
+
     new_ab_test :test, :enable => false do
       metrics :coolness
       default false
@@ -342,12 +342,12 @@ class AbTestTest < ActionController::TestCase
     experiment(:test).enabled = true
     assert experiment(:test).enabled? #now true again
   end
-  
+
   def test_choose_random_when_enabled
     regardless_of "Vanity.playground.collecting" do
       metric "Coolness"
 
-      exp = new_ab_test :test do 
+      exp = new_ab_test :test do
         metrics :coolness
         true_false
         default false
@@ -360,20 +360,20 @@ class AbTestTest < ActionController::TestCase
       assert_equal results, [true, false].to_set
     end
   end
-  
+
   def test_choose_default_when_disabled
     exp = new_ab_test :test do
       metrics :coolness
       alternatives 0, 1, 2, 3, 4, 5
       default 3
     end
-    
+
     exp.enabled = false
     100.times.each do
       assert_equal 3, exp.choose.value
     end
   end
-  
+
   def test_choose_outcome_when_finished
     exp = new_ab_test :test do
       metrics :coolness
@@ -386,7 +386,7 @@ class AbTestTest < ActionController::TestCase
       assert_equal 5, exp.choose.value
     end
   end
-  
+
   # -- Experiment metric --
 
   def test_explicit_metric
@@ -1448,9 +1448,9 @@ This experiment did not run long enough to find a clear winner.
     end
     assert_equal results, [:b].to_set
   end
-  
+
   # -- Reset --
-  
+
   def test_reset_clears_participants
     new_ab_test :simple do
       alternatives :a, :b, :c
@@ -1462,20 +1462,20 @@ This experiment did not run long enough to find a clear winner.
     experiment(:simple).reset
     assert_equal experiment(:simple).alternatives[1].participants, 0
   end
-  
+
   def test_clears_outcome_and_completed_at
      new_ab_test :simple do
        alternatives :a, :b, :c
        default :a
-       metrics :coolness	
-     end	  	
-    experiment(:simple).reset	  	
-    assert_nil experiment(:simple).outcome  	
+       metrics :coolness
+     end
+    experiment(:simple).reset
+    assert_nil experiment(:simple).outcome
     assert_nil experiment(:simple).completed_at
   end
-  
+
   # -- Pick Winner --
-  
+
   def test_complete_with_argument_sets_outcome_and_completes
     new_ab_test :simple do
       alternatives :a, :b, :c

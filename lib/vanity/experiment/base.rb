@@ -158,7 +158,7 @@ module Vanity
         return unless @playground.collecting?
         connection.set_experiment_created_at @id, Time.now
       end
-      
+
       # -- Filtering Particpants --
 
       # Define an experiment specific request filter.  For example:

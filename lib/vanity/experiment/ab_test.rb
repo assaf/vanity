@@ -27,10 +27,10 @@ module Vanity
         @use_probabilities = nil
         @is_default_set = false
       end
-        
+
       # -- Default --
 
-      # Call this method once to set a default alternative. Call without 
+      # Call this method once to set a default alternative. Call without
       # arguments to obtain the current default. If default is not specified,
       # the first alternative is used.
       #
@@ -55,12 +55,12 @@ module Vanity
       end
 
       # -- Enabled --
-      
+
       # Returns true if experiment is enabled, false if disabled.
       def enabled?
         !@playground.collecting? || (active? && connection.is_experiment_enabled?(@id))
       end
-      
+
       # Enable or disable the experiment. Only works if the playground is collecting
       # and this experiment is enabled.
       #
@@ -189,9 +189,9 @@ module Vanity
         if @playground.collecting?
           if active?
             if enabled?
-              return assignment_for_identity(request)    
+              return assignment_for_identity(request)
             else
-              # Show the default if experiment is disabled. 
+              # Show the default if experiment is disabled.
               return default
             end
           else
@@ -501,7 +501,7 @@ module Vanity
         connection.destroy_experiment(@id)
         super
       end
-      
+
       # clears all collected data for the experiment
       def reset
         return unless @playground.collecting?
@@ -589,7 +589,7 @@ module Vanity
       end
 
       # Returns the assigned alternative, previously chosen alternative, or
-      # alternative_for for a given identity.  
+      # alternative_for for a given identity.
       def assignment_for_identity(request)
         identity = identity()
         if filter_visitor?(request, identity)
@@ -635,7 +635,7 @@ module Vanity
       end
 
       def filter_visitor?(request, identity)
-        @playground.request_filter.call(request) || 
+        @playground.request_filter.call(request) ||
           (@request_filter_block && @request_filter_block.call(request, identity))
       end
 

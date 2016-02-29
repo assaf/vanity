@@ -25,9 +25,9 @@ module Vanity
         nil
       end
 
-      # 
-      # Filter all User-Agents that have 'bot', 'crawler', 'spider', URL. 
-      # 
+      #
+      # Filter all User-Agents that have 'bot', 'crawler', 'spider', URL.
+      #
       def default_request_filter(request) # :nodoc:
         request &&
         request.env &&
