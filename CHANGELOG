@@ -1,3 +1,7 @@
+== 2.2.0 (2016-3-26)
+* Update mongo integration for mongo ruby driver 2.x. (@phillbaker)
+* Centralize warnings to use `Vanity.logger` (@phillbaker)
+
 == 2.1.2 (2016-2-20)
 
 * Fix infinite loop on loading Vanity when using Redis and Redis fails to connect. #292 (@phillbaker)
