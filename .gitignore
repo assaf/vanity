@@ -16,3 +16,4 @@ html
 .rvmrc
 .ruby-version
 .ruby-gemset
+test/dummy/*.sqlite3
