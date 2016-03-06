@@ -44,23 +44,38 @@
 	<li>Know which alternative you&#8217;re showing and tracking</li>
 	<li>When running multiple tests at once, keep them independent</li>
 </ol>
-<p>Vanity will assign each visitor a unique identifier and store it in a cookie that persists across sessions.  That way, each visitor will get to see the same alternatives on repeating visits.  Assuming they use the same browser on all visits.</p>
-<p>If you have a better way of tracking visitors, e.g. using sign in, you&#8217;ll want to use that instead.  That way the same person gets treated to the same experiment, even if they switch between machines and browsers.</p>
-<p>You can choose either option using the <code>use_vanity</code> method.  In the first case, just call <code>use_vanity</code> from within the <code>ApplicationController</code>.  In the second case, you&#8217;ll want to pass <code>use_vanity</code> either a block that returns an identity value, or the name of a method that returns an object which provides the identity.</p>
-<p>Sounds complicated?  These two examples are equivalent:</p>
+<p>Vanity can assign each visitor a unique identifier and store it in a cookie that persists across sessions. That way, each visitor will get to see the same alternatives on repeating visits. (Assuming they use the same browser on all visits.)</p>
+<p>If you have a more persistant way of tracking visitors, e.g. using sign in, you&#8217;ll want to use that instead. That way the same person gets treated to the same experiment, even if they switch between machines and browsers.</p>
+<p>You can choose either option using the <code>use_vanity</code> method.  In the first case, just call <code>use_vanity</code> from within the <code>ApplicationController</code>. In the second case, you&#8217;ll want to pass <code>use_vanity</code> either a block that returns an identity value, or the name of a method that returns an object which provides the identity when <code>id</code> is called on it. If you pass a method name and it returns <code>nil</code>, Vanity will fallback on the persistent cookie mechanism.</p>
+<p>Sounds complicated? These two examples are equivalent:</p>
 <pre>
 class ApplicationController &lt; ActionController::Base
   use_vanity :current_user
+
+  def current_user
+    User.find(session[:user_id])
+  end
 end
 </pre>
 
 <pre>
 class ApplicationController &lt; ActionController::Base
-  use_vanity { |c| c.current_user &amp;&amp; c.current_user.id }
+  use_vanity :current_user
+
+  def current_user
+    user = User.find(session[:user_id])
+
+    user if user &amp;&amp; user.id
+  end
 end
 </pre>
-<p>If you use either block or method name and they return <code>nil</code>, Vanity will fallback on persistent cookie mechanism.</p>
-<p>Note that <code>current_user</code> in this case must return <code>nil</code> for non-persisted accounts.  That is, <code>current_user.id</code> <strong>must</strong> be non-<code>nil</code>.</p>
+<p>If <code>current_user</code> does not return <code>nil</code> for non-persisted accounts, e.g. it returns a <code>NullUser</code>, the <code>id</code> call should return <code>nil</code>.</p>
+<p>If you pass a block, it must return a non-nil value. For example:</p>
+<pre>
+class ProjectController &lt; ApplicationController
+  use_vanity { |controller| controller.params[:project_id] ||  }
+end
+</pre>
 <p>An identity can be anything.  For example, if you&#8217;re running an experiment to test a new feature that will be available in some projects but not others, you&#8217;ll want to slice the audience by project identifier, not user ID.</p>
 <p>You can also give each experiment a different identity using the <code>identify</code> callback.  Here&#8217;s an example that tells one experiment to use a project identifier:</p>
 <pre>
