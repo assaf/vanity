@@ -1,0 +1,64 @@
+---
+layout: page
+title: Adapters
+---
+
+Adapters let Vanity
+
+h3(#officially-supported).  Officially Supported
+
+* "Redis adapter":https://github.com/assaf/vanity/blob/master/lib/vanity/adapters/redis_adapter.rb
+* "Activerecord adapter":https://github.com/assaf/vanity/blob/master/lib/vanity/adapters/active_record_adapter.rb
+* "Mongo adapter":https://github.com/assaf/vanity/blob/master/lib/vanity/adapters/mongodb_adapter.rb
+* "Mock adapter":https://github.com/assaf/vanity/blob/master/lib/vanity/adapters/mock_adapter.rb (an in-memory store good for testing)
+
+h3(#community-supported).  Community Supported
+
+Have one out there? "Open a PR to update these docs!":contributing.html
+
+h3(#building-an-adapter).  Building an Adapter
+
+An adapter "should inherit from AbstractAdapter":https://github.com/assaf/vanity/blob/master/lib/vanity/adapters/abstract_adapter.rb . It should wrap an underlying connection to a datastore and implement an API that Vanity can use to store/access metrics and experiments.
+
+A good place to start when creating your own adapter is to copy one of the adapters mentioned above and replace the client specific code with whatever client you are attempting to adapt.
+
+The API for an adapter is divided into four categories: connections, metrics methods, experiment configuration methods and experiment data methods.
+
+h4. Connection methods
+
+* active?
+* disconnect!
+* reconnect!
+* flushdb
+
+h4. Metric methods
+
+* get_metric_last_update_at(metric)
+* metric_track(metric, timestamp, identity, values)
+* metric_values(metric, from, to)
+* destroy_metric(metric)
+
+h4. Experiment configuration methods
+
+* experiment_persisted?(experiment)
+* set_experiment_created_at(experiment, time)
+* get_experiment_created_at(experiment)
+* is_experiment_completed?(experiment)
+* set_experiment_enabled(experiment, enabled)
+* is_experiment_enabled?(experiment)
+* destroy_experiment(experiment)
+
+h4. Experiment data methods
+
+These ab_* methods interact with the underlying data of an experiment.
+
+* ab_counts(experiment, alternative)
+* ab_show(experiment, identity, alternative)
+* ab_showing(experiment, identity)
+* ab_not_showing(experiment, identity)
+* ab_add_participant(experiment, alternative, identity)
+* ab_seen(experiment, identity, assignment)
+* ab_assigned(experiment, identity)
+* ab_add_conversion(experiment, alternative, identity, count, implicit)
+* ab_get_outcome(experiment)
+* ab_set_outcome(experiment, alternative)
