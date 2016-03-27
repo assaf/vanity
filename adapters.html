@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Vanity &mdash; Adapters</title>
+    <link href="css/page.css" media="screen,print" rel="stylesheet" type="text/css">
+    <link href="css/print.css" media="print" rel="stylesheet" type="text/css">
+    <link href="images/favicon.png" rel="shortcut icon">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+    <script type="text/javascript" src="site.js"></script>
+  </head>
+  <body>
+    <div id="header">
+      <div class="title"><a href="http://vanity.labnotes.org" title="Mirror, mirror, on the wall &hellip;">Vanity</a></div>
+      <div class="tagline">Experiment<br>Driven Development</div>
+    </div>
+    <div id="links">
+      <a href="http://github.com/assaf/vanity">Source code</a> |
+      <a href="http://stackoverflow.com/questions/tagged/vanity" title="stackoverflow vanity tag">StackOverflow Tag</a> |
+      <a href="http://rdoc.info/gems/vanity">API reference</a>
+    </div>
+    <div id="sidebar">
+      <ul>
+        <li><a href="index.html#intro" title="A/B Testing with Rails">Intro</a></li>
+        <li><a href="metrics.html">Metrics</a></li>
+        <li><a href="ab_testing.html" title="Everything you need to know">A/B Testing</a></li>
+        <li><a href="rails.html">Using with Rails</a></li>
+        <li><a href="email.html">Testing emails</a></li>
+        <li><a href="identity.html">Managing Identity</a></li>
+        <li><a href="configuring.html">Configuring</a></li>
+        <li><a href="adapters.html">Adapters</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+        <li><a href="experimental.html">Experimental</a></li>
+      </ul>
+      <ul id="stats">
+        <li><a href="http://travis-ci.org/assaf/vanity"><img src="https://api.travis-ci.org/assaf/vanity.png?branch=master"></a></li>
+        <li><a href="http://wiki.github.com/assaf/vanity/whos-using-vanity">Who's using it?</a></li>
+      </ul>
+    </div>
+    <div id="content">
+      <h1 id="adapters">Adapters</h1>
+      <p>Adapters let Vanity</p>
+<h3 id="officially-supported">Officially Supported</h3>
+<ul>
+	<li><a href="https://github.com/assaf/vanity/blob/master/lib/vanity/adapters/redis_adapter.rb">Redis adapter</a></li>
+	<li><a href="https://github.com/assaf/vanity/blob/master/lib/vanity/adapters/active_record_adapter.rb">Activerecord adapter</a></li>
+	<li><a href="https://github.com/assaf/vanity/blob/master/lib/vanity/adapters/mongodb_adapter.rb">Mongo adapter</a></li>
+	<li><a href="https://github.com/assaf/vanity/blob/master/lib/vanity/adapters/mock_adapter.rb">Mock adapter</a> (an in-memory store good for testing)</li>
+</ul>
+<h3 id="community-supported">Community Supported</h3>
+<p>Have one out there? <a href="contributing.html">Open a PR to update these docs!</a></p>
+<h3 id="building-an-adapter">Building an Adapter</h3>
+<p>An adapter <a href="https://github.com/assaf/vanity/blob/master/lib/vanity/adapters/abstract_adapter.rb">should inherit from AbstractAdapter</a> . It should wrap an underlying connection to a datastore and implement an <span class="caps">API</span> that Vanity can use to store/access metrics and experiments.</p>
+<p>A good place to start when creating your own adapter is to copy one of the adapters mentioned above and replace the client specific code with whatever client you are attempting to adapt.</p>
+<p>The <span class="caps">API</span> for an adapter is divided into four categories: connections, metrics methods, experiment configuration methods and experiment data methods.</p>
+<h4>Connection methods</h4>
+<ul>
+	<li>active?</li>
+	<li>disconnect!</li>
+	<li>reconnect!</li>
+	<li>flushdb</li>
+</ul>
+<h4>Metric methods</h4>
+<ul>
+	<li>get_metric_last_update_at(metric)</li>
+	<li>metric_track(metric, timestamp, identity, values)</li>
+	<li>metric_values(metric, from, to)</li>
+	<li>destroy_metric(metric)</li>
+</ul>
+<h4>Experiment configuration methods</h4>
+<ul>
+	<li>experiment_persisted?(experiment)</li>
+	<li>set_experiment_created_at(experiment, time)</li>
+	<li>get_experiment_created_at(experiment)</li>
+	<li>is_experiment_completed?(experiment)</li>
+	<li>set_experiment_enabled(experiment, enabled)</li>
+	<li>is_experiment_enabled?(experiment)</li>
+	<li>destroy_experiment(experiment)</li>
+</ul>
+<h4>Experiment data methods</h4>
+<p>These ab_* methods interact with the underlying data of an experiment.</p>
+<ul>
+	<li>ab_counts(experiment, alternative)</li>
+	<li>ab_show(experiment, identity, alternative)</li>
+	<li>ab_showing(experiment, identity)</li>
+	<li>ab_not_showing(experiment, identity)</li>
+	<li>ab_add_participant(experiment, alternative, identity)</li>
+	<li>ab_seen(experiment, identity, assignment)</li>
+	<li>ab_assigned(experiment, identity)</li>
+	<li>ab_add_conversion(experiment, alternative, identity, count, implicit)</li>
+	<li>ab_get_outcome(experiment)</li>
+	<li>ab_set_outcome(experiment, alternative)</li>
+</ul>
+    </div>
+    <div id="footer"><a href="credits.html">Credits / License</a></div>
+    <script type="text/javascript">var _gaq=_gaq||[];_gaq.push(["_setAccount", "UA-1828623-6"], ["_trackPageview"]);(function(){var ga=document.createElement("script");ga.src=("https:"==document.location.protocol?"https://ssl":"http://www")+".google-analytics.com/ga.js";ga.setAttribute("async", "true");document.documentElement.firstChild.appendChild(ga);})();</script>
+  </body>
+</html>
