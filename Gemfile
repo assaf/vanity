@@ -34,7 +34,7 @@ end
 group :development do
   gem "appraisal", "~> 1.0.2" # For setting up test Gemfiles
 
-  gem "jekyll", platform: :ruby
+  gem "jekyll", "~> 2.5.3", platform: :ruby
   gem "rake"
   gem "RedCloth"
   gem "yard"

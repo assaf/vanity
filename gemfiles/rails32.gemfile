@@ -22,7 +22,7 @@ gem "test-unit", "~> 3.0"
 
 group :development do
   gem "appraisal", "~> 1.0.2"
-  gem "jekyll", :platform => :ruby
+  gem "jekyll", "~> 2.5.3", :platform => :ruby
   gem "rake"
   gem "RedCloth"
   gem "yard"

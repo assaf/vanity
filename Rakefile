@@ -80,7 +80,7 @@ task(:clobber) { rm_rf "tmp" }
 # -- Documenting stuff -- #TODO make sure works under 1.9/2.0
 
 desc "Jekyll generates the main documentation (sans API)"
-task(:jekyll) { sh "jekyll", "doc", "html" }
+task(:jekyll) { sh "jekyll build -s doc -d html" }
 
 desc "Create documentation in docs directory"
 task :docs=>[:jekyll]
