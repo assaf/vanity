@@ -12,12 +12,6 @@ describe Vanity::Connection do
       Vanity::Connection.new(adapter: "mock")
     end
 
-    it "can skip connection" do
-      Vanity::Autoconnect.stubs(:playground_should_autoconnect?).returns(false)
-      connection = Vanity::Connection.new(adapter: "mock")
-      assert !connection.connected?
-    end
-
     it "parses from a string" do
       Vanity::Adapters.expects(:establish_connection).with(
         adapter: 'redis',

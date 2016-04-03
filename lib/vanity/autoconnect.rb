@@ -42,22 +42,29 @@ module Vanity
     ]
     ENVIRONMENT_VANITY_DISABLED_FLAG = "VANITY_DISABLED"
 
-    def self.playground_should_autoconnect?
-      !environment_disabled? && !in_blacklisted_rake_task?
-    end
+    class << self
+      def should_connect?
+        !environment_disabled? && !in_blacklisted_rake_task?
+      end
+      alias_method :playground_should_autoconnect?, :should_connect?
 
-    def self.environment_disabled?
-      !!ENV[ENVIRONMENT_VANITY_DISABLED_FLAG]
-    end
+      def schema_relevant?
+        current_rake_tasks.any? { |task| task =~ /\Adb:/ }
+      end
 
-    def self.in_blacklisted_rake_task?
-      !(current_rake_tasks & BLACKLISTED_RAILS_RAKE_TASKS).empty?
-    end
+      def environment_disabled?
+        !!ENV[ENVIRONMENT_VANITY_DISABLED_FLAG]
+      end
 
-    def self.current_rake_tasks
-      ::Rake.application.top_level_tasks
-    rescue => e
-      []
+      def in_blacklisted_rake_task?
+        !(current_rake_tasks & BLACKLISTED_RAILS_RAKE_TASKS).empty?
+      end
+
+      def current_rake_tasks
+        ::Rake.application.top_level_tasks
+      rescue => e
+        []
+      end
     end
   end
 end
