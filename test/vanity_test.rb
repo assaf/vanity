@@ -138,6 +138,16 @@ describe Vanity do
       assert_equal original_specification, Vanity.connection.specification
     end
 
+    it "reconnects with the same configuration if #connect! was called with arguments" do
+      Vanity.connect!(
+        adapter: :mock,
+        url: "redis://1.1.1.1:6379"
+      )
+      original_specification = Vanity.connection.specification
+      Vanity.reconnect!
+      assert_equal original_specification, Vanity.connection.specification
+    end
+
     it "creates a new connection" do
       original_configuration = Vanity.connection
       refute_same original_configuration, Vanity.reconnect!
