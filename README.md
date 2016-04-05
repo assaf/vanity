@@ -60,6 +60,15 @@ test:
   collecting: false
 ```
 
+To re-use an existing redis connection, you can call `Vanity.connect!` explicitly, for example:
+
+```
+Vanity.connect!(
+  adapter: :redis,
+  redis: $redis
+)
+```
+
 ##### MongoDB Setup
 
 Add to your Gemfile:
