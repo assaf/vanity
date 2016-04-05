@@ -120,6 +120,38 @@ $ rails generate vanity
 $ rake db:migrate
 ```
 
+##### Forking servers and reconnecting
+
+If you're using a forking server (like Passenger or Unicorn), you should
+reconnect after a new worker is created:
+
+```
+# unicorn.rb
+after_fork do |server, worker|
+  defined?(Vanity) && Vanity.reconnect!
+end
+
+# an initializer
+if defined?(PhusionPassenger)
+  PhusionPassenger.on_event(:starting_worker_process) do |forked|
+    # We're in smart spawning mode.
+    if forked
+      defined?(Vanity) && Vanity.reconnect!
+    end
+  end
+end
+```
+
+If you're using explicit options with `Vanity.connect!`, you should call `disconnect!` first, for example:
+
+```
+Vanity.disconnect!
+Vanity.connect!(
+  adapter: 'redis',
+  redis: $redis
+)
+```
+
 #### Step 1.3
 
 Turn Vanity on, and pass a reference to a method that identifies a user. For
