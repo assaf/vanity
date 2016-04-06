@@ -1,3 +1,6 @@
+== 2.2.1 (2016-4-5)
+* Fix ActiveRecord Migration using separate database (@phillbaker)
+
 == 2.2.0 (2016-3-26)
 * Update mongo integration for mongo ruby driver 2.x. (@phillbaker)
 * Centralize warnings to use `Vanity.logger` (@phillbaker)
