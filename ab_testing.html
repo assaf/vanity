@@ -152,7 +152,7 @@ end<br />
 <p>You can force a functional/integration test to choose a given alternative:</p>
 <pre>
 def test_big_signup_link
-  experiment(:big_signup_link).chooses(true)
+  Vanity.experiment(:big_signup_link).chooses(true)
   get :index
   assert_select "a[href=/signup][style^=font:14pt]", "Sign up"
 end
@@ -161,7 +161,7 @@ end
 <pre>
 def test_price_option
   [19, 25, 29].each do |price|
-    experiment(:price_options).chooses(price)
+    Vanity.experiment(:price_options).chooses(price)
     visit root_path
     assert_contain "Get started for only $#{price} a month!"
   end
