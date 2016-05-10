@@ -52,6 +52,7 @@ GEM
     arel (3.0.3)
     blankslate (2.1.2.4)
     bson (4.0.2)
+    bson (4.0.2-java)
     builder (3.0.4)
     celluloid (0.16.0)
       timers (~> 4.0.0)

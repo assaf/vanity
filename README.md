@@ -294,8 +294,11 @@ Here's what's tested and known to work:
       Rails: 3.2, 4.1, 4.2
     Ruby 2.2
       Persistence: Redis, Mongo, ActiveRecord
-      Rails: 3.2, 4.1, 4.2
+      Rails: 3.2, 4.1, 4.2, 5
     Ruby 2.3
+      Persistence: Redis, Mongo, ActiveRecord
+      Rails: 3.2, 4.1, 4.2, 5
+    JRuby 1.9
       Persistence: Redis, Mongo, ActiveRecord
       Rails: 3.2, 4.1, 4.2
 
