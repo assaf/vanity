@@ -1,4 +1,7 @@
 module Vanity
+  # @deprecated This class is a facade into one of the adapters in the
+  # Vanity::Adapters namspace, it will be merged into the top level
+  # Vanity.connect! helper and/or the adapters.
   class Connection
     class InvalidSpecification < StandardError; end
 
@@ -33,9 +36,8 @@ module Vanity
     def initialize(specification=nil)
       @specification = specification || DEFAULT_SPECIFICATION
 
-      if Autoconnect.playground_should_autoconnect?
-        @adapter = setup_connection(@specification)
-      end
+      @adapter = adapter_from_specification(@specification)
+      connect!
     end
 
     # Closes the current connection.
@@ -43,6 +45,13 @@ module Vanity
     # @since 2.0.0
     def disconnect!
       @adapter.disconnect! if connected?
+    end
+
+    # Creates a connection.
+    #
+    # @since 2.2.2
+    def connect!
+      @adapter && @adapter.connect!
     end
 
     # Returns true if connection is open.
@@ -54,27 +63,27 @@ module Vanity
 
     private
 
-    def setup_connection(spec)
+    def adapter_from_specification(spec)
       case spec
       when String
-        spec_hash = build_specification_hash_from_url(spec)
-        establish_connection(spec_hash)
+        spec_hash = specification_hash_from_url(spec)
+        initialize_adapter(spec_hash)
       when Hash
         validate_specification_hash(spec)
         if spec[:redis]
-          establish_connection(
+          initialize_adapter(
             adapter: :redis,
             redis: spec[:redis]
           )
         else
-          establish_connection(spec)
+          initialize_adapter(spec)
         end
       else
         raise InvalidSpecification.new("Unsupported connection specification: #{spec.inspect}")
       end
     end
 
-    def build_specification_hash_from_url(connection_url)
+    def specification_hash_from_url(connection_url)
       uri = URI.parse(connection_url)
       params = CGI.parse(uri.query) if uri.query
       {
@@ -93,8 +102,17 @@ module Vanity
       raise InvalidSpecification unless all_symbol_keys
     end
 
-    def establish_connection(spec)
-      Adapters.establish_connection(spec)
+    def initialize_adapter(spec)
+      begin
+        require "vanity/adapters/#{spec[:adapter]}_adapter"
+      rescue LoadError
+        raise "Could not find #{spec[:adapter]} in your load path"
+      end
+
+      klass = spec[:adapter].to_s.split('_').collect(&:capitalize).join
+      # Get the class constant directly from the module instead of chaining
+      # the constant with `::` to avoid breaking on jruby in 1
+      Vanity::Adapters.const_get("#{klass}Adapter").new(spec)
     end
   end
 end

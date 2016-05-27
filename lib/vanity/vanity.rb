@@ -4,169 +4,9 @@
 module Vanity
   extend Vanity::Helpers
 
-  # Returns the current configuration.
-  #
-  # @see Vanity::Configuration
-  # @since 2.0.0
-  def self.configuration(set_if_needed=true)
-    if defined?(@configuration) && @configuration
-      @configuration
-    elsif set_if_needed
-      configure!
-    end
-  end
+  DEFAULT_SPECIFICATION = { adapter: "redis" }
 
-  # @since 2.0.0
-  def self.configure!
-    @configuration = Configuration.new
-  end
-
-  # @since 2.0.0
-  def self.reset!
-    @configuration = nil
-    configuration
-  end
-
-  # This is the preferred way to configure Vanity.
-  #
-  # @example
-  #   Vanity.configure do |config|
-  #     config.use_js = true
-  #   end
-  # @since 2.0.0
-  def self.configure
-    yield(configuration)
-  end
-
-  # @since 2.0.0
-  def self.logger
-    configuration.logger
-  end
-
-  # Returns the Vanity context. For example, when using Rails this would be
-  # the current controller, which can be used to get/set the vanity identity.
-  def self.context
-    Thread.current[:vanity_context]
-  end
-
-  # Sets the Vanity context. For example, when using Rails this would be
-  # set by the set_vanity_context before filter (via Vanity::Rails#use_vanity).
-  def self.context=(context)
-    Thread.current[:vanity_context] = context
-
-    if context
-      context.class.send(:define_method, :vanity_add_to_active_experiments) do |name, alternative|
-        @_vanity_experiments ||= {}
-        @_vanity_experiments[name] ||= alternative
-        @_vanity_experiments[name].value
-      end
-      context.class.send(:alias_method, :vanity_store_experiment_for_js, :vanity_add_to_active_experiments)
-
-      context.class.send(:define_method, :vanity_active_experiments) do
-        @_vanity_experiments ||= {}
-      end
-    end
-
-    context
-  end
-
-  #
-  # Datastore connection management
-  #
-
-  # Returns the current connection. Establishes new connection is necessary.
-  #
-  # @since 2.0.0
-  def self.connection(connect_if_needed=true)
-    if defined?(@connection) && @connection
-      @connection
-    elsif connect_if_needed
-      connect!
-    end
-  end
-
-  # This is the preferred way to programmatically create a new connection (or
-  # switch to a new connection). If no connection was established, the
-  # playground will create a new one by calling this method with no arguments.
-  #
-  # @since 2.0.0
-  # @see Vanity::Connection
-  def self.connect!(spec_or_nil=nil)
-    spec_or_nil ||= configuration.connection_params
-
-    # Legacy special config variables permitted in connection spec
-    update_configuration_from_connection_params(spec_or_nil)
-
-    # Legacy redis.yml fallback
-    if spec_or_nil.nil?
-      redis_url = configuration.redis_url_from_file
-      if redis_url
-        spec_or_nil = redis_url
-      end
-    end
-
-    # Legacy connection url fallback
-    if configuration.connection_url
-      spec_or_nil = configuration.connection_url
-    end
-
-    @connection = Connection.new(spec_or_nil)
-  end
-
-  # Destroys a connection
-  #
-  # @since 2.0.0
-  def self.disconnect!
-    if @connection
-      @connection.disconnect!
-      @connection = nil
-    end
-  end
-
-  def self.reconnect!
-    disconnect!
-    connect!
-  end
-
-  #
-  # Experiment metadata
-  #
-
-  # The playground instance.
-  #
-  # @see Vanity::Playground
-  def self.playground(load_if_needed=true)
-    if @playground
-      @playground
-    elsif load_if_needed
-      load!
-    end
-  end
-
-  # Loads all metrics and experiments. Called during initialization. In the
-  # case of Rails, use the Rails logger and look for templates at
-  # app/views/vanity.
-  #
-  # @since 2.0.0
-  def self.load!
-    @playground = Playground.new
-  end
-
-  # @since 2.0.0
-  def self.unload!
-    @playground = nil
-  end
-
-  # Reloads all metrics and experiments. Rails calls this for each request in
-  # development mode.
-  #
-  # @since 2.0.0
-  def self.reload!
-    unload!
-    load!
-  end
-
-  class << self
+  class<<self
     # @since 2.0.0
     attr_writer :configuration
 
@@ -175,6 +15,183 @@ module Vanity
 
     # @since 2.0.0
     attr_writer :connection
+
+    # Returns the current configuration.
+    #
+    # @see Vanity::Configuration
+    # @since 2.0.0
+    def configuration(set_if_needed=true)
+      if defined?(@configuration) && @configuration
+        @configuration
+      elsif set_if_needed
+        configure!
+      end
+    end
+
+    # @since 2.0.0
+    def configure!
+      @configuration = Configuration.new
+    end
+
+    # @since 2.0.0
+    def reset!
+      @configuration = nil
+      configuration
+    end
+
+    # This is the preferred way to configure Vanity.
+    #
+    # @example
+    #   Vanity.configure do |config|
+    #     config.use_js = true
+    #   end
+    # @since 2.0.0
+    def configure
+      yield(configuration)
+    end
+
+    # @since 2.0.0
+    def logger
+      configuration.logger
+    end
+
+    # Returns the Vanity context. For example, when using Rails this would be
+    # the current controller, which can be used to get/set the vanity identity.
+    def context
+      Thread.current[:vanity_context]
+    end
+
+    # Sets the Vanity context. For example, when using Rails this would be
+    # set by the set_vanity_context before filter (via Vanity::Rails#use_vanity).
+    def context=(context)
+      Thread.current[:vanity_context] = context
+
+      if context
+        context.class.send(:define_method, :vanity_add_to_active_experiments) do |name, alternative|
+          @_vanity_experiments ||= {}
+          @_vanity_experiments[name] ||= alternative
+          @_vanity_experiments[name].value
+        end
+        context.class.send(:alias_method, :vanity_store_experiment_for_js, :vanity_add_to_active_experiments)
+
+        context.class.send(:define_method, :vanity_active_experiments) do
+          @_vanity_experiments ||= {}
+        end
+      end
+
+      context
+    end
+
+    #
+    # Datastore connection management
+    #
+
+    # Returns the current connection. Establishes new connection is necessary.
+    #
+    # @since 2.0.0
+    def connection(connect_if_needed=true)
+      if defined?(@connection) && @connection
+        @connection
+      elsif connect_if_needed
+        connect!
+      end
+    end
+
+    # This is the preferred way to programmatically create a new connection
+    # (or switch to a new connection). If no connection was established,
+    # loading vanity into a framework will create a new one by calling this
+    # method with no arguments.
+    #
+    # @since 2.0.0
+    def connect!(spec_or_nil=nil)
+      return if Autoconnect.environment_disabled?
+
+      spec_or_nil ||= configuration.connection_params
+
+      # Legacy special config variables permitted in connection spec
+      update_configuration_from_connection_params(spec_or_nil)
+
+      # Legacy redis.yml fallback
+      if spec_or_nil.nil?
+        redis_url = configuration.redis_url_from_file
+        if redis_url
+          spec_or_nil = redis_url
+        end
+      end
+
+      # Legacy connection url fallback
+      if configuration.connection_url
+        spec_or_nil = configuration.connection_url
+      end
+
+      @connection = Connection.new(spec_or_nil)
+
+      # should_connect = !Autoconnect.in_blacklisted_rake_task? ||
+        # (Autoconnect.schema_relevant? && @connection.adapter.connect_on_schema_change?)
+
+      # if should_connect
+        # @connection.connect!
+        # @connection
+      # end
+    end
+
+    # Destroys a connection
+    #
+    # @since 2.0.0
+    def disconnect!
+      if @connection
+        @connection.disconnect!
+        @connection = nil
+      end
+    end
+
+    def reconnect!
+      disconnect!
+      connect!
+    end
+
+    #
+    # Experiment metadata
+    #
+
+    # The playground instance.
+    #
+    # @see Vanity::Playground
+    def playground(load_if_needed=true)
+      if @playground
+        @playground
+      elsif load_if_needed
+        load!
+      end
+    end
+
+    # Loads all metrics and experiments. Called during initialization. In the
+    # case of Rails, use the Rails logger and look for templates at
+    # app/views/vanity. This is a no-op when there is no active connection or
+    # when connecting but doing schema changes (ie creating the tables to store
+    # the data, this is to avoid a circular dependency on the datastore schema).
+    #
+    # @since 2.0.0
+    def load!
+      # return if !@connection || !@connection.connected? ||
+        # (Autoconnect.schema_relevant? && @connection.adapter.connect_on_schema_change?)
+
+      @playground = Playground.new
+    end
+
+    # @since 2.0.0
+    def unload!
+      @playground = nil
+    end
+
+    # Reloads all metrics and experiments. Rails calls this for each request in
+    # development mode.
+    #
+    # @since 2.0.0
+    def reload!
+      unload!
+      load!
+    end
 
     private
 

@@ -2,10 +2,11 @@ module Vanity
   module Adapters
     class << self
       # Creates new connection to underlying datastore and returns suitable
-      # adapter (adapter object extends AbstractAdapter and wraps the
+      # adapter (adapter objects extend AbstractAdapter and wrap the
       # connection).
       #
       # @since 1.4.0
+      # @deprecated
       def establish_connection(spec)
         begin
           require "vanity/adapters/#{spec[:adapter]}_adapter"

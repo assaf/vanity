@@ -14,6 +14,7 @@ require "yaml"
 # @see Vanity::Configuration
 # @see Vanity::Connection
 module Vanity
+  class InvalidSpecification < StandardError; end
 end
 
 require "vanity/version"

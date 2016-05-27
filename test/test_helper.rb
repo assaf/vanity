@@ -84,7 +84,7 @@ module VanityTestHelpers
   # Call this on teardown. It wipes put the playground and any state held in it
   # (mostly experiments), resets vanity ID, and clears database of all experiments.
   def nuke_playground
-    Vanity.playground.connection.flushdb
+    Vanity.playground.connection.flushdb if Vanity.connection(false) && Vanity.connection.connected?
     new_playground
   end
 

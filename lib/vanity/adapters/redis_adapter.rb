@@ -4,6 +4,7 @@ module Vanity
       # Creates new connection to Redis and returns RedisAdapter.
       #
       # @since 1.4.0
+      # @deprecated
       def redis_connection(spec)
         require "redis"
         fail "redis >= 2.1 is required" unless valid_redis_version?
@@ -13,12 +14,14 @@ module Vanity
         RedisAdapter.new(spec)
       end
 
+      # @deprecated
       def valid_redis_version?
         Gem.loaded_specs['redis'].version >= Gem::Version.create('2.1')
       end
 
+      # @deprecated
       def valid_redis_namespace_version?
-        Gem.loaded_specs['redis'].version >= Gem::Version.create('1.1.0')
+        Gem.loaded_specs['redis-namespace'].version >= Gem::Version.create('1.1.0')
       end
     end
 
@@ -26,13 +29,24 @@ module Vanity
     #
     # @since 1.4.0
     class RedisAdapter < AbstractAdapter
+      MINIMUM_REDIS_GEM = Gem::Version.create('2.1')
+      MINIMUM_REDIS_NAMESPACE_GEM = Gem::Version.create('1.1.0')
+
       attr_reader :redis
 
       def initialize(options)
+        require "redis"
+        require "redis/namespace"
+
+        valid_redis = Gem.loaded_specs['redis'].version >= MINIMUM_REDIS_GEM
+        valid_redis_namespace = Gem.loaded_specs['redis-namespace'].version >= MINIMUM_REDIS_NAMESPACE_GEM
+
+        fail "redis >= 2.1 is required" unless valid_redis
+        fail "redis-namespace >= 1.1.0 is required" unless valid_redis_namespace
+
         @options = options.clone
         @options[:db] ||= @options[:database] || (@options[:path] && @options.delete(:path).split("/")[1].to_i)
         @options[:thread_safe] = true
-        connect!
       end
 
       def active?

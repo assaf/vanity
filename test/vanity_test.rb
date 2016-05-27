@@ -59,11 +59,11 @@ describe Vanity do
 
   describe "#connect!" do
     it "returns a connection" do
-      assert_kind_of Vanity::Connection, Vanity.connect!
+      assert_kind_of Vanity::Connection, Vanity.connect!("mock:/")
     end
 
     it "returns a new connection" do
-      refute_same Vanity.connect!, Vanity.connect!
+      refute_same Vanity.connect!("mock:/"), Vanity.connect!("mock:/")
     end
 
     describe "deprecated settings" do
@@ -131,7 +131,24 @@ describe Vanity do
   end
 
   describe "#reconnect!" do
-    it "reconnects with the same configuration" do
+    before do
+      FakeFS.activate!
+
+      connection_config = VanityTestHelpers::VANITY_CONFIGS["vanity.yml.mock"]
+
+      FileUtils.mkpath "./config"
+      File.open("./config/vanity.yml", "w") do |f|
+        f.write(connection_config)
+      end
+      Vanity.reset!
+    end
+
+    after do
+      FakeFS.deactivate!
+      FakeFS::FileSystem.clear
+    end
+
+    it "reconnects with the same configuration from the config file" do
       Vanity.disconnect!
       original_specification = Vanity.connection.specification
       Vanity.reconnect!
@@ -139,8 +156,8 @@ describe Vanity do
     end
 
     it "creates a new connection" do
-      original_configuration = Vanity.connection
-      refute_same original_configuration, Vanity.reconnect!
+      original_connection = Vanity.connection
+      refute_same original_connection, Vanity.reconnect!
     end
   end
 

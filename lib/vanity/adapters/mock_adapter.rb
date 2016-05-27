@@ -4,6 +4,7 @@ module Vanity
       # Creates and returns new MockAdapter.
       #
       # @since 1.4.0
+      # @deprecated
       def mock_connection(spec)
         MockAdapter.new(spec)
       end
@@ -15,12 +16,16 @@ module Vanity
     # @since 1.4.0
     class MockAdapter < AbstractAdapter
       def initialize(options)
-        @metrics = @@metrics ||= {}
-        @experiments = @@experiments ||= {}
+        # No-op
       end
 
       def active?
         !!@metrics
+      end
+
+      def connect!
+        @metrics = @@metrics ||= {}
+        @experiments = @@experiments ||= {}
       end
 
       def disconnect!

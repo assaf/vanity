@@ -1,11 +1,7 @@
 require "test_helper"
+require "vanity/adapters/redis_adapter"
 
 describe Vanity::Adapters::RedisAdapter do
-  before do
-    require "redis"
-    require "redis/namespace"
-  end
-
   it "warns on disconnect error" do
     if defined?(Redis)
       assert_silent do
@@ -28,9 +24,17 @@ describe Vanity::Adapters::RedisAdapter do
     [redis_adapter, mocked_redis]
   end
 
-  it "connects to existing redis" do
+  it "exposes a named connection method on Vanity::Adapters" do
     mocked_redis = stub("Redis")
     adapter = Vanity::Adapters.redis_connection(:redis => mocked_redis)
+    adapter.connect!
+    assert_equal mocked_redis, adapter.redis
+  end
+
+  it "connects to existing redis" do
+    mocked_redis = stub("Redis")
+    adapter = Vanity::Adapters::RedisAdapter.new(:redis => mocked_redis)
+    adapter.connect!
     assert_equal mocked_redis, adapter.redis
   end
 

@@ -4,6 +4,7 @@ module Vanity
       # Creates new connection to MongoDB and returns MongoAdapter.
       #
       # @since 1.4.0
+      # @deprecated
       def mongo_connection(spec)
         require "mongo"
         MongodbAdapter.new(spec)
@@ -18,9 +19,9 @@ module Vanity
       attr_reader :mongo
 
       def initialize(options)
+        require "mongo"
         @options = options.clone
         @options[:database] ||= (@options[:path] && @options[:path].split("/")[1]) || "vanity"
-        connect!
       end
 
       def active?

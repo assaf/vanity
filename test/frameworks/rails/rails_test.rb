@@ -29,8 +29,8 @@ $stdout << Vanity.playground.connection
       RB
     end
 
-    it "connection from string" do
-      assert_equal "redis://192.168.1.1:6379/5", load_rails(%Q{\nVanity.playground.establish_connection "redis://192.168.1.1:6379/5"\n}, <<-RB)
+    it "connection programatically from string" do
+      assert_equal "redis://192.168.1.1:6379/5", load_rails(%Q{\nVanity.playground.establish_connection("redis://192.168.1.1:6379/5")\n}, <<-RB)
 $stdout << Vanity.playground.connection
       RB
     end
@@ -186,7 +186,7 @@ production:
   adapter: mock
         YML
       end
-      assert_equal "false", load_rails("", <<-RB)
+      assert_equal "false", load_rails("", <<-RB, "production")
 $stdout << Vanity.playground.collecting?
       RB
     ensure

@@ -9,7 +9,8 @@ module Vanity
       # Do this at the very end of initialization, allowing you to change
       # connection adapter, turn collection on/off, etc.
       ::Rails.configuration.after_initialize do
-        Vanity.load! if Vanity.connection.connected?
+        Vanity.connection # connect if necessary
+        Vanity.playground # load if necessary
       end
     end
 

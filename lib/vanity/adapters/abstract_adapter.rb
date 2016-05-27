@@ -3,10 +3,27 @@ module Vanity
     # Base class for all adapters. Adapters wrap underlying connection to a
     # datastore and implement an API that Vanity can use to store/access
     # metrics, experiments, etc.
+    #
+    # The `initialize` method of subclasses should accept a hash of connection
+    # parameters (the keys are guaranteed to be symbols). All dependencies
+    # should be `required` in the initialization method - allowing version
+    # checking at runtime.
     class AbstractAdapter
       # Returns true if connected.
       def active?
         false
+      end
+
+      # Hook for using an adapter that requires schema changes, useful when
+      # integrating into a framework that provides schema management, e.g.
+      # Rails' `db:migrate`.
+      def connect_on_schema_change?
+        false
+      end
+
+      # Open connection.
+      # @since 2.2.2
+      def connect!
       end
 
       # Close connection, release any resources.

@@ -2,6 +2,7 @@ module Vanity
   module Adapters
     class << self
       # Creates new ActiveRecord connection and returns ActiveRecordAdapter.
+      # @deprecated
       def active_record_connection(spec)
         require "active_record"
         ActiveRecordAdapter.new(spec)
@@ -102,10 +103,13 @@ module Vanity
       end
 
       def initialize(options)
-        @options = options.inject({}) { |h,kv| h[kv.first.to_s] = kv.last ; h }
-        if @options["active_record_adapter"] && (@options["active_record_adapter"] != "default")
-          @options["adapter"] = @options["active_record_adapter"]
-          VanityRecord.establish_connection(@options)
+        require "active_record"
+        @options = options.clone
+        if @options[:active_record_adapter] && (@options[:active_record_adapter] != "default")
+          @options[:adapter] = @options.delete(:active_record_adapter)
+        else
+          @options.delete(:adapter)
+          @options.delete(:active_record_adapter)
         end
       end
 
@@ -113,12 +117,27 @@ module Vanity
         VanityRecord.connected? && VanityRecord.connection.active?
       end
 
+      # ActiveRecord adapter should connect when doing database migrations.
+      def connect_on_schema_change?
+        true
+      end
+
+      def connect!
+        if @options.empty?
+          # VanityRecord.connection.reconnect!
+          # do nothing, already connected
+        else
+          VanityRecord.establish_connection(@options)
+        end
+      end
+
       def disconnect!
         VanityRecord.connection.disconnect! if active?
       end
 
       def reconnect!
-        VanityRecord.connection.reconnect!
+        disconnect!
+        connect!
       end
 
       def flushdb
