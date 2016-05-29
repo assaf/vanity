@@ -33,7 +33,9 @@ module Vanity
     def initialize(specification=nil)
       @specification = specification || DEFAULT_SPECIFICATION
 
-      @adapter = setup_connection(@specification)
+      if Autoconnect.playground_should_autoconnect?
+        @adapter = setup_connection(@specification)
+      end
     end
 
     # Closes the current connection.

@@ -7,9 +7,6 @@ module Vanity
       #
       # @since 1.4.0
       def establish_connection(spec)
-        return unless Autoconnect.should_connect? ||
-          (Autoconnect.schema_relevant? && spec[:adapter].to_s == 'active_record')
-
         begin
           require "vanity/adapters/#{spec[:adapter]}_adapter"
         rescue LoadError
