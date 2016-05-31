@@ -1,3 +1,6 @@
+== 2.2.2 (2016-5-30)
+* Revert most of the changes in 2.2.1 because of unintended side effects (see #295) (@phillbaker)
+
 == 2.2.1 (2016-4-5)
 * Fix ActiveRecord Migration using separate database (@phillbaker)
 
