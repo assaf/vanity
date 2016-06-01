@@ -38,8 +38,6 @@ $stdout << Vanity.playground.connection
     it "connection from yaml" do
       begin
         FileUtils.mkpath "tmp/config"
-        @original_env = ENV["RAILS_ENV"]
-        ENV["RAILS_ENV"] = "production"
         File.open("tmp/config/vanity.yml", "w") do |io|
           io.write <<-YML
 production:
@@ -48,11 +46,10 @@ production:
   database: 15
         YML
         end
-        assert_equal "redis://somehost:6379/15", load_rails("", <<-RB)
+        assert_equal "redis://somehost:6379/15", load_rails("", <<-RB, "production")
 $stdout << Vanity.playground.connection
         RB
       ensure
-        ENV["RAILS_ENV"] = @original_env
         File.unlink "tmp/config/vanity.yml"
       end
     end
@@ -60,18 +57,15 @@ $stdout << Vanity.playground.connection
     it "connection from yaml url" do
       begin
         FileUtils.mkpath "tmp/config"
-        @original_env = ENV["RAILS_ENV"]
-        ENV["RAILS_ENV"] = "production"
         File.open("tmp/config/vanity.yml", "w") do |io|
           io.write <<-YML
 production: redis://somehost/15
           YML
         end
-        assert_equal "redis://somehost:6379/15", load_rails("", <<-RB)
+        assert_equal "redis://somehost:6379/15", load_rails("", <<-RB, "production")
 $stdout << Vanity.playground.connection
         RB
       ensure
-        ENV["RAILS_ENV"] = @original_env
         File.unlink "tmp/config/vanity.yml"
       end
     end
@@ -79,8 +73,6 @@ $stdout << Vanity.playground.connection
     it "connection from yaml with erb" do
       begin
         FileUtils.mkpath "tmp/config"
-        @original_env = ENV["RAILS_ENV"]
-        ENV["RAILS_ENV"] = "production"
         # Pass storage URL through environment like heroku does
         @original_redis_url = ENV["REDIS_URL"]
         ENV["REDIS_URL"] = "redis://somehost:6379/15"
@@ -89,11 +81,10 @@ $stdout << Vanity.playground.connection
 production: <%= ENV['REDIS_URL'] %>
         YML
         end
-        assert_equal "redis://somehost:6379/15", load_rails("", <<-RB)
+        assert_equal "redis://somehost:6379/15", load_rails("", <<-RB, "production")
 $stdout << Vanity.playground.connection
         RB
       ensure
-        ENV["RAILS_ENV"] = @original_env
         ENV["REDIS_URL"] = @original_redis_url
         File.unlink "tmp/config/vanity.yml"
       end
@@ -282,6 +273,7 @@ Bundler.require(:default)
 module Foo
   class Application < Rails::Application
     config.active_support.deprecation = :notify
+    config.log_level = :fatal
     config.eager_load = #{env == "production"} if Rails::Application.respond_to?(:eager_load!)
     ActiveSupport::Deprecation.silenced = true if ActiveSupport::Deprecation.respond_to?(:silenced) && ENV['CI']
   end
