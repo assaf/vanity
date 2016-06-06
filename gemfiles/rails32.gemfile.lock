@@ -57,6 +57,7 @@ GEM
       timers (~> 4.0.0)
     classifier-reborn (2.0.3)
       fast-stemmer (~> 1.0)
+    coderay (1.1.1)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
@@ -114,6 +115,7 @@ GEM
       treetop (~> 1.4.8)
     mercenary (0.3.5)
     metaclass (0.0.4)
+    method_source (0.8.2)
     mime-types (1.25.1)
     minitest (4.2.0)
     minitest_tu_shim (1.3.3)
@@ -133,6 +135,10 @@ GEM
     polyglot (0.3.5)
     posix-spawn (0.3.11)
     power_assert (0.2.2)
+    pry (0.10.3)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
     pygments.rb (0.6.3)
       posix-spawn (~> 0.3.6)
       yajl-ruby (~> 1.2.0)
@@ -171,6 +177,7 @@ GEM
     rubystats (0.2.4)
     safe_yaml (1.0.4)
     sass (3.4.13)
+    slop (3.6.0)
     sprockets (2.2.3)
       hike (~> 1.2)
       multi_json (~> 1.0)
@@ -216,6 +223,7 @@ DEPENDENCIES
   mocha (~> 1.0)
   mongo (~> 2.1)
   passenger (~> 3.0)
+  pry
   rack
   rails (= 3.2.22)
   rake
