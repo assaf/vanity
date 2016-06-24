@@ -1,3 +1,6 @@
+== 2.2.2 (2016-6-25)
+* Add Norwegian Bokmal locale (@theodorton)
+
 == 2.2.2 (2016-5-30)
 * Revert most of the changes in 2.2.1 because of unintended side effects (see #295) (@phillbaker)
 
