@@ -208,7 +208,7 @@ module Vanity
       file_name ||= config_file
       file_path = File.join(config_path, file_name)
 
-      if File.exists?(file_path)
+      if File.exist?(file_path)
         config = YAML.load(ERB.new(File.read(file_path)).result)
         config ||= {}
         params_for_environment = config[environment.to_s]

@@ -109,7 +109,7 @@ module Vanity
       #   puts "Just defined: " + experiment(:simple).description
       def description(text = nil)
         @description = text if text
-        @description
+        @description if defined?(@description)
       end
 
 
@@ -121,7 +121,7 @@ module Vanity
       #   end
       def complete_if(&block)
         raise ArgumentError, "Missing block" unless block
-        raise "complete_if already called on this experiment" if @complete_block
+        raise "complete_if already called on this experiment" if defined?(@complete_block)
         @complete_block = block
       end
 
@@ -188,7 +188,7 @@ module Vanity
       # Derived classes call this after state changes that may lead to
       # experiment completing.
       def check_completion!
-        if @complete_block
+        if defined?(@complete_block) && @complete_block
           begin
             complete! if @complete_block.call
           rescue => e

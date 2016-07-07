@@ -201,7 +201,7 @@ module Vanity
     #   puts "Just defined: " + metric(:boring).description
     def description(text = nil)
       @description = text if text
-      @description
+      @description if defined?(@description)
     end
 
     # Given two arguments, a start date and an end date (inclusive), returns an

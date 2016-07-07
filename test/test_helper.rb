@@ -31,7 +31,7 @@ require "webmock/minitest"
 require 'vanity/frameworks/rails'
 Vanity::Rails.load!
 
-if $VERBOSE
+if $DEBUG
   $logger = Logger.new(STDOUT)
   $logger.level = Logger::DEBUG
 else
@@ -119,7 +119,7 @@ module VanityTestHelpers
     enable = options.fetch(:enable, true)
     id = name.to_s.downcase.gsub(/\W/, "_").to_sym
     experiment = Vanity::Experiment::AbTest.new(Vanity.playground, id, name)
-    experiment.instance_eval &block if block
+    experiment.instance_eval(&block) if block
     experiment.save
     # new experiments start off as disabled, enable them for testing
     experiment.enabled = true if enable
@@ -140,7 +140,12 @@ module VanityTestHelpers
   end
 
   def dummy_request
-    ActionDispatch::TestRequest.new()
+    # Rails 5 compatibility
+    if ActionDispatch::TestRequest.respond_to?(:create)
+      ActionDispatch::TestRequest.create()
+    else
+      ActionDispatch::TestRequest.new()
+    end
   end
 
   # Defining setup/tear down in a module and including it below doesn't
@@ -191,6 +196,11 @@ if defined?(ActionController::TestCase)
       setup_controller_request_and_response_without_vanity
       Vanity.context = @controller
     end
+  end
+end
+
+if defined?(ActionDispatch::IntegrationTest)
+  class ActionDispatch::IntegrationTest
   end
 end
 

@@ -25,21 +25,21 @@ module Vanity
 
       # Number of participants who viewed this alternative.
       def participants
-        load_counts unless @participants
+        load_counts unless defined?(@participants)
         @participants
       end
 
       # Number of participants who converted on this alternative (a
       # participant is counted only once).
       def converted
-        load_counts unless @converted
+        load_counts unless defined?(@converted)
         @converted
       end
 
       # Number of conversions for this alternative (same participant may be
       # counted more than once).
       def conversions
-        load_counts unless @conversions
+        load_counts unless defined?(@conversions)
         @conversions
       end
 

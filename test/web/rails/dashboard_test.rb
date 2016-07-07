@@ -116,7 +116,7 @@ class RailsDashboardTest < ActionController::TestCase
   def test_complete_forces_confirmation
     xhr :post, :complete, :e => "food", :a => 0
     assert_response :success
-    assert_equal 0, assigns(:to_confirm)
+    assert @response.body =~ /#{ CGI.unescape({ :confirmed => 0 }.to_query) }/
   end
 
   def test_complete_with_confirmation_completes
