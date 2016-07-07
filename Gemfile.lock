@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vanity (2.2.3)
+    vanity (2.2.4)
       i18n
 
 GEM

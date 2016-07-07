@@ -1,4 +1,7 @@
-== 2.2.2 (2016-6-25)
+== 2.2.4 (2016-7-21)
+* Fix typo in template (@arthurxaud)
+
+== 2.2.3 (2016-6-25)
 * Add Norwegian Bokmal locale (@theodorton)
 
 == 2.2.2 (2016-5-30)
