@@ -14,7 +14,7 @@ gem "mongo", "~> 2.1"
 
 # Math libraries
 gem "integration", "<= 0.1.0"
-gem "rubystats", ">= 0.2.4"
+gem "rubystats", ">= 0.2.5"
 
 # APIs
 gem "garb", "< 0.9.2", :require => false # API changes at this version
