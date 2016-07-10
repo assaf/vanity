@@ -59,9 +59,6 @@ module Vanity
         @created_at ||= connection.get_experiment_created_at(@id)
       end
 
-      # Time stamp when experiment was completed.
-      attr_reader :completed_at
-
       # Returns the type of this experiment as a symbol (e.g. :ab_test).
       def type
         self.class.type

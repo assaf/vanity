@@ -44,7 +44,7 @@ module Vanity
       end
 
       if block
-        content = capture(value, &block)
+        capture(value, &block)
       else
         value
       end

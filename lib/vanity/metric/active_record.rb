@@ -88,7 +88,7 @@ module Vanity
       # This track! method stores nothing, but calls the hooks.
       def track!(args = nil)
         return unless @playground.collecting?
-        call_hooks *track_args(args)
+        call_hooks(*track_args(args))
       end
 
       def last_update_at

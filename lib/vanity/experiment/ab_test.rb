@@ -511,14 +511,6 @@ module Vanity
         self
       end
 
-      # clears all collected data for the experiment
-      def reset
-        connection.destroy_experiment(@id)
-        connection.set_experiment_created_at(@id, Time.now)
-        @outcome = @completed_at = nil
-        self
-      end
-
       # Set up tracking for metrics and ensure that the attributes of the ab_test
       # are valid (e.g. has alternatives, has a default, has metrics).
       # If collecting, this method will also store this experiment into the db.
@@ -544,8 +536,8 @@ module Vanity
         super
         if !defined?(@metrics) || @metrics.nil? || @metrics.empty?
           Vanity.logger.warn("Please use metrics method to explicitly state which metric you are measuring against.")
-          metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
-          @metrics = [metric]
+          default_metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
+          @metrics = [default_metric]
         end
         @metrics.each do |metric|
           metric.hook(&method(:track!))
@@ -688,10 +680,10 @@ module Vanity
       end
 
       begin
-        a = 50.0
+        avg = 50.0
         # Returns array of [z-score, percentage]
         norm_dist = []
-        (0.0..3.1).step(0.01) { |x| norm_dist << [x, a += 1 / Math.sqrt(2 * Math::PI) * Math::E ** (-x ** 2 / 2)] }
+        (0.0..3.1).step(0.01) { |x| norm_dist << [x, avg += 1 / Math.sqrt(2 * Math::PI) * Math::E ** (-x ** 2 / 2)] }
         # We're really only interested in 90%, 95%, 99% and 99.9%.
         Z_TO_PROBABILITY = [90, 95, 99, 99.9].map { |pct| [norm_dist.find { |x,a| a >= pct }.first, pct] }.reverse
       end

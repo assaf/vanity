@@ -168,8 +168,8 @@ module Vanity
           Vanity.playground.experiments.each do |id, experiment|
             if experiment.respond_to?(:alternatives)
               experiment.alternatives.each do |alt|
-                if hash = hashes.delete(experiment.fingerprint(alt))
-                  experiment.chooses alt.value
+                if hashes.delete(experiment.fingerprint(alt))
+                  experiment.chooses(alt.value)
                   break
                 end
               end
