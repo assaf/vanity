@@ -17,6 +17,20 @@ class UseVanityController < ActionController::Base
     render :inline => "<%= vanity_js -%>"
   end
 
+  def working_js
+    render :inline => <<-EOS
+    <% ab_test(:pie_or_cake) %>
+    <%= vanity_js -%>
+EOS
+  end
+
+  def broken_js
+    render :inline => <<-EOS
+    <% Vanity.ab_test(:pie_or_cake) %>
+    <%= vanity_js -%>
+EOS
+  end
+
   def model_js
     TestModel.new.test_method
     render :inline => "<%= vanity_js -%>"
