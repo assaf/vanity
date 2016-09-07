@@ -18,7 +18,7 @@
       <td class="value"><%= I18n.t 'vanity.converted', :count=>alt.converted %></td>
       <td>
         <%= "%.1f%%" % [alt.conversion_rate * 100] %>
-        <%= I18n.t('vanity.best_alternative', :probability=>alt.probability.to_i) if score.method == :bayes_score %>
+        <%= I18n.t('vanity.best_alternative', :probability=>alt.probability.to_i) if score.method == :bayes_bandit_score %>
         <%= I18n.t('vanity.better_alternative_than', :probability=>alt.difference.to_i, :alternative=>score.least.name) if alt.difference && alt.difference >= 1 %>
       </td>
       <% if experiment.enabled? && experiment.active? && respond_to?(:url_for) %>
