@@ -4,8 +4,8 @@ language: ruby
 before_script:
   - 'echo ''gem: --no-ri --no-rdoc'' > ~/.gemrc' # skip installing docs for gems
 before_install:
-  - gem install bundler -v ">= 1.8.0" # Minimum version of bundler required
-bundler_args: --without development
+  - gem install bundler -v "~> 1.8.0" # Minimum version of bundler required
+bundler_args: --without development --jobs=3
 script: 'bundle exec rake test'
 services:
   - mongodb
