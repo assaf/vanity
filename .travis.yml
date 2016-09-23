@@ -15,10 +15,16 @@ rvm:
   - 2.2.2
   - 2.3.0
   - jruby-19mode
+  - jruby
+  - jruby-1.7.22
+  - jruby-9.0.0.0
 env:
-  - DB=mongodb
-  - DB=redis
-  - DB=active_record
+  global:
+    - JRUBY_OPTS='-J-Xmx1024M --2.0'
+  matrix:
+    - DB=mongodb
+    - DB=redis
+    - DB=active_record
 gemfile:
   - gemfiles/rails32.gemfile
   - gemfiles/rails41.gemfile
