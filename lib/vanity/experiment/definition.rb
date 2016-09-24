@@ -17,7 +17,7 @@ module Vanity
         fail "Experiment #{@experiment_id} already defined in playground" if playground.experiments[@experiment_id]
         klass = Experiment.const_get(type.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase })
         experiment = klass.new(playground, @experiment_id, name, options)
-        experiment.instance_eval &block
+        experiment.instance_eval(&block)
         experiment.save
         playground.experiments[@experiment_id] = experiment
       end

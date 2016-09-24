@@ -460,7 +460,7 @@ module Vanity
       #   end
       def outcome_is(&block)
         raise ArgumentError, "Missing block" unless block
-        raise "outcome_is already called on this experiment" if @outcome_is
+        raise "outcome_is already called on this experiment" if defined?(@outcome_is)
         @outcome_is = block
       end
 
@@ -478,7 +478,7 @@ module Vanity
         super
 
         unless outcome
-          if @outcome_is
+          if defined?(@outcome_is)
             begin
               result = @outcome_is.call
               outcome = result.id if Alternative === result && result.experiment == self
@@ -511,26 +511,18 @@ module Vanity
         self
       end
 
-      # clears all collected data for the experiment
-      def reset
-        connection.destroy_experiment(@id)
-        connection.set_experiment_created_at(@id, Time.now)
-        @outcome = @completed_at = nil
-        self
-      end
-
       # Set up tracking for metrics and ensure that the attributes of the ab_test
       # are valid (e.g. has alternatives, has a default, has metrics).
       # If collecting, this method will also store this experiment into the db.
       # In most cases, you call this method right after the experiment's been instantiated
       # and declared.
       def save
-        if @saved
+        if defined?(@saved)
           Vanity.logger.warn("Experiment #{name} has already been saved")
           return
         end
         @saved = true
-        true_false unless @alternatives
+        true_false unless defined?(@alternatives)
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
         if !@is_default_set
           default(@alternatives.first)
@@ -542,10 +534,10 @@ module Vanity
           @default = @alternatives.first
         end
         super
-        if @metrics.nil? || @metrics.empty?
+        if !defined?(@metrics) || @metrics.nil? || @metrics.empty?
           Vanity.logger.warn("Please use metrics method to explicitly state which metric you are measuring against.")
-          metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
-          @metrics = [metric]
+          default_metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
+          @metrics = [default_metric]
         end
         @metrics.each do |metric|
           metric.hook(&method(:track!))
@@ -636,12 +628,12 @@ module Vanity
 
       def filter_visitor?(request, identity)
         @playground.request_filter.call(request) ||
-          (@request_filter_block && @request_filter_block.call(request, identity))
+          (defined?(@request_filter_block) && @request_filter_block && @request_filter_block.call(request, identity))
       end
 
       def call_on_assignment_if_available(identity, index)
         # if we have an on_assignment block, call it on new assignments
-        if @on_assignment_block
+        if defined?(@on_assignment_block) && @on_assignment_block
           assignment = alternatives[index]
           if !connection.ab_seen @id, identity, assignment
             @on_assignment_block.call(Vanity.context, identity, assignment, self)
@@ -651,7 +643,7 @@ module Vanity
 
       def rebalance_if_necessary!
         # if we are rebalancing probabilities, keep track of how long it has been since we last rebalanced
-        if @rebalance_frequency
+        if defined?(@rebalance_frequency) && @rebalance_frequency
           @assignments_since_rebalancing += 1
           if @assignments_since_rebalancing >= @rebalance_frequency
             @assignments_since_rebalancing = 0
@@ -661,7 +653,7 @@ module Vanity
       end
 
       def has_alternative_weights?(args)
-        @alternatives.nil? && args.size == 1 && args[0].is_a?(Hash)
+        (!defined?(@alternatives) || @alternatives.nil?) && args.size == 1 && args[0].is_a?(Hash)
       end
 
       def build_alternatives_with_weights(args)
@@ -688,10 +680,10 @@ module Vanity
       end
 
       begin
-        a = 50.0
+        avg = 50.0
         # Returns array of [z-score, percentage]
         norm_dist = []
-        (0.0..3.1).step(0.01) { |x| norm_dist << [x, a += 1 / Math.sqrt(2 * Math::PI) * Math::E ** (-x ** 2 / 2)] }
+        (0.0..3.1).step(0.01) { |x| norm_dist << [x, avg += 1 / Math.sqrt(2 * Math::PI) * Math::E ** (-x ** 2 / 2)] }
         # We're really only interested in 90%, 95%, 99% and 99.9%.
         Z_TO_PROBABILITY = [90, 95, 99, 99.9].map { |pct| [norm_dist.find { |x,a| a >= pct }.first, pct] }.reverse
       end

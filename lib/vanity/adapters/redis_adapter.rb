@@ -91,7 +91,7 @@ module Vanity
       end
 
       def destroy_metric(metric)
-        @metrics.del *@metrics.keys("#{metric}:*")
+        @metrics.del(*@metrics.keys("#{metric}:*"))
       end
 
 
@@ -221,7 +221,7 @@ module Vanity
       def destroy_experiment(experiment)
         @experiments.del "#{experiment}:outcome", "#{experiment}:created_at", "#{experiment}:completed_at"
         alternatives = @experiments.keys("#{experiment}:alts:*")
-        @experiments.del *alternatives unless alternatives.empty?
+        @experiments.del(*alternatives) unless alternatives.empty?
       end
 
       protected

@@ -27,7 +27,7 @@ module Vanity
       def metric(name, &block)
         fail "Metric #{@metric_id} already defined in playground" if playground.metrics[@metric_id]
         metric = Metric.new(playground, name.to_s, @metric_id)
-        metric.instance_eval &block
+        metric.instance_eval(&block)
         playground.metrics[@metric_id] = metric
       end
 
@@ -191,7 +191,7 @@ module Vanity
     alias :to_s :name
 
     # Human readable description. Use two newlines to break paragraphs.
-    attr_accessor :description
+    attr_writer :description
 
     # Sets or returns description. For example
     #   metric "Yawns/sec" do
@@ -201,7 +201,7 @@ module Vanity
     #   puts "Just defined: " + metric(:boring).description
     def description(text = nil)
       @description = text if text
-      @description
+      @description if defined?(@description)
     end
 
     # Given two arguments, a start date and an end date (inclusive), returns an

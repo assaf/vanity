@@ -62,7 +62,7 @@ module Vanity
 
       def current_rake_tasks
         ::Rake.application.top_level_tasks
-      rescue => e
+      rescue
         []
       end
     end

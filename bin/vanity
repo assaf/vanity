@@ -3,7 +3,7 @@ if File.exist?("config/boot.rb") && File.exist?("config/environment.rb")
   require "./config/environment"
 else
   path = File.expand_path("../lib", File.dirname(__FILE__))
-  $LOAD_PATH.unshift path unless $LOAD_PATH.include?(path)
+  $LOAD_PATH.unshift(path) unless $LOAD_PATH.include?(path)
   require "vanity"
 end
 
@@ -11,7 +11,7 @@ require "optparse"
 
 playground = Vanity.playground
 options = Struct.new(:output).new
-opts = OptionParser.new("", 24, "  ") do |opts|
+parser = OptionParser.new("", 24, "  ") do |opts|
   opts.banner = "Usage: #{File.basename($0)} [options] command\n"
   opts.banner << "Commands:\n"
   opts.banner << "  list    List all experiments and metrics\n"
@@ -19,17 +19,17 @@ opts = OptionParser.new("", 24, "  ") do |opts|
 
   opts.separator ""
   opts.separator "Reporting options:"
-  opts.on "--output FILE", "Write report to this file (default: stdout)" do |path|
-    options.output = path
+  opts.on "--output FILE", "Write report to this file (default: stdout)" do |report_path|
+    options.output = report_path
   end
 
   opts.separator ""
   opts.separator "Common options:"
-  opts.on "--load_path PATH", "Path to experiments directory (default: #{playground.load_path})" do |path|
-    playground.load_path = path
+  opts.on "--load_path PATH", "Path to experiments directory (default: #{playground.load_path})" do |load_path|
+    playground.load_path = load_path
   end
   opts.on "-d", "--database url", "Database connection URL (e.g. redis://localhost:6379)" do |conn|
-    playground.establish_connection conn
+    playground.establish_connection(conn)
   end
   opts.on_tail "-h", "--help", "Show this message" do
     puts opts.to_s.gsub(/^.*DEPRECATED.*$/s, '')
@@ -41,9 +41,9 @@ opts = OptionParser.new("", 24, "  ") do |opts|
   end
 end
 
-opts.parse!(ARGV)
+parser.parse!(ARGV)
 if ARGV.empty?
-  puts opts.banner
+  puts parser.banner
   exit
 end
 

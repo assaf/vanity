@@ -7,7 +7,7 @@ GIT
 PATH
   remote: .././
   specs:
-    vanity (2.2.4)
+    vanity (2.2.5)
       i18n
 
 GEM
@@ -51,6 +51,7 @@ GEM
     arel (5.0.1.20140414130214)
     blankslate (2.1.2.4)
     bson (4.0.2)
+    bson (4.0.2-java)
     builder (3.2.2)
     celluloid (0.16.0)
       timers (~> 4.0.0)

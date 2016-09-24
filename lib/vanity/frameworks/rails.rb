@@ -61,7 +61,7 @@ module Vanity
     module Identity
       def vanity_identity # :nodoc:
         return vanity_identity_block.call(self) if vanity_identity_block
-        return @vanity_identity if @vanity_identity
+        return @vanity_identity if defined?(@vanity_identity) && @vanity_identity
 
         # With user sign in, it's possible to visit not-logged in, get
         # cookied and shown alternative A, then sign in and based on
@@ -162,20 +162,22 @@ module Vanity
       # :null_abc experiment is chosen and the user redirected to
       # http://example.com/.
       def vanity_query_parameter_filter
-        if request.get? && params[:_vanity]
-          hashes = Array(params.delete(:_vanity))
+        query_params = request.query_parameters
+        if request.get? && query_params[:_vanity]
+          hashes = Array(query_params.delete(:_vanity))
           Vanity.playground.experiments.each do |id, experiment|
             if experiment.respond_to?(:alternatives)
               experiment.alternatives.each do |alt|
-                if hash = hashes.delete(experiment.fingerprint(alt))
-                  experiment.chooses alt.value
+                if hashes.delete(experiment.fingerprint(alt))
+                  experiment.chooses(alt.value)
                   break
                 end
               end
             end
             break if hashes.empty?
           end
-          redirect_to url_for(params)
+          path_parts = [url_for, query_params.to_query]
+          redirect_to(path_parts.join('?'))
         end
       end
 

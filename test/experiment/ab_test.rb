@@ -5,7 +5,8 @@ class AbTestController < ActionController::Base
   attr_accessor :current_user
 
   def test_render
-    render :text=>Vanity.ab_test(:simple)
+    text = Vanity.ab_test(:simple)
+    render :plain=>text, :text=>text
   end
 
   def test_view
@@ -18,7 +19,7 @@ class AbTestController < ActionController::Base
 
   def track
     Vanity.track!(:coolness)
-    render :text=>""
+    render :plain=>"", :text=>""
   end
 end
 
@@ -604,7 +605,7 @@ class AbTestTest < ActionController::TestCase
     end
     class <<experiment(:foobar)
       def times_called
-        @times_called || 0
+        @times_called ||= 0
       end
       def rebalance!
         @times_called = times_called + 1
@@ -801,6 +802,7 @@ class AbTestTest < ActionController::TestCase
   def test_ab_test_chooses_in_render
     new_ab_test :simple do
       metrics :coolness
+      identify { rand }
       default false
     end
     responses = Array.new(100) do
@@ -814,6 +816,7 @@ class AbTestTest < ActionController::TestCase
   def test_ab_test_chooses_view_helper
     new_ab_test :simple do
       metrics :coolness
+      identify { rand }
       default false
     end
     responses = Array.new(100) do
@@ -827,6 +830,7 @@ class AbTestTest < ActionController::TestCase
   def test_ab_test_with_capture
     new_ab_test :simple do
       metrics :coolness
+      identify { rand }
       default false
     end
     responses = Array.new(100) do
@@ -883,13 +887,13 @@ class AbTestTest < ActionController::TestCase
       default :a
       metrics :coolness
     end
-    responses = Array.new(100) { |i|
+    responses = Array.new(100) do |i|
       @controller = nil ; setup_controller_request_and_response
       experiment(:simple).chooses(:b)
       experiment(:simple).chooses(nil)
       get :test_render
       @response.body
-    }
+    end
     assert responses.uniq.size == 3
   end
 

@@ -24,3 +24,10 @@ gemfile:
   - gemfiles/rails41.gemfile
   - gemfiles/rails42.gemfile
   - gemfiles/rails42_protected_attributes.gemfile
+  - gemfiles/rails5.gemfile
+matrix:
+  exclude:
+    - rvm: 2.1
+      gemfile: gemfiles/rails5.gemfile
+    - rvm: jruby-19mode
+      gemfile: gemfiles/rails5.gemfile

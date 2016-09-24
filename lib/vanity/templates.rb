@@ -23,7 +23,7 @@ module Vanity
     # dotfiles in the directory.
     def custom_template_path_valid?
       Vanity.playground.custom_templates_path &&
-        File.exists?(Vanity.playground.custom_templates_path) &&
+        File.exist?(Vanity.playground.custom_templates_path) &&
         !Dir[File.join(Vanity.playground.custom_templates_path, '*')].empty?
     end
 

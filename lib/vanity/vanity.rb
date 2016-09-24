@@ -9,7 +9,7 @@ module Vanity
   # @see Vanity::Configuration
   # @since 2.0.0
   def self.configuration(set_if_needed=true)
-    if @configuration
+    if defined?(@configuration) && @configuration
       @configuration
     elsif set_if_needed
       configure!
@@ -63,7 +63,7 @@ module Vanity
   #
   # @since 2.0.0
   def self.connection(connect_if_needed=true)
-    if @connection
+    if defined?(@connection) && @connection
       @connection
     elsif connect_if_needed
       connect!
