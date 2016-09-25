@@ -41,12 +41,6 @@ module Vanity
       #     use_vanity { |controller| controller.params[:project_id] }
       #   end
       def use_vanity(method_name = nil, &block)
-        define_method :vanity_store_experiment_for_js do |name, alternative|
-          @_vanity_experiments ||= {}
-          @_vanity_experiments[name] ||= alternative
-          @_vanity_experiments[name].value
-        end
-
         define_method(:vanity_identity_block) { block }
         define_method(:vanity_identity_method) { method_name }
 
@@ -224,7 +218,8 @@ module Vanity
       #     <%= count %> features to choose from!
       #   <% end %>
       def ab_test(name, &block)
-        value = setup_experiment(name)
+        current_request = respond_to?(:request) ? self.request : nil
+        value = Vanity.ab_test(name, current_request)
 
         if block
           content = capture(value, &block)
@@ -251,7 +246,7 @@ module Vanity
       end
 
       def vanity_js
-        return if @_vanity_experiments.nil? || @_vanity_experiments.empty?
+        return if Vanity.context.vanity_active_experiments.nil? || Vanity.context.vanity_active_experiments.empty?
         javascript_tag do
           render :file => Vanity.template("_vanity"), :formats => [:js]
         end
@@ -291,25 +286,14 @@ module Vanity
       #     </script>
       #   <% end %>
       def vanity_experiments
-        @_vanity_experiments ||= {}
-        experiments = {}
+        edit_safe_experiments = {}
 
-        @_vanity_experiments.each do |name, alternative|
-          experiments[name] = alternative.clone
+        Vanity.context.vanity_active_experiments.each do |name, alternative|
+          edit_safe_experiments[name] = alternative.clone
         end
 
-        experiments
+        edit_safe_experiments
       end
-
-      protected
-
-      def setup_experiment(name)
-        @_vanity_experiments ||= {}
-        request = respond_to?(:request) ? self.request : nil
-        @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose(request)
-        @_vanity_experiments[name].value
-      end
-
     end
 
 
