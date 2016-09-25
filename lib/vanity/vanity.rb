@@ -53,6 +53,21 @@ module Vanity
   # set by the set_vanity_context before filter (via Vanity::Rails#use_vanity).
   def self.context=(context)
     Thread.current[:vanity_context] = context
+
+    if context
+      context.class.send(:define_method, :vanity_add_to_active_experiments) do |name, alternative|
+        @_vanity_experiments ||= {}
+        @_vanity_experiments[name] ||= alternative
+        @_vanity_experiments[name].value
+      end
+      context.class.send(:alias_method, :vanity_store_experiment_for_js, :vanity_add_to_active_experiments)
+
+      context.class.send(:define_method, :vanity_active_experiments) do
+        @_vanity_experiments ||= {}
+      end
+    end
+
+    context
   end
 
   #

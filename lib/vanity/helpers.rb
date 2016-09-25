@@ -1,5 +1,5 @@
 module Vanity
-  # Helper methods available on Object.
+  # Helper methods available on the Vanity module.
   #
   # @example From ERB template
   #   <%= ab_test(:greeting) %> <%= current_user.name %>
@@ -17,7 +17,6 @@ module Vanity
   #     end
   #   end
   module Helpers
-
     # This method returns one of the alternative values in the named A/B test.
     #
     # @example A/B two alternatives for a page
@@ -33,21 +32,15 @@ module Vanity
     #     render action: Vanity.ab_test(:new_page)
     #   end
     # @since 1.2.0
-    def ab_test(name, &block)
-      # TODO refactor with Vanity::Rails::Helpers#ab_test, however that's used
-      # within Rails views
-      request = respond_to?(:request) ? self.request : nil
-      if Vanity.playground.using_js?
-        value = Vanity.context.vanity_store_experiment_for_js name, Vanity.playground.experiment(name).choose(request)
-      else
-        value = Vanity.playground.experiment(name).choose(request).value
-      end
+    def ab_test(name, request=nil, &block)
+      request ||= Vanity.context.respond_to?(:request) ? Vanity.context.request : nil
 
-      if block
-        capture(value, &block)
-      else
-        value
-      end
+      alternative = Vanity.playground.experiment(name).choose(request)
+      Vanity.context.vanity_add_to_active_experiments(name, alternative)
+
+      Vanity.logger.warn("Deprecated: This method used to accept a block, however, calling it with a block would result in an exception. The block will be removed from the signature in an upcoming version.") if block
+
+      alternative.value
     end
 
     # Tracks an action associated with a metric. Useful for calling from a
@@ -64,7 +57,7 @@ module Vanity
     #   of options passed (eventually) to AbTest#track!.
     # @since 1.2.0
     def track!(name, count_or_options = 1)
-      Vanity.playground.track! name, count_or_options
+      Vanity.playground.track!(name, count_or_options)
     end
   end
 end
