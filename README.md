@@ -19,7 +19,9 @@ Vanity is an A/B testing framework for Rails that is datastore agnostic.
 
 Add to your Gemfile:
 
-    gem "vanity"
+```ruby
+gem "vanity"
+```
 
 (For support for older versions of Rails and Ruby 1.8, please see the [1.9.x
 branch](https://github.com/assaf/vanity/tree/1-9-stable).)
@@ -35,8 +37,10 @@ Datastores should be configured using a `config/vanity.yml`.
 
 Add to your Gemfile:
 
-    gem "redis", ">= 2.1"
-    gem "redis-namespace", ">= 1.1.0"
+```ruby
+gem "redis", ">= 2.1"
+gem "redis-namespace", ">= 1.1.0"
+```
 
 By default Vanity is configured to use Redis on localhost port 6379 with
 database 0.
@@ -62,7 +66,7 @@ test:
 
 To re-use an existing redis connection, you can call `Vanity.connect!` explicitly, for example:
 
-```
+```ruby
 Vanity.connect!(
   adapter: :redis,
   redis: $redis
@@ -134,7 +138,7 @@ $ rake db:migrate
 If you're using a forking server (like Passenger or Unicorn), you should
 reconnect after a new worker is created:
 
-```
+```ruby
 # unicorn.rb
 after_fork do |server, worker|
   defined?(Vanity) && Vanity.reconnect!
@@ -153,7 +157,7 @@ end
 
 If you're using explicit options with `Vanity.connect!`, you should call `disconnect!` first, for example:
 
-```
+```ruby
 Vanity.disconnect!
 Vanity.connect!(
   adapter: 'redis',
