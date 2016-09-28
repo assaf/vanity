@@ -34,6 +34,18 @@ class UseVanityControllerTest < ActionController::TestCase
     assert_match /script.*v=pie_or_cake=.*script/m, @response.body
   end
 
+  def test_working_render_js_for_tests
+    Vanity.playground.use_js!
+    get :working_js
+    assert_match /script.*v=pie_or_cake=.*script/m, @response.body
+  end
+
+  def test_broken_render_js_for_tests
+    Vanity.playground.use_js!
+    get :broken_js
+    assert_match /script.*v=pie_or_cake=.*script/m, @response.body
+  end
+
   def test_render_model_js_for_tests
     Vanity.playground.use_js!
     get :model_js
