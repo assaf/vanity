@@ -610,7 +610,7 @@ module Vanity
           end
         end
 
-        Digest::MD5.hexdigest("#{name}/#{identity}").to_i(17) % @alternatives.size
+        Digest::MD5.hexdigest("#{name}/#{identity}").to_i(16) % @alternatives.size
       end
 
       # Saves the assignment of an alternative to a person and performs the
