@@ -59,6 +59,6 @@ These ab_* methods interact with the underlying data of an experiment.
 * ab_add_participant(experiment, alternative, identity)
 * ab_seen(experiment, identity, assignment)
 * ab_assigned(experiment, identity)
-* ab_add_conversion(experiment, alternative, identity, count, implicit)
+* ab_add_conversion(experiment, alternative, identity, options)
 * ab_get_outcome(experiment)
 * ab_set_outcome(experiment, alternative)

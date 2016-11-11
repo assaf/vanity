@@ -15,8 +15,27 @@
       </td>
       <td class="value"><code><%=vanity_h alt.value.to_s %></code></td>
       <td class="value"><%= I18n.t 'vanity.participants', :count=>alt.participants %></td>
-      <td class="value"><%= I18n.t 'vanity.converted', :count=>alt.converted %></td>
-      <td>
+      <td class="value stats">
+        <h4 class="center">Conversions</h4>
+        <table>
+          <thead>
+            <tr>
+              <th class="name">Metric</th>
+              <th>Unique</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <% alt.stats_by_metric.each do |metric_id, hash| %>
+            <% klass = metric_id == experiment.conversion_metric ? "strong" : "" %>
+            <tr class="<%= klass %>">
+              <td class="value name"><%= metric_id %></td>
+              <td class="value center"><%= hash[:converted] %></td>
+              <td class="value center"><%= hash[:conversions] %></td>
+            </tr>
+          <% end %>
+        </table>
+      </td>
+      <td class="center">
         <%= "%.1f%%" % [alt.conversion_rate * 100] %>
         <%= I18n.t('vanity.best_alternative', :probability=>alt.probability.to_i) if score.method == :bayes_bandit_score %>
         <%= I18n.t('vanity.better_alternative_than', :probability=>alt.difference.to_i, :alternative=>score.least.name) if alt.difference && alt.difference >= 1 %>

@@ -213,7 +213,11 @@ module Vanity
         participant && participant["seen"].first
       end
 
-      def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
+      def ab_add_conversion(experiment, alternative, identity, options={})
+        count = options[:count] || 1
+        implicit = !!options[:implicit]
+        metric_id = options[:metric_id] # unsupported for mongodb
+
         if implicit
           @participants.find(:experiment=>experiment, :identity=>identity).find_one_and_replace(
             {

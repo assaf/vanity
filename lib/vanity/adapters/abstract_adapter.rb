@@ -122,7 +122,7 @@ module Vanity
       # true, add particpant if not already recorded for this experiment. If
       # implicit is false (default), only add conversion is participant
       # previously recorded as participating in this experiment.
-      def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
+      def ab_add_conversion(experiment, alternative, identity, options={})
         fail "Not implemented"
       end
 

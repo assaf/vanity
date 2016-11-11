@@ -273,8 +273,11 @@ module Vanity
       # true, add participant if not already recorded for this experiment. If
       # implicit is false (default), only add conversion if participant
       # previously recorded as participating in this experiment.
-      def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
-        participant = VanityParticipant.retrieve(experiment, identity, false)
+      def ab_add_conversion(experiment, alternative, identity, options={})
+        count = options[:count] || 1
+        implicit = !!options[:implicit]
+        metric_id = options[:metric_id] # unsupported for ActiveRecord
+
         VanityParticipant.retrieve(experiment, identity, implicit, :converted => alternative, :seen => alternative)
         VanityExperiment.retrieve(experiment).increment_conversion(alternative, count)
       end

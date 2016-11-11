@@ -143,11 +143,23 @@ module Vanity
       end
 
       def ab_counts(experiment, alternative)
+        metric_id = experiment.conversion_metric
         {
-          :participants => @experiments.scard("#{experiment}:alts:#{alternative}:participants").to_i,
-                :converted    => @experiments.scard("#{experiment}:alts:#{alternative}:converted").to_i,
-          :conversions  => @experiments["#{experiment}:alts:#{alternative}:conversions"].to_i
+          :participants => @experiments.scard("#{experiment.id}:alts:#{alternative}:participants").to_i,
+          :converted    => @experiments.scard("#{experiment.id}:alts:#{alternative}:metric:#{metric_id}:converted").to_i,
+          :conversions  => @experiments["#{experiment.id}:alts:#{alternative}:metric:#{metric_id}:conversions"].to_i
         }
+      end
+
+      def ab_counts_by_metric(experiment, alternative)
+        counts = {}
+        experiment.metrics.each do |metric|
+          counts[metric.id] = {
+            :converted    => @experiments.scard("#{experiment.id}:alts:#{alternative}:metric:#{metric.id}:converted").to_i,
+            :conversions  => @experiments["#{experiment.id}:alts:#{alternative}:metric:#{metric.id}:conversions"].to_i
+          }
+        end
+        counts
       end
 
       def ab_show(experiment, identity, alternative)
@@ -199,15 +211,23 @@ module Vanity
         end
       end
 
-      def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
+      def ab_add_conversion(experiment, alternative, identity, options={})
+        count = options[:count] || 1
+        implicit = !!options[:implicit]
+        metric_id = options[:metric_id]
+
         call_redis_with_failover(experiment, alternative, identity, count, implicit) do
           if implicit
-            @experiments.sadd "#{experiment}:alts:#{alternative}:participants", identity
+            ab_add_participant experiment, alternative, identity
           else
             participating = @experiments.sismember("#{experiment}:alts:#{alternative}:participants", identity)
           end
-          @experiments.sadd "#{experiment}:alts:#{alternative}:converted", identity if implicit || participating
-          @experiments.incrby "#{experiment}:alts:#{alternative}:conversions", count
+
+          if implicit || participating
+            @experiments.sadd "#{experiment}:alts:#{alternative}:metric:#{metric_id}:converted", identity
+          end
+
+          @experiments.incrby "#{experiment}:alts:#{alternative}:metric:#{metric_id}:conversions", count
         end
       end
 

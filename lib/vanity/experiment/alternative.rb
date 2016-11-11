@@ -43,6 +43,10 @@ module Vanity
         @conversions
       end
 
+      def stats_by_metric
+        @experiment.playground.connection.ab_counts_by_metric(@experiment, id)
+      end
+
       # Z-score for this alternative, related to 2nd-best performing
       # alternative. Populated by AbTest#score if #score_method is :z_score.
       attr_accessor :z_score
@@ -83,7 +87,7 @@ module Vanity
 
       def load_counts
         if @experiment.playground.collecting?
-          @participants, @converted, @conversions = @experiment.playground.connection.ab_counts(@experiment.id, id).values_at(:participants, :converted, :conversions)
+          @participants, @converted, @conversions = @experiment.playground.connection.ab_counts(@experiment, id).values_at(:participants, :converted, :conversions)
         else
           @participants = @converted = @conversions = 0
         end
