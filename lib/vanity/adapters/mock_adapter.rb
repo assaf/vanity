@@ -141,6 +141,20 @@ module Vanity
         alt[:participants] << identity
       end
 
+      def ab_seen(experiment, identity, alternative)
+        if ab_assigned(experiment, identity) == alternative.id
+          alternative
+        end
+      end
+
+      def ab_assigned(experiment, identity)
+        alternatives_for(experiment).each do |alt_id, alt_state|
+          return alt_id if alt_state[:participants].include?(identity)
+        end
+
+        nil
+      end
+
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
         @experiments[experiment] ||= {}
         @experiments[experiment][:alternatives] ||= {}
@@ -169,6 +183,15 @@ module Vanity
 
       def destroy_experiment(experiment)
         @experiments.delete experiment
+      end
+
+      private
+
+      def alternatives_for(experiment)
+        @experiments[experiment] ||= {}
+        @experiments[experiment][:alternatives] ||= {}
+
+        @experiments[experiment][:alternatives]
       end
     end
   end

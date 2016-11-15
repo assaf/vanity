@@ -191,6 +191,47 @@ describe Vanity::Adapters::MockAdapter do
       end
     end
 
+    describe '#ab_seen' do
+      DummyAlternative = Struct.new(:id)
+
+      before do
+        @alternative_instance = DummyAlternative.new(alternative)
+      end
+
+      it 'returns a truthy value if the identity is assigned to the alternative' do
+        @subject.ab_add_participant(experiment, alternative, identity)
+
+        assert(@subject.ab_seen(experiment, identity, @alternative_instance))
+      end
+
+      it 'returns nil if the identity is not assigned to the alternative' do
+        @subject.ab_add_participant(experiment, alternative, identity)
+
+        assert_equal(
+          nil,
+          @subject.ab_seen(experiment, identity, DummyAlternative.new(2))
+        )
+      end
+    end
+
+    describe '#ab_assigned' do
+      it 'returns the assigned alternative if present' do
+        @subject.ab_add_participant(experiment, alternative, identity)
+
+        assert_equal(
+          alternative,
+          @subject.ab_assigned(experiment, identity)
+        )
+      end
+
+      it 'returns nil if the identity has no assignment' do
+        assert_equal(
+          nil,
+          @subject.ab_assigned(experiment, identity)
+        )
+      end
+    end
+
     describe '#ab_counts' do
       it 'returns the counts of participants, conversions and converted for the alternative' do
         run_experiment
