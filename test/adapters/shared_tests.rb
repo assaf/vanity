@@ -16,7 +16,7 @@ module Vanity::Adapters::SharedTests
     1
   end
 
-  def metric
+  def metric_name
     :purchases
   end
 
@@ -31,21 +31,29 @@ module Vanity::Adapters::SharedTests
       before do
         @subject = adapter
         @subject.flushdb
+
+        metric "purchases"
+
+        new_ab_test "experiment" do
+          alternatives :control, :test
+          default :control
+          metrics :purchases
+        end
       end
 
       describe 'metrics methods' do
         describe '#get_metric_last_update_at' do
           it 'is nil if the metric has never been tracked' do
-            refute(@subject.get_metric_last_update_at(metric))
+            refute(@subject.get_metric_last_update_at(metric_name))
           end
 
           it 'returns the time of the last tracked event if present' do
             time = Time.now
-            @subject.metric_track(metric, time, identity, [1])
+            @subject.metric_track(metric_name, time, identity, [1])
 
             assert_in_delta(
               time,
-              @subject.get_metric_last_update_at(metric),
+              @subject.get_metric_last_update_at(metric_name),
               1.0
             )
           end
@@ -59,26 +67,26 @@ module Vanity::Adapters::SharedTests
             time_4 = Time.iso8601("2016-01-02T12:00:00+00:00")
             time_5 = Time.iso8601("2016-01-03T12:00:00+00:00")
 
-            @subject.metric_track(metric, time_1, identity, [1, 1])
-            @subject.metric_track(metric, time_2, identity, [2, 1])
-            @subject.metric_track(metric, time_3, identity, [3])
-            @subject.metric_track(metric, time_4, identity, [4, 10])
-            @subject.metric_track(metric, time_5, identity, [5])
+            @subject.metric_track(metric_name, time_1, identity, [1, 1])
+            @subject.metric_track(metric_name, time_2, identity, [2, 1])
+            @subject.metric_track(metric_name, time_3, identity, [3])
+            @subject.metric_track(metric_name, time_4, identity, [4, 10])
+            @subject.metric_track(metric_name, time_5, identity, [5])
 
             assert_equal(
               [[3, 2], [7, 10]],
-              @subject.metric_values(metric, time_1, time_4)
+              @subject.metric_values(metric_name, time_1, time_4)
             )
           end
         end
 
         describe '#destroy_metric' do
           it 'removes all data related to the metric' do
-            @subject.metric_track(metric, Time.now, identity, [1])
+            @subject.metric_track(metric_name, Time.now, identity, [1])
 
-            @subject.destroy_metric(metric)
+            @subject.destroy_metric(metric_name)
 
-            refute(@subject.get_metric_last_update_at(metric))
+            refute(@subject.get_metric_last_update_at(metric_name))
           end
         end
       end
@@ -86,13 +94,13 @@ module Vanity::Adapters::SharedTests
       describe 'generic experiment methods' do
         describe '#experiment_persisted?' do
           it 'returns false if the experiment is unknown' do
-            refute(@subject.experiment_persisted?(experiment))
+            refute(@subject.experiment_persisted?("other_experiment"))
           end
 
           it 'returns true if the experiment has been created' do
-            @subject.set_experiment_created_at(experiment, Time.now)
+            @subject.set_experiment_created_at("other_experiment", Time.now)
 
-            assert(@subject.experiment_persisted?(experiment))
+            assert(@subject.experiment_persisted?("other_experiment"))
           end
         end
 
@@ -132,15 +140,15 @@ module Vanity::Adapters::SharedTests
           describe 'when experiments start enabled' do
             it 'is true when the enabled value is unset' do
               with_experiments_start_enabled(true) do
-                assert(@subject.is_experiment_enabled?(experiment))
+                assert(@subject.is_experiment_enabled?("other_experiment"))
               end
             end
 
             it 'is false when the enabled value is set to false' do
               with_experiments_start_enabled(true) do
-                @subject.set_experiment_enabled(experiment, false)
+                @subject.set_experiment_enabled("other_experiment", false)
 
-                refute(@subject.is_experiment_enabled?(experiment))
+                refute(@subject.is_experiment_enabled?("other_experiment"))
               end
             end
           end
@@ -148,15 +156,15 @@ module Vanity::Adapters::SharedTests
           describe 'when experiments do not start enabled' do
             it 'is false when the enabled value is unset' do
               with_experiments_start_enabled(false) do
-                refute(@subject.is_experiment_enabled?(experiment))
+                refute(@subject.is_experiment_enabled?("other_experiment"))
               end
             end
 
             it 'is true when the enabled value is set to true' do
               with_experiments_start_enabled(false) do
-                @subject.set_experiment_enabled(experiment, true)
+                @subject.set_experiment_enabled("other_experiment", true)
 
-                assert(@subject.is_experiment_enabled?(experiment))
+                assert(@subject.is_experiment_enabled?("other_experiment"))
               end
             end
           end
