@@ -89,8 +89,8 @@ module Vanity::Adapters::SharedTests
             refute(@subject.experiment_persisted?(experiment))
           end
 
-          it 'returns true if the experiment has data' do
-            run_experiment
+          it 'returns true if the experiment has been created' do
+            @subject.set_experiment_created_at(experiment, Time.now)
 
             assert(@subject.experiment_persisted?(experiment))
           end
