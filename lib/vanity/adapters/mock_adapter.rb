@@ -111,9 +111,7 @@ module Vanity
       end
 
       def ab_counts(experiment, alternative)
-        @experiments[experiment] ||= {}
-        @experiments[experiment][:alternatives] ||= {}
-        alt = @experiments[experiment][:alternatives][alternative] ||= {}
+        alt = alternative(experiment, alternative)
         { :participants => alt[:participants] ? alt[:participants].size : 0,
           :converted    => alt[:converted] ? alt[:converted].size : 0,
           :conversions  => alt[:conversions] || 0 }
@@ -134,9 +132,7 @@ module Vanity
       end
 
       def ab_add_participant(experiment, alternative, identity)
-        @experiments[experiment] ||= {}
-        @experiments[experiment][:alternatives] ||= {}
-        alt = @experiments[experiment][:alternatives][alternative] ||= {}
+        alt = alternative(experiment, alternative)
         alt[:participants] ||= Set.new
         alt[:participants] << identity
       end
@@ -156,9 +152,7 @@ module Vanity
       end
 
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
-        @experiments[experiment] ||= {}
-        @experiments[experiment][:alternatives] ||= {}
-        alt = @experiments[experiment][:alternatives][alternative] ||= {}
+        alt = alternative(experiment, alternative)
         alt[:participants] ||= Set.new
         alt[:converted] ||= Set.new
         alt[:conversions] ||= 0
@@ -186,6 +180,11 @@ module Vanity
       end
 
       private
+
+      def alternative(experiment, alternative)
+        alternatives_for(experiment)[alternative] ||= {}
+        alternatives_for(experiment)[alternative]
+      end
 
       def alternatives_for(experiment)
         @experiments[experiment] ||= {}
