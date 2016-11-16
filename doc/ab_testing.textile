@@ -162,8 +162,13 @@ ab_test "noodle_test" do
   alternatives "spaghetti", "linguine"
   metrics :signup
   score_method :bayes_bandit_score
+  rebalance_frequency 100
 end
 </pre>
+
+Note: Setting the score method to `bayes_bandit_score` won't adjust alternative probabilities (ie, you won't get the benefit of maximizing conversions) unless you also set `rebalance_frequency`, which controls how many impressions must pass before rebalancing alternative probabilities.
+
+Also note that impressions count is stored in-memory and is therefore reset upon restart of your app.
 
 h3(#test).  A/B Testing and Code Testing
 
