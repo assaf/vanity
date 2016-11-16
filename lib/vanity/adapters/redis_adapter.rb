@@ -97,44 +97,44 @@ module Vanity
 
       # -- Experiments --
 
-      def experiment_persisted?(experiment)
-        !!@experiments["#{experiment}:created_at"]
+      def experiment_persisted?(experiment_id)
+        !!@experiments["#{experiment_id}:created_at"]
       end
 
-      def set_experiment_created_at(experiment, time)
+      def set_experiment_created_at(experiment_id, time)
         call_redis_with_failover do
-          @experiments.setnx "#{experiment}:created_at", time.to_i
+          @experiments.setnx "#{experiment_id}:created_at", time.to_i
         end
       end
 
-      def get_experiment_created_at(experiment)
-        created_at = @experiments["#{experiment}:created_at"]
+      def get_experiment_created_at(experiment_id)
+        created_at = @experiments["#{experiment_id}:created_at"]
         created_at && Time.at(created_at.to_i)
       end
 
-      def set_experiment_completed_at(experiment, time)
-        @experiments.setnx "#{experiment}:completed_at", time.to_i
+      def set_experiment_completed_at(experiment_id, time)
+        @experiments.setnx "#{experiment_id}:completed_at", time.to_i
       end
 
-      def get_experiment_completed_at(experiment)
-        completed_at = @experiments["#{experiment}:completed_at"]
+      def get_experiment_completed_at(experiment_id)
+        completed_at = @experiments["#{experiment_id}:completed_at"]
         completed_at && Time.at(completed_at.to_i)
       end
 
-      def is_experiment_completed?(experiment)
+      def is_experiment_completed?(experiment_id)
         call_redis_with_failover do
-          @experiments.exists("#{experiment}:completed_at")
+          @experiments.exists("#{experiment_id}:completed_at")
         end
       end
 
-      def set_experiment_enabled(experiment, enabled)
+      def set_experiment_enabled(experiment_id, enabled)
         call_redis_with_failover do
-          @experiments.set "#{experiment}:enabled", enabled
+          @experiments.set "#{experiment_id}:enabled", enabled
         end
       end
 
-      def is_experiment_enabled?(experiment)
-        value = @experiments["#{experiment}:enabled"]
+      def is_experiment_enabled?(experiment_id)
+        value = @experiments["#{experiment_id}:enabled"]
         if Vanity.configuration.experiments_start_enabled
           value != 'false'
         else
@@ -162,33 +162,33 @@ module Vanity
         counts
       end
 
-      def ab_show(experiment, identity, alternative)
+      def ab_show(experiment_id, identity, alternative)
         call_redis_with_failover do
-          @experiments["#{experiment}:participant:#{identity}:show"] = alternative
+          @experiments["#{experiment_id}:participant:#{identity}:show"] = alternative
         end
       end
 
-      def ab_showing(experiment, identity)
+      def ab_showing(experiment_id, identity)
         call_redis_with_failover do
-          alternative = @experiments["#{experiment}:participant:#{identity}:show"]
+          alternative = @experiments["#{experiment_id}:participant:#{identity}:show"]
           alternative && alternative.to_i
         end
       end
 
-      def ab_not_showing(experiment, identity)
+      def ab_not_showing(experiment_id, identity)
         call_redis_with_failover do
-          @experiments.del "#{experiment}:participant:#{identity}:show"
+          @experiments.del "#{experiment_id}:participant:#{identity}:show"
         end
       end
 
-      def ab_add_participant(experiment, alternative, identity)
-        call_redis_with_failover(experiment, alternative, identity) do
-          @experiments.sadd "#{experiment}:alts:#{alternative}:participants", identity
+      def ab_add_participant(experiment_id, alternative, identity)
+        call_redis_with_failover(experiment_id, alternative, identity) do
+          @experiments.sadd "#{experiment_id}:alts:#{alternative}:participants", identity
         end
       end
 
-      def ab_seen(experiment, identity, alternative_or_id)
-        with_ab_seen_deprecation(experiment, identity, alternative_or_id) do |expt, ident, alt_id|
+      def ab_seen(experiment_id, identity, alternative_or_id)
+        with_ab_seen_deprecation(experiment_id, identity, alternative_or_id) do |expt, ident, alt_id|
           call_redis_with_failover(expt, ident, alt_id) do
             if @experiments.sismember "#{expt}:alts:#{alt_id}:participants", ident
               alt_id
@@ -200,10 +200,10 @@ module Vanity
       end
 
       # Returns the participant's seen alternative in this experiment, if it exists
-      def ab_assigned(experiment, identity)
+      def ab_assigned(experiment_id, identity)
         call_redis_with_failover do
-          Vanity.playground.experiments[experiment].alternatives.each do |alternative|
-            if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
+          Vanity.playground.experiments[experiment_id].alternatives.each do |alternative|
+            if @experiments.sismember "#{experiment_id}:alts:#{alternative.id}:participants", identity
               return alternative.id
             end
           end
@@ -211,38 +211,38 @@ module Vanity
         end
       end
 
-      def ab_add_conversion(experiment, alternative, identity, options={})
+      def ab_add_conversion(experiment_id, alternative, identity, options={})
         count = options[:count] || 1
         implicit = !!options[:implicit]
         metric_id = options[:metric_id]
 
-        call_redis_with_failover(experiment, alternative, identity, count, implicit) do
+        call_redis_with_failover(experiment_id, alternative, identity, count, implicit) do
           if implicit
-            ab_add_participant experiment, alternative, identity
+            ab_add_participant experiment_id, alternative, identity
           else
-            participating = @experiments.sismember("#{experiment}:alts:#{alternative}:participants", identity)
+            participating = @experiments.sismember("#{experiment_id}:alts:#{alternative}:participants", identity)
           end
 
           if implicit || participating
-            @experiments.sadd "#{experiment}:alts:#{alternative}:metric:#{metric_id}:converted", identity
+            @experiments.sadd "#{experiment_id}:alts:#{alternative}:metric:#{metric_id}:converted", identity
           end
 
-          @experiments.incrby "#{experiment}:alts:#{alternative}:metric:#{metric_id}:conversions", count
+          @experiments.incrby "#{experiment_id}:alts:#{alternative}:metric:#{metric_id}:conversions", count
         end
       end
 
-      def ab_get_outcome(experiment)
-        alternative = @experiments["#{experiment}:outcome"]
+      def ab_get_outcome(experiment_id)
+        alternative = @experiments["#{experiment_id}:outcome"]
         alternative && alternative.to_i
       end
 
-      def ab_set_outcome(experiment, alternative = 0)
-        @experiments.setnx "#{experiment}:outcome", alternative
+      def ab_set_outcome(experiment_id, alternative = 0)
+        @experiments.setnx "#{experiment_id}:outcome", alternative
       end
 
-      def destroy_experiment(experiment)
-        @experiments.del "#{experiment}:outcome", "#{experiment}:created_at", "#{experiment}:completed_at"
-        alternatives = @experiments.keys("#{experiment}:alts:*")
+      def destroy_experiment(experiment_id)
+        @experiments.del "#{experiment_id}:outcome", "#{experiment_id}:created_at", "#{experiment_id}:completed_at"
+        alternatives = @experiments.keys("#{experiment_id}:alts:*")
         @experiments.del(*alternatives) unless alternatives.empty?
       end
 
