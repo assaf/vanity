@@ -1,4 +1,5 @@
 require "test_helper"
+require 'vanity/adapters/redis_adapter'
 require 'adapters/shared_tests'
 
 describe Vanity::Adapters::RedisAdapter do

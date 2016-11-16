@@ -1,4 +1,5 @@
 require "test_helper"
+require 'vanity/adapters/active_record_adapter'
 require 'adapters/shared_tests'
 
 describe Vanity::Adapters::ActiveRecordAdapter do
