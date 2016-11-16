@@ -145,8 +145,11 @@ ab_test &#8220;noodle_test&#8221; do<br />
   alternatives &#8220;spaghetti&#8221;, &#8220;linguine&#8221;<br />
   metrics :signup<br />
   score_method :bayes_bandit_score<br />
+  rebalance_frequency 100<br />
 end<br />
 </pre></p>
+<p>Note: Setting the score method to `bayes_bandit_score` won&#8217;t adjust alternative probabilities (ie, you won&#8217;t get the benefit of maximizing conversions) unless you also set `rebalance_frequency`, which controls how many impressions must pass before rebalancing alternative probabilities.</p>
+<p>Also note that impressions count is stored in-memory and is therefore reset upon restart of your app.</p>
 <h3 id="test">A/B Testing and Code Testing</h3>
 <p>If you&#8217;re presenting more than one alternative to visitors of your site, you&#8217;ll want to test more than one alternative.  Don&#8217;t let A/B testing become A/broken.</p>
 <p>You can force a functional/integration test to choose a given alternative:</p>
