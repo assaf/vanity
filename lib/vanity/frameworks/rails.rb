@@ -348,7 +348,7 @@ module Vanity
     # Step 3: Open your browser to http://localhost:3000/vanity
     module Dashboard
       def index
-        render :file=>Vanity.template("_report"),:content_type=>Mime::HTML, :locals=>{
+        render :file=>Vanity.template("_report"),:content_type=>Mime[:html], :locals=>{
           :experiments=>Vanity.playground.experiments,
           :experiments_persisted=>Vanity.playground.experiments_persisted?,
           :metrics=>Vanity.playground.metrics
@@ -356,7 +356,7 @@ module Vanity
       end
 
       def participant
-        render :file=>Vanity.template("_participant"), :locals=>{:participant_id => params[:id], :participant_info => Vanity.playground.participant_info(params[:id])}, :content_type=>Mime::HTML
+        render :file=>Vanity.template("_participant"), :locals=>{:participant_id => params[:id], :participant_info => Vanity.playground.participant_info(params[:id])}, :content_type=>Mime[:html]
       end
 
       def complete
