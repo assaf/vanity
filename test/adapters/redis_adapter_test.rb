@@ -8,8 +8,12 @@ describe Vanity::Adapters::RedisAdapter do
     require "redis/namespace"
   end
 
+  def specification
+    Vanity::Connection::Specification.new(VanityTestHelpers::DATABASE_OPTIONS["redis"])
+  end
+
   def adapter
-    Vanity::Adapters::RedisAdapter.new({})
+    Vanity::Adapters::RedisAdapter.new(specification.to_h)
   end
 
   include Vanity::Adapters::SharedTests

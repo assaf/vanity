@@ -43,12 +43,14 @@ module VanityTestHelpers
   # We go destructive on the database at the end of each run, so make sure we
   # don't use databases you care about. For Redis, we pick database 15
   # (default is 0).
-  DATABASE = {
+  DATABASE_OPTIONS = {
     "redis" => "redis://localhost/15",
     "mongodb" => "mongodb://localhost/vanity",
     "active_record" =>  { :adapter => "active_record", :active_record_adapter =>"default" },
     "mock" => "mock:/"
-  }[ENV["DB"]] or raise "No support yet for #{ENV["DB"]}"
+  }
+
+  DATABASE = DATABASE_OPTIONS[ENV["DB"]] or raise "No support yet for #{ENV["DB"]}"
 
   TEST_DATA_FILES = Dir[File.expand_path("../data/*",  __FILE__)]
   VANITY_CONFIGS = TEST_DATA_FILES.each.with_object({}) do |path, hash|

@@ -4,8 +4,12 @@ require 'adapters/shared_tests'
 
 describe Vanity::Adapters::ActiveRecordAdapter do
 
+  def specification
+    Vanity::Connection::Specification.new(VanityTestHelpers::DATABASE_OPTIONS["active_record"])
+  end
+
   def adapter
-    Vanity::Adapters::ActiveRecordAdapter.new({})
+    Vanity::Adapters::ActiveRecordAdapter.new(specification.to_h)
   end
 
   include Vanity::Adapters::SharedTests
