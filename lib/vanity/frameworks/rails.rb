@@ -43,7 +43,7 @@ module Vanity
       def use_vanity(method_name = nil, &block)
         define_method(:vanity_identity_block) { block }
         define_method(:vanity_identity_method) { method_name }
-        unless responds_to?(:before_action)
+        unless respond_to?(:before_action)
           alias_method :before_action, :before_filter
           alias_method :around_action, :around_filter
           alias_method :after_action, :after_filter
