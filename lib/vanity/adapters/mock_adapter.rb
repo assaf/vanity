@@ -111,9 +111,7 @@ module Vanity
       end
 
       def ab_counts(experiment, alternative)
-        @experiments[experiment] ||= {}
-        @experiments[experiment][:alternatives] ||= {}
-        alt = @experiments[experiment][:alternatives][alternative] ||= {}
+        alt = alternative(experiment, alternative)
         { :participants => alt[:participants] ? alt[:participants].size : 0,
           :converted    => alt[:converted] ? alt[:converted].size : 0,
           :conversions  => alt[:conversions] || 0 }
@@ -134,17 +132,27 @@ module Vanity
       end
 
       def ab_add_participant(experiment, alternative, identity)
-        @experiments[experiment] ||= {}
-        @experiments[experiment][:alternatives] ||= {}
-        alt = @experiments[experiment][:alternatives][alternative] ||= {}
+        alt = alternative(experiment, alternative)
         alt[:participants] ||= Set.new
         alt[:participants] << identity
       end
 
+      def ab_seen(experiment, identity, alternative)
+        if ab_assigned(experiment, identity) == alternative.id
+          alternative
+        end
+      end
+
+      def ab_assigned(experiment, identity)
+        alternatives_for(experiment).each do |alt_id, alt_state|
+          return alt_id if alt_state[:participants].include?(identity)
+        end
+
+        nil
+      end
+
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
-        @experiments[experiment] ||= {}
-        @experiments[experiment][:alternatives] ||= {}
-        alt = @experiments[experiment][:alternatives][alternative] ||= {}
+        alt = alternative(experiment, alternative)
         alt[:participants] ||= Set.new
         alt[:converted] ||= Set.new
         alt[:conversions] ||= 0
@@ -169,6 +177,20 @@ module Vanity
 
       def destroy_experiment(experiment)
         @experiments.delete experiment
+      end
+
+      private
+
+      def alternative(experiment, alternative)
+        alternatives_for(experiment)[alternative] ||= {}
+        alternatives_for(experiment)[alternative]
+      end
+
+      def alternatives_for(experiment)
+        @experiments[experiment] ||= {}
+        @experiments[experiment][:alternatives] ||= {}
+
+        @experiments[experiment][:alternatives]
       end
     end
   end
