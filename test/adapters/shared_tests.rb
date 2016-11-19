@@ -217,13 +217,10 @@ module Vanity::Adapters::SharedTests
             assert(@subject.ab_seen(experiment, identity, @alternative_instance))
           end
 
-          it 'returns nil if the identity is not assigned to the alternative' do
+          it 'returns a falsey value if the identity is not assigned to the alternative' do
             @subject.ab_add_participant(experiment, alternative, identity)
 
-            assert_equal(
-              nil,
-              @subject.ab_seen(experiment, identity, DummyAlternative.new(2))
-            )
+            refute(@subject.ab_seen(experiment, identity, DummyAlternative.new(2)))
           end
         end
 
