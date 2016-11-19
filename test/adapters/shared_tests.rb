@@ -46,7 +46,7 @@ module Vanity::Adapters::SharedTests
             assert_in_delta(
               time,
               @subject.get_metric_last_update_at(metric),
-              0.1
+              1.0
             )
           end
         end
@@ -101,7 +101,11 @@ module Vanity::Adapters::SharedTests
             time = Time.now
             @subject.set_experiment_created_at(experiment, time)
 
-            assert_equal(time, @subject.get_experiment_created_at(experiment))
+            assert_in_delta(
+              time,
+              @subject.get_experiment_created_at(experiment),
+              1.0
+            )
           end
         end
 
