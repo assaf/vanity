@@ -67,14 +67,14 @@ module Vanity::Adapters::SharedTests
             time_4 = Time.iso8601("2016-01-02T12:00:00+00:00")
             time_5 = Time.iso8601("2016-01-03T12:00:00+00:00")
 
-            @subject.metric_track(metric_name, time_1, identity, [1, 1])
-            @subject.metric_track(metric_name, time_2, identity, [2, 1])
-            @subject.metric_track(metric_name, time_3, identity, [3])
-            @subject.metric_track(metric_name, time_4, identity, [4, 10])
-            @subject.metric_track(metric_name, time_5, identity, [5])
+            @subject.metric_track(metric_name, time_1, identity, [1])
+            @subject.metric_track(metric_name, time_2, identity, [2])
+            @subject.metric_track(metric_name, time_3, identity, [4])
+            @subject.metric_track(metric_name, time_4, identity, [8])
+            @subject.metric_track(metric_name, time_5, identity, [16])
 
             assert_equal(
-              [[3, 2], [7, 10]],
+              [[3], [12]],
               @subject.metric_values(metric_name, time_1, time_4)
             )
           end
