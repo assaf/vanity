@@ -2,6 +2,8 @@ require 'time'
 
 module Vanity::Adapters::SharedTests
 
+  DummyAlternative = Struct.new(:id)
+
   def identity
     'test-identity'
   end
@@ -193,8 +195,6 @@ module Vanity::Adapters::SharedTests
         end
 
         describe '#ab_seen' do
-          DummyAlternative = Struct.new(:id)
-
           before do
             @alternative_instance = DummyAlternative.new(alternative)
           end
