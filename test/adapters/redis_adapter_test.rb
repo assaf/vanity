@@ -1,10 +1,17 @@
 require "test_helper"
+require 'adapters/shared_tests'
 
 describe Vanity::Adapters::RedisAdapter do
   before do
     require "redis"
     require "redis/namespace"
   end
+
+  def adapter
+    Vanity::Adapters::RedisAdapter.new({})
+  end
+
+  include Vanity::Adapters::SharedTests
 
   it "warns on disconnect error" do
     if defined?(Redis)
