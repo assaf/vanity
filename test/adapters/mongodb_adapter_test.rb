@@ -12,6 +12,8 @@ describe Vanity::Adapters::MongodbAdapter do
     Vanity::Adapters::MongodbAdapter.new(specification.to_h)
   end
 
-  include Vanity::Adapters::SharedTests
+  if ENV["DB"] == "mongodb"
+    include Vanity::Adapters::SharedTests
+  end
 
 end

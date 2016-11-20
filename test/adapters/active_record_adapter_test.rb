@@ -12,6 +12,8 @@ describe Vanity::Adapters::ActiveRecordAdapter do
     Vanity::Adapters::ActiveRecordAdapter.new(specification.to_h)
   end
 
-  include Vanity::Adapters::SharedTests
+  if ENV["DB"] == "active_record"
+    include Vanity::Adapters::SharedTests
+  end
 
 end
