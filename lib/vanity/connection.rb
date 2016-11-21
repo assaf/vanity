@@ -31,7 +31,7 @@ module Vanity
     #   )
     # @since 2.0.0
     def initialize(specification=nil)
-      @specification = specification || DEFAULT_SPECIFICATION
+      @specification = Specification.new(specification || DEFAULT_SPECIFICATION).to_h
 
       if Autoconnect.playground_should_autoconnect?
         @adapter = setup_connection(@specification)
@@ -54,47 +54,59 @@ module Vanity
 
     private
 
-    def setup_connection(spec)
-      case spec
-      when String
-        spec_hash = build_specification_hash_from_url(spec)
-        establish_connection(spec_hash)
-      when Hash
-        validate_specification_hash(spec)
-        if spec[:redis]
-          establish_connection(
-            adapter: :redis,
-            redis: spec[:redis]
-          )
-        else
-          establish_connection(spec)
-        end
-      else
-        raise InvalidSpecification.new("Unsupported connection specification: #{spec.inspect}")
-      end
-    end
-
-    def build_specification_hash_from_url(connection_url)
-      uri = URI.parse(connection_url)
-      params = CGI.parse(uri.query) if uri.query
-      {
-        adapter: uri.scheme,
-        username: uri.user,
-        password: uri.password,
-        host: uri.host,
-        port: uri.port,
-        path: uri.path,
-        params: params
-      }
-    end
-
-    def validate_specification_hash(spec)
-      all_symbol_keys = spec.keys.all? { |key| key.is_a?(Symbol) }
-      raise InvalidSpecification unless all_symbol_keys
+    def setup_connection(specification)
+      establish_connection(specification)
     end
 
     def establish_connection(spec)
       Adapters.establish_connection(spec)
+    end
+
+    class Specification
+      def initialize(spec)
+        case spec
+        when String
+          @spec = build_specification_hash_from_url(spec)
+        when Hash
+          if spec[:redis]
+            @spec = {
+              adapter: :redis,
+              redis: spec[:redis]
+            }
+          else
+            @spec = spec
+          end
+        else
+          raise InvalidSpecification.new("Unsupported connection specification: #{spec.inspect}")
+        end
+
+        validate_specification_hash(@spec)
+      end
+
+      def to_h
+        @spec
+      end
+
+      private
+
+      def validate_specification_hash(spec)
+        all_symbol_keys = spec.keys.all? { |key| key.is_a?(Symbol) }
+        raise InvalidSpecification unless all_symbol_keys
+      end
+
+      def build_specification_hash_from_url(connection_url)
+        uri = URI.parse(connection_url)
+        params = CGI.parse(uri.query) if uri.query
+        {
+          adapter: uri.scheme,
+          username: uri.user,
+          password: uri.password,
+          host: uri.host,
+          port: uri.port,
+          path: uri.path,
+          params: params
+        }
+      end
     end
   end
 end

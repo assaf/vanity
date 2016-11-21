@@ -87,7 +87,7 @@ module Vanity
 
       def metric_values(metric, from, to)
         single = @metrics.mget(*(from.to_date..to.to_date).map { |date| "#{metric}:#{date}:value:0" }) || []
-        single.map { |v| [v] }
+        single.map { |v| [v.to_i] }
       end
 
       def destroy_metric(metric)
