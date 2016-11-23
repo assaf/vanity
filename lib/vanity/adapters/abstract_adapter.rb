@@ -142,6 +142,16 @@ module Vanity
         fail "Not implemented"
       end
 
+      private
+
+      def with_ab_seen_deprecation(experiment, identity, alternative)
+        if alternative.respond_to?(:id)
+          Vanity.configuration.logger.warn(%q{Deprecated: #ab_seen should be passed the alternative id, not an Alternative instance})
+          yield experiment, identity, alternative.id
+        else
+          yield experiment, identity, alternative
+        end
+      end
     end
   end
 end

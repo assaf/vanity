@@ -200,9 +200,11 @@ module Vanity
       end
 
       # Determines if a participant already has seen this alternative in this experiment.
-      def ab_seen(experiment, identity, alternative)
-        participant = @participants.find(:experiment=>experiment, :identity=>identity).limit(1).projection(:seen=>1).first
-        participant && participant["seen"].first == alternative.id
+      def ab_seen(experiment, identity, alternative_or_id)
+        with_ab_seen_deprecation(experiment, identity, alternative_or_id) do |expt, ident, alt_id|
+          participant = @participants.find(:experiment=>expt, :identity=>ident).limit(1).projection(:seen=>1).first
+          participant && participant["seen"].first == alt_id
+        end
       end
 
       # Returns the participant's seen alternative in this experiment, if it exists

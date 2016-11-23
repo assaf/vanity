@@ -175,12 +175,14 @@ module Vanity
         end
       end
 
-      def ab_seen(experiment, identity, alternative)
-        call_redis_with_failover(experiment, identity, alternative) do
-          if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
-            alternative
-          else
-            nil
+      def ab_seen(experiment, identity, alternative_or_id)
+        with_ab_seen_deprecation(experiment, identity, alternative_or_id) do |expt, ident, alt_id|
+          call_redis_with_failover(expt, ident, alt_id) do
+            if @experiments.sismember "#{expt}:alts:#{alt_id}:participants", ident
+              alt_id
+            else
+              nil
+            end
           end
         end
       end

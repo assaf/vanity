@@ -137,9 +137,11 @@ module Vanity
         alt[:participants] << identity
       end
 
-      def ab_seen(experiment, identity, alternative)
-        if ab_assigned(experiment, identity) == alternative.id
-          alternative
+      def ab_seen(experiment, identity, alternative_or_id)
+        with_ab_seen_deprecation(experiment, identity, alternative_or_id) do |expt, ident, alt_id|
+          if ab_assigned(expt, ident) == alt_id
+            alt_id
+          end
         end
       end
 
