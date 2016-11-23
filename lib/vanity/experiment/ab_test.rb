@@ -635,7 +635,7 @@ module Vanity
         # if we have an on_assignment block, call it on new assignments
         if defined?(@on_assignment_block) && @on_assignment_block
           assignment = alternatives[index]
-          if !connection.ab_seen @id, identity, assignment
+          if !connection.ab_seen @id, identity, index
             @on_assignment_block.call(Vanity.context, identity, assignment, self)
           end
         end
