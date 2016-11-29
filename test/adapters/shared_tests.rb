@@ -207,20 +207,57 @@ module Vanity::Adapters::SharedTests
         end
 
         describe '#ab_seen' do
-          before do
-            @alternative_instance = DummyAlternative.new(alternative)
+          describe 'called with an Alternative instance' do
+            def capture_logs
+              require 'stringio'
+              original_logger = Vanity.configuration.logger
+              log_output = StringIO.new
+              Vanity.configuration.logger = Logger.new(log_output)
+              yield
+              log_output.string
+            ensure
+              Vanity.configuration.logger = original_logger
+            end
+
+            before do
+              @alternative_instance = DummyAlternative.new(alternative)
+            end
+
+            it 'emits a deprecation warning' do
+              @subject.ab_add_participant(experiment, alternative, identity)
+
+              out = capture_logs do
+                @subject.ab_seen(experiment, identity, @alternative_instance)
+              end
+
+              assert_match(/Deprecated/, out)
+            end
+
+            it 'returns a truthy value if the identity is assigned to the alternative' do
+              @subject.ab_add_participant(experiment, alternative, identity)
+
+              assert(@subject.ab_seen(experiment, identity, @alternative_instance))
+            end
+
+            it 'returns a falsey value if the identity is not assigned to the alternative' do
+              @subject.ab_add_participant(experiment, alternative, identity)
+
+              refute(@subject.ab_seen(experiment, identity, DummyAlternative.new(2)))
+            end
           end
 
-          it 'returns a truthy value if the identity is assigned to the alternative' do
-            @subject.ab_add_participant(experiment, alternative, identity)
+          describe 'called with an alternative id' do
+            it 'returns a truthy value if the identity is assigned to the alternative' do
+              @subject.ab_add_participant(experiment, alternative, identity)
 
-            assert(@subject.ab_seen(experiment, identity, @alternative_instance))
-          end
+              assert(@subject.ab_seen(experiment, identity, alternative))
+            end
 
-          it 'returns a falsey value if the identity is not assigned to the alternative' do
-            @subject.ab_add_participant(experiment, alternative, identity)
+            it 'returns a falsey value if the identity is not assigned to the alternative' do
+              @subject.ab_add_participant(experiment, alternative, identity)
 
-            refute(@subject.ab_seen(experiment, identity, DummyAlternative.new(2)))
+              refute(@subject.ab_seen(experiment, identity, 2))
+            end
           end
         end
 

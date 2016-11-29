@@ -108,12 +108,16 @@ describe Vanity do
           f.write(connection_config)
         end
 
-        Vanity.reset!
-        Vanity.disconnect!
-        Vanity::Connection.stubs(:new)
-        Vanity.connect!
+        out, _err = capture_io do
+          Vanity.reset!
+          Vanity.configuration.logger = Logger.new($stdout)
+          Vanity.disconnect!
+          Vanity::Connection.stubs(:new)
+          Vanity.connect!
+        end
 
         assert_equal false, Vanity.configuration.collecting
+        assert_match(/Deprecated/, out)
       end
     end
   end

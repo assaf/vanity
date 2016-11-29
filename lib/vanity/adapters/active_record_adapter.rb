@@ -255,9 +255,11 @@ module Vanity
       end
 
       # Determines if a participant already has seen this alternative in this experiment.
-      def ab_seen(experiment, identity, alternative)
-        participant = VanityParticipant.retrieve(experiment, identity, false)
-        participant && participant.seen == alternative.id
+      def ab_seen(experiment, identity, alternative_or_id)
+        with_ab_seen_deprecation(experiment, identity, alternative_or_id) do |expt, ident, alt_id|
+          participant = VanityParticipant.retrieve(expt, ident, false)
+          participant && participant.seen == alt_id
+        end
       end
 
       # Returns the participant's seen alternative in this experiment, if it exists
