@@ -236,14 +236,14 @@ module Vanity
             },
             :upsert=>true
           )
-        end
 
-        @experiments.find(:_id=>experiment).find_one_and_replace(
-          {
-            "$inc"=>{ "conversions.#{alternative}"=>count }
-          },
-          :upsert=>true
-        )
+          @experiments.find(:_id=>experiment).find_one_and_replace(
+            {
+              "$inc"=>{ "conversions.#{alternative}"=>count }
+            },
+            :upsert=>true
+          )
+        end
       end
 
       def ab_get_outcome(experiment)

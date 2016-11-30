@@ -278,8 +278,9 @@ module Vanity
         implicit = !!options[:implicit]
         metric_id = options[:metric_id] # unsupported for ActiveRecord
 
-        VanityParticipant.retrieve(experiment, identity, implicit, :converted => alternative, :seen => alternative)
-        VanityExperiment.retrieve(experiment).increment_conversion(alternative, count)
+        if VanityParticipant.retrieve(experiment, identity, implicit, :converted => alternative, :seen => alternative)
+          VanityExperiment.retrieve(experiment).increment_conversion(alternative, count)
+        end
       end
 
       # Returns the outcome of this experiment (if set), the index of a

@@ -225,9 +225,8 @@ module Vanity
 
           if implicit || participating
             @experiments.sadd "#{experiment_id}:alts:#{alternative}:metric:#{metric_id}:converted", identity
+            @experiments.incrby "#{experiment_id}:alts:#{alternative}:metric:#{metric_id}:conversions", count
           end
-
-          @experiments.incrby "#{experiment_id}:alts:#{alternative}:metric:#{metric_id}:conversions", count
         end
       end
 
