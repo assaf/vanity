@@ -107,8 +107,11 @@ module Vanity
         @conversion_metric = metric_id unless metric_id.nil?
         if @conversion_metric.nil? && @metrics.size == 1
           @conversion_metric = @metrics.first.id
+        elsif @conversion_metric
+          @conversion_metric
+        else
+          fail "If you use multiple metrics you must specify which one you're using with `conversion_metric :#{@metrics.first.id}`"
         end
-        @conversion_metric
       end
 
       # -- Alternatives --

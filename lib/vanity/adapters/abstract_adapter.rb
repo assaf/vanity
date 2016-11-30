@@ -48,72 +48,81 @@ module Vanity
 
       # -- Experiments --
 
-      def experiment_persisted?(experiment)
+      def experiment_persisted?(experiment_id)
         fail "Not implemented"
       end
 
       # Store when experiment was created (do not write over existing value).
-      def set_experiment_created_at(experiment, time)
+      def set_experiment_created_at(experiment_id, time)
         fail "Not implemented"
       end
 
       # Return when experiment was created.
-      def get_experiment_created_at(experiment)
+      def get_experiment_created_at(experiment_id)
         fail "Not implemented"
       end
 
       # Returns true if experiment completed.
-      def is_experiment_completed?(experiment)
+      def is_experiment_completed?(experiment_id)
         fail "Not implemented"
       end
 
       # Store whether an experiment is enabled or not
-      def set_experiment_enabled(experiment, enabled)
+      def set_experiment_enabled(experiment_id, enabled)
         fail "Not implemented"
       end
 
       # Returns true if experiment is enabled, the default (Vanity.configuration.experiments_start_enabled) is true.
       # (*except for mock_adapter, where default is true for testing)
-      def is_experiment_enabled?(experiment)
+      def is_experiment_enabled?(experiment_id)
         fail "Not implemented"
       end
 
-      # Returns counts for given A/B experiment and alternative (by index).
+      # Returns counts for given A/B experiment (actual object) and alternative (by index).
       # Returns hash with values for the keys :participants, :converted and
       # :conversions.
       def ab_counts(experiment, alternative)
         fail "Not implemented"
       end
 
+      # Returns counts by metric for a given A/B experiment (actual object) & alternative (by index).
+      # Returns a hash with keys metric id and values that are hashes like {added_to_cart: {converted: x, conversions: y}}
+      # Keep in mind that "converted" is unique conversions while "conversions" is a total tally (or
+      # you could set it up to track dollar sales or something like that)
+      # only really supported for redis adapter
+      def ab_counts_by_metric(experiment, alternative)
+        fail "Not implemented"
+      end
+
       # Pick particular alternative (by index) to show to this particular
       # participant (by identity).
-      def ab_show(experiment, identity, alternative)
+      def ab_show(experiment_id, identity, alternative)
         fail "Not implemented"
       end
 
       # Indicates which alternative to show to this participant. See #ab_show.
-      def ab_showing(experiment, identity)
+      def ab_showing(experiment_id, identity)
         fail "Not implemented"
       end
 
       # Cancels previously set association between identity and alternative. See
       # #ab_show.
-      def ab_not_showing(experiment, identity)
+      def ab_not_showing(experiment_id, identity)
         fail "Not implemented"
       end
 
       # Records a participant in this experiment for the given alternative.
-      def ab_add_participant(experiment, alternative, identity)
+      def ab_add_participant(experiment_id, alternative, identity)
         fail "Not implemented"
       end
 
       # Determines if a participant already has seen this alternative in this experiment.
-      def ab_seen(experiment, identity, assignment)
+      def ab_seen(experiment_id, identity, assignment)
         fail "Not implemented"
       end
 
       # Determines what alternative a participant has already been given, if any
-      def ab_assigned(experiment, identity)
+      def ab_assigned(experiment_id, identity)
         fail "Not implemented"
       end
 
@@ -122,23 +131,23 @@ module Vanity
       # true, add particpant if not already recorded for this experiment. If
       # implicit is false (default), only add conversion is participant
       # previously recorded as participating in this experiment.
-      def ab_add_conversion(experiment, alternative, identity, options={})
+      def ab_add_conversion(experiment_id, alternative, identity, options={})
         fail "Not implemented"
       end
 
       # Returns the outcome of this expriment (if set), the index of a
       # particular alternative.
-      def ab_get_outcome(experiment)
+      def ab_get_outcome(experiment_id)
         fail "Not implemented"
       end
 
       # Sets the outcome of this experiment to a particular alternative.
-      def ab_set_outcome(experiment, alternative = 0)
+      def ab_set_outcome(experiment_id, alternative = 0)
         fail "Not implemented"
       end
 
       # Deletes all information about this experiment.
-      def destroy_experiment(experiment)
+      def destroy_experiment(experiment_id)
         fail "Not implemented"
       end
 

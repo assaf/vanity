@@ -219,15 +219,28 @@ module Vanity
       # Returns hash with values for the keys :participants, :converted and
       # :conversions.
       def ab_counts(experiment, alternative)
-        record = VanityExperiment.retrieve(experiment)
-        participants = VanityParticipant.where(:experiment_id => experiment.to_s, :seen => alternative).count
-        converted = VanityParticipant.where(:experiment_id => experiment.to_s, :converted => alternative).count
-        conversions = record.vanity_conversions.where(:alternative => alternative).sum(:conversions)
+        participants = VanityParticipant.where(:experiment_id => experiment.id, :seen => alternative).count
+        converted = VanityParticipant.where(:experiment_id => experiment.id, :converted => alternative).count
+        conversions = experiment.vanity_conversions.where(:alternative => alternative).sum(:conversions)
 
         {
           :participants => participants,
           :converted => converted,
           :conversions => conversions
+        }
+      end
+
+      def ab_counts_by_metric(experiment, alternative)
+        # not really supported for activerecord so fake it
+        metric_id = experiment.conversion_metric
+        converted = VanityParticipant.where(:experiment_id => experiment.id, :converted => alternative).count
+        conversions = experiment.vanity_conversions.where(:alternative => alternative).sum(:conversions)
+
+        {
+          metric_id.to_sym => {
+            :converted => converted,
+            :conversions => conversions
+          }
         }
       end
 
