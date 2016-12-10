@@ -1,3 +1,12 @@
+== Unreleased
+
+== 2.2.7 (2016-12-21)
+* Fix 'base 17' typo, correct id bucketing (#308, @bazzargh)
+* Update docs about `rebalance_frequency`  (#310, @sdhull)
+* Resolve Rails 5 deprecation warning for Mime::HTML (#313, @terracatta)
+* Update MockAdapter and testing using it (#316, #309 @urbanautomaton)
+* Deprecate calling #ab_seen with alternative instance (#317, @urbanautomaton)
+
 == 2.2.6 (2016-10-04)
 * Fixes for `Vanity.ab_test()` vs.  view helper `ab_test` (@phillbaker)
 
