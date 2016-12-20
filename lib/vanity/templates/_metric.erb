@@ -1,14 +1,18 @@
 <h3><%=vanity_h metric.name %></h3>
 <%= vanity_simple_format(vanity_h(metric.description), :class=>"description") %>
+<%- metric_data = Vanity::Metric.data(metric) %>
 <%= vanity_html_safe(%Q{<div class="chart"></div>
     <script type="text/javascript">
     $(function() {
       Vanity.metric("#{vanity_h(id)}")
         .plot([{
           label:"#{vanity_h(metric.name)}",
-          data: [#{Vanity::Metric.data(metric).map { |date,value| "['#{date.to_time.httpdate}',#{value}]" }.join(",")}]
+          data: [#{metric_data.map { |date,value| "['#{date.to_time.httpdate}',#{value}]" }.join(",")}]
         }])
     })
     </script>}
-  )
+    )
 %>
+<%- sum = 0 %>
+<%- metric_data.each{|data|sum += data[1]} %>
+<%= "#{I18n.t('vanity.templates.metric.sum')}: #{sum}" %>
