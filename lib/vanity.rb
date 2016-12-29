@@ -27,6 +27,7 @@ require "vanity/experiment/ab_test"
 # Database adapters
 require "vanity/adapters/abstract_adapter"
 require "vanity/adapters/mock_adapter"
+require "vanity/adapters/active_record_adapter"
 # Playground.
 require "vanity/playground"
 require "vanity/autoconnect"
