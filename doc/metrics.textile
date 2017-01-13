@@ -128,7 +128,7 @@ This example tracks when accounts were created or upgraded to unlimited plan:
 metric "Signups (Unlimited)" do
   description "Signups to our All You Can Eat and Burp Unlimited plan (including upgrades)."
   Account.after_save do |account|
-    track! if account.plan_type_changed? && account.plan_type == 'unlimited'
+    Vanity.track!(:signup) if account.plan_type_changed? && account.plan_type == 'unlimited'
   end
 end
 </pre>
