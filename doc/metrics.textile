@@ -93,7 +93,7 @@ Some metrics measure values, not occurrences.  For example, this metric measures
 
 <pre>
 metric "Satisfaction Survey" do
-  description "Measures how many people signed up for our awesome service."
+  description "Measures how satisfied people are with our service."
   model Survey, :average=>:rating
 end
 </pre>
