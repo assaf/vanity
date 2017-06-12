@@ -292,7 +292,7 @@ module Vanity
 
       # Deletes all information about this experiment.
       def destroy_experiment(experiment)
-        VanityParticipant.delete_all(:experiment_id => experiment.to_s)
+        VanityParticipant.where(:experiment_id => experiment.to_s).delete_all
         record = VanityExperiment.find_by_experiment_id(experiment.to_s)
         record && record.destroy
       end
