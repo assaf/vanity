@@ -43,11 +43,15 @@ module Vanity
       def use_vanity(method_name = nil, &block)
         define_method(:vanity_identity_block) { block }
         define_method(:vanity_identity_method) { method_name }
-
-        around_filter :vanity_context_filter
-        before_filter :vanity_reload_filter unless ::Rails.configuration.cache_classes
-        before_filter :vanity_query_parameter_filter
-        after_filter :vanity_track_filter
+        unless respond_to?(:before_action)
+          alias_method :before_action, :before_filter
+          alias_method :around_action, :around_filter
+          alias_method :after_action, :after_filter
+        end
+          around_action :vanity_context_filter
+          before_action :vanity_reload_filter unless ::Rails.configuration.cache_classes
+          before_action :vanity_query_parameter_filter
+          after_action :vanity_track_filter 
       end
       protected :use_vanity
     end
