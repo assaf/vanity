@@ -44,10 +44,11 @@ module Vanity
         define_method(:vanity_identity_block) { block }
         define_method(:vanity_identity_method) { method_name }
 
-        around_filter :vanity_context_filter
-        before_filter :vanity_reload_filter unless ::Rails.configuration.cache_classes
-        before_filter :vanity_query_parameter_filter
-        after_filter :vanity_track_filter
+        callback_method_name = respond_to?(:before_action) ? :action : :filter
+        send(:"around_#{callback_method_name}", :vanity_context_filter)
+        send(:"before_#{callback_method_name}", :vanity_reload_filter) unless ::Rails.configuration.cache_classes
+        send(:"before_#{callback_method_name}", :vanity_query_parameter_filter)
+        send(:"after_#{callback_method_name}", :vanity_track_filter)
       end
       protected :use_vanity
     end
