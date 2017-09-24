@@ -1,5 +1,8 @@
 == Unreleased
 
+== 2.2.8 (2017-09-26)
+* Rails 5.1 compatibility (#326, #327, #330, @sebjacobs, @bensheldon, @terracatta)
+
 == 2.2.7 (2016-12-21)
 * Fix 'base 17' typo, correct id bucketing (#308, @bazzargh)
 * Update docs about `rebalance_frequency`  (#310, @sdhull)
