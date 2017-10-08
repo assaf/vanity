@@ -1,3 +1,5 @@
+require "vanity/adapters/active_record_adapter"
+
 class VanityMigration < ActiveRecord::Migration
   # Helper methods to ensure we're connecting to the right database, see
   # https://github.com/assaf/vanity/issues/295.
