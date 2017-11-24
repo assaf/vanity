@@ -9,13 +9,34 @@ Vanity is an A/B testing framework for Rails that is datastore agnostic.
 
 [![Dashboard](doc/images/sidebar_test.png)](http://github.com/assaf/vanity)
 
-## A/B Testing With Rails
+<!-- toc -->
 
-### **Step 1:** Start using Vanity in your Rails application
+- [Installation](#installation)
+- [Setup](#setup)
+  * [Datastore](#datastore)
+    + [Redis Setup](#redis-setup)
+    + [MongoDB Setup](#mongodb-setup)
+    + [SQL Database Setup](#sql-database-setup)
+    + [Forking servers and reconnecting](#forking-servers-and-reconnecting)
+  * [Initialization](#initialization)
+  * [User identification](#user-identification)
+    + [Rails](#rails)
+    + [Other](#other)
+  * [Define a A/B test](#define-a-ab-test)
+  * [Present the different options to your users](#present-the-different-options-to-your-users)
+  * [Measure conversion](#measure-conversion)
+  * [Check the report](#check-the-report)
+    + [Rails report dashboard](#rails-report-dashboard)
+- [Registering participants with Javascript](#registering-participants-with-javascript)
+- [Compatibility](#compatibility)
+- [Testing](#testing)
+- [Updating documentation](#updating-documentation)
+- [Contributing](#contributing)
+- [Credits/License](#creditslicense)
 
-#### Step 1.1
+<!-- tocstop -->
 
-##### Rails 3 & Rails 4 installation
+## Installation
 
 Add to your Gemfile:
 
@@ -26,14 +47,16 @@ gem "vanity"
 (For support for older versions of Rails and Ruby 1.8, please see the [1.9.x
 branch](https://github.com/assaf/vanity/tree/1-9-stable).)
 
-#### Step 1.2
+## Setup
+
+### Datastore
 
 Choose a datastore that best fits your needs and preferences for storing
 experiment results. Choose one of: Redis, MongoDB or an SQL database. While
 Redis is usually faster, it may add additional complexity to your stack.
 Datastores should be configured using a `config/vanity.yml`.
 
-##### Redis Setup
+#### Redis Setup
 
 Add to your Gemfile:
 
@@ -73,7 +96,7 @@ Vanity.connect!(
 )
 ```
 
-##### MongoDB Setup
+#### MongoDB Setup
 
 Add to your Gemfile:
 
@@ -94,7 +117,7 @@ production:
   database: analytics
 ```
 
-##### SQL Database Setup
+#### SQL Database Setup
 
 Vanity supports multiple SQL stores (like MySQL, MariaDB, Postgres, Sqlite,
 etc.) using ActiveRecord, which is built into Rails. If you're using
@@ -133,7 +156,7 @@ $ rails generate vanity
 $ rake db:migrate
 ```
 
-##### Forking servers and reconnecting
+#### Forking servers and reconnecting
 
 If you're using a forking server (like Passenger or Unicorn), you should
 reconnect after a new worker is created:
@@ -165,7 +188,25 @@ Vanity.connect!(
 )
 ```
 
-#### Step 1.3
+### Initialization
+
+If you're using Rails, this is done automagically. Otherwise, some manual setup is required, for example on an app's booting:
+
+```
+$redis = Redis.new # or from elsewhere
+Vanity.configure do |config|
+  # ... any config
+end
+Vanity.connect!(
+  adapter: :redis,
+  redis: $redis
+)
+Vanity.load!
+```
+
+### User identification
+
+#### Rails
 
 Turn Vanity on, and pass a reference to a method that identifies a user. For
 example:
@@ -179,7 +220,28 @@ end
 For more information, please see the [identity
 documentation](http://vanity.labnotes.org/identity.html).
 
-### **Step 2:** Define your first A/B test
+#### Other
+
+Vanity pulls the identity from a "context" object that responds to `vanity_identity`, so we need to define a `Vanity.context` (this is how the [ActionMailer integration](https://github.com/assaf/vanity/blob/master/lib/vanity/frameworks/rails.rb#L107-L133) works):
+
+```
+class AVanityContext
+  def vanity_identity
+    "123"
+  end
+end
+
+Vanity.context = AVanityContext.new() # Any object that responds to `#vanity_identity`
+```
+
+If you're using plain ruby objects, you could also alias something in your identity model to respond similarly and then set that as the vanity context:
+```
+class User
+  alias_method :vanity_identity, :id
+end
+```
+
+### Define a A/B test
 
 This experiment goes in the file `experiments/price_options.rb`:
 
@@ -200,15 +262,25 @@ metric "Signup (Activation)" do
 end
 ```
 
-### **Step 3:** Present the different options to your users
+### Present the different options to your users
+
+In Rails' templates, this is straightforward:
 
 ```erb
 <h2>Get started for only $<%= ab_test :price_options %> a month!</h2>
 ```
 
-### **Step 4:** Measure conversion
+Outside of templates:
 
-Conversions are created via the `Vanity.track!` method. For example:
+```
+Vanity.ab_test(:invite_subject)
+```
+
+### Measure conversion
+
+Conversions are created via the `Vanity.track!` method. A user should already be added to an experiment, via `ab_test` before this is called - otherwise, the conversion will be tracked, but the user will not be added to the experiment.
+
+For example, in Rails:
 
 ```ruby
 class SignupController < ApplicationController
@@ -224,11 +296,25 @@ class SignupController < ApplicationController
 end
 ```
 
-### **Step 5:** Check the report:
+Outside of an Rails controller, for example in a Rack handler:
+
+```
+identity_object = Identity.new(env['rack.session'])
+Vanity.track!(:click, {
+  # can be any object that responds to `to_s` with a string
+  # that contains the unique identifier or the string identifier itself
+  :identity=>identity_object,
+  :values=>[1] # optional
+})
+```
+
+### Check the report
 
 ```sh
 vanity report --output vanity.html
 ```
+
+#### Rails report dashboard
 
 To view metrics and experiment results with the dashboard in Rails 3 & Rails
 4:
