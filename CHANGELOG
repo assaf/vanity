@@ -1,5 +1,9 @@
 == Unreleased
 
+== 2.2.9 (2018-02-03)
+
+* Fix race condition using the activerecord adapater when vanity creates experiments or rows in the conversions table (@fcheung)
+
 == 2.2.8 (2017-09-26)
 * Rails 5.1 compatibility (#326, #327, #330, @sebjacobs, @bensheldon, @terracatta)
 
