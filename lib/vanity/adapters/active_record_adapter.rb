@@ -19,10 +19,20 @@ module Vanity
         end
 
         def self.rails_agnostic_find_or_create_by(method, value)
-          if respond_to? :find_or_create_by
-            find_or_create_by(method => value)
-          else
-            send :"find_or_create_by_#{method}", value
+          retried = false
+          begin
+            if respond_to? :find_or_create_by
+              find_or_create_by(method => value)
+            else
+              send :"find_or_create_by_#{method}", value
+            end
+          rescue ActiveRecord::RecordNotUnique
+            if retried
+              raise
+            else
+              retried = true
+              retry
+            end
           end
         end
       end
