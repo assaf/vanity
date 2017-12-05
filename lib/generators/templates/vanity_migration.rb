@@ -38,14 +38,14 @@ class VanityMigration < ActiveRecord::Migration
         t.datetime :created_at
         t.datetime :completed_at
       end
-      add_index :vanity_experiments, [:experiment_id]
+      add_index :vanity_experiments, [:experiment_id], :unique => true
 
       create_table :vanity_conversions do |t|
         t.integer :vanity_experiment_id
         t.integer :alternative
         t.integer :conversions
       end
-      add_index :vanity_conversions, [:vanity_experiment_id, :alternative], :name => "by_experiment_id_and_alternative"
+      add_index :vanity_conversions, [:vanity_experiment_id, :alternative], :name => "by_experiment_id_and_alternative", :unique => true
 
       create_table :vanity_participants do |t|
         t.string :experiment_id
