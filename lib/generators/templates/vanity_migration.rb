@@ -56,7 +56,7 @@ class VanityMigration < ActiveRecord::Migration
         t.timestamps null: false
       end
       add_index :vanity_participants, [:experiment_id]
-      add_index :vanity_participants, [:experiment_id, :identity], :name => "by_experiment_id_and_identity"
+      add_index :vanity_participants, [:experiment_id, :identity], :name => "by_experiment_id_and_identity", :unique => true
       add_index :vanity_participants, [:experiment_id, :shown], :name => "by_experiment_id_and_shown"
       add_index :vanity_participants, [:experiment_id, :seen], :name => "by_experiment_id_and_seen"
       add_index :vanity_participants, [:experiment_id, :converted], :name => "by_experiment_id_and_converted"
