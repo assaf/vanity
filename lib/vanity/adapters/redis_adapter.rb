@@ -72,7 +72,7 @@ module Vanity
       # -- Metrics --
 
       def get_metric_last_update_at(metric)
-        last_update_at = @metrics["#{metric}:last_update_at"]
+        last_update_at = @metrics.get("#{metric}:last_update_at")
         last_update_at && Time.at(last_update_at.to_i)
       end
 
@@ -81,7 +81,7 @@ module Vanity
           values.each_with_index do |v,i|
             @metrics.incrby "#{metric}:#{timestamp.to_date}:value:#{i}", v
           end
-          @metrics["#{metric}:last_update_at"] = Time.now.to_i
+          @metrics.set("#{metric}:last_update_at", Time.now.to_i)
         end
       end
 
@@ -98,7 +98,7 @@ module Vanity
       # -- Experiments --
 
       def experiment_persisted?(experiment)
-        !!@experiments["#{experiment}:created_at"]
+        !!@experiments.get("#{experiment}:created_at")
       end
 
       def set_experiment_created_at(experiment, time)
@@ -108,7 +108,7 @@ module Vanity
       end
 
       def get_experiment_created_at(experiment)
-        created_at = @experiments["#{experiment}:created_at"]
+        created_at = @experiments.get("#{experiment}:created_at")
         created_at && Time.at(created_at.to_i)
       end
 
@@ -117,7 +117,7 @@ module Vanity
       end
 
       def get_experiment_completed_at(experiment)
-        completed_at = @experiments["#{experiment}:completed_at"]
+        completed_at = @experiments.get("#{experiment}:completed_at")
         completed_at && Time.at(completed_at.to_i)
       end
 
@@ -134,7 +134,7 @@ module Vanity
       end
 
       def is_experiment_enabled?(experiment)
-        value = @experiments["#{experiment}:enabled"]
+        value = @experiments.get("#{experiment}:enabled")
         if Vanity.configuration.experiments_start_enabled
           value != 'false'
         else
@@ -146,19 +146,19 @@ module Vanity
         {
           :participants => @experiments.scard("#{experiment}:alts:#{alternative}:participants").to_i,
                 :converted    => @experiments.scard("#{experiment}:alts:#{alternative}:converted").to_i,
-          :conversions  => @experiments["#{experiment}:alts:#{alternative}:conversions"].to_i
+          :conversions  => @experiments.get("#{experiment}:alts:#{alternative}:conversions").to_i
         }
       end
 
       def ab_show(experiment, identity, alternative)
         call_redis_with_failover do
-          @experiments["#{experiment}:participant:#{identity}:show"] = alternative
+          @experiments.set("#{experiment}:participant:#{identity}:show", alternative)
         end
       end
 
       def ab_showing(experiment, identity)
         call_redis_with_failover do
-          alternative = @experiments["#{experiment}:participant:#{identity}:show"]
+          alternative = @experiments.get("#{experiment}:participant:#{identity}:show")
           alternative && alternative.to_i
         end
       end
@@ -212,7 +212,7 @@ module Vanity
       end
 
       def ab_get_outcome(experiment)
-        alternative = @experiments["#{experiment}:outcome"]
+        alternative = @experiments.get("#{experiment}:outcome")
         alternative && alternative.to_i
       end
 
