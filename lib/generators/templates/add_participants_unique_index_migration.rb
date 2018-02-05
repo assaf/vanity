@@ -17,12 +17,8 @@ class AddParticipansUniqueIndexMigration < ActiveRecord::Migration
 
   def change
     with_vanity_connection do
-      remove_index :vanity_experiments, [:experiment_id]
-      add_index :vanity_experiments, [:experiment_id], :unique => true
-
-      remove_index :vanity_conversions, :name => "by_experiment_id_and_alternative", :unique => true
-      add_index :vanity_conversions, [:vanity_experiment_id, :alternative], :name => "by_experiment_id_and_alternative", :unique => true
+      remove_index :vanity_participants, :name => "by_experiment_id_and_identity"
+      add_index :vanity_participants, [:experiment_id, :identity], :name => "by_experiment_id_and_alternative", :unique => true
     end
   end
-
 end
