@@ -14,6 +14,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     RedCloth (4.2.9)
+    RedCloth (4.2.9-java)
     actionmailer (4.2.0)
       actionpack (= 4.2.0)
       actionview (= 4.2.0)
@@ -43,6 +44,8 @@ GEM
       activemodel (= 4.2.0)
       activesupport (= 4.2.0)
       arel (~> 6.0)
+    activerecord-jdbc-adapter (1.3.15)
+      activerecord (>= 2.2)
     activesupport (4.2.0)
       i18n (~> 0.7)
       json (~> 1.7, >= 1.7.7)
@@ -57,6 +60,7 @@ GEM
     arel (6.0.3)
     blankslate (2.1.2.4)
     bson (4.0.2)
+    bson (4.0.2-java)
     builder (3.2.2)
     classifier-reborn (2.0.3)
       fast-stemmer (~> 1.0)
@@ -83,6 +87,7 @@ GEM
     hashdiff (0.2.3)
     i18n (0.7.0)
     integration (0.1.0)
+    jdbc-sqlite3 (3.8.7)
     jekyll (2.5.3)
       classifier-reborn (~> 2.0)
       colorator (~> 0.1)
@@ -106,6 +111,8 @@ GEM
       sass (~> 3.4)
     jekyll-watch (1.3.0)
       listen (~> 3.0)
+    json (1.8.2)
+    json (1.8.2-java)
     json (1.8.3)
     kramdown (1.9.0)
     liquid (2.6.2)
@@ -120,12 +127,16 @@ GEM
     metaclass (0.0.4)
     method_source (0.8.2)
     mime-types (2.99)
+    mini_portile (0.6.2)
     mini_portile2 (2.0.0)
     minitest (5.8.3)
     mocha (1.1.0)
       metaclass (~> 0.0.1)
     mongo (2.2.3)
       bson (~> 4.0)
+    nokogiri (1.6.5)
+      mini_portile (~> 0.6.0)
+    nokogiri (1.6.5-java)
     nokogiri (1.6.7.1)
       mini_portile2 (~> 2.0.0.rc2)
     parslet (1.5.0)
@@ -193,6 +204,8 @@ GEM
       sprockets (>= 3.0.0)
     sqlite3 (1.3.11)
     thor (0.19.1)
+    thread_safe (0.3.4)
+    thread_safe (0.3.4-java)
     thread_safe (0.3.5)
     timecop (0.8.0)
     toml (0.1.2)
@@ -207,6 +220,7 @@ GEM
     yard (0.8.7.6)
 
 PLATFORMS
+  java
   ruby
 
 DEPENDENCIES
