@@ -102,12 +102,22 @@ module Vanity
         # passed then this will be passed to create if creating, or will be
         # used to update the found participant.
         def self.retrieve(experiment, identity, create = true, update_with = nil)
-          if record = VanityParticipant.where(:experiment_id=>experiment.to_s, :identity=>identity.to_s).first
-            record.update_attributes(update_with) if update_with
-          elsif create
-            record = VanityParticipant.create({ :experiment_id=>experiment.to_s, :identity=>identity.to_s }.merge(update_with || {}))
+          retried = false
+          begin
+            if record = VanityParticipant.where(:experiment_id => experiment.to_s, :identity => identity.to_s).first
+              record.update_attributes(update_with) if update_with
+            elsif create
+              record = VanityParticipant.create({ :experiment_id => experiment.to_s, :identity => identity.to_s }.merge(update_with || {}))
+            end
+            record
+          rescue ActiveRecord::RecordNotUnique => e
+            if retried
+              raise e
+            else
+              retried = true
+              retry
+            end
           end
-          record
         end
       end
 
