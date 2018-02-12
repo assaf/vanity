@@ -5,9 +5,9 @@ GIT
     fastthread (1.0.7)
 
 PATH
-  remote: ..
+  remote: ../
   specs:
-    vanity (2.2.9)
+    vanity (2.2.10)
       i18n
 
 GEM
@@ -239,4 +239,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   1.11.2
+   1.13.0

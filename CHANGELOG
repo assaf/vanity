@@ -1,5 +1,10 @@
 == Unreleased
 
+== 2.2.10 (2018-03-18)
+
+* Fix broken table size in report dashboard (#339) (@ilyasovd)
+* Prevent dupe participation in same experiment (#335)(@pihman)
+
 == 2.2.9 (2018-02-03)
 
 * Fix race condition using the activerecord adapater when vanity creates experiments or rows in the conversions table (@fcheung)
