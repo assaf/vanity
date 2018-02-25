@@ -81,7 +81,7 @@ module Vanity
 
       # -- Metric --
 
-      # Tells A/B test which metric we're measuring, or returns metric in use.
+      # Tells A/B test which metrics we're tracking, or returns metrics in use.
       #
       # @example Define A/B test against coolness metric
       #   ab_test "Background color" do
@@ -93,6 +93,25 @@ module Vanity
       def metrics(*args)
         @metrics = args.map { |id| @playground.metric(id) } unless args.empty?
         @metrics
+      end
+
+      # Tells A/B test which metric will decide the outcome of the test
+      #
+      # @example Define A/B test against coolness metric
+      #   ab_test "Background color" do
+      #     metrics :coolness, :aloofness
+      #     conversion_metric :aloofness
+      #     alternatives "red", "blue", "orange"
+      #   end
+      def conversion_metric(metric_id=nil)
+        @conversion_metric = metric_id unless metric_id.nil?
+        if @conversion_metric.nil? && @metrics.size == 1
+          @conversion_metric = @metrics.first.id
+        elsif @conversion_metric
+          @conversion_metric
+        else
+          fail "If you use multiple metrics you must specify which one you're using with `conversion_metric :#{@metrics.first.id}`"
+        end
       end
 
       # -- Alternatives --
@@ -552,7 +571,7 @@ module Vanity
         if identity
           return if connection.ab_showing(@id, identity)
           index = alternative_for(identity)
-          connection.ab_add_conversion(@id, index, identity, count)
+          connection.ab_add_conversion(@id, index, identity, count: count, metric_id: metric_id)
           check_completion!
         end
       end

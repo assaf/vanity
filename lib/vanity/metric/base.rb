@@ -187,7 +187,7 @@ module Vanity
     #  -- Reporting --
 
     # Human readable metric name. All metrics must implement this method.
-    attr_reader :name
+    attr_reader :name, :id
     alias :to_s :name
 
     # Human readable description. Use two newlines to break paragraphs.

@@ -160,11 +160,22 @@ module Vanity
       end
 
       def ab_counts(experiment, alternative)
-        record = @experiments.find(:_id=>experiment ).limit(1).projection(:conversions=>1).first
+        record = @experiments.find(:_id=>experiment.id ).limit(1).projection(:conversions=>1).first
         conversions = record && record["conversions"]
-        { :participants => @participants.find({ :experiment=>experiment, :seen=>alternative }).count,
-          :converted    => @participants.find({ :experiment=>experiment, :converted=>alternative }).count,
+        { :participants => @participants.find({ :experiment=>experiment.id, :seen=>alternative }).count,
+          :converted    => @participants.find({ :experiment=>experiment.id, :converted=>alternative }).count,
           :conversions  => conversions && conversions[alternative.to_s] || 0 }
+      end
+
+      def ab_counts_by_metric(experiment, alternative)
+        # not really supported for mongo so fake it
+        metric_id = experiment.conversion_metric
+        {
+          metric_id.to_sym => {
+            :converted    => @participants.find({ :experiment=>experiment.id, :converted=>alternative }).count,
+            :conversions  => conversions && conversions[alternative.to_s] || 0
+          }
+        }
       end
 
       def ab_show(experiment, identity, alternative)
@@ -213,7 +224,11 @@ module Vanity
         participant && participant["seen"].first
       end
 
-      def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
+      def ab_add_conversion(experiment, alternative, identity, options={})
+        count = options[:count] || 1
+        implicit = !!options[:implicit]
+        metric_id = options[:metric_id] # unsupported for mongodb
+
         if implicit
           @participants.find(:experiment=>experiment, :identity=>identity).find_one_and_replace(
             {
@@ -232,14 +247,14 @@ module Vanity
             },
             :upsert=>true
           )
-        end
 
-        @experiments.find(:_id=>experiment).find_one_and_replace(
-          {
-            "$inc"=>{ "conversions.#{alternative}"=>count }
-          },
-          :upsert=>true
-        )
+          @experiments.find(:_id=>experiment).find_one_and_replace(
+            {
+              "$inc"=>{ "conversions.#{alternative}"=>count }
+            },
+            :upsert=>true
+          )
+        end
       end
 
       def ab_get_outcome(experiment)
