@@ -11,23 +11,20 @@ services:
   - mongodb
   - redis-server
 rvm:
-  - 2.1
-  - 2.2.2
-  - 2.3.0
-  - jruby-9.1.7.0
+  - 2.3
+  - 2.4
+  - jruby-9.1.13.0
 env:
   - DB=mongodb
   - DB=redis
   - DB=active_record
 gemfile:
-  - gemfiles/rails32.gemfile
-  - gemfiles/rails41.gemfile
   - gemfiles/rails42.gemfile
   - gemfiles/rails42_protected_attributes.gemfile
   - gemfiles/rails5.gemfile
 matrix:
+  allow_failures:
+    - rvm: jruby-9.1.13.0
   exclude:
-    - rvm: 2.1
-      gemfile: gemfiles/rails5.gemfile
-    - rvm: jruby-9.1.7.0
+    - rvm: jruby-9.1.13.0
       gemfile: gemfiles/rails5.gemfile

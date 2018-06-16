@@ -529,12 +529,12 @@ class AbTestTest < ActionController::TestCase
       identify { "6e98ec" }
       metrics :coolness
     end
-    assert_equal nil, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, "6e98ec")
+    assert_nil experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, "6e98ec")
     assert id = experiment(:foobar).choose.id
     assert_equal id, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, "6e98ec")
   end
 
-  def test_ab_assigned
+  def test_ab_assigned_object
     identity = { :a => :b }
     new_ab_test :foobar do
       alternatives "foo", "bar"
@@ -542,7 +542,7 @@ class AbTestTest < ActionController::TestCase
       identify { identity }
       metrics :coolness
     end
-    assert_equal nil, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, identity)
+    assert_nil experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, identity)
     assert id = experiment(:foobar).choose.id
     assert_equal id, experiment(:foobar).playground.connection.ab_assigned(experiment(:foobar).id, identity)
   end

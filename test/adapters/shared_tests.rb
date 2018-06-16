@@ -272,8 +272,7 @@ module Vanity::Adapters::SharedTests
           end
 
           it 'returns nil if the identity has no assignment' do
-            assert_equal(
-              nil,
+            assert_nil(
               @subject.ab_assigned(experiment, identity)
             )
           end
@@ -301,8 +300,7 @@ module Vanity::Adapters::SharedTests
           end
 
           it 'returns nil otherwise' do
-            assert_equal(
-              nil,
+            assert_nil(
               @subject.ab_get_outcome(experiment)
             )
           end
@@ -324,8 +322,7 @@ module Vanity::Adapters::SharedTests
             @subject.ab_show(experiment, identity, alternative)
             @subject.ab_not_showing(experiment, identity)
 
-            assert_equal(
-              nil,
+            assert_nil(
               @subject.ab_showing(experiment, identity)
             )
           end
