@@ -75,7 +75,7 @@ describe Vanity::Adapters::RedisAdapter do
 
   it "gracefully fails in #ab_show" do
     redis_adapter, mocked_redis = stub_redis
-    mocked_redis.stubs(:[]=).raises(RuntimeError)
+    mocked_redis.stubs(:set).raises(RuntimeError)
 
     assert_silent do
       redis_adapter.ab_show("price_options", "3ff62e2fb51f0b22646a342a2d357aec", 0)
@@ -84,7 +84,7 @@ describe Vanity::Adapters::RedisAdapter do
 
   it "gracefully fails in #ab_showing" do
     redis_adapter, mocked_redis = stub_redis
-    mocked_redis.stubs(:[]).raises(RuntimeError)
+    mocked_redis.stubs(:get).raises(RuntimeError)
 
     assert_silent do
       redis_adapter.ab_showing("price_options", "3ff62e2fb51f0b22646a342a2d357aec")

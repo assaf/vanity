@@ -1,5 +1,8 @@
 == Unreleased
 
+* Support for redis 4 (#334) (@askehansen)
+* Drop support for rails 2, test recent rubies (@phillbaker)
+
 == 2.2.10 (2018-03-18)
 
 * Fix broken table size in report dashboard (#339) (@ilyasovd)
