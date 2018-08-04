@@ -21,7 +21,7 @@ env:
 gemfile:
   - gemfiles/rails42.gemfile
   - gemfiles/rails42_protected_attributes.gemfile
-  - gemfiles/rails5.gemfile
+  - gemfiles/rails51.gemfile
 matrix:
   allow_failures:
     - rvm: jruby-9.1.13.0

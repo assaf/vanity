@@ -5,7 +5,7 @@ GIT
     fastthread (1.0.7)
 
 PATH
-  remote: ../
+  remote: ..
   specs:
     vanity (2.2.10)
       i18n
@@ -52,7 +52,7 @@ GEM
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
     addressable (2.3.6)
-    appraisal (1.0.2)
+    appraisal (2.0.2)
       bundler
       rake
       thor (>= 0.14.0)
@@ -232,7 +232,7 @@ PLATFORMS
 DEPENDENCIES
   RedCloth
   activerecord-jdbc-adapter
-  appraisal (~> 1.0.2)
+  appraisal (~> 2.0.0)
   bundler (>= 1.8.0)
   fakefs
   fastthread!

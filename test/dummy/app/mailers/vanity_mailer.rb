@@ -12,8 +12,10 @@ class VanityMailer < ActionMailer::Base
   def ab_test_content(user)
     use_vanity_mailer user
 
+    image_html = view_context.vanity_tracking_image(Vanity.context.vanity_identity, :open, :host => "127.0.0.1:3000")
+
     mail do |format|
-      format.html { render :text=>view_context.vanity_tracking_image(Vanity.context.vanity_identity, :open, :host => "127.0.0.1:3000") }
+      format.html { render :html=>image_html.html_safe }
     end
   end
 end

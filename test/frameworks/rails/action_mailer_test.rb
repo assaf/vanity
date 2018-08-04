@@ -19,7 +19,6 @@ class UseVanityMailerTest < ActionMailer::TestCase
     experiment(:pie_or_cake).chooses(:pie)
     VanityMailer.ab_test_subject(nil)
 
-
     alts = experiment(:pie_or_cake).alternatives
     assert_equal 1, alts.map(&:participants).sum
   end

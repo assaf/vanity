@@ -138,7 +138,8 @@ class UseVanityControllerTest < ActionController::TestCase
   end
 
   def test_vanity_identity_set_with_identity_paramater
-    get :index, :_identity => "id_from_params"
+    params = { :_identity => "id_from_params" }
+    get :index, params
     assert_equal "id_from_params", @controller.send(:vanity_identity)
   end
 
@@ -156,7 +157,8 @@ class UseVanityControllerTest < ActionController::TestCase
 
     def test_vanity_identity_prefers_parameter_over_cookie
     @request.cookies['vanity_id'] = "old_id"
-    get :index, :_identity => "id_from_params"
+    params = { :_identity => "id_from_params" }
+    get :index, params
     assert_equal "id_from_params", @controller.send(:vanity_identity)
     assert cookies['vanity_id'], "id_from_params"
   end
@@ -171,7 +173,8 @@ class UseVanityControllerTest < ActionController::TestCase
   # query parameter filter
 
   def test_redirects_and_loses_vanity_query_parameter
-    get :index, :foo=>"bar", :_vanity=>"567"
+    params = { :foo=>"bar", :_vanity=>"567" }
+    get :index, params
     assert_redirected_to "/use_vanity?foo=bar"
   end
 
@@ -180,7 +183,8 @@ class UseVanityControllerTest < ActionController::TestCase
     fingerprint = experiment(:pie_or_cake).fingerprint(first)
     10.times do
       @controller = nil ; setup_controller_request_and_response
-      get :index, :_vanity => fingerprint
+      params = { :_vanity => fingerprint }
+      get :index, params
       assert_equal experiment(:pie_or_cake).choose, experiment(:pie_or_cake).alternatives.first
       assert experiment(:pie_or_cake).showing?(first)
     end
@@ -190,13 +194,15 @@ class UseVanityControllerTest < ActionController::TestCase
     experiment(:pie_or_cake).chooses(experiment(:pie_or_cake).alternatives.last.value)
     first = experiment(:pie_or_cake).alternatives.first
     fingerprint = experiment(:pie_or_cake).fingerprint(first)
-    post :index, :foo => "bar", :_vanity => fingerprint
+    params = { :foo => "bar", :_vanity => fingerprint }
+    post :index, params
     assert_response :success
     assert !experiment(:pie_or_cake).showing?(first)
   end
 
   def test_track_param_tracks_a_metric
-    get :index, :_identity => "123", :_track => "sugar_high"
+    params = { :_identity => "123", :_track => "sugar_high" }
+    get :index, params
     assert_equal experiment(:pie_or_cake).alternatives[0].converted, 1
   end
 

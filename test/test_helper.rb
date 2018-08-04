@@ -186,11 +186,53 @@ if defined?(ActiveSupport::TestCase)
 
     self.use_instantiated_fixtures = false if respond_to?(:use_instantiated_fixtures)
     self.use_transactional_fixtures = false if respond_to?(:use_transactional_fixtures)
+    self.use_transactional_tests = false if respond_to?(:use_transactional_tests)
+  end
+end
+
+# Shim for pre-5.0 tests
+module LegacyTestRequests
+  def rails4?
+    ActiveRecord::VERSION::MAJOR <= 4
+  end
+
+  def get(path, params={}, headers={})
+    if rails4?
+      process(path, 'GET', params, headers)
+    else
+      process(path, method: 'GET', params: params, **headers)
+    end
+  end
+
+  def post(path, params={}, headers={})
+    if rails4?
+      process(path, 'POST', params, headers)
+    else
+      process(path, method: 'POST', params: params, **headers)
+    end
+  end
+
+  def put(path, params={}, headers={})
+    if rails4?
+      process(path, 'PUT', params, headers)
+    else
+      process(path, method: 'PUT', params: params, **headers)
+    end
+  end
+
+  def delete(path, params={}, headers={})
+    if rails4?
+      process(path, 'DELETE', params, headers)
+    else
+      process(path, method: 'DELETE', params: params, **headers)
+    end
   end
 end
 
 if defined?(ActionController::TestCase)
   class ActionController::TestCase
+    include LegacyTestRequests
+
     alias :setup_controller_request_and_response_without_vanity :setup_controller_request_and_response
     # Sets Vanity.context to the current controller, so you can do things like:
     #   experiment(:simple).chooses(:green)
