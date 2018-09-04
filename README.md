@@ -142,7 +142,7 @@ production:
   active_record_adapter: postgresql
   <% uri = URI.parse(ENV['DATABASE_URL']) %>
   host:     <%= uri.host %>
-  username: <%= uri.username %>
+  username: <%= uri.user%>
   password: <%= uri.password %>
   port:     <%= uri.port %>
   database: <%= uri.path.sub('/', '') %>
