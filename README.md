@@ -139,6 +139,7 @@ test:
   active_record_adapter: default
   collecting: false
 production:
+  adapter: active_record
   active_record_adapter: postgresql
   <% uri = URI.parse(ENV['DATABASE_URL']) %>
   host:     <%= uri.host %>
