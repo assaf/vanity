@@ -253,14 +253,19 @@ if ENV["DB"] == "active_record"
   ActiveRecord::Base.logger = $logger
 
   Vanity.connect!(VanityTestHelpers::DATABASE)
-  require "generators/templates/vanity_migration"
-  if defined?(ActiveRecord::Tasks)
-    config = Vanity::Adapters::ActiveRecordAdapter::VanityRecord.connection_config
-    ActiveRecord::Tasks::DatabaseTasks.drop(config.with_indifferent_access)
-  else # Rails 3.2 fallback
-    klasses = Vanity::Adapters::ActiveRecordAdapter::VanityRecord.descendants
-    klasses.each { |k| k.connection.drop_table(k.table_name) if k.connection.table_exists?(k.table_name) }
-  end
 
-  VanityMigration.new.migrate(:up)
+  config = Vanity::Adapters::ActiveRecordAdapter::VanityRecord.connection_config
+  ActiveRecord::Tasks::DatabaseTasks.drop(config.with_indifferent_access)
+
+  # use generator to create the migration
+  require "rails/generators"
+  require "generators/vanity/migration_generator"
+  Rails::Generators.invoke "vanity"
+
+  migrate_path = File.expand_path("../dummy/db/migrate/", __FILE__)
+  if defined?(ActiveRecord::MigrationContext)
+    ActiveRecord::MigrationContext.new(migrate_path).migrate
+  else
+    ActiveRecord::Migrator.migrate(migrate_path)
+  end
 end

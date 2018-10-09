@@ -1,6 +1,6 @@
 require "vanity/adapters/active_record_adapter"
 
-class AddVanityUniqueIndexes < ActiveRecord::Migration
+class AddVanityUniqueIndexes < ActiveRecord::Migration<%= migration_version %>
   # Helper methods to ensure we're connecting to the right database, see
   # https://github.com/assaf/vanity/issues/295.
 
