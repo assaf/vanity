@@ -234,7 +234,13 @@ describe Vanity::Metric::ActiveRecord do
       f.write <<-RUBY
         metric "Sky is limit" do
           model Sky, :conditions=>["height > 3"]
-          Sky.after_save { |sky| Vanity.track!(:sky_is_limit) if sky.height_changed? && sky.height > 3 }
+          Sky.after_save do |sky|
+            if sky.respond_to?(:saved_change_to_height?) && sky.saved_change_to_height? && sky.height > 3
+              Vanity.track!(:sky_is_limit)
+            elsif sky.height_changed? && sky.height > 3
+              Vanity.track!(:sky_is_limit)
+            end
+          end
         end
       RUBY
     end
@@ -295,7 +301,7 @@ describe Vanity::Metric::ActiveRecord do
     File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
       f.write <<-RUBY
         metric "Sky is limit" do
-          Sky.after_save { |sky| Vanity.track!(:sky_is_limit) if sky.height_changed? && sky.height > 3 }
+          Sky.after_save { |sky| Vanity.track!(:sky_is_limit) if sky.height && sky.height > 3 }
         end
       RUBY
     end

@@ -19,3 +19,10 @@ appraise "rails51" do
   gem "fastthread", :git => "git://github.com/zoltankiss/fastthread.git", :platforms => :mri_20
   gem "passenger", "~>3.0"
 end
+
+appraise "rails52" do
+  gem "mocha",  "~> 1.0", :require=>false
+  gem "rails", "~>5.2.0"
+  gem "fastthread", :git => "git://github.com/zoltankiss/fastthread.git", :platforms => :mri_20
+  gem "passenger", "~>3.0"
+end
