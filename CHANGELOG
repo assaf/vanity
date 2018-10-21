@@ -1,6 +1,8 @@
 == Unreleased
 
+* Fix support for rails 5.1, 5.2 migrations (@phillbaker)
 * Support for redis 4 (#334) (@askehansen)
+* Drop support for redis-rb <= 3.2.0 (@phillbaker)
 * Drop support for rails 2, test recent rubies (@phillbaker)
 
 == 2.2.10 (2018-03-18)

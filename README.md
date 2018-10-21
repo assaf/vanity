@@ -61,7 +61,7 @@ Datastores should be configured using a `config/vanity.yml`.
 Add to your Gemfile:
 
 ```ruby
-gem "redis", ">= 2.1"
+gem "redis", ">= 3.2"
 gem "redis-namespace", ">= 1.1.0"
 ```
 
@@ -381,13 +381,13 @@ your view no participants will be recorded.
 Here's what's tested and known to work:
 
     Ruby 2.3
-      Persistence: Redis, Mongo, ActiveRecord
+      Persistence: Redis (redis-rb >= 3.2.1), Mongo, ActiveRecord
       Rails: 4.1, 4.2, 5
     Ruby 2.4
-      Persistence: Redis, Mongo, ActiveRecord
+      Persistence: Redis (redis-rb >= 3.2.1), Mongo, ActiveRecord
       Rails: 4.1, 4.2, 5
     JRuby 9.1
-      Persistence: Redis, Mongo, ActiveRecord
+      Persistence: Redis (redis-rb >= 3.2.1), Mongo, ActiveRecord
       Rails: 4.1, 4.2
 
 ## Testing

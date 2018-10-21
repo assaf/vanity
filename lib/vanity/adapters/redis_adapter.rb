@@ -41,11 +41,7 @@ module Vanity
 
       def disconnect!
         if redis
-          begin
-            redis.client.disconnect
-          rescue Exception => e
-            Vanity.logger.warn("Error while disconnecting from redis: #{e.message}")
-          end
+          redis.disconnect!
         end
         @redis = nil
       end

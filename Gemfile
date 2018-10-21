@@ -8,7 +8,7 @@ gemspec development_group: :test
 gem "rack"
 
 # Persistence
-gem "redis", ">= 2.1"
+gem "redis", ">= 3.2.1"
 gem "redis-namespace", ">= 1.1.0"
 gem "mongo", "~> 2.1"
 

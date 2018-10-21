@@ -18,17 +18,13 @@ describe Vanity::Adapters::RedisAdapter do
 
   include Vanity::Adapters::SharedTests
 
-  it "warns on disconnect error" do
+  it "disconnects" do
     if defined?(Redis)
-      assert_silent do
-        Redis.any_instance.stubs(:connect!)
-        mocked_redis = stub("Redis")
-        mocked_redis.expects(:client).raises(RuntimeError)
-        redis_adapter = Vanity::Adapters::RedisAdapter.new({})
-        redis_adapter.stubs(:redis).returns(mocked_redis)
-        Vanity.logger.expects(:warn).with("Error while disconnecting from redis: RuntimeError")
-        redis_adapter.disconnect!
-      end
+      mocked_redis = stub("Redis")
+      mocked_redis.expects(:disconnect!)
+      redis_adapter = Vanity::Adapters::RedisAdapter.new({})
+      redis_adapter.stubs(:redis).returns(mocked_redis)
+      redis_adapter.disconnect!
     end
   end
 
