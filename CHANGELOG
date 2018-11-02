@@ -1,5 +1,6 @@
-== Unreleased
+== 3.0.0 (2018-11-02)
 
+* Fully destroy experiments using the Redis adapter (@urbanautomaton)
 * Fix support for rails 5.1, 5.2 migrations (@phillbaker)
 * Support for redis 4 (#334) (@askehansen)
 * Drop support for redis-rb <= 3.2.0 (@phillbaker)
