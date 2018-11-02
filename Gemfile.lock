@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vanity (2.2.10)
+    vanity (3.0.0)
       i18n
 
 GEM
@@ -33,7 +33,6 @@ GEM
     coffee-script-source (1.9.1)
     colorator (0.1)
     concurrent-ruby (1.0.5)
-    concurrent-ruby (1.0.5-java)
     crack (0.3.1)
     execjs (2.5.2)
     fakefs (0.6.7)
@@ -44,7 +43,7 @@ GEM
       activesupport (>= 2.2.0)
       crack (>= 0.1.6)
     hitimes (1.2.2)
-    i18n (0.9.3)
+    i18n (1.0.1)
       concurrent-ruby (~> 1.0)
     integration (0.1.0)
     jdbc-sqlite3 (3.8.7)

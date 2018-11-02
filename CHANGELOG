@@ -1,4 +1,4 @@
-== Unreleased
+== 3.0.0 (2018-11-02)
 
 * Fix support for rails 5.1, 5.2 migrations (@phillbaker)
 * Support for redis 4 (#334) (@askehansen)
