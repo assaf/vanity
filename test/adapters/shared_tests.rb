@@ -123,6 +123,10 @@ module Vanity::Adapters::SharedTests
             @subject.destroy_experiment(experiment)
 
             refute(@subject.experiment_persisted?(experiment))
+            assert_equal(
+              { :participants => 0, :converted => 0, :conversions => 0 },
+              @subject.ab_counts(experiment, alternative)
+            )
           end
         end
 

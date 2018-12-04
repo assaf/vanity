@@ -217,9 +217,13 @@ module Vanity
       end
 
       def destroy_experiment(experiment)
-        @experiments.del "#{experiment}:outcome", "#{experiment}:created_at", "#{experiment}:completed_at"
-        alternatives = @experiments.keys("#{experiment}:alts:*")
-        @experiments.del(*alternatives) unless alternatives.empty?
+        cursor = nil
+
+        while cursor != "0" do
+          cursor, keys = @experiments.scan(cursor || "0", match: "#{experiment}:*")
+
+          @experiments.del(*keys) unless keys.empty?
+        end
       end
 
       protected
