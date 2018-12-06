@@ -123,7 +123,7 @@ GEM
       addressable (>= 2.2.7)
       crack (>= 0.1.7)
     yajl-ruby (1.2.3)
-    yard (0.7.5)
+    yard (0.9.16)
 
 PLATFORMS
   java
@@ -154,4 +154,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   1.16.4
+   1.17.1
