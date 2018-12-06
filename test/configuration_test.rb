@@ -113,6 +113,19 @@ describe Vanity::Configuration do
   end
 
   describe "setup_locales" do
-    it "adds vanity locales to the gem"
+    it "adds vanity locales to the I18n gem" do
+      begin
+        original_load_path = I18n.load_path
+
+        config.setup_locales
+
+        assert_includes(
+          I18n.load_path,
+          File.expand_path(File.join(__FILE__, '..', '..', 'lib/vanity/locales/vanity.en.yml'))
+        )
+      ensure
+        I18n.load_path = original_load_path
+      end
+    end
   end
 end
