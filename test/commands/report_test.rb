@@ -6,6 +6,15 @@ describe Vanity::Commands do
     metric "Coolness"
   end
 
+  def with_captured_stdout
+    original_stdout = $stdout
+    $stdout = StringIO.new
+    yield
+    $stdout.string
+  ensure
+    $stdout = original_stdout
+  end
+
   describe ".report" do
     describe "given file" do
       let(:file) { "tmp/config/redis.yml" }
@@ -20,7 +29,10 @@ describe Vanity::Commands do
         experiment(:foobar).choose
 
         FileUtils.mkpath "tmp/config"
-        Vanity::Commands.report(file)
+
+        with_captured_stdout do
+          Vanity::Commands.report(file)
+        end
       end
 
       after do
