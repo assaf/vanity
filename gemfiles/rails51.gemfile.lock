@@ -188,7 +188,7 @@ GEM
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
     redcarpet (3.4.0)
-    redis (4.0.1)
+    redis (4.0.3)
     redis-namespace (1.6.0)
       redis (>= 3.0.4)
     ruby_dep (1.5.0)
@@ -259,4 +259,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   1.16.2
+   1.17.1
