@@ -20,7 +20,7 @@ require "rails/test_help"
 
 require "vanity"
 require "timecop"
-require "mocha/mini_test"
+require "mocha/minitest"
 require "fakefs/safe"
 require "webmock/minitest"
 

@@ -132,7 +132,7 @@ GEM
     mini_mime (1.0.0)
     mini_portile2 (2.3.0)
     minitest (5.11.3)
-    mocha (1.6.0)
+    mocha (1.7.0)
       metaclass (~> 0.0.1)
     mongo (2.6.1)
       bson (>= 4.3.0, < 5.0.0)
@@ -188,7 +188,7 @@ GEM
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
     redcarpet (3.4.0)
-    redis (4.0.1)
+    redis (4.0.3)
     redis-namespace (1.6.0)
       redis (>= 3.0.4)
     ruby_dep (1.5.0)
@@ -259,4 +259,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   1.16.2
+   1.17.1

@@ -3,8 +3,8 @@
 source "https://rubygems.org"
 
 gem "rack"
-gem "redis", ">= 3.2.1"
-gem "redis-namespace", ">= 1.1.0"
+gem "redis", ">= 4.0.0"
+gem "redis-namespace", ">= 1.6.0"
 gem "mongo", "~> 2.1"
 gem "integration", "<= 0.1.0"
 gem "rubystats", ">= 0.2.5"

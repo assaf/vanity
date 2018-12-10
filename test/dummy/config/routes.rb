@@ -52,7 +52,21 @@ Dummy::Application.routes.draw do
 
   # See how all your routes lay out with "rake routes"
 
-  # This is a legacy wild controller route that's not recommended for RESTful applications.
-  # Note: This route will make all actions in every controller accessible via GET requests.
-  match ':controller(/:action(/:id(.:format)))', :via => [:get, :post]
+  get '/use_vanity(/:id(.:format))', controller: :use_vanity, action: :index
+
+  %w(js view_helper_ab_test_js global_ab_test_js model_js).each do |action|
+    get "/use_vanity/#{action}(/:id(.:format))", controller: :use_vanity, action: action
+  end
+
+  %w(track test_capture test_render test_view).each do |action|
+    get "/ab_test/#{action}(/:id(.:format))", controller: :ab_test, action: action
+  end
+
+  %w(reset disable enable chooses add_participant complete).each do |action|
+    post "/vanity(/#{action}(/:id(.:format)))", controller: :vanity, action: action
+  end
+
+  %w(index participant image).each do |action|
+    get "/vanity(/#{action}(/:id(.:format)))", controller: :vanity, action: action
+  end
 end
