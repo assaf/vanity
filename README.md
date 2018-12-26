@@ -1,6 +1,6 @@
 # Vanity
 [![Build
-Status](https://travis-ci.org/assaf/vanity.png?branch=master)](https://travis-ci.org/assaf/vanity)
+Status](https://travis-ci.org/assaf/vanity.svg?branch=master)](https://travis-ci.org/assaf/vanity)
 
 Vanity is an A/B testing framework for Rails that is datastore agnostic.
 
