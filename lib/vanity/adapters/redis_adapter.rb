@@ -18,7 +18,7 @@ module Vanity
       end
 
       def valid_redis_namespace_version?
-        Gem.loaded_specs['redis'].version >= Gem::Version.create('1.1.0')
+        Gem.loaded_specs['redis-namespace'].version >= Gem::Version.create('1.1.0')
       end
     end
 
@@ -141,7 +141,7 @@ module Vanity
       def ab_counts(experiment, alternative)
         {
           :participants => @experiments.scard("#{experiment}:alts:#{alternative}:participants").to_i,
-                :converted    => @experiments.scard("#{experiment}:alts:#{alternative}:converted").to_i,
+          :converted    => @experiments.scard("#{experiment}:alts:#{alternative}:converted").to_i,
           :conversions  => @experiments.get("#{experiment}:alts:#{alternative}:conversions").to_i
         }
       end
