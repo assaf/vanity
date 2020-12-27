@@ -105,7 +105,7 @@ module Vanity
           retried = false
           begin
             if record = VanityParticipant.where(:experiment_id => experiment.to_s, :identity => identity.to_s).first
-              record.update_attributes(update_with) if update_with
+              record.update(update_with) if update_with
             elsif create
               record = VanityParticipant.create({ :experiment_id => experiment.to_s, :identity => identity.to_s }.merge(update_with || {}))
             end

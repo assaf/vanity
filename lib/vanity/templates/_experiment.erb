@@ -9,13 +9,13 @@
   <% if experiment.type == 'ab_test' && experiment.active? && experiment.playground.collecting? %>
     <span class='enabled-links'>
       <% action = experiment.enabled? ? :disable : :enable %>
-      
+
       <% if experiment.enabled? %> <%= I18n.t( 'vanity.enabled' ) %> | <% end %>
       <a title='<%=I18n.t( action, scope: 'vanity.act_on_this_experiment' )%>' href='#'
          data-id='<%= experiment.id %>' data-url='<%= url_for(:action=>action, :e => experiment.id) %>'>
         <%= action %></a>
       <% if !experiment.enabled? %> | <%= I18n.t( 'vanity.disabled' ) %> <% end %>
-      
+
     </span>
   <% end %>
 </h3>
@@ -26,7 +26,7 @@
   </p>
 <% end %>
 <a class="button reset" title="<%= I18n.t('vanity.reset') %>" href="#" data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:reset, :e=>experiment.id) %>"><%= I18n.t 'vanity.reset' %></a>
-<%= render :file => Vanity.template("_" + experiment.type), :locals => {:experiment => experiment} %>
+<%= render :template => "_" + experiment.type, :locals => {:experiment => experiment} %>
 <p class="meta">
   <%= I18n.t('vanity.started_at', :timestamp=>I18n.l(experiment.created_at, :format=>'%a, %b %d')) %>
   <%= ' | '+I18n.t('vanity.completed_at', :timestamp=>I18n.l(experiment.completed_at, :format=>'%a, %b %d')) unless experiment.active? %>

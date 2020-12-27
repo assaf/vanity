@@ -251,7 +251,7 @@ module Vanity
       def vanity_js
         return if Vanity.context.vanity_active_experiments.nil? || Vanity.context.vanity_active_experiments.empty?
         javascript_tag do
-          render :file => Vanity.template("_vanity"), :formats => [:js]
+          render :file => Vanity.template("_vanity.js.erb"), :formats => [:js]
         end
       end
 
@@ -348,8 +348,13 @@ module Vanity
     #
     # Step 3: Open your browser to http://localhost:3000/vanity
     module Dashboard
+      def set_vanity_view_path
+        prepend_view_path Vanity.template('')
+      end
+
       def index
-        render :file=>Vanity.template("_report"),:content_type=>Mime[:html], :locals=>{
+        set_vanity_view_path
+        render :template=>"_report", :content_type=>Mime[:html], :locals=>{
           :experiments=>Vanity.playground.experiments,
           :experiments_persisted=>Vanity.playground.experiments_persisted?,
           :metrics=>Vanity.playground.metrics
@@ -357,46 +362,52 @@ module Vanity
       end
 
       def participant
-        render :file=>Vanity.template("_participant"), :locals=>{:participant_id => params[:id], :participant_info => Vanity.playground.participant_info(params[:id])}, :content_type=>Mime[:html]
+        set_vanity_view_path
+        render :template=>"_participant", :locals=>{:participant_id => params[:id], :participant_info => Vanity.playground.participant_info(params[:id])}, :content_type=>Mime[:html]
       end
 
       def complete
+        set_vanity_view_path
         exp = Vanity.playground.experiment(params[:e].to_sym)
         alt = exp.alternatives[params[:a].to_i]
         confirmed = params[:confirmed]
         # make the user confirm before completing an experiment
         if confirmed && confirmed.to_i==alt.id && exp.active?
           exp.complete!(alt.id)
-          render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+          render :template=>"_experiment", :locals=>{:experiment=>exp}
         else
           @to_confirm = alt.id
-          render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+          render :template=>"_experiment", :locals=>{:experiment=>exp}
         end
       end
 
       def disable
+        set_vanity_view_path
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.enabled = false
-        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+        render :template=>"_experiment", :locals=>{:experiment=>exp}
       end
 
       def enable
+        set_vanity_view_path
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.enabled = true
-        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+        render :template=>"_experiment", :locals=>{:experiment=>exp}
       end
 
       def chooses
+        set_vanity_view_path
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.chooses(exp.alternatives[params[:a].to_i].value)
-        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+        render :template=>"_experiment", :locals=>{:experiment=>exp}
       end
 
       def reset
+        set_vanity_view_path
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.reset
         flash[:notice] = I18n.t 'vanity.experiment_has_been_reset', name: exp.name
-        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+        render :template=>"_experiment", :locals=>{:experiment=>exp}
       end
 
       include AddParticipant
