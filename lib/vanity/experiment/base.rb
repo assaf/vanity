@@ -41,6 +41,7 @@ module Vanity
         @options = options || {}
         @identify_block = method(:default_identify)
         @on_assignment_block = nil
+        @after_assignment_block = nil
       end
 
       # Human readable experiment name (first argument you pass when creating a
@@ -94,6 +95,20 @@ module Vanity
       def on_assignment(&block)
         fail "Missing block" unless block
         @on_assignment_block = block
+      end
+
+      # Defines any additional actions to take when a new assignment was made for the current experiment
+      #
+      # For example
+      #   ab_test "Project widget" do
+      #     alternatives :small, :medium, :large
+      #     after_assignment do |controller, identity, assignment|
+      #       # Do something useful
+      #     end
+      #   end
+      def after_assignment(&block)
+        fail "Missing block" unless block
+        @after_assignment_block = block
       end
 
       # -- Reporting --

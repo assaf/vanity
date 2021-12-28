@@ -520,6 +520,44 @@ class AbTestTest < ActionController::TestCase
     end
   end
 
+  def test_calls_default_on_assignment
+    on_assignment_called_times = 0
+
+    Vanity.configuration.on_assignment = proc do |_controller, _identity, _assignment|
+      on_assignment_called_times += 1
+    end
+
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      default "foo"
+      identify { "6e98ec" }
+      metrics :coolness
+    end
+
+    2.times { experiment(:foobar).chooses("foo") }
+    assert_equal 1, on_assignment_called_times
+  end
+
+  # -- after_assignment --
+
+  def test_calls_default_after_assignment
+    after_assignment_called_times = 0
+
+    Vanity.configuration.after_assignment = proc do |_controller, _identity, _assignment|
+      after_assignment_called_times += 1
+    end
+
+    new_ab_test :foobar do
+      alternatives "foo", "bar"
+      default "foo"
+      identify { "6e98ec" }
+      metrics :coolness
+    end
+
+    2.times { experiment(:foobar).chooses("foo") }
+    assert_equal 1, after_assignment_called_times
+  end
+
   # -- ab_assigned --
 
   def test_ab_assigned
