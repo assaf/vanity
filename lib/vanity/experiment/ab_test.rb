@@ -636,9 +636,10 @@ module Vanity
       end
 
       def call_on_assignment_if_available(identity, index)
+        assignment = alternatives[index]
+
         # if we have an on_assignment block, call it on new assignments
         if defined?(@on_assignment_block) && @on_assignment_block
-          assignment = alternatives[index]
           @on_assignment_block.call(Vanity.context, identity, assignment, self)
 
           return
@@ -650,10 +651,10 @@ module Vanity
       end
 
       def call_after_assignment_if_available(identity, index)
+        assignment = alternatives[index]
+
         # if we have an after_assignment_block block, call it after new assignments
         if defined?(@after_assignment_block) && @after_assignment_block
-          assignment = alternatives[index]
-
           @after_assignment_block.call(Vanity.context, identity, assignment, self)
 
           return
