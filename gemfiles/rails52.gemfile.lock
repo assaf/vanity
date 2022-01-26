@@ -1,5 +1,5 @@
 GIT
-  remote: git://github.com/zoltankiss/fastthread.git
+  remote: https://github.com/zoltankiss/fastthread.git
   revision: cefbca3009b9c68df5e473d840462ebcc7fa1504
   specs:
     fastthread (1.0.7)
@@ -84,7 +84,7 @@ GEM
     faraday (0.15.2)
       multipart-post (>= 1.2, < 3)
     fast-stemmer (1.0.2)
-    ffi (1.9.25)
+    ffi (1.15.5)
     garb (0.9.1)
       activesupport (>= 2.2.0)
       crack (>= 0.1.6)
@@ -130,14 +130,16 @@ GEM
       nokogiri (>= 1.5.9)
     mail (2.7.0)
       mini_mime (>= 0.1.1)
-    marcel (0.3.2)
+    marcel (0.3.3)
       mimemagic (~> 0.3.2)
     mercenary (0.3.6)
     metaclass (0.0.4)
     method_source (0.9.0)
-    mimemagic (0.3.2)
+    mimemagic (0.3.10)
+      nokogiri (~> 1)
+      rake
     mini_mime (1.0.0)
-    mini_portile2 (2.3.0)
+    mini_portile2 (2.7.1)
     minitest (5.11.3)
     mocha (1.6.0)
       metaclass (~> 0.0.1)
@@ -145,8 +147,9 @@ GEM
       bson (>= 4.3.0, < 5.0.0)
     multipart-post (2.0.0)
     nio4r (2.3.1)
-    nokogiri (1.8.4)
-      mini_portile2 (~> 2.3.0)
+    nokogiri (1.13.1)
+      mini_portile2 (~> 2.7.0)
+      racc (~> 1.4)
     octokit (4.9.0)
       sawyer (~> 0.8.0, >= 0.5.3)
     parslet (1.5.0)
@@ -164,6 +167,7 @@ GEM
     pygments.rb (0.6.3)
       posix-spawn (~> 0.3.6)
       yajl-ruby (~> 1.2.0)
+    racc (1.6.0)
     rack (2.0.5)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
@@ -241,7 +245,7 @@ PLATFORMS
 DEPENDENCIES
   RedCloth
   activerecord-jdbc-adapter
-  appraisal (~> 2.0.0)
+  appraisal (~> 2.0)
   bundler (>= 1.8.0)
   fakefs
   fastthread!
@@ -267,4 +271,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   1.16.2
+   1.17.1
