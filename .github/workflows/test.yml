@@ -24,7 +24,7 @@ jobs:
       matrix:
         ruby:
           - 2.5
-          - jruby-9.2.20.1
+          # - jruby-9.2.20.1
         db:
           - mongodb
           - redis
