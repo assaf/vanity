@@ -23,9 +23,8 @@ jobs:
     strategy:
       matrix:
         ruby:
-          - 2.3
-          - 2.4
-          - jruby-9.1.13.0
+          - 2.5
+          # - jruby-9.2.20.1
         db:
           - mongodb
           - redis
@@ -36,7 +35,7 @@ jobs:
           - gemfiles/rails51.gemfile
           - gemfiles/rails52.gemfile
         exclude:
-          - rvm: jruby-9.1.13.0
+          - ruby: jruby-9.1.13.0
             gemfile: gemfiles/rails5.gemfile
     env:
       DB: ${{ matrix.db }}
