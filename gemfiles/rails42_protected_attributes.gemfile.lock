@@ -128,16 +128,16 @@ GEM
     metaclass (0.0.4)
     method_source (0.8.2)
     mini_mime (1.0.0)
-    mini_portile2 (2.7.1)
+    mini_portile2 (2.6.1)
     minitest (5.11.3)
     mocha (1.7.0)
       metaclass (~> 0.0.1)
     mongo (2.2.3)
       bson (~> 4.0)
-    nokogiri (1.13.1)
-      mini_portile2 (~> 2.7.0)
+    nokogiri (1.12.5)
+      mini_portile2 (~> 2.6.1)
       racc (~> 1.4)
-    nokogiri (1.13.1-java)
+    nokogiri (1.12.5-java)
       racc (~> 1.4)
     parslet (1.5.0)
       blankslate (~> 2.0)
@@ -261,4 +261,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   1.17.1
+   1.17.2
