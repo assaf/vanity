@@ -4,6 +4,7 @@ on:
     branches:
       - master
   pull_request:
+    branches: '*'
 
 jobs:
   test:
