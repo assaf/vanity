@@ -13,7 +13,8 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    RedCloth (4.3.2)
+    RedCloth (4.2.9)
+    RedCloth (4.2.9-java)
     actioncable (5.2.0)
       actionpack (= 5.2.0)
       nio4r (~> 2.0)
