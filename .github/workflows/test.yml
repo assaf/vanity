@@ -23,9 +23,9 @@ jobs:
     strategy:
       matrix:
         ruby:
-          - 2.3
-          - 2.4
-          - jruby-9.1.13.0
+          - 2.5
+          - 2.6
+          - jruby-9.2.20.1
         db:
           - mongodb
           - redis
