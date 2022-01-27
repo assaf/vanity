@@ -1,3 +1,7 @@
+== 3.0.1 (2022-01-26)
+
+* Update template rendering and update_attributes for Rails 6.1 compatibility (@bensheldon)
+
 == 3.0.0 (2018-11-02)
 
 * Fully destroy experiments using the Redis adapter (@urbanautomaton)
