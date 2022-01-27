@@ -1,6 +1,6 @@
 # Vanity
-[![Build
-Status](https://travis-ci.org/assaf/vanity.svg?branch=master)](https://travis-ci.org/assaf/vanity)
+[![Test Status](https://github.com/assaf/vanity/workflows/Test/badge.svg)](https://github.com/assaf/vanity/actions)
+
 
 Vanity is an A/B testing framework for Rails that is datastore agnostic.
 
@@ -425,7 +425,7 @@ Go ahead and target a pull request against the `gh-pages` branch.
     prepare the test suite to run against multiple versions of Rails
 *   Fix, patch, enhance, document, improve, sprinkle pixie dust
 *   Tests. Please. Run `appraisal rake test`, of if you can, `rake test:all`.
-    (This project uses Travis CI where the test suite is run against multiple
+    (This project uses Github Actions where the test suite is run against multiple
     versions of ruby, rails and backends.)
 *   Send a pull request on GitHub
 

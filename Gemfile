@@ -1,4 +1,5 @@
 source 'https://rubygems.org'
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 # "development" gems in gemspec are required for testing, gems in the
 # development group here are for documentation
