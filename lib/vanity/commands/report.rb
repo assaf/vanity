@@ -11,7 +11,7 @@ module Vanity
     def render(path_or_options, locals = {})
       if path_or_options.respond_to?(:keys)
         render_erb(
-          path_or_options[:file] || path_or_options[:partial],
+          path_or_options[:template] || path_or_options[:partial],
           path_or_options[:locals]
         )
       else
@@ -54,9 +54,10 @@ module Vanity
       struct = Struct.new(*keys)
       struct.send :include, Render
       locals = struct.new(*locals.values_at(*keys))
+      path = "#{Vanity.template(path)}.erb" unless path =~ /\/.*\.erb\z/
       dir, base = File.split(path)
       path = File.join(dir, partialize(base))
-      erb = ERB.new(File.read("#{path}.erb"), nil, '<>')
+      erb = ERB.new(File.read(path), nil, '<>')
       erb.filename = path
       erb.result(locals.instance_eval { binding })
     end
@@ -78,7 +79,7 @@ module Vanity
       # Generate an HTML report. Outputs to the named file, or stdout with no
       # arguments.
       def report(output = nil)
-        html = render(Vanity.template("report"),
+        html = render(Vanity.template("_report.erb"),
           :experiments=>Vanity.playground.experiments,
           :experiments_persisted=>Vanity.playground.experiments_persisted?,
           :metrics=>Vanity.playground.metrics
