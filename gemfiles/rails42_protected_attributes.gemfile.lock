@@ -7,7 +7,7 @@ GIT
 PATH
   remote: ..
   specs:
-    vanity (3.0.1)
+    vanity (3.0.2)
       i18n
 
 GEM
