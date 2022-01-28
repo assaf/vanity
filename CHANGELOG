@@ -1,3 +1,7 @@
+== 3.0.2 (2022-01-27)
+
+* Fix AbTest#alternative_for to always prefer persisted participants (@tgrathwell)
+
 == 3.0.1 (2022-01-26)
 
 * Update template rendering and update_attributes for Rails 6.1 compatibility (@bensheldon)
