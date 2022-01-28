@@ -50,7 +50,6 @@ module Vanity
         default_on_datastore_error(error, klass, method, arguments)
       },
       on_assignment: nil,
-      after_assignment: nil,
       request_filter: ->(request) { default_request_filter(request) },
       templates_path: File.expand_path(File.join(File.dirname(__FILE__), 'templates')),
       use_js: false,
@@ -185,9 +184,6 @@ module Vanity
 
     # Default callback on assigment
     attr_writer :on_assignment
-
-    # Default callback after assigment
-    attr_writer :after_assignment
 
     # We independently list each attr_accessor to includes docs, otherwise
     # something like DEFAULTS.each { |key, value| attr_accessor key } would be

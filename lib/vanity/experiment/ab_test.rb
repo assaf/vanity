@@ -621,12 +621,10 @@ module Vanity
         return if index == connection.ab_showing(@id, identity)
         return if connection.ab_seen @id, identity, index
 
-        call_on_assignment_if_available(identity, index)
         rebalance_if_necessary!
 
         connection.ab_add_participant(@id, index, identity)
-
-        call_after_assignment_if_available(identity, index)
+        call_on_assignment_if_available(identity, index)
 
         check_completion!
       end
@@ -649,21 +647,6 @@ module Vanity
         return unless Vanity.configuration.on_assignment.is_a?(Proc)
 
         Vanity.configuration.on_assignment.call(Vanity.context, identity, assignment, self)
-      end
-
-      def call_after_assignment_if_available(identity, index)
-        assignment = alternatives[index]
-
-        # if we have an after_assignment_block block, call it after new assignments
-        if defined?(@after_assignment_block) && @after_assignment_block
-          @after_assignment_block.call(Vanity.context, identity, assignment, self)
-
-          return
-        end
-
-        return unless Vanity.configuration.after_assignment.is_a?(Proc)
-
-        Vanity.configuration.after_assignment.call(Vanity.context, identity, assignment, self)
       end
 
       def rebalance_if_necessary!
