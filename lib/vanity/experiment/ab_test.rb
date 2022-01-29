@@ -617,13 +617,15 @@ module Vanity
       # Saves the assignment of an alternative to a person and performs the
       # necessary housekeeping. Ignores repeat identities and filters using
       # Playground#request_filter.
-      def save_assignment(identity, index, request)
+      def save_assignment(identity, index, _request)
         return if index == connection.ab_showing(@id, identity)
+        return if connection.ab_seen @id, identity, index
 
-        call_on_assignment_if_available(identity, index)
         rebalance_if_necessary!
 
         connection.ab_add_participant(@id, index, identity)
+        call_on_assignment_if_available(identity, index)
+
         check_completion!
       end
 
@@ -633,13 +635,18 @@ module Vanity
       end
 
       def call_on_assignment_if_available(identity, index)
+        assignment = alternatives[index]
+
         # if we have an on_assignment block, call it on new assignments
         if defined?(@on_assignment_block) && @on_assignment_block
-          assignment = alternatives[index]
-          if !connection.ab_seen @id, identity, index
-            @on_assignment_block.call(Vanity.context, identity, assignment, self)
-          end
+          @on_assignment_block.call(Vanity.context, identity, assignment, self)
+
+          return
         end
+
+        return unless Vanity.configuration.on_assignment.is_a?(Proc)
+
+        Vanity.configuration.on_assignment.call(Vanity.context, identity, assignment, self)
       end
 
       def rebalance_if_necessary!
@@ -688,9 +695,7 @@ module Vanity
         # We're really only interested in 90%, 95%, 99% and 99.9%.
         Z_TO_PROBABILITY = [90, 95, 99, 99.9].map { |pct| [norm_dist.find { |x,a| a >= pct }.first, pct] }.reverse
       end
-
     end
-
 
     module Definition
       # Define an A/B test with the given name. For example:
@@ -701,6 +706,5 @@ module Vanity
         define name, :ab_test, &block
       end
     end
-
   end
 end

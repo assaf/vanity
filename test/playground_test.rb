@@ -130,5 +130,4 @@ describe Vanity::Playground do
       assert_equal [[Vanity.playground.experiment(:foobar), alt]], Vanity.playground.participant_info("abcdef")
     end
   end
-
 end
