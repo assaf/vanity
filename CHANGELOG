@@ -1,3 +1,7 @@
+== 3.1.0 (2022-01-29)
+
+* Invoke on_assignment callback after assignment is stored in database; add global on_assignment callback (@frostmark)
+
 == 3.0.2 (2022-01-27)
 
 * Fix AbTest#alternative_for to always prefer persisted participants (@tgrathwell)
