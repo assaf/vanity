@@ -51,6 +51,7 @@ Available configuration options are:
 | cookie_path                | The path of the cookie | @nil@ |
 | cookie_secure              | The secure (ssl-only) parameter of the cookie. | @false@ |
 | cookie_httponly            | The httponly parameter of the cookie | @false@ |
+| on_assignment              | A proc that called when a new assignment is made for the experiment | @nil@ |
 
 When "running under Rails":rails.html, Vanity defaults to using the Rails logger, locates the load_path relative to Rails root, uses the @config/vanity.yml@ configuration file (if present) and turns collection on only in production mode.
 
