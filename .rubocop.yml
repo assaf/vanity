@@ -30,6 +30,9 @@ AllCops:
 Style/FrozenStringLiteralComment:
   Enabled: false
 
+Style/MutableConstant:
+  Enabled: false
+
 Layout/EmptyLineAfterMagicComment:
   Enabled: false
 
