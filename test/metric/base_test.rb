@@ -1,7 +1,6 @@
 require "test_helper"
 
 describe "Metric via playground" do
-
   it "knows all loaded metrics" do
     metric "Yawns/sec", "Cheers/sec"
     assert Vanity.playground.metrics.keys.include?(:yawns_sec)
@@ -9,34 +8,28 @@ describe "Metric via playground" do
   end
 
   it "loads metric definitions" do
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/yawns_sec.rb", <<-RUBY)
         metric "Yawns/sec" do
           def xmts
             "x"
           end
         end
-      RUBY
-    end
+    RUBY
     assert_equal "x", Vanity.playground.metric(:yawns_sec).xmts
   end
 
   it "bubbles up loaded metrics" do
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write "fail 'yawn!'"
-    end
+    File.write("tmp/experiments/metrics/yawns_sec.rb", "fail 'yawn!'")
     assert_raises NameError do
       Vanity.playground.metric(:yawns_sec)
     end
   end
 
   it "map identifier from file name" do
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/yawns_sec.rb", <<-RUBY)
         metric "yawns/hour" do
         end
-      RUBY
-    end
+    RUBY
     assert Vanity.playground.metric(:yawns_sec)
   end
 
@@ -64,18 +57,15 @@ describe "Metric via playground" do
   end
 
   it "bootstraps the metric" do
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/yawns_sec.rb", <<-RUBY)
         metric "yawns/hour" do
         end
-      RUBY
-    end
+    RUBY
     Vanity.playground.track!(:yawns_sec)
     Vanity.playground.track!(:yawns_sec)
     assert Vanity.playground.connection.get_metric_last_update_at(:yawns_sec)
   end
 end
-
 
 describe "Metric tracking" do
   it "disabled when metrics are disabled" do
@@ -100,7 +90,7 @@ describe "Metric tracking" do
     Timecop.freeze((today - 2).to_time) { 2.times { Vanity.playground.track! :yawns_sec } }
     1.times { Vanity.playground.track! :yawns_sec }
     boredom = Vanity.playground.metric(:yawns_sec).values(today - 5, today)
-    assert_equal [0,4,0,2,0,1], boredom
+    assert_equal [0, 4, 0, 2, 0, 1], boredom
   end
 
   it "with no value" do
@@ -117,7 +107,7 @@ describe "Metric tracking" do
     Timecop.freeze((today - 2).to_time) { Vanity.playground.track! :yawns_sec, 2 }
     Vanity.playground.track! :yawns_sec
     boredom = Vanity.playground.metric(:yawns_sec).values(today - 5, today)
-    assert_equal [0,4,0,2,0,1], boredom
+    assert_equal [0, 4, 0, 2, 0, 1], boredom
   end
 
   it "runs hook" do
@@ -136,7 +126,7 @@ describe "Metric tracking" do
     not_collecting!
     metric "Many Happy Returns"
     total = 0
-    Vanity.playground.metric(:many_happy_returns).hook do |metric_id, timestamp, count|
+    Vanity.playground.metric(:many_happy_returns).hook do |_metric_id, _timestamp, count|
       total += count
     end
     Vanity.playground.track! :many_happy_returns, 6
@@ -162,39 +152,31 @@ describe "Metric tracking" do
   end
 end
 
-
 describe "Metric name" do
   it "can be whatever" do
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/yawns_sec.rb", <<-RUBY)
         metric "Yawns per second" do
         end
-      RUBY
-    end
+    RUBY
     assert_equal "Yawns per second", Vanity.playground.metric(:yawns_sec).name
   end
 end
 
-
 describe "Metric description" do
   it "metric with description" do
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/yawns_sec.rb", <<-RUBY)
         metric "Yawns/sec" do
           description "Am I that boring?"
         end
-      RUBY
-    end
+    RUBY
     assert_equal "Am I that boring?", Vanity::Metric.description(Vanity.playground.metric(:yawns_sec))
   end
 
   it "metric without description" do
-    File.open "tmp/experiments/metrics/yawns_sec.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/yawns_sec.rb", <<-RUBY)
         metric "Yawns/sec" do
         end
-      RUBY
-    end
+    RUBY
     assert_nil Vanity::Metric.description(Vanity.playground.metric(:yawns_sec))
   end
 
@@ -204,19 +186,16 @@ describe "Metric description" do
   end
 end
 
-
 describe "Metric bounds" do
   it "metric with bounds" do
-    File.open "tmp/experiments/metrics/sky_is_limit.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/sky_is_limit.rb", <<-RUBY)
         metric "Sky is limit" do
           def bounds
             [6,12]
           end
         end
-      RUBY
-    end
-    assert_equal [6,12], Vanity::Metric.bounds(Vanity.playground.metric(:sky_is_limit))
+    RUBY
+    assert_equal [6, 12], Vanity::Metric.bounds(Vanity.playground.metric(:sky_is_limit))
   end
 
   it "metric without bounds" do
@@ -229,7 +208,6 @@ describe "Metric bounds" do
     assert_equal [nil, nil], Vanity::Metric.bounds(metric)
   end
 end
-
 
 describe "Metric last_update_at" do
   it "for new metric" do
@@ -248,7 +226,6 @@ describe "Metric last_update_at" do
     assert_in_delta metric.last_update_at.to_i, (Time.now + 1.day).to_i, 1
   end
 end
-
 
 describe "Metric data" do
   it "explicit dates" do
@@ -287,15 +264,13 @@ describe "Metric data" do
   end
 
   it "using custom values method" do
-    File.open "tmp/experiments/metrics/hours_in_day.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/hours_in_day.rb", <<-RUBY)
         metric "Hours in day" do
           def values(from, to)
             (from..to).map { |d| 24 }
           end
         end
-      RUBY
-    end
+    RUBY
     data = Vanity::Metric.data(Vanity.playground.metric(:hours_in_day))
     assert_equal [24] * 90, data.map(&:last)
   end

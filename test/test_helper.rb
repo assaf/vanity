@@ -12,10 +12,10 @@ require "active_record"
 
 begin
   require "rails"
-rescue LoadError
+rescue LoadError # rubocop:todo Lint/SuppressedException
 end
 
-require File.expand_path("../dummy/config/environment.rb",  __FILE__)
+require File.expand_path('dummy/config/environment.rb', __dir__)
 require "rails/test_help"
 
 require "vanity"
@@ -27,16 +27,16 @@ require "webmock/minitest"
 # Due to load order differences in Rails boot and test requires we have to
 # manually require these
 
-# TODO wonder if we can load rails only for the rails tests...
+# TODO: wonder if we can load rails only for the rails tests...
 require 'vanity/frameworks/rails'
 Vanity::Rails.load!
 
 if $DEBUG
-  $logger = Logger.new(STDOUT)
-  $logger.level = Logger::DEBUG
+  $logger = Logger.new(STDOUT) # rubocop:todo Style/GlobalVars
+  $logger.level = Logger::DEBUG # rubocop:todo Style/GlobalVars
 else
-  $logger = Logger.new(STDOUT)
-  $logger.level = Logger::FATAL
+  $logger = Logger.new(STDOUT) # rubocop:todo Style/GlobalVars
+  $logger.level = Logger::FATAL # rubocop:todo Style/GlobalVars
 end
 
 module VanityTestHelpers
@@ -46,13 +46,13 @@ module VanityTestHelpers
   DATABASE_OPTIONS = {
     "redis" => "redis://localhost/15",
     "mongodb" => "mongodb://localhost/vanity",
-    "active_record" =>  { :adapter => "active_record", :active_record_adapter =>"default" },
-    "mock" => "mock:/"
+    "active_record" =>  { adapter: "active_record", active_record_adapter: "default" },
+    "mock" => "mock:/",
   }
 
-  DATABASE = DATABASE_OPTIONS[ENV["DB"]] or raise "No support yet for #{ENV["DB"]}"
+  DATABASE = DATABASE_OPTIONS[ENV["DB"]] or raise "No support yet for #{ENV['DB']}"
 
-  TEST_DATA_FILES = Dir[File.expand_path("../data/*",  __FILE__)]
+  TEST_DATA_FILES = Dir[File.expand_path('data/*', __dir__)]
   VANITY_CONFIGS = TEST_DATA_FILES.each.with_object({}) do |path, hash|
     hash[File.basename(path)] = File.read(path)
   end
@@ -73,7 +73,7 @@ module VanityTestHelpers
   # or reload an experiment (saved by the previous playground).
   def vanity_reset
     Vanity.reset!
-    Vanity.configuration.logger = $logger
+    Vanity.configuration.logger = $logger # rubocop:todo Style/GlobalVars
     Vanity.configuration.experiments_path = "tmp/experiments"
 
     Vanity.disconnect!
@@ -98,7 +98,6 @@ module VanityTestHelpers
     ActiveRecord::Base.establish_connection
     Vanity.connect!(DATABASE)
   end
-
 
   # Defines the specified metrics (one or more names). Returns metric, or array
   # of metric (if more than one argument).
@@ -144,9 +143,9 @@ module VanityTestHelpers
   def dummy_request
     # Rails 5 compatibility
     if ActionDispatch::TestRequest.respond_to?(:create)
-      ActionDispatch::TestRequest.create()
+      ActionDispatch::TestRequest.create
     else
-      ActionDispatch::TestRequest.new()
+      ActionDispatch::TestRequest.new
     end
   end
 
@@ -154,13 +153,13 @@ module VanityTestHelpers
   # override the built-in setup/teardown methods, so we alias_method_chain
   # them to run.
   def self.included(klass)
-    klass.class_eval {
-      alias :teardown_before :teardown
-      alias :teardown :teardown_after
+    klass.class_eval do
+      alias_method :teardown_before, :teardown
+      alias_method :teardown, :teardown_after
 
-      alias :setup_before :setup
-      alias :setup :setup_after
-    }
+      alias_method :setup_before, :setup
+      alias_method :setup, :setup_after
+    end
   end
 end
 
@@ -196,7 +195,7 @@ module LegacyTestRequests
     ActiveRecord::VERSION::MAJOR <= 4
   end
 
-  def get(path, params={}, headers={})
+  def get(path, params = {}, headers = {})
     if rails4?
       process(path, 'GET', params, headers)
     else
@@ -204,7 +203,7 @@ module LegacyTestRequests
     end
   end
 
-  def post(path, params={}, headers={})
+  def post(path, params = {}, headers = {})
     if rails4?
       process(path, 'POST', params, headers)
     else
@@ -212,7 +211,7 @@ module LegacyTestRequests
     end
   end
 
-  def put(path, params={}, headers={})
+  def put(path, params = {}, headers = {})
     if rails4?
       process(path, 'PUT', params, headers)
     else
@@ -220,7 +219,7 @@ module LegacyTestRequests
     end
   end
 
-  def delete(path, params={}, headers={})
+  def delete(path, params = {}, headers = {})
     if rails4?
       process(path, 'DELETE', params, headers)
     else
@@ -233,7 +232,7 @@ if defined?(ActionController::TestCase)
   class ActionController::TestCase
     include LegacyTestRequests
 
-    alias :setup_controller_request_and_response_without_vanity :setup_controller_request_and_response
+    alias setup_controller_request_and_response_without_vanity setup_controller_request_and_response
     # Sets Vanity.context to the current controller, so you can do things like:
     #   experiment(:simple).chooses(:green)
     def setup_controller_request_and_response
@@ -244,13 +243,13 @@ if defined?(ActionController::TestCase)
 end
 
 if defined?(ActionDispatch::IntegrationTest)
-  class ActionDispatch::IntegrationTest
+  class ActionDispatch::IntegrationTest # rubocop:todo Lint/EmptyClass
   end
 end
 
 if ENV["DB"] == "active_record"
   ActiveRecord::Base.establish_connection
-  ActiveRecord::Base.logger = $logger
+  ActiveRecord::Base.logger = $logger # rubocop:todo Style/GlobalVars
 
   Vanity.connect!(VanityTestHelpers::DATABASE)
 
@@ -262,7 +261,7 @@ if ENV["DB"] == "active_record"
   require "generators/vanity/migration_generator"
   Rails::Generators.invoke "vanity"
 
-  migrate_path = File.expand_path("../dummy/db/migrate/", __FILE__)
+  migrate_path = File.expand_path('dummy/db/migrate', __dir__)
   if defined?(ActiveRecord::MigrationContext)
     ActiveRecord::MigrationContext.new(migrate_path).migrate
   else

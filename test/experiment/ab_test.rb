@@ -6,23 +6,22 @@ class AbTestController < ActionController::Base
 
   def test_render
     text = Vanity.ab_test(:simple)
-    render :plain=>text, :text=>text
+    render plain: text, text: text
   end
 
   def test_view
-    render :inline=>"<%= ab_test(:simple) %>"
+    render inline: "<%= ab_test(:simple) %>"
   end
 
   def test_capture
-    render :inline=>"<%= ab_test(:simple) do |value| %><%= value %><% end %>"
+    render inline: "<%= ab_test(:simple) do |value| %><%= value %><% end %>"
   end
 
   def track
     Vanity.track!(:coolness)
-    render :plain=>"", :text=>""
+    render plain: "", text: ""
   end
 end
-
 
 class AbTestTest < ActionController::TestCase
   tests AbTestController
@@ -85,7 +84,7 @@ class AbTestTest < ActionController::TestCase
       alternatives :a, :b
       default :a
     end
-    fingerprints = Vanity.playground.experiments.map { |id, exp| exp.alternatives.map { |alt| exp.fingerprint(alt) } }.flatten
+    fingerprints = Vanity.playground.experiments.map { |_id, exp| exp.alternatives.map { |alt| exp.fingerprint(alt) } }.flatten
     assert_equal 4, fingerprints.uniq.size
   end
 
@@ -97,7 +96,7 @@ class AbTestTest < ActionController::TestCase
     end
     fingerprints = experiment(:ab).alternatives.map { |alt| experiment(:ab).fingerprint(alt) }
     fingerprints.each do |fingerprint|
-      assert_match /^[0-9a-f]{10}$/i, fingerprint
+      assert_match(/^[0-9a-f]{10}$/i, fingerprint)
     end
     assert_equal fingerprints.first, experiment(:ab).fingerprint(experiment(:ab).alternatives.first)
   end
@@ -183,25 +182,24 @@ class AbTestTest < ActionController::TestCase
     assert_equal exp.default, exp.alternative(nil)
   end
 
-
   # -- Experiment Enabled/disabled --
 
   # @example new test should be enabled regardless of collecting?
   #   regardless_of "Vanity.playground.collecting" do
   #     assert (new_ab_test :test).enabled?
   #   end
-  def regardless_of(attr_name, &block)
-    prev_val = eval "#{attr_name}?"
+  def regardless_of(attr_name)
+    prev_val = eval "#{attr_name}?" # rubocop:todo Lint/UselessAssignment, Style/EvalWithLocation, Security/Eval
 
-    eval "#{attr_name}=true"
-    block.call(eval "#{attr_name}?")
+    eval "#{attr_name}=true" # rubocop:todo Style/EvalWithLocation, Security/Eval
+    yield(eval("#{attr_name}?")) # rubocop:todo Style/EvalWithLocation, Security/Eval
     nuke_playground
 
-    eval "#{attr_name}=false"
-    block.call(eval "#{attr_name}?")
+    eval "#{attr_name}=false" # rubocop:todo Style/EvalWithLocation, Security/Eval
+    yield(eval("#{attr_name}?")) # rubocop:todo Style/EvalWithLocation, Security/Eval
     nuke_playground
 
-    eval "#{attr_name}=prev_val"
+    eval "#{attr_name}=prev_val" # rubocop:todo Style/EvalWithLocation, Security/Eval
   end
 
   def test_new_test_is_disabled_when_experiments_start_enabled_is_false
@@ -228,7 +226,7 @@ class AbTestTest < ActionController::TestCase
       metrics :coolness
       default false
     end
-    exp.complete! #active? => false
+    exp.complete! # active? => false
 
     assert !exp.enabled?, "experiment should not be enabled but it is!"
   end
@@ -263,7 +261,7 @@ class AbTestTest < ActionController::TestCase
       metrics :coolness
       default false
     end
-    exp.complete! #active? => false
+    exp.complete! # active? => false
     assert !exp.enabled?
     exp.enabled = true
     assert !exp.enabled?
@@ -283,65 +281,65 @@ class AbTestTest < ActionController::TestCase
   def test_enabled_persists_across_definitions
     Vanity.configuration.experiments_start_enabled = false
     Vanity.playground.collecting = true
-    new_ab_test :test, :enable => false do
+    new_ab_test :test, enable: false do
       metrics :coolness
       default false
     end
-    assert !experiment(:test).enabled? #starts off false
+    assert !experiment(:test).enabled? # starts off false
 
     new_playground
     metric "Coolness"
 
-    new_ab_test :test, :enable => false do
+    new_ab_test :test, enable: false do
       metrics :coolness
       default false
     end
-    assert !experiment(:test).enabled? #still false
+    assert !experiment(:test).enabled? # still false
     experiment(:test).enabled = true
-    assert experiment(:test).enabled? #now true
+    assert experiment(:test).enabled? # now true
 
     new_playground
     metric "Coolness"
 
-    new_ab_test :test, :enable => false do
+    new_ab_test :test, enable: false do
       metrics :coolness
       default false
     end
-    assert experiment(:test).enabled? #still true
+    assert experiment(:test).enabled? # still true
     experiment(:test).enabled = false
-    assert !experiment(:test).enabled? #now false again
+    assert !experiment(:test).enabled? # now false again
   end
 
   def test_enabled_persists_across_definitions_when_starting_enabled
     Vanity.configuration.experiments_start_enabled = true
     Vanity.playground.collecting = true
-    new_ab_test :test, :enable => false do
+    new_ab_test :test, enable: false do
       metrics :coolness
       default false
     end
-    assert experiment(:test).enabled? #starts off true
+    assert experiment(:test).enabled? # starts off true
 
     new_playground
     metric "Coolness"
 
-    new_ab_test :test, :enable => false do
+    new_ab_test :test, enable: false do
       metrics :coolness
       default false
     end
-    assert experiment(:test).enabled? #still true
+    assert experiment(:test).enabled? # still true
     experiment(:test).enabled = false
-    assert !experiment(:test).enabled? #now false
+    assert !experiment(:test).enabled? # now false
 
     new_playground
     metric "Coolness"
 
-    new_ab_test :test, :enable => false do
+    new_ab_test :test, enable: false do
       metrics :coolness
       default false
     end
-    assert !experiment(:test).enabled? #still false
+    assert !experiment(:test).enabled? # still false
     experiment(:test).enabled = true
-    assert experiment(:test).enabled? #now true again
+    assert experiment(:test).enabled? # now true again
   end
 
   def test_choose_random_when_enabled
@@ -378,7 +376,7 @@ class AbTestTest < ActionController::TestCase
   def test_choose_outcome_when_finished
     exp = new_ab_test :test do
       metrics :coolness
-      alternatives 0,1,2,3,4,5
+      alternatives 0, 1, 2, 3, 4, 5
       default 3
       outcome_is { alternative(5) }
     end
@@ -429,7 +427,7 @@ class AbTestTest < ActionController::TestCase
     assert_equal 0, experiment(:foobar).alternatives.sum(&:converted)
     experiment(:foobar).track!(:coolness, Time.now, 1)
     assert_equal 1, experiment(:foobar).alternatives.sum(&:converted)
-    experiment(:foobar).track!(:coolness, Time.now, 1, :identity=>"quux")
+    experiment(:foobar).track!(:coolness, Time.now, 1, identity: "quux")
     assert_equal 2, experiment(:foobar).alternatives.sum(&:converted)
   end
 
@@ -458,7 +456,7 @@ class AbTestTest < ActionController::TestCase
       alternatives "foo", "bar"
       identify { "6e98ec" }
       metrics :coolness
-      on_assignment { on_assignment_called_times = on_assignment_called_times+1 }
+      on_assignment { on_assignment_called_times += 1 }
     end
     2.times { experiment(:foobar).choose }
     assert_equal 1, on_assignment_called_times
@@ -471,7 +469,7 @@ class AbTestTest < ActionController::TestCase
       alternatives "foo", "bar"
       identify { "6e98ec" }
       metrics :coolness
-      on_assignment { on_assignment_called_times = on_assignment_called_times+1 }
+      on_assignment { on_assignment_called_times += 1 }
     end
     experiment(:foobar).choose(dummy_request)
     assert_equal 1, on_assignment_called_times
@@ -484,7 +482,7 @@ class AbTestTest < ActionController::TestCase
       alternatives "foo", "bar"
       identify { "6e98ec" }
       metrics :coolness
-      on_assignment { on_assignment_called_times = on_assignment_called_times+1 }
+      on_assignment { on_assignment_called_times += 1 }
     end
     request = dummy_request
     request.user_agent = "Googlebot/2.1 ( http://www.google.com/bot.html)"
@@ -499,7 +497,7 @@ class AbTestTest < ActionController::TestCase
       default "foo"
       identify { "6e98ec" }
       metrics :coolness
-      on_assignment { on_assignment_called_times = on_assignment_called_times+1 }
+      on_assignment { on_assignment_called_times += 1 }
     end
     2.times { experiment(:foobar).chooses("foo") }
     assert_equal 1, on_assignment_called_times
@@ -510,11 +508,11 @@ class AbTestTest < ActionController::TestCase
       alternatives "foo", "bar"
       default "foo"
       identify { "6e98ec" }
-      on_assignment {}
+      on_assignment {} # rubocop:todo Lint/EmptyBlock
       metrics :coolness
     end
     assert value = experiment(:foobar).choose.value
-    assert_match /foo|bar/, value
+    assert_match(/foo|bar/, value)
     1000.times do
       assert_equal value, experiment(:foobar).choose.value
     end
@@ -575,7 +573,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_ab_assigned_object
-    identity = { :a => :b }
+    identity = { a: :b }
     new_ab_test :foobar do
       alternatives "foo", "bar"
       default "foo"
@@ -599,7 +597,7 @@ class AbTestTest < ActionController::TestCase
     end
     value = experiment(:foobar).choose.value
     assert value
-    assert_match /foo|bar/, value
+    assert_match(/foo|bar/, value)
     100.times do
       assert_equal value, experiment(:foobar).choose.value
     end
@@ -611,7 +609,10 @@ class AbTestTest < ActionController::TestCase
       identify { rand }
       metrics :coolness
     end
-    alts = Array.new(10_000) { experiment(:foobar).choose.value }.reduce({}) { |h,k| h[k] ||= 0; h[k] += 1; h }
+    alts = Array.new(10_000) { experiment(:foobar).choose.value }.each_with_object({}) do |k, h|
+      h[k] ||= 0
+      h[k] += 1
+    end
     assert_equal %w{bar foo}, alts.keys.sort
     assert_in_delta 3333, alts["foo"], 200 # this may fail, such is propability
   end
@@ -625,8 +626,8 @@ class AbTestTest < ActionController::TestCase
       metrics :coolness
     end
     altered_alts = experiment(:foobar).alternatives
-    altered_alts[0].probability=30
-    altered_alts[1].probability=70
+    altered_alts[0].probability = 30
+    altered_alts[1].probability = 70
     experiment(:foobar).set_alternative_probabilities altered_alts
     alts = Array.new(600) { experiment(:foobar).choose.value }
     assert_equal %w{bar foo}, alts.uniq.sort
@@ -643,10 +644,11 @@ class AbTestTest < ActionController::TestCase
       rebalance_frequency 12
       metrics :coolness
     end
-    class <<experiment(:foobar)
+    class << experiment(:foobar)
       def times_called
         @times_called ||= 0
       end
+
       def rebalance!
         @times_called = times_called + 1
       end
@@ -669,20 +671,16 @@ class AbTestTest < ActionController::TestCase
     end
     corresponding_probabilities = [[experiment(:foobar).alternatives[0], 0.3], [experiment(:foobar).alternatives[1], 0.6], [experiment(:foobar).alternatives[2], 1.0]]
 
-    class <<experiment(:foobar)
-      def was_called
-        @was_called
-      end
-      def bayes_bandit_score(probability=90)
+    class << experiment(:foobar)
+      attr_reader :was_called, :use_probabilities
+
+      def bayes_bandit_score(_probability = 90)
         @was_called = true
         altered_alts = Vanity.playground.experiment(:foobar).alternatives
-        altered_alts[0].probability=30
-        altered_alts[1].probability=30
-        altered_alts[2].probability=40
-        Struct.new(:alts,:method).new(altered_alts,:bayes_bandit_score)
-      end
-      def use_probabilities
-        @use_probabilities
+        altered_alts[0].probability = 30
+        altered_alts[1].probability = 30
+        altered_alts[2].probability = 40
+        Struct.new(:alts, :method).new(altered_alts, :bayes_bandit_score) # rubocop:todo Lint/StructNewOverride
       end
     end
     experiment(:foobar).rebalance!
@@ -700,7 +698,7 @@ class AbTestTest < ActionController::TestCase
       metrics :coolness
     end
     assert value = experiment(:foobar).choose.value
-    assert_match /foo|bar/, value
+    assert_match(/foo|bar/, value)
     1000.times do
       assert_equal value, experiment(:foobar).choose.value
     end
@@ -752,7 +750,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_records_each_converted_participant_only_once
-    ids = ((1..100).map { |i| [i,i] } * 5).shuffle.flatten # 3,3,1,1,7,7 etc
+    ids = ((1..100).map { |i| [i, i] } * 5).shuffle.flatten # 3,3,1,1,7,7 etc
     new_ab_test :foobar do
       alternatives "foo", "bar"
       default "foo"
@@ -768,7 +766,7 @@ class AbTestTest < ActionController::TestCase
   end
 
   def test_records_conversion_only_for_participants
-    ids = ((1..100).map { |i| [-i,i,i] } * 5).shuffle.flatten # -3,3,3,-1,1,1,-7,7,7 etc
+    ids = ((1..100).map { |i| [-i, i, i] } * 5).shuffle.flatten # -3,3,3,-1,1,1,-7,7,7 etc
     new_ab_test :foobar do
       alternatives "foo", "bar"
       default "foo"
@@ -830,7 +828,6 @@ class AbTestTest < ActionController::TestCase
     assert_equal 0, experiment(:simple).alternatives.map(&:converted).sum
   end
 
-
   # -- A/B helper methods --
 
   def test_fail_if_no_experiment
@@ -846,7 +843,8 @@ class AbTestTest < ActionController::TestCase
       default false
     end
     responses = Array.new(100) do
-      @controller = nil ; setup_controller_request_and_response
+      @controller = nil
+      setup_controller_request_and_response
       get :test_render
       @response.body
     end
@@ -860,7 +858,8 @@ class AbTestTest < ActionController::TestCase
       default false
     end
     responses = Array.new(100) do
-      @controller = nil ; setup_controller_request_and_response
+      @controller = nil
+      setup_controller_request_and_response
       get :test_view
       @response.body
     end
@@ -874,7 +873,8 @@ class AbTestTest < ActionController::TestCase
       default false
     end
     responses = Array.new(100) do
-      @controller = nil ; setup_controller_request_and_response
+      @controller = nil
+      setup_controller_request_and_response
       get :test_capture
       @response.body
     end
@@ -886,13 +886,12 @@ class AbTestTest < ActionController::TestCase
       metrics :coolness
       default false
     end
-    responses = Array.new(100) do
-      @controller.send(:cookies).each{ |cookie| @controller.send(:cookies).delete(cookie.first) }
+    responses = Array.new(100) do # rubocop:todo Lint/UselessAssignment
+      @controller.send(:cookies).each { |cookie| @controller.send(:cookies).delete(cookie.first) }
       get :track
       @response.body
     end
   end
-
 
   # -- Testing with tests --
 
@@ -902,8 +901,9 @@ class AbTestTest < ActionController::TestCase
       default :a
       metrics :coolness
     end
-    100.times do |i|
-      @controller = nil ; setup_controller_request_and_response
+    100.times do |_i|
+      @controller = nil
+      setup_controller_request_and_response
       experiment(:simple).chooses(:b)
       get :test_render
       assert "b", @response.body
@@ -927,8 +927,9 @@ class AbTestTest < ActionController::TestCase
       default :a
       metrics :coolness
     end
-    responses = Array.new(100) do |i|
-      @controller = nil ; setup_controller_request_and_response
+    responses = Array.new(100) do |_i|
+      @controller = nil
+      setup_controller_request_and_response
       experiment(:simple).chooses(:b)
       experiment(:simple).chooses(nil)
       get :test_render
@@ -936,7 +937,6 @@ class AbTestTest < ActionController::TestCase
     end
     assert responses.uniq.size == 3
   end
-
 
   # -- Scoring --
 
@@ -970,9 +970,9 @@ class AbTestTest < ActionController::TestCase
     # Treatment A:  180 45 25.00% 1.33
     # treatment B:  189 28 14.81% -1.13
     # treatment C:  188 61 32.45% 2.94
-    fake :abcd, :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
+    fake :abcd, a: [182, 35], b: [180, 45], c: [189, 28], d: [188, 61]
 
-    z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }
+    z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score } # rubocop:todo Style/FormatString
     assert_equal %w{-1.33 0.00 -2.46 1.58}, z_scores
     probabilities = experiment(:abcd).score.alts.map(&:probability)
     assert_equal [90, 0, 99, 90], probabilities
@@ -997,11 +997,11 @@ class AbTestTest < ActionController::TestCase
     # Treatment A:  180 45 25.00% 1.33
     # treatment B:  189 28 14.81% -1.13
     # treatment C:  188 61 32.45% 2.94
-    fake :abcd, :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
+    fake :abcd, a: [182, 35], b: [180, 45], c: [189, 28], d: [188, 61]
 
     score_result = experiment(:abcd).bayes_bandit_score
-    probabilities = score_result.alts.map{|a| a.probability.round}
-    assert_equal [0,0,6,94], probabilities
+    probabilities = score_result.alts.map { |a| a.probability.round }
+    assert_equal [0, 0, 6, 94], probabilities
   end
 
   def test_scoring_with_no_performers
@@ -1024,13 +1024,13 @@ class AbTestTest < ActionController::TestCase
       default :a
       metrics :coolness
     end
-    fake :abcd, :b=>[10,8]
+    fake :abcd, b: [10, 8]
     assert experiment(:abcd).score.alts.all? { |alt| alt.z_score.nan? }
     assert experiment(:abcd).score.alts.all? { |alt| alt.probability == 0 }
     assert experiment(:abcd).score.alts.all? { |alt| alt.difference.nil? }
     assert_equal 1, experiment(:abcd).score.best.id
     assert_nil experiment(:abcd).score.choice
-    assert_includes [0,2,3], experiment(:abcd).score.base.id
+    assert_includes [0, 2, 3], experiment(:abcd).score.base.id
     assert_equal 1, experiment(:abcd).score.least.id
   end
 
@@ -1040,9 +1040,9 @@ class AbTestTest < ActionController::TestCase
       default :a
       metrics :coolness
     end
-    fake :abcd, :b=>[10,8], :d=>[12,5]
+    fake :abcd, b: [10, 8], d: [12, 5]
 
-    z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }.map(&:downcase)
+    z_scores = experiment(:abcd).score.alts.map { |alt| "%.2f" % alt.z_score }.map(&:downcase) # rubocop:todo Style/FormatString
     assert_equal %w{nan 2.01 nan 0.00}, z_scores
     probabilities = experiment(:abcd).score.alts.map(&:probability)
     assert_equal [0, 95, 0, 0], probabilities
@@ -1060,13 +1060,12 @@ class AbTestTest < ActionController::TestCase
       default :a
       metrics :coolness
     end
-    fake :abcd, :b=>[10,8], :d=>[12,5]
+    fake :abcd, b: [10, 8], d: [12, 5]
 
     assert_equal 1, experiment(:abcd).score(90).choice.id
     assert_equal 1, experiment(:abcd).score(95).choice.id
     assert_nil experiment(:abcd).score(99).choice
   end
-
 
   # -- Conclusion --
 
@@ -1081,16 +1080,16 @@ class AbTestTest < ActionController::TestCase
     # Treatment A:  180 45 25.00% 1.33
     # treatment B:  189 28 14.81% -1.13
     # treatment C:  188 61 32.45% 2.94
-    fake :abcd, :a=>[182, 35], :b=>[180, 45], :c=>[189,28], :d=>[188, 61]
+    fake :abcd, a: [182, 35], b: [180, 45], c: [189, 28], d: [188, 61]
 
-    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
-There are 739 participants in this experiment.
-The best choice is option D: it converted at 32.4% (30% better than option B).
-With 90% probability this result is statistically significant.
-Option B converted at 25.0%.
-Option A converted at 19.2%.
-Option C converted at 14.8%.
-Option D selected as the best alternative.
+    assert_equal <<~TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+      There are 739 participants in this experiment.
+      The best choice is option D: it converted at 32.4% (30% better than option B).
+      With 90% probability this result is statistically significant.
+      Option B converted at 25.0%.
+      Option A converted at 19.2%.
+      Option C converted at 14.8%.
+      Option D selected as the best alternative.
     TEXT
   end
 
@@ -1100,16 +1099,16 @@ Option D selected as the best alternative.
       default :a
       metrics :coolness
     end
-    fake :abcd, :b=>[180, 45], :d=>[188, 61]
+    fake :abcd, b: [180, 45], d: [188, 61]
 
-    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
-There are 368 participants in this experiment.
-The best choice is option D: it converted at 32.4% (30% better than option B).
-With 90% probability this result is statistically significant.
-Option B converted at 25.0%.
-Option A did not convert.
-Option C did not convert.
-Option D selected as the best alternative.
+    assert_equal <<~TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+      There are 368 participants in this experiment.
+      The best choice is option D: it converted at 32.4% (30% better than option B).
+      With 90% probability this result is statistically significant.
+      Option B converted at 25.0%.
+      Option A did not convert.
+      Option C did not convert.
+      Option D selected as the best alternative.
     TEXT
   end
 
@@ -1119,15 +1118,15 @@ Option D selected as the best alternative.
       default :a
       metrics :coolness
     end
-    fake :abcd, :b=>[180, 58], :d=>[188, 61]
+    fake :abcd, b: [180, 58], d: [188, 61]
 
-    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
-There are 368 participants in this experiment.
-The best choice is option D: it converted at 32.4% (1% better than option B).
-This result is not statistically significant, suggest you continue this experiment.
-Option B converted at 32.2%.
-Option A did not convert.
-Option C did not convert.
+    assert_equal <<~TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+      There are 368 participants in this experiment.
+      The best choice is option D: it converted at 32.4% (1% better than option B).
+      This result is not statistically significant, suggest you continue this experiment.
+      Option B converted at 32.2%.
+      Option A did not convert.
+      Option C did not convert.
     TEXT
   end
 
@@ -1137,15 +1136,15 @@ Option C did not convert.
       default :a
       metrics :coolness
     end
-    fake :abcd, :b=>[186, 60], :d=>[188, 61]
+    fake :abcd, b: [186, 60], d: [188, 61]
 
-    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
-There are 374 participants in this experiment.
-The best choice is option D: it converted at 32.4% (1% better than option B).
-This result is not statistically significant, suggest you continue this experiment.
-Option B converted at 32.3%.
-Option A did not convert.
-Option C did not convert.
+    assert_equal <<~TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+      There are 374 participants in this experiment.
+      The best choice is option D: it converted at 32.4% (1% better than option B).
+      This result is not statistically significant, suggest you continue this experiment.
+      Option B converted at 32.3%.
+      Option A did not convert.
+      Option C did not convert.
     TEXT
   end
 
@@ -1155,14 +1154,14 @@ Option C did not convert.
       default :a
       metrics :coolness
     end
-    fake :abcd, :b=>[188, 61], :d=>[188, 61]
+    fake :abcd, b: [188, 61], d: [188, 61]
 
-    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
-There are 376 participants in this experiment.
-Option D converted at 32.4%.
-Option B converted at 32.4%.
-Option A did not convert.
-Option C did not convert.
+    assert_equal <<~TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+      There are 376 participants in this experiment.
+      Option D converted at 32.4%.
+      Option B converted at 32.4%.
+      Option A did not convert.
+      Option C did not convert.
     TEXT
   end
 
@@ -1172,11 +1171,11 @@ Option C did not convert.
       default :a
       metrics :coolness
     end
-    fake :abcd, :b=>[180, 45]
+    fake :abcd, b: [180, 45]
 
-    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
-There are 180 participants in this experiment.
-This experiment did not run long enough to find a clear winner.
+    assert_equal <<~TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+      There are 180 participants in this experiment.
+      This experiment did not run long enough to find a clear winner.
     TEXT
   end
 
@@ -1186,12 +1185,11 @@ This experiment did not run long enough to find a clear winner.
       default :a
       metrics :coolness
     end
-    assert_equal <<-TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
-There are no participants in this experiment yet.
-This experiment did not run long enough to find a clear winner.
+    assert_equal <<~TEXT, experiment(:abcd).conclusion.join("\n") << "\n"
+      There are no participants in this experiment yet.
+      This experiment did not run long enough to find a clear winner.
     TEXT
   end
-
 
   # -- Completion --
 
@@ -1209,7 +1207,7 @@ This experiment did not run long enough to find a clear winner.
   def test_completion_if_fails
     new_ab_test :simple do
       identify { rand }
-      complete_if { fail "Testing complete_if raises exception" }
+      complete_if { raise "Testing complete_if raises exception" }
       metrics :coolness
       default false
     end
@@ -1225,7 +1223,7 @@ This experiment did not run long enough to find a clear winner.
       metrics :coolness
       default false
     end
-    99.times do |i|
+    99.times do |_i|
       experiment(:simple).choose
       assert experiment(:simple).active?
     end
@@ -1261,7 +1259,6 @@ This experiment did not run long enough to find a clear winner.
     assert_equal 99, experiment(:simple).alternatives.map(&:converted).sum
     assert_equal 99, experiment(:simple).alternatives.map(&:conversions).sum
   end
-
 
   # -- Outcome --
 
@@ -1319,7 +1316,7 @@ This experiment did not run long enough to find a clear winner.
 
   def test_outcome_is_fails
     new_ab_test :quick do
-      outcome_is { fail "Testing outcome_is raising exception" }
+      outcome_is { raise "Testing outcome_is raising exception" }
       metrics :coolness
       default false
     end
@@ -1332,7 +1329,7 @@ This experiment did not run long enough to find a clear winner.
       metrics :coolness
       default false
     end
-    fake :quick, false=>[2,0], true=>10
+    fake :quick, false => [2, 0], true => 10
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
@@ -1342,7 +1339,7 @@ This experiment did not run long enough to find a clear winner.
       metrics :coolness
       default false
     end
-    fake :quick, true=>2
+    fake :quick, true => 2
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
@@ -1352,11 +1349,10 @@ This experiment did not run long enough to find a clear winner.
       metrics :coolness
       default false
     end
-    fake :quick, false=>8, true=>8
+    fake :quick, false => 8, true => 8
     experiment(:quick).complete!
     assert_equal experiment(:quick).alternative(true), experiment(:quick).outcome
   end
-
 
   # -- No collection --
 
@@ -1400,7 +1396,7 @@ This experiment did not run long enough to find a clear winner.
       identify { "1" }
     end
     val = experiment(:simple).choose.value
-    alternative = experiment(:simple).alternatives.detect {|a| a.value != val }
+    alternative = experiment(:simple).alternatives.detect { |a| a.value != val }
     experiment(:simple).chooses(alternative.value)
     assert_equal experiment(:simple).choose.value, alternative.value
     experiment(:simple).chooses(val)
@@ -1481,7 +1477,7 @@ This experiment did not run long enough to find a clear winner.
       default :b
       metrics :coolness
 
-      reject do |request, identity|
+      reject do |_request, _identity|
         true
       end
     end
@@ -1508,11 +1504,11 @@ This experiment did not run long enough to find a clear winner.
   end
 
   def test_clears_outcome_and_completed_at
-     new_ab_test :simple do
-       alternatives :a, :b, :c
-       default :a
-       metrics :coolness
-     end
+    new_ab_test :simple do
+      alternatives :a, :b, :c
+      default :a
+      metrics :coolness
+    end
     experiment(:simple).reset
     assert_nil experiment(:simple).outcome
     assert_nil experiment(:simple).completed_at
@@ -1531,7 +1527,7 @@ This experiment did not run long enough to find a clear winner.
     assert_not_nil experiment(:simple).completed_at
   end
 
-  def test_reset_clears_participants
+  def test_reset_clears_participants # rubocop:todo Lint/DuplicateMethods
     new_ab_test :simple do
       alternatives :a, :b, :c
       default :a
@@ -1543,7 +1539,7 @@ This experiment did not run long enough to find a clear winner.
     assert_equal experiment(:simple).alternatives[1].participants, 0
   end
 
-  def test_clears_outcome_and_completed_at
+  def test_clears_outcome_and_completed_at # rubocop:todo Lint/DuplicateMethods
     new_ab_test :simple do
       alternatives :a, :b, :c
       default :a
@@ -1554,11 +1550,9 @@ This experiment did not run long enough to find a clear winner.
     assert_nil experiment(:simple).completed_at
   end
 
-
   # -- Helper methods --
 
   def fake(name, args)
     experiment(name).instance_eval { fake args }
   end
-
 end

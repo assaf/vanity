@@ -81,7 +81,7 @@ module Vanity
     # @deprecated
     # @see Configuration#add_participant_route=
     def add_participant_path=(path)
-      Vanity.configuration.add_participant_route=path
+      Vanity.configuration.add_participant_route = path
     end
 
     # @since 1.9.0
@@ -183,7 +183,6 @@ module Vanity
       experiments[id.to_sym] or raise NoExperimentError, "No experiment #{id}"
     end
 
-
     # -- Participant Information --
 
     # Returns an array of all experiments this participant is involved in, with their assignment.
@@ -193,9 +192,7 @@ module Vanity
       participant_array = []
       experiments.values.sort_by(&:name).each do |e|
         index = connection.ab_assigned(e.id, participant_id)
-        if index
-          participant_array << [e, e.alternatives[index.to_i]]
-        end
+        participant_array << [e, e.alternatives[index.to_i]] if index
       end
       participant_array
     end
@@ -203,7 +200,7 @@ module Vanity
     # @since 1.4.0
     # @deprecated
     # @see Vanity::Connection
-    def establish_connection(spec=nil)
+    def establish_connection(spec = nil)
       disconnect!
       Vanity.connect!(spec)
     end

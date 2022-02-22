@@ -35,7 +35,7 @@ parser = OptionParser.new("", 24, "  ") do |opts|
     puts opts.to_s.gsub(/^.*DEPRECATED.*$/s, '')
     exit
   end
-  opts.on_tail "-v", "--version", "Show version"  do
+  opts.on_tail "-v", "--version", "Show version" do
     puts "Vanity #{Vanity::Version::STRING}"
     exit
   end

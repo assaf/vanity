@@ -80,9 +80,7 @@ describe Vanity do
         connection_config = VanityTestHelpers::VANITY_CONFIGS["vanity.yml.redis"]
 
         FileUtils.mkpath "./config"
-        File.open("./config/vanity.yml", "w") do |f|
-          f.write(connection_config)
-        end
+        File.write("./config/vanity.yml", connection_config)
 
         Vanity::Connection.expects(:new).with("redis://:p4ssw0rd@10.0.1.1:6380/15")
         Vanity.disconnect!
@@ -91,9 +89,7 @@ describe Vanity do
 
       it "uses redis.yml" do
         FileUtils.mkpath "./config"
-        File.open("./config/redis.yml", "w") do |f|
-          f.write VanityTestHelpers::VANITY_CONFIGS["redis.yml.url"]
-        end
+        File.write("./config/redis.yml", VanityTestHelpers::VANITY_CONFIGS["redis.yml.url"])
 
         Vanity::Connection.expects(:new).with("localhost:6379/15")
         Vanity.disconnect!
@@ -104,9 +100,7 @@ describe Vanity do
         connection_config = VanityTestHelpers::VANITY_CONFIGS["vanity.yml.redis"]
 
         FileUtils.mkpath "./config"
-        File.open("./config/vanity.yml", "w") do |f|
-          f.write(connection_config)
-        end
+        File.write("./config/vanity.yml", connection_config)
 
         out, _err = capture_io do
           Vanity.reset!
@@ -148,7 +142,7 @@ describe Vanity do
     end
   end
 
-   describe "#playground" do
+  describe "#playground" do
     it "returns the same playground" do
       assert_same Vanity.playground, Vanity.playground
     end

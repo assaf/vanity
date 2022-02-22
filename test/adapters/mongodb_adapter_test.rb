@@ -3,7 +3,6 @@ require 'vanity/adapters/mongodb_adapter'
 require 'adapters/shared_tests'
 
 describe Vanity::Adapters::MongodbAdapter do
-
   def specification
     Vanity::Connection::Specification.new(VanityTestHelpers::DATABASE_OPTIONS["mongodb"])
   end
@@ -12,8 +11,5 @@ describe Vanity::Adapters::MongodbAdapter do
     Vanity::Adapters::MongodbAdapter.new(specification.to_h)
   end
 
-  if ENV["DB"] == "mongodb"
-    include Vanity::Adapters::SharedTests
-  end
-
+  include Vanity::Adapters::SharedTests if ENV["DB"] == "mongodb"
 end

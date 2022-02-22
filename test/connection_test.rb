@@ -32,9 +32,9 @@ describe Vanity::Connection do
     end
 
     it "raises an error for invalid specification hashes" do
-      assert_raises(Vanity::Connection::InvalidSpecification) {
+      assert_raises(Vanity::Connection::InvalidSpecification) do
         Vanity::Connection.new("adapter" => "mock")
-      }
+      end
     end
 
     it "allows a redis connection to be specified" do

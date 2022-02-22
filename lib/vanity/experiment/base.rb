@@ -4,40 +4,41 @@ module Vanity
   module Experiment
     # Base class that all experiment types are derived from.
     class Base
-
       class << self
         # Returns the type of this class as a symbol (e.g. AbTest becomes
         # ab_test).
         def type
-          name.split("::").last.gsub(/([a-z])([A-Z])/) { "#{$1}_#{$2}" }.gsub(/([A-Z])([A-Z][a-z])/) { "#{$1}_#{$2}" }.downcase
+          name.split("::").last.gsub(/([a-z])([A-Z])/) { "#{Regexp.last_match(1)}_#{Regexp.last_match(2)}" }.gsub(/([A-Z])([A-Z][a-z])/) { "#{Regexp.last_match(1)}_#{Regexp.last_match(2)}" }.downcase
         end
 
         # Playground uses this to load experiment definitions.
         def load(playground, stack, file)
-          fail "Circular dependency detected: #{stack.join('=>')}=>#{file}" if stack.include?(file)
+          raise "Circular dependency detected: #{stack.join('=>')}=>#{file}" if stack.include?(file)
+
           source = File.read(file)
           stack.push file
           id = File.basename(file, ".rb").downcase.gsub(/\W/, "_").to_sym
           context = Object.new
           context.instance_eval do
             extend Definition
-            experiment = eval(source, context.new_binding(playground, id), file)
-            fail NameError.new("Expected #{file} to define experiment #{id}", id) unless playground.experiments[id]
+            experiment = eval(source, context.new_binding(playground, id), file) # rubocop:todo Security/Eval
+            raise NameError.new("Expected #{file} to define experiment #{id}", id) unless playground.experiments[id]
+
             return experiment
           end
-        rescue
+        rescue StandardError
           error = NameError.exception($!.message, id)
           error.set_backtrace $!.backtrace
           raise error
         ensure
           stack.pop
         end
-
       end
 
       def initialize(playground, id, name, options = nil)
         @playground = playground
-        @id, @name = id.to_sym, name
+        @id = id.to_sym
+        @name = name
         @options = options || {}
         @identify_block = method(:default_identify)
         @on_assignment_block = nil
@@ -46,7 +47,7 @@ module Vanity
       # Human readable experiment name (first argument you pass when creating a
       # new experiment).
       attr_reader :name
-      alias :to_s :name
+      alias to_s name
 
       # Unique identifier, derived from name experiment name, e.g. "Green
       # Button" becomes :green_button.
@@ -78,7 +79,8 @@ module Vanity
       #     end
       #   end
       def identify(&block)
-        fail "Missing block" unless block
+        raise "Missing block" unless block
+
         @identify_block = block
       end
 
@@ -92,7 +94,8 @@ module Vanity
       #     end
       #   end
       def on_assignment(&block)
-        fail "Missing block" unless block
+        raise "Missing block" unless block
+
         @on_assignment_block = block
       end
 
@@ -109,7 +112,6 @@ module Vanity
         @description if defined?(@description)
       end
 
-
       # -- Experiment completion --
 
       # Define experiment completion condition. For example:
@@ -119,15 +121,17 @@ module Vanity
       def complete_if(&block)
         raise ArgumentError, "Missing block" unless block
         raise "complete_if already called on this experiment" if defined?(@complete_block)
+
         @complete_block = block
       end
 
       # Force experiment to complete.
       # @param optional integer id of the alternative that is the decided
       # outcome of the experiment
-      def complete!(outcome = nil)
+      def complete!(_outcome = nil)
         @playground.logger.info "vanity: completed experiment #{id}"
         return unless @playground.collecting?
+
         connection.set_experiment_completed_at @id, Time.now
         @completed_at = connection.get_experiment_completed_at(@id)
       end
@@ -153,6 +157,7 @@ module Vanity
       # Called by Playground to save the experiment definition.
       def save
         return unless @playground.collecting?
+
         connection.set_experiment_created_at @id, Time.now
       end
 
@@ -165,12 +170,13 @@ module Vanity
       #   end
       #
       def reject(&block)
-        fail "Missing block" unless block
+        raise "Missing block" unless block
         raise "filter already called on this experiment" if @request_filter_block
+
         @request_filter_block = block
       end
 
-    protected
+      protected
 
       def identity
         @identify_block.call(Vanity.context)
@@ -179,16 +185,17 @@ module Vanity
       def default_identify(context)
         raise "No Vanity.context" unless context
         raise "Vanity.context does not respond to vanity_identity" unless context.respond_to?(:vanity_identity, true)
+
         context.send(:vanity_identity) or raise "Vanity.context.vanity_identity - no identity"
       end
 
       # Derived classes call this after state changes that may lead to
       # experiment completing.
       def check_completion!
-        if defined?(@complete_block) && @complete_block
+        if defined?(@complete_block) && @complete_block # rubocop:todo Style/GuardClause
           begin
             complete! if @complete_block.call
-          rescue => e
+          rescue StandardError => e
             Vanity.logger.warn("Error in Vanity::Experiment::Base: #{e}")
           end
         end
@@ -206,11 +213,9 @@ module Vanity
       def connection
         @playground.connection
       end
-
     end
   end
 
   class NoExperimentError < NameError
   end
-
 end

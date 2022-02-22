@@ -1,7 +1,6 @@
 require "test_helper"
 
 describe "bin/vanity" do
-
   before do
     not_collecting!
   end

@@ -15,7 +15,7 @@ class UseVanityMailerTest < ActionMailer::TestCase
 
   def test_js_enabled_still_adds_participant
     Vanity.playground.use_js!
-    experiment(:pie_or_cake).identify { }
+    experiment(:pie_or_cake).identify {} # rubocop:todo Lint/EmptyBlock
     experiment(:pie_or_cake).chooses(:pie)
     VanityMailer.ab_test_subject(nil)
 
@@ -24,7 +24,7 @@ class UseVanityMailerTest < ActionMailer::TestCase
   end
 
   def test_returns_different_alternatives
-    experiment(:pie_or_cake).identify { }
+    experiment(:pie_or_cake).identify {} # rubocop:todo Lint/EmptyBlock
 
     experiment(:pie_or_cake).chooses(:pie)
     email = VanityMailer.ab_test_subject(nil)

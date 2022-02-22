@@ -8,14 +8,14 @@ module Vanity
     #     metrics :signup
     #   end
     module Definition
-
       attr_reader :playground
 
       # Defines a new experiment, given the experiment's name, type and
       # definition block.
       def define(name, type, options = nil, &block)
-        fail "Experiment #{@experiment_id} already defined in playground" if playground.experiments[@experiment_id]
-        klass = Experiment.const_get(type.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase })
+        raise "Experiment #{@experiment_id} already defined in playground" if playground.experiments[@experiment_id]
+
+        klass = Experiment.const_get(type.to_s.gsub(/\/(.?)/) { "::#{Regexp.last_match(1).upcase}" }.gsub(/(?:^|_)(.)/) { Regexp.last_match(1).upcase })
         experiment = klass.new(playground, @experiment_id, name, options)
         experiment.instance_eval(&block)
         experiment.save
@@ -23,10 +23,10 @@ module Vanity
       end
 
       def new_binding(playground, id)
-        @playground, @experiment_id = playground, id
+        @playground = playground
+        @experiment_id = id
         binding
       end
-
     end
   end
 end

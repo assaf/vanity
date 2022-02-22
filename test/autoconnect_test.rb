@@ -15,7 +15,7 @@ describe Vanity::Autoconnect do
     end
 
     it "returns false if in assets:precompile rake task" do
-      Rake.expects(:application).returns(stub(:top_level_tasks => ['assets:precompile']))
+      Rake.expects(:application).returns(stub(top_level_tasks: ['assets:precompile']))
       autoconnect = Vanity::Autoconnect.should_connect?
       assert autoconnect == false
     end
@@ -23,7 +23,7 @@ describe Vanity::Autoconnect do
 
   describe ".schema_relevant?" do
     it "returns true for database tasks" do
-      Rake.expects(:application).returns(stub(:top_level_tasks => ['db:migrate']))
+      Rake.expects(:application).returns(stub(top_level_tasks: ['db:migrate']))
       assert_equal true, Vanity::Autoconnect.schema_relevant?
     end
   end

@@ -1,11 +1,10 @@
 require "rake/testtask"
 require "bundler/gem_tasks"
 
-
 # -- Testing stuff --
 
 desc "Test everything"
-task "test:all"=>"test:adapters"
+task "test:all" => "test:adapters"
 
 # Ruby versions we're testing with.
 RUBIES = %w{1.9.3 2.0.0 jruby-1.7.13}
@@ -19,7 +18,7 @@ RUBIES = %w{1.9.3 2.0.0 jruby-1.7.13}
 # Gemfile. If anything goes south you can always wipe these gemsets or uninstall
 # these Rubies and start over.
 desc "Test using multiple versions of Ruby"
-task "test:rubies", :ruby do |t, args|
+task "test:rubies", :ruby do |_t, args|
   rubies = args.ruby ? [args.ruby] : RUBIES
   rubies.each do |ruby|
     puts "** Setup #{ruby}"
@@ -49,18 +48,17 @@ end
 ADAPTERS = %w{redis mongodb active_record}
 
 desc "Test using different back-ends"
-task "test:adapters", :adapter do |t, args|
-  begin # Make sure we have appraisal installed and available
-    require "appraisal"
+task "test:adapters", :adapter do |_t, args|
+  # Make sure we have appraisal installed and available
+  require "appraisal"
 
-    adapters = args.adapter ? [args.adapter] : ADAPTERS
-    adapters.each do |adapter|
-      puts "** Testing #{adapter} adapter"
-      sh "bundle exec appraisal rake test DB=#{adapter} #{'--trace' if Rake.application.options.trace}"
-    end
-  rescue LoadError
-    warn "The appraisal gem must be available"
+  adapters = args.adapter ? [args.adapter] : ADAPTERS
+  adapters.each do |adapter|
+    puts "** Testing #{adapter} adapter"
+    sh "bundle exec appraisal rake test DB=#{adapter} #{'--trace' if Rake.application.options.trace}"
   end
+rescue LoadError
+  warn "The appraisal gem must be available"
 end
 
 # Run the test suit.
@@ -72,11 +70,10 @@ Rake::TestTask.new(:test) do |task|
   task.warning = false
 end
 
-task :default=>:test
+task default: :test
 desc "Run all tests"
 
 task(:clobber) { rm_rf "tmp" }
-
 
 # -- Documenting stuff -- #TODO make sure works under 1.9/2.0
 
@@ -84,16 +81,15 @@ desc "Jekyll generates the main documentation (sans API)"
 task(:jekyll) { sh "jekyll build -s doc -d html" }
 
 desc "Create documentation in docs directory"
-task :docs=>[:jekyll]
+task docs: [:jekyll]
 
 desc "Remove temporary files and directories"
 task(:clobber) { rm_rf "html" }
 
 desc "Publish documentation to vanity.labnotes.org via Github Pages on gh-pages git branch"
-task :publish=>[:clobber, :docs] do
+task publish: [:clobber, :docs] do
   # TODO
 end
-
 
 # -- Misc --
 
@@ -111,28 +107,33 @@ task :report do
   # Treatment B 189 28  14.81%  -1.13
   # Treatment C 188 61  32.45%  2.94
   Vanity.playground.experiment(:null_abc).instance_eval do
-    fake nil=>[182,35], :red=>[180,45], :green=>[189,28], :blue=>[188,61]
+    fake nil => [182, 35], :red => [180, 45], :green => [189, 28], :blue => [188, 61]
     @created_at = (Date.today - 40).to_time
     @completed_at = (Date.today - 35).to_time
   end
 
   Vanity.playground.experiment(:age_and_zipcode).instance_eval do
-    fake false=>[80,35], true=>[84,32]
+    fake false => [80, 35], true => [84, 32]
     @created_at = (Date.today - 30).to_time
     @completed_at = (Date.today - 15).to_time
   end
 
   Vanity.context = Object.new
-  Vanity.context.instance_eval { def vanity_identity ; 0 ; end }
+  Vanity.context.instance_eval do
+    def vanity_identity
+      0
+    end
+  end
   signups = 50
   (Date.today - 90..Date.today).each do |date|
     Timecop.travel date do
-      signups += rand(15) - 5
+      signups += rand(-5..9)
       Vanity.playground.track! :signups, signups
     end
   end
 
-  cheers, yawns = 0, 0
+  cheers = 0
+  yawns = 0
   (Date.today - 80..Date.today).each do |date|
     Timecop.travel date do
       cheers = cheers - 5 + rand(20)

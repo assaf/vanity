@@ -10,7 +10,7 @@ module Vanity
         # Convert z-score to probability.
         def probability(score)
           score = score.abs
-          probability = AbTest::Z_TO_PROBABILITY.find { |z,p| score >= z }
+          probability = AbTest::Z_TO_PROBABILITY.find { |z, _p| score >= z }
           probability ? probability.last : 0
         end
 
@@ -48,6 +48,7 @@ module Vanity
         class << self
           define_method :default do |*args|
             raise ArgumentError, "default has already been set to #{@default.inspect}" unless args.empty?
+
             alternative(@default)
           end
         end
@@ -69,6 +70,7 @@ module Vanity
       # has had #save invoked previous to any enabled= calls.
       def enabled=(bool)
         return unless @playground.collecting? && active?
+
         if created_at.nil?
           Vanity.logger.warn(
             'DB has no created_at for this experiment! This most likely means' +
@@ -146,10 +148,8 @@ module Vanity
       #   metrics :signup
       #   score_method :bayes_bandit_score
       # end
-      def score_method(method=nil)
-        if method
-          @score_method = method
-        end
+      def score_method(method = nil)
+        @score_method = method if method
         @score_method
       end
 
@@ -172,7 +172,7 @@ module Vanity
       # alternative for experiment without revealing what values are available
       # (e.g. choosing alternative from HTTP query parameter).
       def fingerprint(alternative)
-        Digest::MD5.hexdigest("#{id}:#{alternative.id}")[-10,10]
+        Digest::MD5.hexdigest("#{id}:#{alternative.id}")[-10, 10]
       end
 
       # Chooses a value for this experiment. You probably want to use the
@@ -185,10 +185,10 @@ module Vanity
       #
       # @example
       #   color = experiment(:which_blue).choose
-      def choose(request=nil)
+      def choose(request = nil)
         if @playground.collecting?
           if active?
-            if enabled?
+            if enabled? # rubocop:todo Style/GuardClause
               return assignment_for_identity(request)
             else
               # Show the default if experiment is disabled.
@@ -229,7 +229,7 @@ module Vanity
       #   teardown do
       #     experiment(:green_button).chooses(nil)
       #   end
-      def chooses(value, request=nil)
+      def chooses(value, request = nil)
         if @playground.collecting?
           if value.nil?
             connection.ab_not_showing @id, identity
@@ -238,8 +238,9 @@ module Vanity
             save_assignment(identity, index, request) unless filter_visitor?(request, identity)
 
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
+
             if (connection.ab_showing(@id, identity) && connection.ab_showing(@id, identity) != index) ||
-              alternative_for(identity) != index
+               alternative_for(identity) != index
               connection.ab_show(@id, identity, index)
             end
           end
@@ -261,12 +262,11 @@ module Vanity
         end
       end
 
-
       # -- Reporting --
 
       def calculate_score
         if respond_to?(score_method)
-          self.send(score_method)
+          send(score_method)
         else
           score
         end
@@ -298,22 +298,24 @@ module Vanity
         alts.each do |alt|
           p = alt.measure
           n = alt.participants
-          alt.z_score = (p - pc) / ((p * (1-p)/n) + (pc * (1-pc)/nc)).abs ** 0.5
+          alt.z_score = (p - pc) / (((p * (1 - p) / n) + (pc * (1 - pc) / nc)).abs**0.5)
           alt.probability = AbTest.probability(alt.z_score)
         end
         # difference is measured from least performant
-        if least = sorted.find { |alt| alt.measure > 0 }
+        if least = sorted.find { |alt| alt.measure > 0 } # rubocop:todo Lint/AssignmentInCondition
           alts.each do |alt|
-            if alt.measure > least.measure
-              alt.difference = (alt.measure - least.measure) / least.measure * 100
-            end
+            alt.difference = (alt.measure - least.measure) / least.measure * 100 if alt.measure > least.measure
           end
         end
         # best alternative is one with highest conversion rate (best shot).
         # choice alternative can only pick best if we have high probability (>90%).
         best = sorted.last if sorted.last.measure > 0.0
-        choice = outcome ? alts[outcome.id] : (best && best.probability >= probability ? best : nil)
-        Struct.new(:alts, :best, :base, :least, :choice, :method).new(alts, best, base, least, choice, :score)
+        choice = if outcome
+                   alts[outcome.id]
+                 else
+                   (best && best.probability >= probability ? best : nil)
+                 end
+        Struct.new(:alts, :best, :base, :least, :choice, :method).new(alts, best, base, least, choice, :score) # rubocop:todo Lint/StructNewOverride
       end
 
       # Scores alternatives based on the current tracking data, using Bayesian
@@ -336,13 +338,13 @@ module Vanity
       #
       # The choice alternative is set only if its probability is higher or
       # equal to the specified probability (default is 90%).
-      def bayes_bandit_score(probability = 90)
+      def bayes_bandit_score(_probability = 90)
         begin
           require "backports/1.9.1/kernel/define_singleton_method" if RUBY_VERSION < "1.9"
           require "integration"
           require "rubystats"
         rescue LoadError
-          fail("to use bayes_bandit_score, install integration and rubystats gems")
+          raise("to use bayes_bandit_score, install integration and rubystats gems")
         end
 
         begin
@@ -358,12 +360,12 @@ module Vanity
       # array of claims.
       def conclusion(score = score())
         claims = []
-        participants = score.alts.inject(0) { |t,alt| t + alt.participants }
+        participants = score.alts.inject(0) { |t, alt| t + alt.participants }
         claims << if participants.zero?
-          I18n.t('vanity.no_participants')
-        else
-          I18n.t('vanity.experiment_participants', :count=>participants)
-        end
+                    I18n.t('vanity.no_participants')
+                  else
+                    I18n.t('vanity.experiment_participants', count: participants)
+                  end
         # only interested in sorted alternatives with conversion
         sorted = score.alts.select { |alt| alt.measure > 0.0 }.sort_by(&:measure).reverse
         if sorted.size > 1
@@ -371,46 +373,45 @@ module Vanity
           # then alternatives with no conversion.
           sorted |= score.alts
           # we want a result that's clearly better than 2nd best.
-          best, second = sorted[0], sorted[1]
+          best = sorted[0]
+          second = sorted[1]
           if best.measure > second.measure
             diff = ((best.measure - second.measure) / second.measure * 100).round
-            better = I18n.t('vanity.better_alternative_than', :probability=>diff.to_i, :alternative=> second.name) if diff > 0
-            claims << I18n.t('vanity.best_alternative_measure', :best_alternative=>best.name, :measure=>'%.1f' % (best.measure * 100), :better_than=>better)
-            if score.method == :bayes_bandit_score
-              if best.probability >= 90
-                claims << I18n.t('vanity.best_alternative_probability', :probability=>score.best.probability.to_i)
-              else
-                claims << I18n.t('vanity.low_result_confidence')
-              end
-            else
-              if best.probability >= 90
-                claims << I18n.t('vanity.best_alternative_is_significant', :probability=>score.best.probability.to_i)
-              else
-                claims << I18n.t('vanity.result_isnt_significant')
-              end
-            end
+            better = I18n.t('vanity.better_alternative_than', probability: diff.to_i, alternative: second.name) if diff > 0
+            claims << I18n.t('vanity.best_alternative_measure', best_alternative: best.name, measure: format('%.1f', (best.measure * 100)), better_than: better)
+            claims << if score.method == :bayes_bandit_score
+                        if best.probability >= 90
+                          I18n.t('vanity.best_alternative_probability', probability: score.best.probability.to_i)
+                        else
+                          I18n.t('vanity.low_result_confidence')
+                        end
+                      elsif best.probability >= 90
+                        I18n.t('vanity.best_alternative_is_significant', probability: score.best.probability.to_i)
+                      else
+                        I18n.t('vanity.result_isnt_significant')
+                      end
             sorted.delete best
           end
           sorted.each do |alt|
-            if alt.measure > 0.0
-              claims << I18n.t('vanity.converted_percentage', :alternative=>alt.name.sub(/^\w/, &:upcase), :percentage=>'%.1f' % (alt.measure * 100))
-            else
-              claims << I18n.t('vanity.didnt_convert', :alternative=>alt.name.sub(/^\w/, &:upcase))
-            end
+            claims << if alt.measure > 0.0
+                        I18n.t('vanity.converted_percentage', alternative: alt.name.sub(/^\w/, &:upcase), percentage: format('%.1f', (alt.measure * 100)))
+                      else
+                        I18n.t('vanity.didnt_convert', alternative: alt.name.sub(/^\w/, &:upcase))
+                      end
           end
         else
           claims << I18n.t('vanity.no_clear_winner')
         end
-        claims << I18n.t('vanity.selected_as_best', :alternative=>score.choice.name.sub(/^\w/, &:upcase)) if score.choice
+        claims << I18n.t('vanity.selected_as_best', alternative: score.choice.name.sub(/^\w/, &:upcase)) if score.choice
         claims
       end
 
       # -- Unequal probability assignments --
 
-      def set_alternative_probabilities(alternative_probabilities)
+      def set_alternative_probabilities(alternative_probabilities) # rubocop:todo Naming/AccessorMethodName
         # create @use_probabilities as a function to go from [0,1] to outcome
         cumulative_probability = 0.0
-        new_probabilities = alternative_probabilities.map {|am| [am, (cumulative_probability += am.probability)/100.0]}
+        new_probabilities = alternative_probabilities.map { |am| [am, (cumulative_probability += am.probability) / 100.0] }
         @use_probabilities = new_probabilities
       end
 
@@ -425,7 +426,7 @@ module Vanity
       #   end
       #
       #  puts "The experiment will automatically rebalance after every " + experiment(:simple).description + " users are assigned."
-      def rebalance_frequency(rf = nil)
+      def rebalance_frequency(rf = nil) # rubocop:todo Naming/MethodParameterName
         if rf
           @assignments_since_rebalancing = 0
           @rebalance_frequency = rf
@@ -437,10 +438,9 @@ module Vanity
       # Force experiment to rebalance.
       def rebalance!
         return unless @playground.collecting?
+
         score_results = bayes_bandit_score
-        if score_results.method == :bayes_bandit_score
-          set_alternative_probabilities score_results.alts
-        end
+        set_alternative_probabilities score_results.alts if score_results.method == :bayes_bandit_score
       end
 
       # -- Completion --
@@ -461,12 +461,14 @@ module Vanity
       def outcome_is(&block)
         raise ArgumentError, "Missing block" unless block
         raise "outcome_is already called on this experiment" if defined?(@outcome_is)
+
         @outcome_is = block
       end
 
       # Alternative chosen when this experiment completed.
       def outcome
         return unless @playground.collecting?
+
         outcome = connection.ab_get_outcome(@id)
         outcome && alternatives[outcome]
       end
@@ -474,6 +476,7 @@ module Vanity
       def complete!(outcome = nil)
         # This statement is equivalent to: return unless collecting?
         return unless @playground.collecting? && active?
+
         self.enabled = false
         super
 
@@ -481,8 +484,8 @@ module Vanity
           if defined?(@outcome_is)
             begin
               result = @outcome_is.call
-              outcome = result.id if Alternative === result && result.experiment == self
-            rescue => e
+              outcome = result.id if result.is_a?(Alternative) && result.experiment == self
+            rescue StandardError => e
               Vanity.logger.warn("Error in AbTest#complete!: #{e}")
             end
           else
@@ -494,7 +497,6 @@ module Vanity
         connection.ab_set_outcome(@id, outcome || 0)
       end
 
-
       # -- Store/validate --
 
       def destroy
@@ -505,6 +507,7 @@ module Vanity
       # clears all collected data for the experiment
       def reset
         return unless @playground.collecting?
+
         connection.destroy_experiment(@id)
         connection.set_experiment_created_at(@id, Time.now)
         @outcome = @completed_at = nil
@@ -523,7 +526,8 @@ module Vanity
         end
         @saved = true
         true_false unless defined?(@alternatives)
-        fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
+        raise "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
+
         if !@is_default_set
           default(@alternatives.first)
           Vanity.logger.warn("No default alternative specified; choosing #{@default} as default.")
@@ -540,17 +544,23 @@ module Vanity
           @metrics = [default_metric]
         end
         @metrics.each do |metric|
-          metric.hook(&method(:track!))
+          metric.hook(&method(:track!)) # rubocop:todo Performance/MethodObjectAsBlock
         end
       end
 
       # Called via a hook by the associated metric.
-      def track!(metric_id, timestamp, count, *args)
+      def track!(_metric_id, _timestamp, count, *args)
         return unless active? && enabled?
+
         identity = args.last[:identity] if args.last.is_a?(Hash)
-        identity ||= identity() rescue nil
-        if identity
+        identity ||= begin
+          identity()
+        rescue StandardError
+          nil
+        end
+        if identity # rubocop:todo Style/GuardClause
           return if connection.ab_showing(@id, identity)
+
           index = alternative_for(identity)
           connection.ab_add_conversion(@id, index, identity, count)
           check_completion!
@@ -561,7 +571,7 @@ module Vanity
       # launched too late.
       #   -- Reid Hoffman, founder of LinkedIn
 
-    protected
+      protected
 
       # Used for testing.
       def fake(values)
@@ -570,11 +580,13 @@ module Vanity
           participants.times do |identity|
             index = @alternatives.index(value)
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
+
             connection.ab_add_participant @id, index, "#{index}:#{identity}"
           end
           conversions.times do |identity|
             index = @alternatives.index(value)
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
+
             connection.ab_add_conversion @id, index, "#{index}:#{identity}"
           end
         end
@@ -605,7 +617,7 @@ module Vanity
         return existing_assignment if existing_assignment
 
         if @use_probabilities
-          random_outcome = rand()
+          random_outcome = rand
           @use_probabilities.each do |alternative, max_prob|
             return alternative.id if random_outcome < max_prob
           end
@@ -651,7 +663,7 @@ module Vanity
 
       def rebalance_if_necessary!
         # if we are rebalancing probabilities, keep track of how long it has been since we last rebalanced
-        if defined?(@rebalance_frequency) && @rebalance_frequency
+        if defined?(@rebalance_frequency) && @rebalance_frequency # rubocop:todo Style/GuardClause
           @assignments_since_rebalancing += 1
           if @assignments_since_rebalancing >= @rebalance_frequency
             @assignments_since_rebalancing = 0
@@ -660,13 +672,13 @@ module Vanity
         end
       end
 
-      def has_alternative_weights?(args)
+      def has_alternative_weights?(args) # rubocop:todo Naming/PredicateName
         (!defined?(@alternatives) || @alternatives.nil?) && args.size == 1 && args[0].is_a?(Hash)
       end
 
       def build_alternatives_with_weights(args)
         @alternatives = args[0]
-        sum_of_probability = @alternatives.values.reduce(0) { |a,b| a+b }
+        sum_of_probability = @alternatives.values.reduce(0) { |a, b| a + b }
         cumulative_probability = 0.0
         @use_probabilities = []
         result = []
@@ -691,9 +703,9 @@ module Vanity
         avg = 50.0
         # Returns array of [z-score, percentage]
         norm_dist = []
-        (0.0..3.1).step(0.01) { |x| norm_dist << [x, avg += 1 / Math.sqrt(2 * Math::PI) * Math::E ** (-x ** 2 / 2)] }
+        (0.0..3.1).step(0.01) { |x| norm_dist << [x, avg += 1 / Math.sqrt(2 * Math::PI) * (Math::E**(-x**2 / 2))] }
         # We're really only interested in 90%, 95%, 99% and 99.9%.
-        Z_TO_PROBABILITY = [90, 95, 99, 99.9].map { |pct| [norm_dist.find { |x,a| a >= pct }.first, pct] }.reverse
+        Z_TO_PROBABILITY = [90, 95, 99, 99.9].map { |pct| [norm_dist.find { |_x, a| a >= pct }.first, pct] }.reverse
       end
     end
 

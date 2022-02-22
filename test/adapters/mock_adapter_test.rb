@@ -2,7 +2,6 @@ require 'test_helper'
 require 'adapters/shared_tests'
 
 describe Vanity::Adapters::MockAdapter do
-
   def specification
     Vanity::Connection::Specification.new(VanityTestHelpers::DATABASE_OPTIONS["mock"])
   end
@@ -12,5 +11,4 @@ describe Vanity::Adapters::MockAdapter do
   end
 
   include Vanity::Adapters::SharedTests
-
 end

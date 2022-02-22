@@ -1,6 +1,5 @@
 module Vanity
   class Metric
-
     AGGREGATES = [:average, :minimum, :maximum, :sum]
 
     # Use an ActiveRecord model to get metric data from database table. Also
@@ -35,15 +34,15 @@ module Vanity
     # @since 1.2.0
     # @see Vanity::Metric::ActiveRecord
     def model(class_or_scope, options = nil)
-      ActiveSupport.on_load(:active_record, :yield=>true) do
+      ActiveSupport.on_load(:active_record, yield: true) do
         class_or_scope = class_or_scope.constantize if class_or_scope.is_a?(String)
-        options = options || {}
+        options ||= {}
         conditions = options.delete(:conditions)
 
         @ar_scoped = conditions ? class_or_scope.where(conditions) : class_or_scope
         @ar_aggregate = AGGREGATES.find { |key| options.has_key?(key) }
         @ar_column = options.delete(@ar_aggregate)
-        fail "Cannot use multiple aggregates in a single metric" if AGGREGATES.find { |key| options.has_key?(key) }
+        raise "Cannot use multiple aggregates in a single metric" if AGGREGATES.find { |key| options.has_key?(key) }
 
         @ar_timestamp = options.delete(:timestamp) || :created_at
         @ar_timestamp, @ar_timestamp_table = @ar_timestamp.to_s.split('.').reverse
@@ -51,7 +50,7 @@ module Vanity
 
         @ar_identity_block = options.delete(:identity)
 
-        fail "Unrecognized options: #{options.keys * ", "}" unless options.empty?
+        raise "Unrecognized options: #{options.keys * ', '}" unless options.empty?
 
         @ar_scoped.after_create(self)
         extend ActiveRecord
@@ -63,31 +62,31 @@ module Vanity
     #
     # @since 1.3.0
     module ActiveRecord
-
       # This values method queries the database.
       def values(sdate, edate)
         time = Time.now.in_time_zone
         difference = time.to_date - Date.today
-        sdate = sdate + difference
-        edate = edate + difference
+        sdate += difference
+        edate += difference
 
         grouped = @ar_scoped
-            .where(@ar_timestamp_table => { @ar_timestamp => (sdate.to_time...(edate + 1).to_time) })
-            .group("date(#{@ar_scoped.quoted_table_name}.#{@ar_scoped.connection.quote_column_name(@ar_timestamp)})")
+                  .where(@ar_timestamp_table => { @ar_timestamp => (sdate.to_time...(edate + 1).to_time) })
+                  .group("date(#{@ar_scoped.quoted_table_name}.#{@ar_scoped.connection.quote_column_name(@ar_timestamp)})")
 
-        if @ar_column
-          grouped = grouped.send(@ar_aggregate, @ar_column)
-        else
-          grouped = grouped.count
-        end
+        grouped = if @ar_column
+                    grouped.send(@ar_aggregate, @ar_column)
+                  else
+                    grouped.count
+                  end
 
-        grouped = Hash[grouped.map {|k,v| [k.to_date, v] }]
+        grouped = grouped.map { |k, v| [k.to_date, v] }.to_h
         (sdate..edate).inject([]) { |ordered, date| ordered << (grouped[date] || 0) }
       end
 
       # This track! method stores nothing, but calls the hooks.
       def track!(args = nil)
         return unless @playground.collecting?
+
         call_hooks(*track_args(args))
       end
 
@@ -100,12 +99,15 @@ module Vanity
       # AR model after_create callback notifies all the hooks.
       def after_create(record)
         return unless @playground.collecting?
+
         count = @ar_column ? (record.send(@ar_column) || 0) : 1
 
-        identity = Vanity.context.vanity_identity rescue nil
-        identity ||= if @ar_identity_block
-          @ar_identity_block.call(record)
+        identity = begin
+          Vanity.context.vanity_identity
+        rescue StandardError
+          nil
         end
+        identity ||= (@ar_identity_block.call(record) if @ar_identity_block)
 
         call_hooks record.send(@ar_timestamp), identity, [count] if count > 0 && @ar_scoped.exists?(record.id)
       end

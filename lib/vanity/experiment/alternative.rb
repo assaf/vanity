@@ -1,13 +1,11 @@
 module Vanity
   module Experiment
-
     # One of several alternatives in an A/B test (see AbTest#alternatives).
     class Alternative
-
-      def initialize(experiment, id, value) #, participants, converted, conversions)
+      def initialize(experiment, id, value) # , participants, converted, conversions)
         @experiment = experiment
         @id = id
-        @name = I18n.t('vanity.option_number', :char=>(@id + 65).chr.upcase)
+        @name = I18n.t('vanity.option_number', char: (@id + 65).chr.upcase)
         @value = value
       end
 
@@ -56,7 +54,7 @@ module Vanity
 
       # Conversion rate calculated as converted/participants
       def conversion_rate
-        @conversion_rate ||= (participants > 0 ? converted.to_f/participants.to_f  : 0.0)
+        @conversion_rate ||= (participants > 0 ? converted.to_f / participants.to_f : 0.0)
       end
 
       # The measure we use to order (sort) alternatives and decide which one

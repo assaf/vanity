@@ -14,9 +14,9 @@ module Vanity
     #
     # @since 1.4.0
     class MockAdapter < AbstractAdapter
-      def initialize(options)
-        @metrics = @@metrics ||= {}
-        @experiments = @@experiments ||= {}
+      def initialize(_options) # rubocop:todo Lint/MissingSuper
+        @metrics = @@metrics ||= {} # rubocop:todo Style/ClassVars
+        @experiments = @@experiments ||= {} # rubocop:todo Style/ClassVars
       end
 
       def active?
@@ -42,18 +42,17 @@ module Vanity
         @experiments.clear
       end
 
-
       # -- Metrics --
 
       def get_metric_last_update_at(metric)
         @metrics[metric] && @metrics[metric][:last_update_at]
       end
 
-      def metric_track(metric, timestamp, identity, values)
+      def metric_track(metric, timestamp, _identity, values)
         @metrics[metric] ||= {}
         current = @metrics[metric][timestamp.to_date] ||= []
-        values.each_with_index do |v,i|
-          current[i] = (current[i] || 0) + v || 0
+        values.each_with_index do |v, i|
+          current[i] = ((current[i] || 0) + v) || 0
         end
         @metrics[metric][:last_update_at] = Time.now
       end
@@ -66,7 +65,6 @@ module Vanity
       def destroy_metric(metric)
         @metrics.delete metric
       end
-
 
       # -- Experiments --
 
@@ -92,7 +90,7 @@ module Vanity
         @experiments[experiment] && @experiments[experiment][:completed_at]
       end
 
-      def is_experiment_completed?(experiment)
+      def is_experiment_completed?(experiment) # rubocop:todo Naming/PredicateName
         @experiments[experiment] && @experiments[experiment][:completed_at]
       end
 
@@ -101,10 +99,10 @@ module Vanity
         @experiments[experiment][:enabled] = enabled
       end
 
-      def is_experiment_enabled?(experiment)
+      def is_experiment_enabled?(experiment) # rubocop:todo Naming/PredicateName
         record = @experiments[experiment]
         if Vanity.configuration.experiments_start_enabled
-          record == nil || record[:enabled] != false
+          record.nil? || record[:enabled] != false
         else
           record && record[:enabled] == true
         end
@@ -112,9 +110,9 @@ module Vanity
 
       def ab_counts(experiment, alternative)
         alt = alternative(experiment, alternative)
-        { :participants => alt[:participants] ? alt[:participants].size : 0,
-          :converted    => alt[:converted] ? alt[:converted].size : 0,
-          :conversions  => alt[:conversions] || 0 }
+        { participants: alt[:participants] ? alt[:participants].size : 0,
+          converted: alt[:converted] ? alt[:converted].size : 0,
+          conversions: alt[:conversions] || 0 }
       end
 
       def ab_show(experiment, identity, alternative)
@@ -139,9 +137,7 @@ module Vanity
 
       def ab_seen(experiment, identity, alternative_or_id)
         with_ab_seen_deprecation(experiment, identity, alternative_or_id) do |expt, ident, alt_id|
-          if ab_assigned(expt, ident) == alt_id
-            alt_id
-          end
+          alt_id if ab_assigned(expt, ident) == alt_id
         end
       end
 
@@ -161,7 +157,7 @@ module Vanity
         if implicit
           alt[:participants] << identity
         else
-    participating = alt[:participants].include?(identity)
+          participating = alt[:participants].include?(identity)
         end
         alt[:converted] << identity if implicit || participating
         alt[:conversions] += count

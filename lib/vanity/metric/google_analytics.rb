@@ -1,6 +1,5 @@
 module Vanity
   class Metric
-
     # Use Google Analytics metric. Note: you must +require "garb"+ before
     # vanity.
     #
@@ -17,13 +16,13 @@ module Vanity
     # @see Vanity::Metric::GoogleAnalytics
     def google_analytics(web_property_id, *args)
       require "garb"
-      options = Hash === args.last ? args.pop : {}
+      options = args.last.is_a?(Hash) ? args.pop : {}
       metric = args.shift || :pageviews
       @ga_resource = Vanity::Metric::GoogleAnalytics::Resource.new(web_property_id, metric)
-      @ga_mapper = options[:mapper] ||= lambda { |entry| entry.send(@ga_resource.metrics.elements.first).to_i }
+      @ga_mapper = options[:mapper] ||= ->(entry) { entry.send(@ga_resource.metrics.elements.first).to_i }
       extend GoogleAnalytics
     rescue LoadError
-      fail LoadError, "Google Analytics metrics require Garb, please gem install garb first"
+      raise LoadError, "Google Analytics metrics require Garb, please gem install garb first"
     end
 
     # Calling google_analytics method on a metric extends it with these modules,
@@ -31,19 +30,18 @@ module Vanity
     #
     # @since 1.3.0
     module GoogleAnalytics
-
       # Returns values from GA using parameters specified by prior call to
       # google_analytics.
       def values(from, to)
-        data = @ga_resource.results(from, to).inject({}) do |hash,entry|
-          hash.merge(entry.date=>@ga_mapper.call(entry))
+        data = @ga_resource.results(from, to).inject({}) do |hash, entry|
+          hash.merge(entry.date => @ga_mapper.call(entry))
         end
         (from..to).map { |day| data[day.strftime('%Y%m%d')] || 0 }
       end
 
       # Hooks not supported for GA metrics.
       def hook
-        fail "Cannot use hooks with Google Analytics methods"
+        raise "Cannot use hooks with Google Analytics methods"
       end
 
       # Garb report.
@@ -77,7 +75,6 @@ module Vanity
           Garb::ReportResponse.new(send_request_for_body).results
         end
       end
-
     end
   end
 end

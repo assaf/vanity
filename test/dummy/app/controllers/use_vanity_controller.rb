@@ -9,30 +9,34 @@ class UseVanityController < ActionController::Base
 
   def index
     text = Vanity.ab_test(:pie_or_cake)
-    render :plain=>text, :text=>text
+    render plain: text, text: text
   end
 
   def js
     Vanity.ab_test(:pie_or_cake)
-    render :inline => "<%= vanity_js -%>"
+    render inline: "<%= vanity_js -%>"
   end
 
   def view_helper_ab_test_js
-    render :inline => <<-EOS
+    # rubocop:todo Naming/HeredocDelimiterNaming
+    render inline: <<-EOS
     <% ab_test(:pie_or_cake) %>
     <%= vanity_js -%>
-EOS
+    EOS
+    # rubocop:enable Naming/HeredocDelimiterNaming
   end
 
   def global_ab_test_js
-    render :inline => <<-EOS
+    # rubocop:todo Naming/HeredocDelimiterNaming
+    render inline: <<-EOS
     <% Vanity.ab_test(:pie_or_cake) %>
     <%= vanity_js -%>
-EOS
+    EOS
+    # rubocop:enable Naming/HeredocDelimiterNaming
   end
 
   def model_js
     TestModel.new.test_method
-    render :inline => "<%= vanity_js -%>"
+    render inline: "<%= vanity_js -%>"
   end
 end

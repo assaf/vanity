@@ -13,6 +13,7 @@ AllCops:
   TargetRubyVersion: 2.5
   DisplayCopNames: true
   DisplayStyleGuide: true
+  SuggestExtensions: false
   Include:
     - Rakefile
   Exclude:
@@ -22,6 +23,12 @@ AllCops:
     - scripts/**/*
     - gemfiles/**/*
   NewCops: enable
+
+# Style/FrozenStringLiteralComment:
+#   Exclude:
+#     - gemfiles/*.gemfile
+Style/FrozenStringLiteralComment:
+  Enabled: false
 
 Layout/EmptyLineAfterMagicComment:
   Enabled: false
@@ -80,11 +87,7 @@ Style/EmptyMethod:
   EnforcedStyle: expanded
 
 Style/FormatStringToken:
-  EnforcedStyle: template
-
-Style/FrozenStringLiteralComment:
-  Exclude:
-    - gemfiles/*.gemfile
+  Enabled: false
 
 Style/MultilineBlockChain:
   Enabled: false
