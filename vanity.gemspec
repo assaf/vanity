@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
   spec.rdoc_options     = "--title", "Vanity #{spec.version}", "--main", "README.md",
                           "--webcvs", "http://github.com/assaf/#{spec.name}"
 
-  spec.required_ruby_version = ">= 1.9.3" # rubocop:todo Gemspec/RequiredRubyVersion
+  spec.required_ruby_version = ">= 2.5"
 
   spec.add_runtime_dependency "i18n"
 
