@@ -48,7 +48,7 @@ module Vanity
       alias playground_should_autoconnect? should_connect?
 
       def schema_relevant?
-        current_rake_tasks.any? { |task| task =~ /\Adb:/ }
+        current_rake_tasks.any? { |task| task.start_with?('db:') }
       end
 
       def environment_disabled?

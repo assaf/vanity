@@ -220,7 +220,7 @@ describe "deprecated Rails load_path and deprecated connection configuration" do
       tmp.write code
       tmp.flush
       Dir.chdir "tmp" do
-        open("| ruby #{tmp.path}").read
+        open("| ruby #{tmp.path}").read # rubocop:todo Security/Open
       end
     ensure
       tmp.close!
