@@ -7,7 +7,7 @@ GIT
 PATH
   remote: ..
   specs:
-    vanity (3.1.0)
+    vanity (3.1.1)
       i18n
 
 GEM
@@ -77,7 +77,6 @@ GEM
     crack (0.4.2)
       safe_yaml (~> 1.0.0)
     crass (1.0.4)
-    daemon_controller (1.2.0)
     erubis (2.7.0)
     execjs (2.5.2)
     fakefs (0.6.7)
@@ -148,9 +147,7 @@ GEM
       ast (~> 2.4.1)
     parslet (1.5.0)
       blankslate (~> 2.0)
-    passenger (3.0.21)
-      daemon_controller (>= 1.0.0)
-      fastthread (>= 1.0.1)
+    passenger (6.0.12)
       rack
       rake (>= 0.8.1)
     posix-spawn (0.3.11)
@@ -168,7 +165,7 @@ GEM
       yajl-ruby (~> 1.2.0)
     racc (1.6.0)
     racc (1.6.0-java)
-    rack (1.6.10)
+    rack (1.6.13)
     rack-test (0.6.3)
       rack (>= 1.0)
     rails (4.2.9)
@@ -196,7 +193,7 @@ GEM
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
     rainbow (3.1.1)
-    rake (12.3.1)
+    rake (13.0.6)
     rb-fsevent (0.9.4)
     rb-inotify (0.9.5)
       ffi (>= 0.5.0)
@@ -272,7 +269,7 @@ DEPENDENCIES
   minitest (>= 4.2)
   mocha (~> 1.0)
   mongo (~> 2.1)
-  passenger (~> 3.0)
+  passenger
   pry
   rack
   rails (= 4.2.9)
@@ -290,4 +287,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   1.17.2
+   1.17.3

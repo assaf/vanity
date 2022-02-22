@@ -50,5 +50,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Info
+        run: bundle env
       - name: Run Tests
         run: bundle exec rake test

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vanity (3.1.0)
+    vanity (3.1.1)
       i18n
 
 GEM
@@ -181,4 +181,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   1.17.2
+   1.17.3
