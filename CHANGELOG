@@ -1,3 +1,8 @@
+== 4.0.0 (2022-03-03)
+
+* Drop support for Ruby < 2.5 (@frostmark)
+* Drop support for Rails < 5.2 (@bensheldon)
+
 == 3.1.0 (2022-01-29)
 
 * Invoke on_assignment callback after assignment is stored in database; add global on_assignment callback (@frostmark)
