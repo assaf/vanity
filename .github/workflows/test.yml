@@ -30,15 +30,10 @@ jobs:
           - redis
           - active_record
         gemfile:
-          - gemfiles/rails42.gemfile
-          - gemfiles/rails42_protected_attributes.gemfile
-          - gemfiles/rails51.gemfile
           - gemfiles/rails52.gemfile
           - gemfiles/rails60.gemfile
           - gemfiles/rails61.gemfile
-        exclude:
-          - ruby: jruby-9.1.13.0
-            gemfile: gemfiles/rails5.gemfile
+
     env:
       DB: ${{ matrix.db }}
       BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}

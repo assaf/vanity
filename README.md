@@ -380,15 +380,10 @@ your view no participants will be recorded.
 
 Here's what's tested and known to work:
 
-    Ruby 2.3
-      Persistence: Redis (redis-rb >= 3.2.1), Mongo, ActiveRecord
-      Rails: 4.1, 4.2, 5
-    Ruby 2.4
-      Persistence: Redis (redis-rb >= 3.2.1), Mongo, ActiveRecord
-      Rails: 4.1, 4.2, 5
-    JRuby 9.1
-      Persistence: Redis (redis-rb >= 3.2.1), Mongo, ActiveRecord
-      Rails: 4.1, 4.2
+    Rails: 5.2+
+    Ruby: 2.5+
+    JRuby: 9.1+
+    Persistence: Redis (redis-rb >= 3.2.1), Mongo, ActiveRecord
 
 ## Testing
 
