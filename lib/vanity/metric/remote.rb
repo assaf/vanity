@@ -3,7 +3,6 @@ require "cgi"
 
 module Vanity
   class Metric
-
     # Specifies the base URL to use for a remote metric. For example:
     #   metric :sandbox do
     #     remote "http://api.vanitydash.com/metrics/sandbox"
@@ -26,9 +25,9 @@ module Vanity
     # - Set values by their index using +values[0]+, +values[1]+, etc or
     # - Set values by series name using +values[foo]+, +values[bar]+, etc.
     module Remote
-
       def track!(args = nil)
         return unless @playground.collecting?
+
         timestamp, identity, values = track_args(args)
         params = ["metric=#{CGI.escape @id.to_s}", "timestamp=#{CGI.escape timestamp.httpdate}"]
         params << "identity=#{CGI.escape identity.to_s}" if identity
@@ -36,9 +35,9 @@ module Vanity
         params << @remote_url.query if @remote_url.query
         @mutex.synchronize do
           @http ||= Net::HTTP.start(@remote_url.host, @remote_url.port)
-          @http.request Net::HTTP::Post.new(@remote_url.path, "Content-Type"=>"application/x-www-form-urlencoded"), params.join("&")
+          @http.request Net::HTTP::Post.new(@remote_url.path, "Content-Type" => "application/x-www-form-urlencoded"), params.join("&")
         end
-      rescue Timeout::Error, StandardError
+      rescue Timeout::Error, StandardError # rubocop:todo Lint/ShadowedException
         @playground.logger.error "Error sending data for metric #{name}: #{$!}"
         @http = nil
       ensure
@@ -47,7 +46,6 @@ module Vanity
 
       # "Don't worry, be crappy. Revolutionary means you ship and then test."
       # -- Guy Kawazaki
-
     end
   end
 end

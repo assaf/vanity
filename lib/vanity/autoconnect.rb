@@ -2,8 +2,7 @@ module Vanity
   # A singleton responsible for determining if the playground should connect
   # to the datastore.
   module Autoconnect
-
-     BLACKLISTED_RAILS_RAKE_TASKS = [
+    BLACKLISTED_RAILS_RAKE_TASKS = [
       'about',
       'assets:clean',
       'assets:clobber',
@@ -38,7 +37,7 @@ module Vanity
       'stats',
       'time:zones:all',
       'tmp:clear',
-      'tmp:create'
+      'tmp:create',
     ]
     ENVIRONMENT_VANITY_DISABLED_FLAG = "VANITY_DISABLED"
 
@@ -46,10 +45,10 @@ module Vanity
       def should_connect?
         !environment_disabled? && !in_blacklisted_rake_task?
       end
-      alias_method :playground_should_autoconnect?, :should_connect?
+      alias playground_should_autoconnect? should_connect?
 
       def schema_relevant?
-        current_rake_tasks.any? { |task| task =~ /\Adb:/ }
+        current_rake_tasks.any? { |task| task.start_with?('db:') }
       end
 
       def environment_disabled?
@@ -62,7 +61,7 @@ module Vanity
 
       def current_rake_tasks
         ::Rake.application.top_level_tasks
-      rescue
+      rescue StandardError
         []
       end
     end

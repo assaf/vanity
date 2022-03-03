@@ -8,7 +8,7 @@ module Vanity
   #
   # @see Vanity::Configuration
   # @since 2.0.0
-  def self.configuration(set_if_needed=true)
+  def self.configuration(set_if_needed = true)
     if defined?(@configuration) && @configuration
       @configuration
     elsif set_if_needed
@@ -77,7 +77,7 @@ module Vanity
   # Returns the current connection. Establishes new connection is necessary.
   #
   # @since 2.0.0
-  def self.connection(connect_if_needed=true)
+  def self.connection(connect_if_needed = true)
     if defined?(@connection) && @connection
       @connection
     elsif connect_if_needed
@@ -91,7 +91,7 @@ module Vanity
   #
   # @since 2.0.0
   # @see Vanity::Connection
-  def self.connect!(spec_or_nil=nil)
+  def self.connect!(spec_or_nil = nil)
     spec_or_nil ||= configuration.connection_params
 
     # Legacy special config variables permitted in connection spec
@@ -100,15 +100,11 @@ module Vanity
     # Legacy redis.yml fallback
     if spec_or_nil.nil?
       redis_url = configuration.redis_url_from_file
-      if redis_url
-        spec_or_nil = redis_url
-      end
+      spec_or_nil = redis_url if redis_url
     end
 
     # Legacy connection url fallback
-    if configuration.connection_url
-      spec_or_nil = configuration.connection_url
-    end
+    spec_or_nil = configuration.connection_url if configuration.connection_url
 
     @connection = Connection.new(spec_or_nil)
   end
@@ -117,7 +113,7 @@ module Vanity
   #
   # @since 2.0.0
   def self.disconnect!
-    if @connection
+    if @connection # rubocop:todo Style/GuardClause
       @connection.disconnect!
       @connection = nil
     end
@@ -135,7 +131,7 @@ module Vanity
   # The playground instance.
   #
   # @see Vanity::Playground
-  def self.playground(load_if_needed=true)
+  def self.playground(load_if_needed = true)
     if @playground
       @playground
     elsif load_if_needed

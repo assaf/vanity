@@ -7,7 +7,7 @@ module Vanity
     LEGACY_CONNECTION_KEY = :connection
     LEGACY_REDIS_CONFIG_FILE = "redis.yml"
 
-    class<<self
+    class << self
       private
 
       def default_logger # :nodoc:
@@ -30,9 +30,9 @@ module Vanity
       #
       def default_request_filter(request) # :nodoc:
         request &&
-        request.env &&
-        request.env["HTTP_USER_AGENT"] &&
-        request.env["HTTP_USER_AGENT"].match( /(?:https?:\/\/)|(?:bot|spider|crawler)/i )
+          request.env &&
+          request.env["HTTP_USER_AGENT"] &&
+          request.env["HTTP_USER_AGENT"].match(/(?:https?:\/\/)|(?:bot|spider|crawler)/i)
       end
     end
 
@@ -46,7 +46,7 @@ module Vanity
       failover_on_datastore_error: false,
       locales_path: File.expand_path(File.join(File.dirname(__FILE__), 'locales')),
       logger: default_logger,
-      on_datastore_error: ->(error, klass, method, arguments) {
+      on_datastore_error: lambda { |error, klass, method, arguments|
         default_on_datastore_error(error, klass, method, arguments)
       },
       on_assignment: nil,
@@ -188,7 +188,7 @@ module Vanity
     # We independently list each attr_accessor to includes docs, otherwise
     # something like DEFAULTS.each { |key, value| attr_accessor key } would be
     # shorter.
-    DEFAULTS.each do |default, value|
+    DEFAULTS.each do |default, _value|
       define_method default do
         self[default]
       end
@@ -208,22 +208,22 @@ module Vanity
     end
 
     # @return nil or a hash of symbolized keys for connection settings
-    def connection_params(file_name=nil)
+    def connection_params(file_name = nil)
       file_name ||= config_file
       file_path = File.join(config_path, file_name)
 
-      if File.exist?(file_path)
-        config = YAML.load(ERB.new(File.read(file_path)).result)
+      if File.exist?(file_path) # rubocop:todo Style/GuardClause
+        config = YAML.safe_load(ERB.new(File.read(file_path)).result)
         config ||= {}
         params_for_environment = config[environment.to_s]
 
-        unless params_for_environment
-          raise MissingEnvironment.new("No configuration for #{environment}")
-        end
+        raise MissingEnvironment, "No configuration for #{environment}" unless params_for_environment
 
         # Symbolize keys if it's a hash.
         if params_for_environment.respond_to?(:inject)
-          params_for_environment.inject({}) { |h,kv| h[kv.first.to_sym] = kv.last ; h }
+          params_for_environment.each_with_object({}) do |kv, h|
+            h[kv.first.to_sym] = kv.last
+          end
         else
           params_for_environment
         end
@@ -238,11 +238,11 @@ module Vanity
 
       connection_url = connection_config[LEGACY_CONNECTION_KEY]
 
-      if connection_url
-        logger.warn(%q{Deprecated: Please specify connection urls using the `url` key with a protocol prefix instead of `connection`. This fallback will be removed in a future version.})
+      if connection_url # rubocop:todo Style/GuardClause
+        logger.warn('Deprecated: Please specify connection urls using the `url` key with a protocol prefix instead of `connection`. This fallback will be removed in a future version.')
 
         # Legacy lack of protocol handling
-        if connection_url =~ /^\w+:/
+        if /^\w+:/.match?(connection_url)
           connection_url
         else
           "redis://" + connection_url
@@ -254,10 +254,10 @@ module Vanity
     def redis_url_from_file
       connection_url = connection_params(LEGACY_REDIS_CONFIG_FILE)
 
-      if connection_url
-        logger.warn(%q{Deprecated: Please specify the vanity config file, the default fallback to "config/redis.yml" may be removed in a future version.})
+      if connection_url # rubocop:todo Style/GuardClause
+        logger.warn('Deprecated: Please specify the vanity config file, the default fallback to "config/redis.yml" may be removed in a future version.')
 
-        if connection_url =~ /^\w+:/
+        if /^\w+:/.match?(connection_url)
           connection_url
         else
           "redis://" + connection_url

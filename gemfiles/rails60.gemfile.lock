@@ -7,7 +7,7 @@ GIT
 PATH
   remote: ..
   specs:
-    vanity (3.1.0)
+    vanity (3.2.0)
       i18n
 
 GEM
@@ -65,6 +65,7 @@ GEM
       rake
       thor (>= 0.14.0)
     arel (9.0.0)
+    ast (2.4.2)
     blankslate (2.1.2.4)
     bson (4.3.0)
     bson (4.3.0-java)
@@ -82,7 +83,6 @@ GEM
     crack (0.4.3)
       safe_yaml (~> 1.0.0)
     crass (1.0.4)
-    daemon_controller (1.2.0)
     erubi (1.7.1)
     execjs (2.7.0)
     fakefs (0.18.0)
@@ -160,11 +160,12 @@ GEM
       racc (~> 1.4)
     octokit (4.9.0)
       sawyer (~> 0.8.0, >= 0.5.3)
+    parallel (1.21.0)
+    parser (3.1.1.0)
+      ast (~> 2.4.1)
     parslet (1.5.0)
       blankslate (~> 2.0)
-    passenger (3.0.21)
-      daemon_controller (>= 1.0.0)
-      fastthread (>= 1.0.1)
+    passenger (6.0.12)
       rack
       rake (>= 0.8.1)
     posix-spawn (0.3.13)
@@ -181,7 +182,7 @@ GEM
       yajl-ruby (~> 1.2.0)
     racc (1.6.0)
     racc (1.6.0-java)
-    rack (2.0.5)
+    rack (2.2.3)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
     rails (5.2.0)
@@ -208,7 +209,8 @@ GEM
       method_source
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
-    rake (12.3.1)
+    rainbow (3.1.1)
+    rake (13.0.6)
     rb-fsevent (0.10.3)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
@@ -216,6 +218,25 @@ GEM
     redis (4.0.1)
     redis-namespace (1.6.0)
       redis (>= 3.0.4)
+    regexp_parser (2.2.1)
+    rexml (3.2.5)
+    rubocop (1.25.1)
+      parallel (~> 1.10)
+      parser (>= 3.1.0.0)
+      rainbow (>= 2.2.2, < 4.0)
+      regexp_parser (>= 1.8, < 3.0)
+      rexml
+      rubocop-ast (>= 1.15.1, < 2.0)
+      ruby-progressbar (~> 1.7)
+      unicode-display_width (>= 1.4.0, < 3.0)
+    rubocop-ast (1.15.2)
+      parser (>= 3.0.1.1)
+    rubocop-performance (1.13.2)
+      rubocop (>= 1.7.0, < 2.0)
+      rubocop-ast (>= 0.4.0)
+    rubocop-rspec (2.8.0)
+      rubocop (~> 1.19)
+    ruby-progressbar (1.11.0)
     ruby_dep (1.5.0)
     rubystats (0.3.0)
     safe_yaml (1.0.4)
@@ -245,6 +266,7 @@ GEM
       parslet (~> 1.5.0)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
+    unicode-display_width (2.1.0)
     webmock (3.4.2)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
@@ -275,13 +297,16 @@ DEPENDENCIES
   minitest (>= 4.2)
   mocha (~> 1.0)
   mongo (~> 2.1)
-  passenger (~> 3.0)
+  passenger
   pry
   rack
   rails (~> 5.2.0)
   rake
   redis (>= 3.2.1)
   redis-namespace (>= 1.1.0)
+  rubocop
+  rubocop-performance
+  rubocop-rspec
   rubystats (>= 0.2.5)
   sqlite3 (~> 1.3.10)
   timecop
@@ -290,4 +315,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   1.17.2
+   1.17.3

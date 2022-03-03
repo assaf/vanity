@@ -1,7 +1,6 @@
 require 'time'
 
 module Vanity::Adapters::SharedTests
-
   DummyAlternative = Struct.new(:id)
 
   def identity
@@ -124,7 +123,7 @@ module Vanity::Adapters::SharedTests
 
             refute(@subject.experiment_persisted?(experiment))
             assert_equal(
-              { :participants => 0, :converted => 0, :conversions => 0 },
+              { participants: 0, converted: 0, conversions: 0 },
               @subject.ab_counts(experiment, alternative)
             )
           end
@@ -132,13 +131,11 @@ module Vanity::Adapters::SharedTests
 
         describe '#is_experiment_enabled?' do
           def with_experiments_start_enabled(enabled)
-            begin
-              original_value = Vanity.configuration.experiments_start_enabled
-              Vanity.configuration.experiments_start_enabled = enabled
-              yield
-            ensure
-              Vanity.configuration.experiments_start_enabled = original_value
-            end
+            original_value = Vanity.configuration.experiments_start_enabled
+            Vanity.configuration.experiments_start_enabled = enabled
+            yield
+          ensure
+            Vanity.configuration.experiments_start_enabled = original_value
           end
 
           describe 'when experiments start enabled' do
@@ -193,7 +190,7 @@ module Vanity::Adapters::SharedTests
             @subject.ab_add_conversion(experiment, alternative, identity, 1, true)
 
             assert_equal(
-              {:participants => 1, :conversions => 1, :converted => 1},
+              { participants: 1, conversions: 1, converted: 1 },
               @subject.ab_counts(experiment, alternative)
             )
           end
@@ -204,7 +201,7 @@ module Vanity::Adapters::SharedTests
             @subject.ab_add_participant(experiment, alternative, identity)
 
             assert_equal(
-              {:participants => 1, :conversions => 0, :converted => 0},
+              { participants: 1, conversions: 0, converted: 0 },
               @subject.ab_counts(experiment, alternative)
             )
           end
@@ -287,7 +284,7 @@ module Vanity::Adapters::SharedTests
             run_experiment
 
             assert_equal(
-              {:participants => 2, :conversions => 2, :converted => 1},
+              { participants: 2, conversions: 2, converted: 1 },
               @subject.ab_counts(experiment, alternative)
             )
           end

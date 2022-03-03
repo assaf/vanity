@@ -1,5 +1,4 @@
 module Vanity
-
   # A metric is an object that implements two methods: +name+ and +values+. It
   # can also respond to addition methods (+track!+, +bounds+, etc), these are
   # optional.
@@ -10,7 +9,6 @@ module Vanity
   #
   # @since 1.1.0
   class Metric
-
     # These methods are available when defining a metric in a file loaded
     # from the +experiments/metrics+ directory.
     #
@@ -20,22 +18,22 @@ module Vanity
     #     description "Most boring metric ever"
     #   end
     module Definition
-
       attr_reader :playground
 
       # Defines a new metric, using the class Vanity::Metric.
       def metric(name, &block)
-        fail "Metric #{@metric_id} already defined in playground" if playground.metrics[@metric_id]
+        raise "Metric #{@metric_id} already defined in playground" if playground.metrics[@metric_id]
+
         metric = Metric.new(playground, name.to_s, @metric_id)
         metric.instance_eval(&block)
         playground.metrics[@metric_id] = metric
       end
 
       def new_binding(playground, id)
-        @playground, @metric_id = playground, id
+        @playground = playground
+        @metric_id = id
         binding
       end
-
     end
 
     # Startup metrics for pirates. AARRR stands for:
@@ -46,7 +44,6 @@ module Vanity
     # * Revenue
     # Read more: http://500hats.typepad.com/500blogs/2007/09/startup-metrics.html
     class << self
-
       # Helper method to return description for a metric.
       #
       # A metric object may have a +description+ method that returns a detailed
@@ -68,7 +65,7 @@ module Vanity
       # @example
       #   upper = Vanity::Metric.bounds(metric).last
       def bounds(metric)
-        metric.respond_to?(:bounds) && metric.bounds || [nil, nil]
+        (metric.respond_to?(:bounds) && metric.bounds) || [nil, nil]
       end
 
       # Returns data set for a given date range. The data set is an array of
@@ -92,36 +89,36 @@ module Vanity
 
       # Playground uses this to load metric definitions.
       def load(playground, stack, file)
-        fail "Circular dependency detected: #{stack.join('=>')}=>#{file}" if stack.include?(file)
+        raise "Circular dependency detected: #{stack.join('=>')}=>#{file}" if stack.include?(file)
+
         source = File.read(file)
         stack.push file
         id = File.basename(file, ".rb").downcase.gsub(/\W/, "_").to_sym
         context = Object.new
         context.instance_eval do
           extend Definition
-          metric = eval(source, context.new_binding(playground, id), file)
-          fail NameError.new("Expected #{file} to define metric #{id}", id) unless playground.metrics[id]
+          metric = eval(source, context.new_binding(playground, id), file) # rubocop:todo Security/Eval
+          raise NameError.new("Expected #{file} to define metric #{id}", id) unless playground.metrics[id]
+
           metric
         end
-      rescue
+      rescue StandardError
         error = NameError.exception($!.message, id)
         error.set_backtrace $!.backtrace
         raise error
       ensure
         stack.pop
       end
-
     end
-
 
     # Takes playground (need this to access Redis), friendly name and optional
     # id (can infer from name).
     def initialize(playground, name, id = nil)
-      @playground, @name = playground, name.to_s
+      @playground = playground
+      @name = name.to_s
       @id = (id || name.to_s.downcase.gsub(/\W+/, '_')).to_sym
       @hooks = []
     end
-
 
     # -- Tracking --
 
@@ -135,9 +132,10 @@ module Vanity
     #   foo_and_bar.track! [5,11]
     def track!(args = nil)
       return unless @playground.collecting?
+
       timestamp, identity, values = track_args(args)
       connection.metric_track @id, timestamp, identity, values
-      @playground.logger.info "vanity: #{@id} with value #{values.join(", ")}"
+      @playground.logger.info "vanity: #{@id} with value #{values.join(', ')}"
       call_hooks timestamp, identity, values
     end
 
@@ -152,7 +150,11 @@ module Vanity
       when Numeric
         values = [args]
       end
-      identity ||= Vanity.context.vanity_identity rescue nil
+      identity ||= begin
+        Vanity.context.vanity_identity
+      rescue StandardError
+        nil
+      end
       [timestamp || Time.now, identity, values || [1]]
     end
     protected :track_args
@@ -183,12 +185,11 @@ module Vanity
     def bounds
     end
 
-
     #  -- Reporting --
 
     # Human readable metric name. All metrics must implement this method.
     attr_reader :name
-    alias :to_s :name
+    alias to_s name
 
     # Human readable description. Use two newlines to break paragraphs.
     attr_writer :description
@@ -218,7 +219,6 @@ module Vanity
       connection.get_metric_last_update_at(@id)
     end
 
-
     # -- Storage --
 
     def destroy!
@@ -235,9 +235,8 @@ module Vanity
 
     def call_hooks(timestamp, identity, values)
       @hooks.each do |hook|
-        hook.call @id, timestamp, values.first || 1, :identity=>identity
+        hook.call @id, timestamp, values.first || 1, identity: identity
       end
     end
-
   end
 end

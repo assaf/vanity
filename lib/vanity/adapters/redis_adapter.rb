@@ -6,9 +6,10 @@ module Vanity
       # @since 1.4.0
       def redis_connection(spec)
         require "redis"
-        fail "redis >= 2.1 is required" unless valid_redis_version?
+        raise "redis >= 2.1 is required" unless valid_redis_version?
+
         require "redis/namespace"
-        fail "redis-namespace >= 1.1.0 is required" unless valid_redis_namespace_version?
+        raise "redis-namespace >= 1.1.0 is required" unless valid_redis_namespace_version?
 
         RedisAdapter.new(spec)
       end
@@ -28,7 +29,7 @@ module Vanity
     class RedisAdapter < AbstractAdapter
       attr_reader :redis
 
-      def initialize(options)
+      def initialize(options) # rubocop:todo Lint/MissingSuper
         @options = options.clone
         @options[:db] ||= @options[:database] || (@options[:path] && @options.delete(:path).split("/")[1].to_i)
         @options[:thread_safe] = true
@@ -40,9 +41,7 @@ module Vanity
       end
 
       def disconnect!
-        if redis
-          redis.disconnect!
-        end
+        redis.disconnect! if redis
         @redis = nil
       end
 
@@ -53,8 +52,8 @@ module Vanity
 
       def connect!
         @redis = @options[:redis] || Redis.new(@options)
-        @metrics = Redis::Namespace.new("vanity:metrics", :redis=>redis)
-        @experiments = Redis::Namespace.new("vanity:experiments", :redis=>redis)
+        @metrics = Redis::Namespace.new("vanity:metrics", redis: redis)
+        @experiments = Redis::Namespace.new("vanity:experiments", redis: redis)
       end
 
       def to_s
@@ -74,7 +73,7 @@ module Vanity
 
       def metric_track(metric, timestamp, identity, values)
         call_redis_with_failover(metric, timestamp, identity, values) do
-          values.each_with_index do |v,i|
+          values.each_with_index do |v, i|
             @metrics.incrby "#{metric}:#{timestamp.to_date}:value:#{i}", v
           end
           @metrics.set("#{metric}:last_update_at", Time.now.to_i)
@@ -89,7 +88,6 @@ module Vanity
       def destroy_metric(metric)
         @metrics.del(*@metrics.keys("#{metric}:*"))
       end
-
 
       # -- Experiments --
 
@@ -117,7 +115,7 @@ module Vanity
         completed_at && Time.at(completed_at.to_i)
       end
 
-      def is_experiment_completed?(experiment)
+      def is_experiment_completed?(experiment) # rubocop:todo Naming/PredicateName
         call_redis_with_failover do
           @experiments.exists("#{experiment}:completed_at")
         end
@@ -129,7 +127,7 @@ module Vanity
         end
       end
 
-      def is_experiment_enabled?(experiment)
+      def is_experiment_enabled?(experiment) # rubocop:todo Naming/PredicateName
         value = @experiments.get("#{experiment}:enabled")
         if Vanity.configuration.experiments_start_enabled
           value != 'false'
@@ -140,9 +138,9 @@ module Vanity
 
       def ab_counts(experiment, alternative)
         {
-          :participants => @experiments.scard("#{experiment}:alts:#{alternative}:participants").to_i,
-          :converted    => @experiments.scard("#{experiment}:alts:#{alternative}:converted").to_i,
-          :conversions  => @experiments.get("#{experiment}:alts:#{alternative}:conversions").to_i
+          participants: @experiments.scard("#{experiment}:alts:#{alternative}:participants").to_i,
+          converted: @experiments.scard("#{experiment}:alts:#{alternative}:converted").to_i,
+          conversions: @experiments.get("#{experiment}:alts:#{alternative}:conversions").to_i,
         }
       end
 
@@ -174,11 +172,7 @@ module Vanity
       def ab_seen(experiment, identity, alternative_or_id)
         with_ab_seen_deprecation(experiment, identity, alternative_or_id) do |expt, ident, alt_id|
           call_redis_with_failover(expt, ident, alt_id) do
-            if @experiments.sismember "#{expt}:alts:#{alt_id}:participants", ident
-              alt_id
-            else
-              nil
-            end
+            alt_id if @experiments.sismember "#{expt}:alts:#{alt_id}:participants", ident
           end
         end
       end
@@ -187,9 +181,7 @@ module Vanity
       def ab_assigned(experiment, identity)
         call_redis_with_failover do
           Vanity.playground.experiments[experiment].alternatives.each do |alternative|
-            if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
-              return alternative.id
-            end
+            return alternative.id if @experiments.sismember "#{experiment}:alts:#{alternative.id}:participants", identity
           end
           nil
         end
@@ -219,7 +211,7 @@ module Vanity
       def destroy_experiment(experiment)
         cursor = nil
 
-        while cursor != "0" do
+        while cursor != "0"
           cursor, keys = @experiments.scan(cursor || "0", match: "#{experiment}:*")
 
           @experiments.del(*keys) unless keys.empty?
@@ -229,11 +221,11 @@ module Vanity
       protected
 
       def call_redis_with_failover(*arguments)
-        calling_method = caller[0][/`.*'/][1..-2]
+        calling_method = caller(1..1).first[/`.*'/][1..-2]
         begin
           yield
-        rescue => e
-          if Vanity.configuration.failover_on_datastore_error
+        rescue StandardError => e
+          if Vanity.configuration.failover_on_datastore_error # rubocop:todo Style/GuardClause
             Vanity.configuration.on_datastore_error.call(e, self.class, calling_method, arguments)
           else
             raise e

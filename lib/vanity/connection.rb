@@ -30,12 +30,10 @@ module Vanity
     #     :host=>"redis.local"
     #   )
     # @since 2.0.0
-    def initialize(specification=nil)
+    def initialize(specification = nil)
       @specification = Specification.new(specification || DEFAULT_SPECIFICATION).to_h
 
-      if Autoconnect.playground_should_autoconnect?
-        @adapter = setup_connection(@specification)
-      end
+      @adapter = setup_connection(@specification) if Autoconnect.playground_should_autoconnect?
     end
 
     # Closes the current connection.
@@ -68,16 +66,16 @@ module Vanity
         when String
           @spec = build_specification_hash_from_url(spec)
         when Hash
-          if spec[:redis]
-            @spec = {
-              adapter: :redis,
-              redis: spec[:redis]
-            }
-          else
-            @spec = spec
-          end
+          @spec = if spec[:redis]
+                    {
+                      adapter: :redis,
+                      redis: spec[:redis],
+                    }
+                  else
+                    spec
+                  end
         else
-          raise InvalidSpecification.new("Unsupported connection specification: #{spec.inspect}")
+          raise InvalidSpecification, "Unsupported connection specification: #{spec.inspect}"
         end
 
         validate_specification_hash(@spec)
@@ -104,7 +102,7 @@ module Vanity
           host: uri.host,
           port: uri.port,
           path: uri.path,
-          params: params
+          params: params,
         }
       end
     end

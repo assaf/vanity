@@ -2,13 +2,11 @@ require "test_helper"
 
 describe "Remote metrics" do
   before do
-    File.open "tmp/experiments/metrics/sandbox.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/sandbox.rb", <<-RUBY)
         metric "Sandbox" do
           remote "http://api.vanitydash.com/metrics/sandbox"
         end
-      RUBY
-    end
+    RUBY
 
     Dir.chdir "tmp" do
       Vanity.playground.load!
@@ -28,7 +26,6 @@ describe "Remote metrics" do
   end
 end
 
-
 describe "Remote send" do
   before do
     @metric = Vanity::Metric.new(Vanity.playground, :sandbox)
@@ -40,7 +37,7 @@ describe "Remote send" do
   it "remote send in sequence" do
     Vanity.playground.track! :sandbox
     Vanity.playground.track! :sandbox
-    assert_requested(:post, "http://api.vanitydash.com/metrics/sandbox", :times=>2)
+    assert_requested(:post, "http://api.vanitydash.com/metrics/sandbox", times: 2)
   end
 
   it "remote sends url-encoded data" do
@@ -59,7 +56,7 @@ describe "Remote send" do
   end
 
   it "remote sends array of values" do
-    Vanity.playground.track! :sandbox, [1,2,3]
+    Vanity.playground.track! :sandbox, [1, 2, 3]
     assert_requested(:post, /api/) { |request| Rack::Utils.parse_query(request.body)["values[]"] == %w{1 2 3} }
   end
 
@@ -90,7 +87,7 @@ describe "Remote send" do
     Vanity.playground.track! :sandbox
     stub_request(:post, /api/)
     Vanity.playground.track! :sandbox
-    assert_requested(:post, /api/, :times=>2)
+    assert_requested(:post, /api/, times: 2)
   end
 
   it "remote send handles timeout error" do
@@ -98,13 +95,13 @@ describe "Remote send" do
     Vanity.playground.track! :sandbox
     stub_request(:post, /api/)
     Vanity.playground.track! :sandbox
-    assert_requested(:post, /api/, :times=>2)
+    assert_requested(:post, /api/, times: 2)
   end
 
   it "remote does not send when metrics disabled" do
     not_collecting!
     Vanity.playground.track! :sandbox
     Vanity.playground.track! :sandbox
-    assert_requested(:post, /api/, :times=>0)
+    assert_requested(:post, /api/, times: 0)
   end
 end

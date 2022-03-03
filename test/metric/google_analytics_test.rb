@@ -2,27 +2,23 @@ require "test_helper"
 
 describe "Google Analytics" do
   before do
-    File.open "tmp/experiments/metrics/ga.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/ga.rb", <<-RUBY)
         metric "GA" do
           google_analytics "UA2"
         end
-      RUBY
-    end
+    RUBY
   end
 
-  GA_RESULT = Struct.new(:date, :pageviews, :visits)
-  GA_PROFILE = Struct.new(:web_property_id)
+  GA_RESULT = Struct.new(:date, :pageviews, :visits) # rubocop:todo Lint/ConstantDefinitionInBlock
+  GA_PROFILE = Struct.new(:web_property_id) # rubocop:todo Lint/ConstantDefinitionInBlock
 
   it "fail if Garb not available" do
-    File.open "tmp/experiments/metrics/ga.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/ga.rb", <<-RUBY)
         metric "GA" do
           expects(:require).raises LoadError
           google_analytics "UA2"
         end
-      RUBY
-    end
+    RUBY
     assert_raises LoadError do
       Vanity.playground.metrics
     end
@@ -45,13 +41,11 @@ describe "Google Analytics" do
   end
 
   it "accept other metrics" do
-    File.open "tmp/experiments/metrics/ga.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/ga.rb", <<-RUBY)
         metric "GA" do
           google_analytics "UA2", :visitors
         end
-      RUBY
-    end
+    RUBY
     Vanity.playground.metrics
     assert_equal [:visitors], metric(:ga).report.metrics.elements
   end
@@ -67,35 +61,33 @@ describe "Google Analytics" do
     Vanity.playground.metrics
     Garb::Profile.expects(:all).returns(Array.new(3) { |i| GA_PROFILE.new("UA#{i + 1}") })
     metric(:ga).report.stubs(:send_request_for_body).returns(nil)
-    Garb::ReportResponse.stubs(:new).returns(mock(:results=>[]))
+    Garb::ReportResponse.stubs(:new).returns(mock(results: []))
     metric(:ga).values(Date.parse("2010-02-10"), Date.parse("2010-02-12"))
     assert_equal "UA2", metric(:ga).report.profile.web_property_id
   end
 
   it "should map results from report" do
     Vanity.playground.metrics
-    today = Date.today
-    response = mock(:results=>Array.new(3) { |i| GA_RESULT.new("2010021#{i}", i + 1) })
+    today = Date.today # rubocop:todo Lint/UselessAssignment
+    response = mock(results: Array.new(3) { |i| GA_RESULT.new("2010021#{i}", i + 1) })
     Garb::Profile.stubs(:all).returns([])
     Garb::ReportResponse.expects(:new).returns(response)
     metric(:ga).report.stubs(:send_request_for_body).returns(nil)
-    assert_equal [1,2,3], metric(:ga).values(Date.parse("2010-02-10"), Date.parse("2010-02-12"))
+    assert_equal [1, 2, 3], metric(:ga).values(Date.parse("2010-02-10"), Date.parse("2010-02-12"))
   end
 
   it "mapping GA metrics to single value" do
-    File.open "tmp/experiments/metrics/ga.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/ga.rb", <<-RUBY)
         metric "GA" do
           google_analytics "UA2", :mapper=>lambda { |e| e.pageviews * e.visits }
         end
-      RUBY
-    end
+    RUBY
     Vanity.playground.metrics
-    today = Date.today
-    response = mock(:results=>Array.new(3) { |i| GA_RESULT.new("2010021#{i}", i + 1, i + 1) })
+    today = Date.today # rubocop:todo Lint/UselessAssignment
+    response = mock(results: Array.new(3) { |i| GA_RESULT.new("2010021#{i}", i + 1, i + 1) })
     Garb::Profile.stubs(:all).returns([])
     Garb::ReportResponse.expects(:new).returns(response)
     metric(:ga).report.stubs(:send_request_for_body).returns(nil)
-    assert_equal [1,4,9], metric(:ga).values(Date.parse("2010-02-10"), Date.parse("2010-02-12"))
+    assert_equal [1, 4, 9], metric(:ga).values(Date.parse("2010-02-10"), Date.parse("2010-02-12"))
   end
 end

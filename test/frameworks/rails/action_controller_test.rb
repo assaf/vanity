@@ -19,9 +19,7 @@ class UseVanityControllerTest < ActionController::TestCase
     end
 
     # Rails 3 configuration for cookies
-    if ::Rails.respond_to?(:application)
-      ::Rails.application.config.session_options[:domain] = '.foo.bar'
-    end
+    ::Rails.application.config.session_options[:domain] = '.foo.bar' if ::Rails.respond_to?(:application)
   end
 
   def teardown
@@ -31,25 +29,25 @@ class UseVanityControllerTest < ActionController::TestCase
   def test_render_js_for_tests
     Vanity.playground.use_js!
     get :js
-    assert_match /script.*v=pie_or_cake=.*script/m, @response.body
+    assert_match(/script.*v=pie_or_cake=.*script/m, @response.body)
   end
 
   def test_view_helper_ab_test_js_for_tests
     Vanity.playground.use_js!
     get :view_helper_ab_test_js
-    assert_match /script.*v=pie_or_cake=.*script/m, @response.body
+    assert_match(/script.*v=pie_or_cake=.*script/m, @response.body)
   end
 
   def test_global_ab_test_js_for_tests
     Vanity.playground.use_js!
     get :global_ab_test_js
-    assert_match /script.*v=pie_or_cake=.*script/m, @response.body
+    assert_match(/script.*v=pie_or_cake=.*script/m, @response.body)
   end
 
   def test_render_model_js_for_tests
     Vanity.playground.use_js!
     get :model_js
-    assert_match /script.*v=pie_or_cake=.*script/m, @response.body
+    assert_match(/script.*v=pie_or_cake=.*script/m, @response.body)
   end
 
   def test_chooses_sets_alternatives_for_rails_tests
@@ -77,10 +75,10 @@ class UseVanityControllerTest < ActionController::TestCase
   def test_vanity_cookie_is_persistent
     get :index
     cookie = @response["Set-Cookie"].to_s
-    assert_match /vanity_id=[a-f0-9]{32};/, cookie
+    assert_match(/vanity_id=[a-f0-9]{32};/, cookie)
     expires = cookie[/expires=(.*)(;|$)/, 1]
     assert expires
-    assert_in_delta Time.parse(expires), Time.now + 20 * 365 * 24 * 60 * 60, 1.day
+    assert_in_delta Time.parse(expires), Time.now + (20 * 365 * 24 * 60 * 60), 1.day
   end
 
   def test_vanity_cookie_default_id
@@ -91,7 +89,7 @@ class UseVanityControllerTest < ActionController::TestCase
   def test_vanity_cookie_retains_id
     @request.cookies["vanity_id"] = "from_last_time"
     get :index
-    assert_equal "from_last_time",  cookies["vanity_id"]
+    assert_equal "from_last_time", cookies["vanity_id"]
   end
 
   def test_vanity_cookie_uses_configuration
@@ -107,13 +105,13 @@ class UseVanityControllerTest < ActionController::TestCase
   end
 
   def test_vanity_identity_set_from_user
-    @controller.current_user = stub("user", :id=>"user_id")
+    @controller.current_user = stub("user", id: "user_id")
     get :index
     assert_equal "user_id", @controller.send(:vanity_identity)
   end
 
   def test_vanity_identity_with_null_user_falls_back_to_cookie
-    @controller.current_user = stub("user", :id=>nil)
+    @controller.current_user = stub("user", id: nil)
     get :index
     assert cookies["vanity_id"] =~ /^[a-f0-9]{32}$/
   end
@@ -130,6 +128,7 @@ class UseVanityControllerTest < ActionController::TestCase
   def test_vanity_identity_set_with_block
     UseVanityController.class_eval do
       attr_accessor :project_id
+
       use_vanity { |controller| controller.project_id }
     end
     @controller.project_id = "576"
@@ -138,26 +137,27 @@ class UseVanityControllerTest < ActionController::TestCase
   end
 
   def test_vanity_identity_set_with_identity_paramater
-    params = { :_identity => "id_from_params" }
+    params = { _identity: "id_from_params" }
     get :index, params
     assert_equal "id_from_params", @controller.send(:vanity_identity)
   end
 
   def test_vanity_identity_prefers_block_over_symbol
     UseVanityController.class_eval do
-      attr_accessor :project_id
+      attr_accessor :project_id # rubocop:todo Lint/DuplicateMethods
+
       use_vanity(:current_user) { |controller| controller.project_id }
     end
     @controller.project_id = "576"
-    @controller.current_user = stub(:id=>"user_id")
+    @controller.current_user = stub(id: "user_id")
 
     get :index
     assert_equal "576", @controller.send(:vanity_identity)
   end
 
-    def test_vanity_identity_prefers_parameter_over_cookie
+  def test_vanity_identity_prefers_parameter_over_cookie
     @request.cookies['vanity_id'] = "old_id"
-    params = { :_identity => "id_from_params" }
+    params = { _identity: "id_from_params" }
     get :index, params
     assert_equal "id_from_params", @controller.send(:vanity_identity)
     assert cookies['vanity_id'], "id_from_params"
@@ -165,7 +165,7 @@ class UseVanityControllerTest < ActionController::TestCase
 
   def test_vanity_identity_prefers_cookie_over_object
     @request.cookies['vanity_id'] = "from_last_time"
-    @controller.current_user = stub(:id=>"user_id")
+    @controller.current_user = stub(id: "user_id")
     get :index
     assert_equal "from_last_time", @controller.send(:vanity_identity)
   end
@@ -173,7 +173,7 @@ class UseVanityControllerTest < ActionController::TestCase
   # query parameter filter
 
   def test_redirects_and_loses_vanity_query_parameter
-    params = { :foo=>"bar", :_vanity=>"567" }
+    params = { foo: "bar", _vanity: "567" }
     get :index, params
     assert_redirected_to "/use_vanity?foo=bar"
   end
@@ -182,8 +182,9 @@ class UseVanityControllerTest < ActionController::TestCase
     first = experiment(:pie_or_cake).alternatives.first
     fingerprint = experiment(:pie_or_cake).fingerprint(first)
     10.times do
-      @controller = nil ; setup_controller_request_and_response
-      params = { :_vanity => fingerprint }
+      @controller = nil
+      setup_controller_request_and_response
+      params = { _vanity: fingerprint }
       get :index, params
       assert_equal experiment(:pie_or_cake).choose, experiment(:pie_or_cake).alternatives.first
       assert experiment(:pie_or_cake).showing?(first)
@@ -194,21 +195,20 @@ class UseVanityControllerTest < ActionController::TestCase
     experiment(:pie_or_cake).chooses(experiment(:pie_or_cake).alternatives.last.value)
     first = experiment(:pie_or_cake).alternatives.first
     fingerprint = experiment(:pie_or_cake).fingerprint(first)
-    params = { :foo => "bar", :_vanity => fingerprint }
+    params = { foo: "bar", _vanity: fingerprint }
     post :index, params
     assert_response :success
     assert !experiment(:pie_or_cake).showing?(first)
   end
 
   def test_track_param_tracks_a_metric
-    params = { :_identity => "123", :_track => "sugar_high" }
+    params = { _identity: "123", _track: "sugar_high" }
     get :index, params
     assert_equal experiment(:pie_or_cake).alternatives[0].converted, 1
   end
 
   def test_cookie_domain_from_rails_configuration
     get :index
-    assert_match /domain=.foo.bar/, @response["Set-Cookie"] if ::Rails.respond_to?(:application)
+    assert_match(/domain=.foo.bar/, @response["Set-Cookie"]) if ::Rails.respond_to?(:application)
   end
-
 end

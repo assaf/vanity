@@ -9,7 +9,7 @@ describe Vanity::Helpers do
         default "foo"
         metrics :coolness
       end
-      Vanity.track!(:coolness, :identity=>'quux')
+      Vanity.track!(:coolness, identity: 'quux')
 
       assert_equal 1, experiment(:foobar).alternatives.sum(&:conversions)
     end
@@ -21,7 +21,7 @@ describe Vanity::Helpers do
         default "foo"
         metrics :coolness
       end
-      Vanity.track!(:coolness, :identity=>'quux', :values=>[2])
+      Vanity.track!(:coolness, identity: 'quux', values: [2])
 
       assert_equal 2, experiment(:foobar).alternatives.sum(&:conversions)
     end

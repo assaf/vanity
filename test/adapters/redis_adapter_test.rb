@@ -31,14 +31,14 @@ describe Vanity::Adapters::RedisAdapter do
   def stub_redis
     Vanity.playground.failover_on_datastore_error!
     mocked_redis = stub("Redis")
-    redis_adapter = Vanity::Adapters::RedisAdapter.new(:redis => mocked_redis)
+    redis_adapter = Vanity::Adapters::RedisAdapter.new(redis: mocked_redis)
 
     [redis_adapter, mocked_redis]
   end
 
   it "connects to existing redis" do
     mocked_redis = stub("Redis")
-    adapter = Vanity::Adapters.redis_connection(:redis => mocked_redis)
+    adapter = Vanity::Adapters.redis_connection(redis: mocked_redis)
     assert_equal mocked_redis, adapter.redis
   end
 
@@ -131,5 +131,4 @@ describe Vanity::Adapters::RedisAdapter do
       redis_adapter.ab_add_conversion("price_options", 0, "3ff62e2fb51f0b22646a342a2d357aec")
     end
   end
-
 end

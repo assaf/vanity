@@ -1,28 +1,23 @@
 require "test_helper"
 
 describe Vanity::Playground do
-
   it "has one global instance" do
     assert instance = Vanity.playground
     assert_equal instance, Vanity.playground
   end
 
   it "creates metrics hooks on initialization for tracking" do
-    File.open "tmp/experiments/metrics/coolness.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/metrics/coolness.rb", <<-RUBY)
         metric "coolness" do
         end
-      RUBY
-    end
+    RUBY
 
-    File.open "tmp/experiments/foobar.rb", "w" do |f|
-      f.write <<-RUBY
+    File.write("tmp/experiments/foobar.rb", <<-RUBY)
         ab_test :foobar do
           metrics :coolness
           default false
         end
-      RUBY
-    end
+    RUBY
 
     # new_ab_test :foobar do
     #   alternatives "foo", "bar"
@@ -56,7 +51,7 @@ describe Vanity::Playground do
         proc = Vanity.playground.on_datastore_error
         assert proc.respond_to?(:call)
         assert_silent do
-          proc.call(Exception.new("datastore error"), self.class, caller[0][/`.*'/][1..-2], [1, 2, 3])
+          proc.call(Exception.new("datastore error"), self.class, caller(1..1).first[/`.*'/][1..-2], [1, 2, 3])
         end
       end
     end
@@ -105,12 +100,10 @@ describe Vanity::Playground do
 
   describe "#experiments" do
     it "saves experiments exactly once" do
-      File.open "tmp/experiments/foobar.rb", "w" do |f|
-        f.write <<-RUBY
+      File.write("tmp/experiments/foobar.rb", <<-RUBY)
           ab_test :foobar do
           end
-        RUBY
-      end
+      RUBY
       Vanity::Experiment::AbTest.any_instance.expects(:save).once
       Vanity.playground.experiments
     end

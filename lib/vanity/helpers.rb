@@ -32,7 +32,7 @@ module Vanity
     #     render action: Vanity.ab_test(:new_page)
     #   end
     # @since 1.2.0
-    def ab_test(name, request=nil, &block)
+    def ab_test(name, request = nil, &block)
       request ||= Vanity.context.respond_to?(:request) ? Vanity.context.request : nil
 
       alternative = Vanity.playground.experiment(name).choose(request)

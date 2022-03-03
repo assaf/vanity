@@ -69,7 +69,7 @@ module Vanity
           @vanity_identity
         elsif cookies[Vanity.configuration.cookie_name]
           @vanity_identity = cookies[Vanity.configuration.cookie_name]
-        elsif identity = vanity_identity_from_method(vanity_identity_method)
+        elsif identity = vanity_identity_from_method(vanity_identity_method) # rubocop:todo Lint/AssignmentInCondition
           @vanity_identity = identity
         elsif response # everyday use
           @vanity_identity = cookies[Vanity.configuration.cookie_name] || SecureRandom.hex(16)
@@ -96,7 +96,7 @@ module Vanity
           path: Vanity.configuration.cookie_path,
           domain: Vanity.configuration.cookie_domain,
           secure: Vanity.configuration.cookie_secure,
-          httponly: Vanity.configuration.cookie_httponly
+          httponly: Vanity.configuration.cookie_httponly,
         }
         result[:domain] ||= ::Rails.application.config.session_options[:domain]
         result
@@ -118,13 +118,13 @@ module Vanity
         if symbol && (@object = symbol)
           class << self
             define_method :vanity_identity do
-              @vanity_identity = (String === @object ? @object : @object.id)
+              @vanity_identity = (@object.is_a?(String) ? @object : @object.id)
             end
           end
         else
           class << self
             define_method :vanity_identity do
-              @vanity_identity = @vanity_identity || SecureRandom.hex(16)
+              @vanity_identity ||= SecureRandom.hex(16)
             end
           end
         end
@@ -137,7 +137,8 @@ module Vanity
     module Filters
       # Around filter that sets Vanity.context to controller.
       def vanity_context_filter
-        previous, Vanity.context = Vanity.context, self
+        previous = Vanity.context
+        Vanity.context = self
         yield
       ensure
         Vanity.context = previous
@@ -158,9 +159,9 @@ module Vanity
       # http://example.com/.
       def vanity_query_parameter_filter
         query_params = request.query_parameters
-        if request.get? && query_params[:_vanity]
+        if request.get? && query_params[:_vanity] # rubocop:todo Style/GuardClause
           hashes = Array(query_params.delete(:_vanity))
-          Vanity.playground.experiments.each do |id, experiment|
+          Vanity.playground.experiments.each do |_id, experiment|
             if experiment.respond_to?(:alternatives)
               experiment.alternatives.each do |alt|
                 if hashes.delete(experiment.fingerprint(alt))
@@ -185,14 +186,11 @@ module Vanity
       # Filter to track metrics. Pass _track param along to call track! on that
       # alternative.
       def vanity_track_filter
-        if request.get? && params[:_track]
-          Vanity.track! params[:_track]
-        end
+        Vanity.track! params[:_track] if request.get? && params[:_track]
       end
 
       protected :vanity_context_filter, :vanity_query_parameter_filter, :vanity_reload_filter
     end
-
 
     # Introduces ab_test helper (controllers and views). Similar to the generic
     # ab_test method, with the ability to capture content (applicable to views,
@@ -221,13 +219,13 @@ module Vanity
       #     <%= count %> features to choose from!
       #   <% end %>
       def ab_test(name, &block)
-        current_request = respond_to?(:request) ? self.request : nil
+        current_request = respond_to?(:request) ? request : nil
         value = Vanity.ab_test(name, current_request)
 
         if block
           content = capture(value, &block)
           if defined?(block_called_from_erb?) && block_called_from_erb?(block)
-             concat(content)
+            concat(content)
           else
             content
           end
@@ -238,20 +236,21 @@ module Vanity
 
       # Generate url with the identity of the current user and the metric to track on click
       def vanity_track_url_for(identity, metric, options = {})
-        options = options.merge(:_identity => identity, :_track => metric)
+        options = options.merge(_identity: identity, _track: metric)
         url_for(options)
       end
 
       # Generate url with the fingerprint for the current Vanity experiment
       def vanity_tracking_image(identity, metric, options = {})
-        options = options.merge(:controller => :vanity, :action => :image, :_identity => identity, :_track => metric)
-        image_tag(url_for(options), :width => "1px", :height => "1px", :alt => "")
+        options = options.merge(controller: :vanity, action: :image, _identity: identity, _track: metric)
+        image_tag(url_for(options), width: "1px", height: "1px", alt: "")
       end
 
       def vanity_js
         return if Vanity.context.vanity_active_experiments.nil? || Vanity.context.vanity_active_experiments.empty?
+
         javascript_tag do
-          render :file => Vanity.template("_vanity.js.erb"), :formats => [:js]
+          render file: Vanity.template("_vanity.js.erb"), formats: [:js]
         end
       end
 
@@ -267,7 +266,7 @@ module Vanity
         end
       end
 
-      def vanity_simple_format(text, html_options={})
+      def vanity_simple_format(text, html_options = {})
         vanity_html_safe(simple_format(text, html_options))
       end
 
@@ -299,7 +298,6 @@ module Vanity
       end
     end
 
-
     # When configuring use_js to true, you must set up a route to
     # add_participant_route.
     #
@@ -323,17 +321,21 @@ module Vanity
         h = {}
         params[:v].split(',').each do |pair|
           exp_id, answer = pair.split('=')
-          exp = Vanity.playground.experiment(exp_id.to_s.to_sym) rescue nil
+          exp = begin
+            Vanity.playground.experiment(exp_id.to_s.to_sym)
+          rescue StandardError
+            nil
+          end
           answer = answer.to_i
 
           if !exp || !exp.alternatives[answer]
             head 404
-            return
+            return # rubocop:todo Lint/NonLocalExitFromIterator
           end
           h[exp] = exp.alternatives[answer].value
         end
 
-        h.each{ |e,a| e.chooses(a, request) }
+        h.each { |e, a| e.chooses(a, request) }
         head 200
       end
     end
@@ -354,16 +356,16 @@ module Vanity
 
       def index
         set_vanity_view_path
-        render :template=>"_report", :content_type=>Mime[:html], :locals=>{
-          :experiments=>Vanity.playground.experiments,
-          :experiments_persisted=>Vanity.playground.experiments_persisted?,
-          :metrics=>Vanity.playground.metrics
+        render template: "_report", content_type: Mime[:html], locals: {
+          experiments: Vanity.playground.experiments,
+          experiments_persisted: Vanity.playground.experiments_persisted?,
+          metrics: Vanity.playground.metrics,
         }
       end
 
       def participant
         set_vanity_view_path
-        render :template=>"_participant", :locals=>{:participant_id => params[:id], :participant_info => Vanity.playground.participant_info(params[:id])}, :content_type=>Mime[:html]
+        render template: "_participant", locals: { participant_id: params[:id], participant_info: Vanity.playground.participant_info(params[:id]) }, content_type: Mime[:html]
       end
 
       def complete
@@ -372,12 +374,12 @@ module Vanity
         alt = exp.alternatives[params[:a].to_i]
         confirmed = params[:confirmed]
         # make the user confirm before completing an experiment
-        if confirmed && confirmed.to_i==alt.id && exp.active?
+        if confirmed && confirmed.to_i == alt.id && exp.active?
           exp.complete!(alt.id)
-          render :template=>"_experiment", :locals=>{:experiment=>exp}
+          render template: "_experiment", locals: { experiment: exp }
         else
           @to_confirm = alt.id
-          render :template=>"_experiment", :locals=>{:experiment=>exp}
+          render template: "_experiment", locals: { experiment: exp }
         end
       end
 
@@ -385,21 +387,21 @@ module Vanity
         set_vanity_view_path
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.enabled = false
-        render :template=>"_experiment", :locals=>{:experiment=>exp}
+        render template: "_experiment", locals: { experiment: exp }
       end
 
       def enable
         set_vanity_view_path
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.enabled = true
-        render :template=>"_experiment", :locals=>{:experiment=>exp}
+        render template: "_experiment", locals: { experiment: exp }
       end
 
       def chooses
         set_vanity_view_path
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.chooses(exp.alternatives[params[:a].to_i].value)
-        render :template=>"_experiment", :locals=>{:experiment=>exp}
+        render template: "_experiment", locals: { experiment: exp }
       end
 
       def reset
@@ -407,7 +409,7 @@ module Vanity
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.reset
         flash[:notice] = I18n.t 'vanity.experiment_has_been_reset', name: exp.name
-        render :template=>"_experiment", :locals=>{:experiment=>exp}
+        render template: "_experiment", locals: { experiment: exp }
       end
 
       include AddParticipant
@@ -416,12 +418,11 @@ module Vanity
     module TrackingImage
       def image
         # send image
-        send_file(File.expand_path("../images/x.gif", File.dirname(__FILE__)), :type => 'image/gif', :stream => false, :disposition => 'inline')
+        send_file(File.expand_path("../images/x.gif", File.dirname(__FILE__)), type: 'image/gif', stream: false, disposition: 'inline')
       end
     end
   end
 end
-
 
 # Enhance ActionController with use_vanity, filters and helper methods.
 ActiveSupport.on_load(:action_controller) do
@@ -433,7 +434,6 @@ ActiveSupport.on_load(:action_controller) do
     helper Vanity::Rails::Helpers
   end
 end
-
 
 # Include in mailer, add view helper methods.
 ActiveSupport.on_load(:action_mailer) do
@@ -448,8 +448,8 @@ if defined?(PhusionPassenger)
     if forked
       begin
         Vanity.playground.reconnect! if Vanity.playground.collecting?
-      rescue Exception=>ex
-        Rails.logger.error "Error reconnecting: #{ex.to_s}"
+      rescue Exception => e # rubocop:todo Lint/RescueException
+        Rails.logger.error "Error reconnecting: #{e}"
       end
     end
   end

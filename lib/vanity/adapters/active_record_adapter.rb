@@ -27,7 +27,7 @@ module Vanity
               send :"find_or_create_by_#{method}", value
             end
           rescue ActiveRecord::RecordNotUnique
-            if retried
+            if retried # rubocop:todo Style/GuardClause
               raise
             else
               retried = true
@@ -71,7 +71,7 @@ module Vanity
       # Experiment model
       class VanityExperiment < VanityRecord
         self.table_name = :vanity_experiments
-        has_many :vanity_conversions, :dependent => :destroy
+        has_many :vanity_conversions, dependent: :destroy
         attr_accessible :experiment_id if needs_attr_accessible?
 
         # Finds or creates the experiment
@@ -104,14 +104,14 @@ module Vanity
         def self.retrieve(experiment, identity, create = true, update_with = nil)
           retried = false
           begin
-            if record = VanityParticipant.where(:experiment_id => experiment.to_s, :identity => identity.to_s).first
+            if record = VanityParticipant.where(experiment_id: experiment.to_s, identity: identity.to_s).first # rubocop:todo Lint/AssignmentInCondition
               record.update(update_with) if update_with
             elsif create
-              record = VanityParticipant.create({ :experiment_id => experiment.to_s, :identity => identity.to_s }.merge(update_with || {}))
+              record = VanityParticipant.create({ experiment_id: experiment.to_s, identity: identity.to_s }.merge(update_with || {}))
             end
             record
           rescue ActiveRecord::RecordNotUnique => e
-            if retried
+            if retried # rubocop:todo Style/GuardClause
               raise e
             else
               retried = true
@@ -121,9 +121,11 @@ module Vanity
         end
       end
 
-      def initialize(options)
-        @options = options.inject({}) { |h,kv| h[kv.first.to_s] = kv.last ; h }
-        if @options["active_record_adapter"] && (@options["active_record_adapter"] != "default")
+      def initialize(options) # rubocop:todo Lint/MissingSuper
+        @options = options.each_with_object({}) do |kv, h|
+          h[kv.first.to_s] = kv.last
+        end
+        if @options["active_record_adapter"] && (@options["active_record_adapter"] != "default") # rubocop:todo Style/GuardClause
           @options["adapter"] = @options["active_record_adapter"]
           VanityRecord.establish_connection(@options)
         end
@@ -147,7 +149,6 @@ module Vanity
         end
       end
 
-
       # -- Metrics --
 
       def get_metric_last_update_at(metric)
@@ -155,11 +156,11 @@ module Vanity
         record && record.updated_at
       end
 
-      def metric_track(metric, timestamp, identity, values)
+      def metric_track(metric, timestamp, _identity, values)
         record = VanityMetric.retrieve(metric)
 
         values.each_with_index do |value, index|
-          record.vanity_metric_values.create(:date => timestamp.to_date.to_s, :index => index, :value => value)
+          record.vanity_metric_values.create(date: timestamp.to_date.to_s, index: index, value: value)
         end
 
         record.touch_with_grace_period
@@ -171,14 +172,14 @@ module Vanity
         record = VanityMetric.retrieve(metric)
         dates = (from.to_date..to.to_date).map(&:to_s)
         conditions = [connection.quote_column_name('date') + ' BETWEEN ? AND ?', from.to_date, to.to_date]
-        order = "#{connection.quote_column_name('date')}"
+        order = connection.quote_column_name('date').to_s # rubocop:todo Lint/UselessAssignment
         select = "sum(#{connection.quote_column_name('value')}) AS value, #{connection.quote_column_name('date')}"
-        group_by = "#{connection.quote_column_name('date')}"
+        group_by = connection.quote_column_name('date').to_s
 
         values = record.vanity_metric_values.select(select).where(conditions).group(group_by)
 
         dates.map do |date|
-          value = values.detect{|v| v.date == date }
+          value = values.detect { |v| v.date == date }
           [(value && value.value) || 0]
         end
       end
@@ -187,7 +188,6 @@ module Vanity
         record = VanityMetric.find_by_metric_id(metric.to_s)
         record && record.destroy
       end
-
 
       # -- Experiments --
 
@@ -198,7 +198,7 @@ module Vanity
       # Store when experiment was created (do not write over existing value).
       def set_experiment_created_at(experiment, time)
         record = VanityExperiment.find_by_experiment_id(experiment.to_s) ||
-                VanityExperiment.new(:experiment_id => experiment.to_s)
+                 VanityExperiment.new(experiment_id: experiment.to_s)
         record.created_at ||= time
         record.save
       end
@@ -218,7 +218,7 @@ module Vanity
       end
 
       # Returns true if experiment completed.
-      def is_experiment_completed?(experiment)
+      def is_experiment_completed?(experiment) # rubocop:todo Naming/PredicateName
         !!VanityExperiment.retrieve(experiment).completed_at
       end
 
@@ -226,7 +226,7 @@ module Vanity
         VanityExperiment.retrieve(experiment).update_attribute(:enabled, enabled)
       end
 
-      def is_experiment_enabled?(experiment)
+      def is_experiment_enabled?(experiment) # rubocop:todo Naming/PredicateName
         record = VanityExperiment.retrieve(experiment)
         if Vanity.configuration.experiments_start_enabled
           record.enabled != false
@@ -240,21 +240,21 @@ module Vanity
       # :conversions.
       def ab_counts(experiment, alternative)
         record = VanityExperiment.retrieve(experiment)
-        participants = VanityParticipant.where(:experiment_id => experiment.to_s, :seen => alternative).count
-        converted = VanityParticipant.where(:experiment_id => experiment.to_s, :converted => alternative).count
-        conversions = record.vanity_conversions.where(:alternative => alternative).sum(:conversions)
+        participants = VanityParticipant.where(experiment_id: experiment.to_s, seen: alternative).count
+        converted = VanityParticipant.where(experiment_id: experiment.to_s, converted: alternative).count
+        conversions = record.vanity_conversions.where(alternative: alternative).sum(:conversions)
 
         {
-          :participants => participants,
-          :converted => converted,
-          :conversions => conversions
+          participants: participants,
+          converted: converted,
+          conversions: conversions,
         }
       end
 
       # Pick particular alternative (by index) to show to this particular
       # participant (by identity).
       def ab_show(experiment, identity, alternative)
-        VanityParticipant.retrieve(experiment, identity, true, :shown => alternative)
+        VanityParticipant.retrieve(experiment, identity, true, shown: alternative)
       end
 
       # Indicates which alternative to show to this participant. See #ab_show.
@@ -266,12 +266,12 @@ module Vanity
       # Cancels previously set association between identity and alternative. See
       # #ab_show.
       def ab_not_showing(experiment, identity)
-        VanityParticipant.retrieve(experiment, identity, true, :shown => nil)
+        VanityParticipant.retrieve(experiment, identity, true, shown: nil)
       end
 
       # Records a participant in this experiment for the given alternative.
       def ab_add_participant(experiment, alternative, identity)
-        VanityParticipant.retrieve(experiment, identity, true, :seen => alternative)
+        VanityParticipant.retrieve(experiment, identity, true, seen: alternative)
       end
 
       # Determines if a participant already has seen this alternative in this experiment.
@@ -294,8 +294,8 @@ module Vanity
       # implicit is false (default), only add conversion if participant
       # previously recorded as participating in this experiment.
       def ab_add_conversion(experiment, alternative, identity, count = 1, implicit = false)
-        participant = VanityParticipant.retrieve(experiment, identity, false)
-        VanityParticipant.retrieve(experiment, identity, implicit, :converted => alternative, :seen => alternative)
+        participant = VanityParticipant.retrieve(experiment, identity, false) # rubocop:todo Lint/UselessAssignment
+        VanityParticipant.retrieve(experiment, identity, implicit, converted: alternative, seen: alternative)
         VanityExperiment.retrieve(experiment).increment_conversion(alternative, count)
       end
 
@@ -312,7 +312,7 @@ module Vanity
 
       # Deletes all information about this experiment.
       def destroy_experiment(experiment)
-        VanityParticipant.where(:experiment_id => experiment.to_s).delete_all
+        VanityParticipant.where(experiment_id: experiment.to_s).delete_all
         record = VanityExperiment.find_by_experiment_id(experiment.to_s)
         record && record.destroy
       end

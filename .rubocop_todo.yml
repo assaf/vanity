@@ -1,0 +1,67 @@
+Style/SpecialGlobalVars:
+  Enabled: false
+# Style/FrozenStringLiteralComment:
+#   Exclude:
+#     - gemfiles/*.gemfile
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/MutableConstant:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Performance/Sum:
+  Enabled: false
+
+Performance/StringInclude:
+  Enabled: false
+
+Style/StringConcatenation:
+  Enabled: false
+
+Naming/MemoizedInstanceVariableName:
+  Enabled: false
+
+Style/GlobalStdStream:
+  Enabled: false
+
+Style/IdenticalConditionalBranches:
+  Enabled: false
+
+Performance/InefficientHashSearch:
+  Enabled: false
+
+Style/NumericPredicate:
+  Enabled: false
+
+Style/SafeNavigation:
+  Enabled: false
+
+Style/SymbolProc:
+  Enabled: false
+
+Lint/UselessMethodDefinition:
+  Enabled: false
+
+Style/PreferredHashMethods:
+  Enabled: false
+
+Performance/Count:
+  Enabled: false
+
+Lint/UselessTimes:
+  Enabled: false
+
+Style/HashTransformKeys:
+  Enabled: false
+
+Style/CommentedKeyword:
+  Enabled: false
+
+Performance/RedundantEqualityComparisonBlock:
+  Enabled: false
+
+Style/OptionalBooleanParameter:
+  Enabled: false
