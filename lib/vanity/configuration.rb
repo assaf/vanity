@@ -213,7 +213,7 @@ module Vanity
       file_path = File.join(config_path, file_name)
 
       if File.exist?(file_path) # rubocop:todo Style/GuardClause
-        config = YAML.safe_load(ERB.new(File.read(file_path)).result)
+        config = YAML.safe_load(ERB.new(File.read(file_path)).result, [], [], true)
         config ||= {}
         params_for_environment = config[environment.to_s]
 
