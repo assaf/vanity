@@ -1,3 +1,7 @@
+== 4.0.1 (2022-03-06)
+
+* Fix YAML alias support in `vanity.yml` (@frostmark)
+
 == 4.0.0 (2022-03-03)
 
 * Drop support for Ruby < 2.5 (@frostmark)
