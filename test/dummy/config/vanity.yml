@@ -1,0 +1,7 @@
+default: &default
+  some_key: true
+
+test:
+  <<: *default
+  adapter: mock
+  collecting: false
