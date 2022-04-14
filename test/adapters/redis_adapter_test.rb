@@ -62,7 +62,7 @@ describe Vanity::Adapters::RedisAdapter do
 
   it "gracefully fails in #is_experiment_completed?" do
     redis_adapter, mocked_redis = stub_redis
-    mocked_redis.stubs(:exists).raises(RuntimeError)
+    mocked_redis.stubs(:exists?).raises(RuntimeError)
 
     assert_silent do
       redis_adapter.is_experiment_completed?("price_options")
