@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vanity (4.0.1)
+    vanity (4.0.2)
       i18n
 
 GEM
@@ -33,7 +33,7 @@ GEM
       execjs
     coffee-script-source (1.9.1)
     colorator (0.1)
-    concurrent-ruby (1.1.9)
+    concurrent-ruby (1.1.10)
     crack (0.3.1)
     execjs (2.5.2)
     fakefs (0.6.7)
