@@ -33,6 +33,7 @@ jobs:
           - gemfiles/rails52.gemfile
           - gemfiles/rails60.gemfile
           - gemfiles/rails61.gemfile
+          - gemfiles/redis_44.gemfile
 
     env:
       DB: ${{ matrix.db }}
