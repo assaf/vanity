@@ -117,13 +117,7 @@ module Vanity
 
       def is_experiment_completed?(experiment) # rubocop:todo Naming/PredicateName
         call_redis_with_failover do
-          if @experiments.respond_to?(:exists?)
-            @experiments.exists?("#{experiment}:completed_at")
-          else
-            exists = @experiments.exists("#{experiment}:completed_at")
-
-            exists.is_a?(Numeric) ? exists > 0 : exists
-          end
+          @experiments.exists("#{experiment}:completed_at")
         end
       end
 

@@ -18,10 +18,3 @@ appraise "rails61" do
   gem "fastthread", github: "zoltankiss/fastthread", platforms: :mri_20
   gem "passenger"
 end
-
-appraise "redis-44" do
-  gem "redis", "~> 4.4.0"
-  gem "rails", "~> 6.1.0"
-  gem "fastthread", github: "zoltankiss/fastthread", platforms: :mri_20
-  gem "passenger"
-end
