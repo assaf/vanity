@@ -263,7 +263,11 @@ if ENV["DB"] == "active_record"
 
   migrate_path = File.expand_path('dummy/db/migrate', __dir__)
   if defined?(ActiveRecord::MigrationContext)
-    ActiveRecord::MigrationContext.new(migrate_path, ActiveRecord::SchemaMigration).migrate
+    if ActiveRecord.version.release >= Gem::Version.new('6.0')
+      ActiveRecord::MigrationContext.new(migrate_path, ActiveRecord::SchemaMigration).migrate
+    else
+      ActiveRecord::MigrationContext.new(migrate_path).migrate
+    end
   else
     ActiveRecord::Migrator.migrate(migrate_path)
   end
