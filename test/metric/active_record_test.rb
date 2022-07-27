@@ -203,7 +203,7 @@ if ENV["DB"] == "active_record"
         once = true
       end
       Sky.create!
-      Sky.last.update_attributes height: 4
+      Sky.last.update height: 4
     end
 
     it "with after_save" do
