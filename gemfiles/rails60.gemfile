@@ -19,6 +19,7 @@ group :development do
   gem "RedCloth"
   gem "yard"
   gem "rubocop", "~> 1.25.1"
+  gem "rubocop-ast", "~> 1.15.2"
   gem "rubocop-performance"
   gem "rubocop-rspec"
 end
