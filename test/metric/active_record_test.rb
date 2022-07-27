@@ -203,7 +203,7 @@ if ENV["DB"] == "active_record"
         once = true
       end
       Sky.create!
-      Sky.last.update_attributes height: 4
+      Sky.last.update height: 4
     end
 
     it "with after_save" do
@@ -226,7 +226,7 @@ if ENV["DB"] == "active_record"
       end
       Sky.create!
       (1..5).each do |height|
-        Sky.last.update_attributes! height: height
+        Sky.last.update! height: height
       end
       assert_equal 2, times
     end
@@ -279,7 +279,7 @@ if ENV["DB"] == "active_record"
       (1..5).each do |height|
         Sky.create! height: height
       end
-      Sky.first.update_attributes! height: 4
+      Sky.first.update! height: 4
       assert_equal 3, Vanity::Metric.data(metric(:sky_is_limit)).last.last
     end
 

@@ -22,7 +22,7 @@ gem "garb", "< 0.9.2", require: false # API changes at this version
 
 platform :ruby do
   gem "jekyll", "~> 2.5.3"
-  gem "sqlite3", "~> 1.3.10"
+  gem "sqlite3", "~> 1.4.0"
 end
 
 platform :jruby do
@@ -35,7 +35,8 @@ group :development do
   gem "RedCloth"
   gem "yard"
 
-  gem "rubocop"
+  gem "rubocop", "~> 1.25.1" # Lock for Ruby 2.5
+  gem "rubocop-ast", "~> 1.15.2"  # Lock for Ruby 2.5
   gem "rubocop-performance"
   gem "rubocop-rspec"
 end

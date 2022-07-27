@@ -13,7 +13,6 @@ Gem::Specification.new do |spec|
   spec.post_install_message = "To get started run vanity --help"
 
   spec.files         = `git ls-files`.split("\n")
-  spec.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   spec.executables   = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 

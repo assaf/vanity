@@ -249,8 +249,9 @@ module Vanity
       def vanity_js
         return if Vanity.context.vanity_active_experiments.nil? || Vanity.context.vanity_active_experiments.empty?
 
+        template = File.read(Vanity.template("_vanity.js.erb"))
         javascript_tag do
-          render file: Vanity.template("_vanity.js.erb"), formats: [:js]
+          ERB.new(template).result(binding)
         end
       end
 
