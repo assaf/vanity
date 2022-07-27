@@ -1,5 +1,9 @@
 CHANGELOG
 
+== 4.0.3 (2022-07-27)
+
+* Fix Vanity::Rails::Helpers#vanity_js for Rails 6 (@ariel-codes)
+
 == 4.0.2 (2022-03-03)
 
 * Use Redis#exists? and fallback to #exists which could be either boolean or integer in recent redis gem versions (@bsedin)
