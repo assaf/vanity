@@ -239,16 +239,16 @@ GEM
       redis (>= 3.0.4)
     regexp_parser (2.5.0)
     rexml (3.2.5)
-    rubocop (1.28.2)
+    rubocop (1.25.1)
       parallel (~> 1.10)
       parser (>= 3.1.0.0)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 1.8, < 3.0)
       rexml
-      rubocop-ast (>= 1.17.0, < 2.0)
+      rubocop-ast (>= 1.15.1, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 3.0)
-    rubocop-ast (1.17.0)
+    rubocop-ast (1.19.1)
       parser (>= 3.1.1.0)
     rubocop-performance (1.13.3)
       rubocop (>= 1.7.0, < 2.0)
@@ -320,7 +320,7 @@ DEPENDENCIES
   rake
   redis (>= 3.2.1)
   redis-namespace (>= 1.1.0)
-  rubocop
+  rubocop (~> 1.25.1)
   rubocop-performance
   rubocop-rspec
   rubystats (>= 0.2.5)
