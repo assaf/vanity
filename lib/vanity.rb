@@ -17,6 +17,7 @@ module Vanity
 end
 
 require "vanity/version"
+require "vanity/safe_yaml"
 # Metrics
 require "vanity/metric/base"
 require "vanity/metric/active_record"
