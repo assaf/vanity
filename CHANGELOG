@@ -1,5 +1,9 @@
 CHANGELOG
 
+== 4.0.4 (2022-11-28)
+
+* Support Psych 4 safe_load (@mcg)
+
 == 4.0.3 (2022-07-27)
 
 * Fix Vanity::Rails::Helpers#vanity_js for Rails 6 (@ariel-codes)
