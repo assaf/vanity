@@ -24,6 +24,9 @@ jobs:
       matrix:
         ruby:
           - 2.5
+          - 2.6
+          - 2.7
+          - "3.0"
           # - jruby-9.2.20.1
         db:
           - mongodb
@@ -33,6 +36,9 @@ jobs:
           - gemfiles/rails52.gemfile
           - gemfiles/rails60.gemfile
           - gemfiles/rails61.gemfile
+        exclude:
+          - ruby: "3.0"
+            gemfile: gemfiles/rails52.gemfile
 
     env:
       DB: ${{ matrix.db }}
@@ -40,11 +46,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
+          rubygems: latest
           bundler-cache: true
       - name: Info
         run: bundle env
